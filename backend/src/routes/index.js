@@ -1,15 +1,15 @@
 import express from 'express';
+import authRoutes from './auth.routes.js';
 
 const router = express.Router();
 
-// Import routes (to be created)
-// import authRoutes from './auth.routes.js';
+// Import routes
 // import userRoutes from './user.routes.js';
 // import productRoutes from './product.routes.js';
 // ... etc
 
 // Use routes
-// router.use('/auth', authRoutes);
+router.use('/auth', authRoutes);
 // router.use('/users', userRoutes);
 // router.use('/products', productRoutes);
 
