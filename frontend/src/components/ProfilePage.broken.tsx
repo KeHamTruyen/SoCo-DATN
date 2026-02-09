@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, Users, Package, Star, LayoutDashboard, Store } from 'lucide-react';
+import { MapPin, Calendar, Users, Package, Star, Settings, LayoutDashboard, Store } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { mockProducts } from '../data/mockData';
 import { PageLayout } from './Layout';
@@ -103,16 +103,16 @@ export function ProfilePage() {
               )}
               <div>
                 <h3 className="text-lg">
-                  {(user.role === 'SELLER' || user.role === 'ADMIN') ? 'Người bán đã xác thực' : 'Người mua'}
+                  {user.role === 'seller' ? 'Người bán đã xác thực' : 'Người mua'}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {(user.role === 'SELLER' || user.role === 'ADMIN')
+                  {user.role === 'seller'
                     ? 'Bạn có thể đăng bán sản phẩm và tiếp cận khách hàng'
                     : 'Nâng cấp lên người bán để bắt đầu kinh doanh'}
                 </p>
               </div>
             </div>
-            {(user.role === 'SELLER' || user.role === 'ADMIN') && user.isVerified && (
+            {user.role === 'seller' && user.isVerified && (
               <div className="text-green-600 flex items-center gap-2">
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -124,7 +124,7 @@ export function ProfilePage() {
         </div>
 
         {/* Stats for Sellers */}
-        {(user.role === 'SELLER' || user.role === 'ADMIN') && (
+        {user.role === 'seller' && (
           <>
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -144,7 +144,7 @@ export function ProfilePage() {
               </button>
               
               <button
-                onClick={() => navigate(`/store/${user.id}`)}
+                onClick={() => navigate(\/store/\\)}
                 className="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg p-6 hover:from-purple-700 hover:to-purple-800 transition-all shadow-sm hover:shadow-md text-left"
               >
                 <div className="flex items-center gap-4">
@@ -200,7 +200,7 @@ export function ProfilePage() {
         )}
 
         {/* Products */}
-        {(user.role === 'SELLER' || user.role === 'ADMIN') && userProducts.length > 0 && (
+        {user.role === 'seller' && userProducts.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg mb-4">Sản phẩm của tôi</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -208,7 +208,7 @@ export function ProfilePage() {
                 <div
                   key={product.id}
                   className="cursor-pointer group"
-                  onClick={() => navigate(`/product/${product.id}`)}
+                  onClick={() => navigate(\/product/\\)}
                 >
                   <div className="aspect-square rounded-lg overflow-hidden mb-2">
                     <img
@@ -226,7 +226,7 @@ export function ProfilePage() {
         )}
 
         {/* Empty State for Buyers */}
-        {user.role === 'BUYER' && (
+        {user.role === 'buyer' && (
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Package className="w-10 h-10 text-gray-400" />

@@ -1,10 +1,8 @@
+import { useNavigate } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 
-interface FooterProps {
-  onNavigate?: (page: string) => void;
-}
-
-export function Footer({ onNavigate }: FooterProps) {
+export function Footer() {
+  const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -41,7 +39,7 @@ export function Footer({ onNavigate }: FooterProps) {
             <ul className="space-y-2">
               <li>
                 <button 
-                  onClick={() => onNavigate?.('marketplace')}
+                  onClick={() => navigate('/marketplace')}
                   className="text-sm hover:text-white transition-colors"
                 >
                   Marketplace
@@ -49,7 +47,7 @@ export function Footer({ onNavigate }: FooterProps) {
               </li>
               <li>
                 <button 
-                  onClick={() => onNavigate?.('groups')}
+                  onClick={() => navigate('/groups')}
                   className="text-sm hover:text-white transition-colors"
                 >
                   Nhóm cộng đồng
@@ -57,7 +55,7 @@ export function Footer({ onNavigate }: FooterProps) {
               </li>
               <li>
                 <button 
-                  onClick={() => onNavigate?.('become-seller')}
+                  onClick={() => navigate('/become-seller')}
                   className="text-sm hover:text-white transition-colors"
                 >
                   Trở thành người bán

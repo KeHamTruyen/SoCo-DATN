@@ -1,4 +1,6 @@
 import { Heart, MessageCircle, Share2, ShoppingCart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '../contexts/CartContext';
 
 interface Product {
   id: string;
@@ -28,12 +30,12 @@ interface Post {
 
 interface PostWithProductsProps {
   post: Post;
-  onNavigate: (page: string, id: string) => void;
   onLike: () => void;
-  onAddToCart?: (product: Product) => void;
 }
 
-export function PostWithProducts({ post, onNavigate, onLike, onAddToCart }: PostWithProductsProps) {
+export function PostWithProducts({ post, onLike }: PostWithProductsProps) {
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
       {/* Author Info */}
@@ -42,7 +44,7 @@ export function PostWithProducts({ post, onNavigate, onLike, onAddToCart }: Post
           className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 -m-2 p-2 rounded-lg transition-colors"
           onClick={(e) => {
             e.stopPropagation();
-            onNavigate('store', post.author.id);
+            navigate(`/store/${post.author.id}`);
           }}
         >
           <img
@@ -75,7 +77,7 @@ export function PostWithProducts({ post, onNavigate, onLike, onAddToCart }: Post
       {/* Post Content */}
       <div 
         className="px-4 pb-3 cursor-pointer"
-        onClick={() => onNavigate('post-detail', post.id)}
+        onClick={() => navigate(`/posts/${post.id}`)}
       >
         <p className="text-gray-700 whitespace-pre-line">{post.content}</p>
       </div>
@@ -84,7 +86,7 @@ export function PostWithProducts({ post, onNavigate, onLike, onAddToCart }: Post
       {post.image && (
         <div 
           className="relative cursor-pointer"
-          onClick={() => onNavigate('post-detail', post.id)}
+          onClick={() => navigate(`/posts/${post.id}`)}
         >
           <img
             src={post.image}
@@ -113,7 +115,7 @@ export function PostWithProducts({ post, onNavigate, onLike, onAddToCart }: Post
                 key={product.id}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onNavigate('product-detail', product.id);
+                  navigate(`/product/${product.id}`);
                 }}
                 className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group"
               >
@@ -143,18 +145,16 @@ export function PostWithProducts({ post, onNavigate, onLike, onAddToCart }: Post
                 </div>
 
                 {/* Add to Cart Button */}
-                {onAddToCart && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onAddToCart(product);
-                    }}
-                    className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0 flex items-center gap-1.5 text-sm font-medium"
-                  >
-                    <ShoppingCart className="w-4 h-4" />
-                    <span className="hidden sm:inline">Thêm</span>
-                  </button>
-                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    addToCart(product as any);
+                  }}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0 flex items-center gap-1.5 text-sm font-medium"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  <span className="hidden sm:inline">Thêm</span>
+                </button>
               </div>
             ))}
           </div>
@@ -164,7 +164,7 @@ export function PostWithProducts({ post, onNavigate, onLike, onAddToCart }: Post
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onNavigate('post-detail', post.id);
+                navigate(`/posts/${post.id}`);
               }}
               className="w-full mt-2 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-lg transition-colors"
             >
@@ -192,7 +192,7 @@ export function PostWithProducts({ post, onNavigate, onLike, onAddToCart }: Post
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onNavigate('post-detail', post.id);
+            navigate(`/posts/${post.id}`);
           }}
           className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors"
         >

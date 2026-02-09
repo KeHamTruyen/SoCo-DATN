@@ -1,20 +1,18 @@
 import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ShoppingBag, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { User } from '../../App';
 
-interface LoginPageProps {
-  onLogin: (user: User) => void;
-  onNavigate: () => void;
-  onForgotPassword?: () => void;
-}
-
-export function LoginPage({ onLogin, onNavigate, onForgotPassword }: LoginPageProps) {
+export function LoginPage() {
   const { login, error, clearError, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+
+  const from = (location.state as any)?.from?.pathname || '/home';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,29 +20,8 @@ export function LoginPage({ onLogin, onNavigate, onForgotPassword }: LoginPagePr
     
     try {
       await login({ email, password });
-      
-      // Convert auth user to App user format
-      const authUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const appUser: User = {
-        id: authUser.id,
-        name: authUser.fullName,
-        username: authUser.username,
-        email: authUser.email,
-        avatar: authUser.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
-        coverImage: authUser.coverImage || 'https://images.unsplash.com/photo-1557683316-973673baf926?w=1200',
-        role: authUser.role.toLowerCase() as 'buyer' | 'seller' | 'admin',
-        isVerified: authUser.isVerified,
-        followers: authUser._count?.followers || 0,
-        following: authUser._count?.following || 0,
-        bio: authUser.bio || '',
-        phone: authUser.phone || '',
-        address: authUser.address || '',
-        createdAt: authUser.createdAt
-      };
-      
-      onLogin(appUser);
+      navigate(from, { replace: true });
     } catch (err) {
-      // Error is handled by context
       console.error('Login failed:', err);
     }
   };
@@ -126,7 +103,7 @@ export function LoginPage({ onLogin, onNavigate, onForgotPassword }: LoginPagePr
             </label>
             <button
               type="button"
-              onClick={onForgotPassword}
+              onClick={() => navigate('/forgot-password')}
               className="text-sm text-blue-600 hover:text-blue-700"
               disabled={loading}
             >
@@ -181,7 +158,7 @@ export function LoginPage({ onLogin, onNavigate, onForgotPassword }: LoginPagePr
             Chưa có tài khoản?{' '}
             <button
               type="button"
-              onClick={onNavigate}
+              onClick={() => navigate('/register')}
               className="text-blue-600 hover:text-blue-700"
               disabled={loading}
             >

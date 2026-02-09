@@ -1,50 +1,55 @@
+import { useNavigate } from 'react-router-dom';
 import { Home, Search, Store, User, ShoppingBag } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface MobileNavProps {
-  currentUser: any;
-  onNavigate: (page: string, id?: string) => void;
   activePage?: string;
 }
 
-export function MobileNav({ currentUser, onNavigate, activePage = 'home' }: MobileNavProps) {
+export function MobileNav({ activePage = 'home' }: MobileNavProps) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  if (!user) return null;
+  
   const navItems = [
     {
       id: 'home',
       label: 'Trang chủ',
       icon: Home,
-      onClick: () => onNavigate('home'),
+      onClick: () => navigate('/home'),
     },
     {
       id: 'marketplace',
       label: 'Mua sắm',
       icon: ShoppingBag,
-      onClick: () => onNavigate('marketplace'),
+      onClick: () => navigate('/marketplace'),
     },
     {
       id: 'search',
       label: 'Tìm kiếm',
       icon: Search,
-      onClick: () => onNavigate('search-results'),
+      onClick: () => navigate('/search-results'),
     },
-    ...(currentUser.role === 'seller' 
+    ...((user.role === 'SELLER' || user.role === 'ADMIN') 
       ? [{
           id: 'store',
           label: 'Cửa hàng',
           icon: Store,
-          onClick: () => onNavigate('store', currentUser.id),
+          onClick: () => navigate(`/store/${user.id}`),
         }]
       : [{
           id: 'become-seller',
           label: 'Bán hàng',
           icon: Store,
-          onClick: () => onNavigate('become-seller'),
+          onClick: () => navigate('/become-seller'),
         }]
     ),
     {
       id: 'profile',
       label: 'Cá nhân',
       icon: User,
-      onClick: () => onNavigate('profile'),
+      onClick: () => navigate(`/profile/${user.username}`),
     },
   ];
 

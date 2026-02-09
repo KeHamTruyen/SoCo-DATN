@@ -1,11 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, Check, KeyRound, Lock, Eye, EyeOff } from 'lucide-react';
 
-interface ForgotPasswordPageProps {
-  onNavigate: () => void;
-}
-
-export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
+export function ForgotPasswordPage() {
+  const navigate = useNavigate();
   const [step, setStep] = useState<'email' | 'code' | 'reset' | 'success'>('email');
   const [email, setEmail] = useState('');
   const [resetCode, setResetCode] = useState('');
@@ -59,7 +57,7 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
               Mật khẩu của bạn đã được cập nhật. Bạn có thể đăng nhập bằng mật khẩu mới.
             </p>
             <button
-              onClick={onNavigate}
+              onClick={() => navigate('/login')}
               className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
             >
               Quay lại đăng nhập
@@ -224,7 +222,7 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
         <button
-          onClick={onNavigate}
+          onClick={() => navigate('/login')}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -269,7 +267,7 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
               Nhớ mật khẩu rồi?{' '}
               <button
                 type="button"
-                onClick={onNavigate}
+                onClick={() => navigate('/login')}
                 className="text-blue-600 hover:text-blue-700"
               >
                 Đăng nhập

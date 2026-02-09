@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, Heart, MessageCircle, ShoppingCart, UserPlus, AtSign, Package, Tag, X, Check, Trash2, Settings } from 'lucide-react';
 
 interface Notification {
@@ -13,11 +14,8 @@ interface Notification {
   actionUrl?: string;
 }
 
-interface NotificationCenterProps {
-  onNavigate: (page: any, data?: any) => void;
-}
-
-export function NotificationCenter({ onNavigate }: NotificationCenterProps) {
+export function NotificationCenter() {
+  const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([
     {
@@ -152,12 +150,12 @@ export function NotificationCenter({ onNavigate }: NotificationCenterProps) {
     // Navigate based on notification type
     switch (notification.type) {
       case 'order':
-        onNavigate('order-management');
+        navigate('/seller/orders');
         break;
       case 'like':
       case 'comment':
       case 'product':
-        onNavigate('home');
+        navigate('/home');
         break;
       case 'follow':
         // Navigate to profile
@@ -199,7 +197,7 @@ export function NotificationCenter({ onNavigate }: NotificationCenterProps) {
                 <h3 className="text-lg">Thông báo</h3>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => onNavigate('settings')}
+                    onClick={() => navigate('/settings')}
                     className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
                     title="Cài đặt thông báo"
                   >

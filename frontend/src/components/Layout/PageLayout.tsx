@@ -3,13 +3,11 @@ import { Header } from './Header';
 import { Footer } from './Footer';
 import { MobileNav } from './MobileNav';
 import { MessengerWidget } from '../MessengerWidget';
+import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 
 interface PageLayoutProps {
   children: React.ReactNode;
-  currentUser: any;
-  onNavigate: (page: string, id?: string) => void;
-  onLogout: () => void;
-  cartItemCount?: number;
   
   // Header options
   showHeader?: boolean;
@@ -40,10 +38,6 @@ interface PageLayoutProps {
 
 export function PageLayout({
   children,
-  currentUser,
-  onNavigate,
-  onLogout,
-  cartItemCount = 0,
   showHeader = true,
   headerVariant = 'default',
   headerTitle,
@@ -57,6 +51,8 @@ export function PageLayout({
   padding = true,
   backgroundColor = 'bg-gray-50',
 }: PageLayoutProps) {
+  const { user } = useAuth();
+  const { cartItemCount } = useCart();
   const maxWidthClasses = {
     sm: 'max-w-sm',
     md: 'max-w-md',
@@ -72,10 +68,6 @@ export function PageLayout({
       {/* Header */}
       {showHeader && (
         <Header
-          currentUser={currentUser}
-          onNavigate={onNavigate}
-          onLogout={onLogout}
-          cartItemCount={cartItemCount}
           showSearch={showSearch}
           variant={headerVariant}
           backButton={backButton}
@@ -91,19 +83,17 @@ export function PageLayout({
       </main>
 
       {/* Footer */}
-      {showFooter && <Footer onNavigate={onNavigate} />}
+      {showFooter && <Footer />}
 
       {/* Mobile Navigation */}
       {showMobileNav && (
         <MobileNav
-          currentUser={currentUser}
-          onNavigate={onNavigate}
           activePage={activePage}
         />
       )}
 
       {/* Messenger Widget */}
-      {showMessenger && <MessengerWidget currentUser={currentUser} />}
+      {showMessenger && user && <MessengerWidget />}
     </div>
   );
 }

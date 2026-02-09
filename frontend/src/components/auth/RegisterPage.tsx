@@ -1,15 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User as UserIcon, Eye, EyeOff, ShoppingBag, Phone, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { User } from '../../App';
 
-interface RegisterPageProps {
-  onNavigate: () => void;
-  onRegisterSuccess?: (user: User) => void;
-}
-
-export function RegisterPage({ onNavigate, onRegisterSuccess }: RegisterPageProps) {
+export function RegisterPage() {
   const { register, error, clearError, loading } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
     username: '',
@@ -53,33 +49,9 @@ export function RegisterPage({ onNavigate, onRegisterSuccess }: RegisterPageProp
         role: formData.role
       });
 
-      // Convert auth user to App user format
-      const authUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const appUser: User = {
-        id: authUser.id,
-        name: authUser.fullName,
-        username: authUser.username,
-        email: authUser.email,
-        avatar: authUser.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
-        coverImage: authUser.coverImage || 'https://images.unsplash.com/photo-1557683316-973673baf926?w=1200',
-        role: authUser.role.toLowerCase() as 'buyer' | 'seller' | 'admin',
-        isVerified: authUser.isVerified,
-        followers: authUser._count?.followers || 0,
-        following: authUser._count?.following || 0,
-        bio: authUser.bio || '',
-        phone: authUser.phone || '',
-        address: authUser.address || '',
-        createdAt: authUser.createdAt
-      };
-
-      if (onRegisterSuccess) {
-        onRegisterSuccess(appUser);
-      } else {
-        alert('Đăng ký thành công!');
-        onNavigate(); // Go to login page
-      }
+      // Success! AuthContext will update user state
+      navigate('/home', { replace: true });
     } catch (err) {
-      // Error is handled by context
       console.error('Registration failed:', err);
     }
   };
@@ -298,7 +270,7 @@ export function RegisterPage({ onNavigate, onRegisterSuccess }: RegisterPageProp
             Đã có tài khoản?{' '}
             <button
               type="button"
-              onClick={onNavigate}
+              onClick={() => navigate('/login')}
               className="text-blue-600 hover:text-blue-700"
               disabled={loading}
             >

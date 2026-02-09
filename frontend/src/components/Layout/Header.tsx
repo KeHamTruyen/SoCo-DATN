@@ -1,13 +1,13 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, MessageCircle, Search, Bell, User, Store, LogOut, Settings, Calendar, Users, LayoutDashboard } from 'lucide-react';
 import { NotificationCenter } from '../NotificationCenter';
+import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 
 interface HeaderProps {
-  currentUser: any;
-  onNavigate: (page: string, id?: string) => void;
-  onLogout: () => void;
-  cartItemCount?: number;
   showSearch?: boolean;
-  variant?: 'default' | 'simple'; // default: full header, simple: back button only
+  variant?: 'default' | 'simple';
   backButton?: {
     show: boolean;
     onClick: () => void;
@@ -17,24 +17,25 @@ interface HeaderProps {
 }
 
 export function Header({ 
-  currentUser, 
-  onNavigate, 
-  onLogout, 
-  cartItemCount = 0,
   showSearch = true,
   variant = 'default',
   backButton,
   title
 }: HeaderProps) {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { cartItemCount } = useCart();
   const [showUserMenu, setShowUserMenu] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      onNavigate('search-results');
+      navigate('/search-results');
     }
   };
+
+  if (!user) return null;
 
   // Simple header with back button
   if (variant === 'simple') {
@@ -70,20 +71,20 @@ export function Header({
         <div className="flex items-center justify-between h-16">
           {/* Left side */}
           <div className="flex items-center gap-8">
-            <button onClick={() => onNavigate('home')}>
+            <button onClick={() => navigate('/home')}>
               <h1 className="text-xl font-bold text-blue-600">Social Commerce</h1>
             </button>
             
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
               <button 
-                onClick={() => onNavigate('marketplace')}
+                onClick={() => navigate('/marketplace')}
                 className="text-gray-600 hover:text-blue-600 transition-colors"
               >
                 Marketplace
               </button>
               <button 
-                onClick={() => onNavigate('groups')}
+                onClick={() => navigate('/groups')}
                 className="text-gray-600 hover:text-blue-600 transition-colors"
               >
                 Nhóm
@@ -110,12 +111,12 @@ export function Header({
           {/* Right side */}
           <div className="flex items-center gap-6">
             {/* Notifications */}
-            <NotificationCenter onNavigate={onNavigate} />
+            <NotificationCenter />
 
             {/* Messages */}
             <button 
               className="relative"
-              onClick={() => onNavigate('messages')}
+              onClick={() => navigate('/messages')}
             >
               <MessageCircle className="w-6 h-6 text-gray-600" />
               <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -126,7 +127,7 @@ export function Header({
             {/* Cart */}
             <button 
               className="relative"
-              onClick={() => onNavigate('cart')}
+              onClick={() => navigate('/cart')}
             >
               <ShoppingCart className="w-6 h-6 text-gray-600" />
               {cartItemCount > 0 && (
@@ -140,8 +141,8 @@ export function Header({
             <div className="relative">
               <button onClick={() => setShowUserMenu(!showUserMenu)}>
                 <img
-                  src={currentUser.avatar}
-                  alt={currentUser.name}
+                  src={user.avatar}
+                  alt={user.fullName}
                   className="w-8 h-8 rounded-full object-cover"
                 />
               </button>
@@ -160,13 +161,13 @@ export function Header({
                     <div className="px-4 py-3 border-b border-gray-100">
                       <div className="flex items-center gap-3">
                         <img
-                          src={currentUser.avatar}
-                          alt={currentUser.name}
+                          src={user.avatar}
+                          alt={user.fullName}
                           className="w-10 h-10 rounded-full"
                         />
                         <div>
-                          <p className="font-medium text-gray-900">{currentUser.name}</p>
-                          <p className="text-sm text-gray-500">@{currentUser.username}</p>
+                          <p className="font-medium text-gray-900">{user.fullName}</p>
+                          <p className="text-sm text-gray-500">@{user.username}</p>
                         </div>
                       </div>
                     </div>
@@ -177,7 +178,7 @@ export function Header({
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
                         onClick={() => {
                           setShowUserMenu(false);
-                          onNavigate('profile');
+                          navigate(`/profile/${user.username}`);
                         }}
                       >
                         <User className="w-4 h-4" />
@@ -188,7 +189,7 @@ export function Header({
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
                         onClick={() => {
                           setShowUserMenu(false);
-                          onNavigate('settings');
+                          navigate('/settings');
                         }}
                       >
                         <Settings className="w-4 h-4" />
@@ -196,14 +197,14 @@ export function Header({
                       </button>
 
                       {/* Seller Options */}
-                      {currentUser.role === 'seller' && (
+                      {(user.role === 'SELLER' || user.role === 'ADMIN') && (
                         <>
                           <div className="border-t border-gray-100 my-1"></div>
                           <button
                             className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
                             onClick={() => {
                               setShowUserMenu(false);
-                              onNavigate('seller-dashboard');
+                              navigate('/seller/dashboard');
                             }}
                           >
                             <LayoutDashboard className="w-4 h-4" />
@@ -213,7 +214,7 @@ export function Header({
                             className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
                             onClick={() => {
                               setShowUserMenu(false);
-                              onNavigate('store', currentUser.id);
+                              navigate(`/store/${user.id}`);
                             }}
                           >
                             <Store className="w-4 h-4" />
@@ -223,7 +224,7 @@ export function Header({
                             className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
                             onClick={() => {
                               setShowUserMenu(false);
-                              onNavigate('schedule-posts');
+                              navigate('/schedule-posts');
                             }}
                           >
                             <Calendar className="w-4 h-4" />
@@ -233,14 +234,14 @@ export function Header({
                       )}
 
                       {/* Buyer - Become Seller */}
-                      {currentUser.role === 'buyer' && (
+                      {user.role === 'BUYER' && (
                         <>
                           <div className="border-t border-gray-100 my-1"></div>
                           <button
                             className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-3"
                             onClick={() => {
                               setShowUserMenu(false);
-                              onNavigate('become-seller');
+                              navigate('/become-seller');
                             }}
                           >
                             <Store className="w-4 h-4" />
@@ -250,14 +251,14 @@ export function Header({
                       )}
 
                       {/* Admin Options */}
-                      {currentUser.role === 'admin' && (
+                      {user.role === 'ADMIN' && (
                         <>
                           <div className="border-t border-gray-100 my-1"></div>
                           <button
                             className="w-full text-left px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 flex items-center gap-3"
                             onClick={() => {
                               setShowUserMenu(false);
-                              onNavigate('admin-dashboard');
+                              navigate('/admin/dashboard');
                             }}
                           >
                             <Users className="w-4 h-4" />
@@ -272,7 +273,7 @@ export function Header({
                         className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3"
                         onClick={() => {
                           setShowUserMenu(false);
-                          onLogout();
+                          logout();
                         }}
                       >
                         <LogOut className="w-4 h-4" />
@@ -289,6 +290,3 @@ export function Header({
     </header>
   );
 }
-
-// Import React at top
-import React from 'react';

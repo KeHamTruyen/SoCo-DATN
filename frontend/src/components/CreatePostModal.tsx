@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { X, Image, Tag, Sparkles, Calendar, Search, Check } from 'lucide-react';
-import { User } from '../App';
+import { useAuth } from '../contexts/AuthContext';
 
 interface CreatePostModalProps {
-  currentUser: User;
   onClose: () => void;
   onSubmit: (post: any) => void;
 }
 
-export function CreatePostModal({ currentUser, onClose, onSubmit }: CreatePostModalProps) {
+export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
+  const { user } = useAuth();
   const [content, setContent] = useState('');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [useAI, setUseAI] = useState(false);
@@ -17,6 +17,8 @@ export function CreatePostModal({ currentUser, onClose, onSubmit }: CreatePostMo
   const [scheduledDate, setScheduledDate] = useState('');
   const [showProductSelector, setShowProductSelector] = useState(false);
   const [productSearch, setProductSearch] = useState('');
+
+  if (!user) return null;
 
   // Mock products của seller
   const myProducts = [
@@ -108,9 +110,9 @@ export function CreatePostModal({ currentUser, onClose, onSubmit }: CreatePostMo
         <div className="p-6 space-y-6">
           {/* User Info */}
           <div className="flex items-center gap-3">
-            <img src={currentUser.avatar} alt={currentUser.name} className="w-12 h-12 rounded-full" />
+            <img src={user.avatar || 'https://i.pravatar.cc/150'} alt={user.fullName || 'User'} className="w-12 h-12 rounded-full" />
             <div>
-              <p className="text-sm">{currentUser.name}</p>
+              <p className="text-sm">{user.fullName}</p>
               <p className="text-xs text-gray-500">Công khai</p>
             </div>
           </div>

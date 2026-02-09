@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Upload, X, Plus, Trash2, Package, DollarSign, Tag, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { Upload, X, Plus, Trash2, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { User } from '../../App';
 import { PageLayout } from '../Layout';
 
@@ -16,7 +16,7 @@ interface ProductVariant {
   options: string[];
 }
 
-export function AddProductPage({ currentUser, onNavigate, onAddProduct }: AddProductPageProps) {
+export function AddProductPage({ currentUser, onNavigate, onAddProduct, onLogout }: AddProductPageProps) {
   const [productName, setProductName] = useState('');
   const [price, setPrice] = useState('');
   const [compareAtPrice, setCompareAtPrice] = useState('');
@@ -367,7 +367,7 @@ export function AddProductPage({ currentUser, onNavigate, onAddProduct }: AddPro
               )}
 
               <div className="space-y-4">
-                {variants.map((variant, variantIndex) => (
+                {variants.map((variant) => (
                   <div key={variant.id} className="p-4 border border-gray-200 rounded-lg">
                     <div className="flex items-start gap-3 mb-3">
                       <div className="flex-1">

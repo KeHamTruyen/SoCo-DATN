@@ -1,9 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Minimize2, Search, Phone, Video, MoreVertical, Smile, Paperclip } from 'lucide-react';
-import { User, Message } from '../App';
+import { useAuth } from '../contexts/AuthContext';
 
-interface MessengerWidgetProps {
-  currentUser: User;
+interface Message {
+  id: string;
+  text: string;
+  senderId: string;
+  timestamp: string;
+  isRead?: boolean;
 }
 
 interface Conversation {
@@ -19,7 +23,8 @@ interface Conversation {
   unread: number;
 }
 
-export function MessengerWidget({ currentUser }: MessengerWidgetProps) {
+export function MessengerWidget() {
+  const { user: currentUser } = useAuth();
   const [isOpen, setIsOpen] = useState(() => {
     const saved = localStorage.getItem('messengerWidget_isOpen');
     return saved ? JSON.parse(saved) : false;

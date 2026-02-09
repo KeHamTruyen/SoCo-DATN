@@ -1,23 +1,38 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, ShoppingCart, Store, Users } from 'lucide-react';
-import { User as UserType, Product } from '../App';
+import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 import { mockProducts } from '../data/mockData';
 import { CreatePostModal } from './CreatePostModal';
 import { PostWithProducts } from './PostWithProducts';
 import { PageLayout } from './Layout';
 
-interface HomePageProps {
-  currentUser: UserType;
-  onNavigate: (page: any, productId?: string) => void;
-  onLogout: () => void;
-  cartItemCount: number;
-  onAddToCart: (product: Product) => void;
+interface Product {
+  id: string;
+  sellerId: string;
+  sellerName: string;
+  sellerAvatar: string;
+  title: string;
+  description: string;
+  price: number;
+  image: string;
+  category: string;
+  likes: number;
+  comments: number;
+  isLiked: boolean;
+  createdAt: string;
+  stock: number;
 }
 
-export function HomePage({ currentUser, onNavigate, onLogout, cartItemCount, onAddToCart }: HomePageProps) {
+export function HomePage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>(mockProducts);
-  const [activeTab, setActiveTab] = useState<'for-you' | 'following'>('for-you');
   const [showCreatePost, setShowCreatePost] = useState(false);
+
+  if (!user) return null;
 
   const handleLike = (productId: string) => {
     setProducts(prev =>
@@ -31,7 +46,8 @@ export function HomePage({ currentUser, onNavigate, onLogout, cartItemCount, onA
 
   const handleAddToCart = (product: Product, e: React.MouseEvent) => {
     e.stopPropagation();
-    onAddToCart(product);
+    // Convert local Product to App Product format
+    addToCart({ ...product, sellerUsername: product.sellerName } as any);
   };
 
   const handleCreatePost = (post: any) => {
@@ -41,10 +57,6 @@ export function HomePage({ currentUser, onNavigate, onLogout, cartItemCount, onA
 
   return (
     <PageLayout
-      currentUser={currentUser}
-      onNavigate={onNavigate}
-      onLogout={onLogout}
-      cartItemCount={cartItemCount}
       activePage="home"
       showFooter={true}
     >
@@ -56,28 +68,28 @@ export function HomePage({ currentUser, onNavigate, onLogout, cartItemCount, onA
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <img
-                src={currentUser.avatar}
-                alt={currentUser.name}
+                src={user.avatar || 'https://i.pravatar.cc/150'}
+                alt={user.fullName || 'User'}
                 className="w-12 h-12 rounded-full"
               />
               <div>
-                <h3 className="text-sm font-medium">{currentUser.name}</h3>
-                <p className="text-sm text-gray-500">@{currentUser.username}</p>
+                <h3 className="text-sm font-medium">{user.fullName}</h3>
+                <p className="text-sm text-gray-500">@{user.username}</p>
               </div>
             </div>
             <div className="flex gap-4 text-sm mb-4">
               <div>
-                <span className="text-gray-900">{currentUser.followers}</span>
+                <span className="text-gray-900">0</span>
                 <span className="text-gray-500 ml-1">Người theo dõi</span>
               </div>
               <div>
-                <span className="text-gray-900">{currentUser.following}</span>
+                <span className="text-gray-900">0</span>
                 <span className="text-gray-500 ml-1">Đang theo dõi</span>
               </div>
             </div>
-            {currentUser.role === 'buyer' && (
+            {user.role === 'BUYER' && (
               <button
-                onClick={() => onNavigate('become-seller')}
+                onClick={() => navigate('/become-seller')}
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-4 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
               >
                 <Store className="w-4 h-4 inline mr-2" />
@@ -97,7 +109,7 @@ export function HomePage({ currentUser, onNavigate, onLogout, cartItemCount, onA
               ].map((group) => (
                 <button
                   key={group.id}
-                  onClick={() => onNavigate('group-detail', String(group.id))}
+                  onClick={() => navigate(`/groups/${group.id}`)}
                   className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors text-left"
                 >
                   <img
@@ -113,7 +125,7 @@ export function HomePage({ currentUser, onNavigate, onLogout, cartItemCount, onA
               ))}
             </div>
             <button
-              onClick={() => onNavigate('groups')}
+              onClick={() => navigate('/groups')}
               className="w-full text-blue-600 hover:text-blue-700 text-sm py-2 hover:bg-blue-50 rounded-lg transition-colors"
             >
               <Users className="w-4 h-4 inline mr-1" />
@@ -146,8 +158,8 @@ export function HomePage({ currentUser, onNavigate, onLogout, cartItemCount, onA
               className="w-full flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-left"
             >
               <img
-                src={currentUser.avatar}
-                alt={currentUser.name}
+                src={user.avatar || 'https://i.pravatar.cc/150'}
+                alt={user.fullName || 'User'}
                 className="w-10 h-10 rounded-full"
               />
               <span className="text-gray-500">Bạn đang nghĩ gì?</span>
@@ -190,9 +202,7 @@ export function HomePage({ currentUser, onNavigate, onLogout, cartItemCount, onA
                   }
                 ]
               }}
-              onNavigate={onNavigate}
               onLike={() => console.log('Liked post')}
-              onAddToCart={onAddToCart}
             />
 
             {/* Sample Posts */}
@@ -235,7 +245,7 @@ export function HomePage({ currentUser, onNavigate, onLogout, cartItemCount, onA
               <div
                 key={post.id}
                 className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => onNavigate('post-detail', post.id)}
+                onClick={() => navigate(`/posts/${post.id}`)}
               >
                 {/* Author Info */}
                 <div className="flex items-center justify-between p-4">
@@ -321,7 +331,7 @@ export function HomePage({ currentUser, onNavigate, onLogout, cartItemCount, onA
               <div
                 key={product.id}
                 className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => onNavigate('product-detail', product.id)}
+                onClick={() => navigate(`/product/${product.id}`)}
               >
                 {/* Seller Info */}
                 <div className="flex items-center justify-between p-4">
@@ -329,7 +339,7 @@ export function HomePage({ currentUser, onNavigate, onLogout, cartItemCount, onA
                     className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 -m-2 p-2 rounded-lg transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onNavigate('store', product.sellerId);
+                      navigate(`/store/${product.sellerId}`);
                     }}
                   >
                     <img
@@ -427,7 +437,6 @@ export function HomePage({ currentUser, onNavigate, onLogout, cartItemCount, onA
       {/* Create Post Modal */}
       {showCreatePost && (
         <CreatePostModal
-          currentUser={currentUser}
           onClose={() => setShowCreatePost(false)}
           onSubmit={handleCreatePost}
         />
