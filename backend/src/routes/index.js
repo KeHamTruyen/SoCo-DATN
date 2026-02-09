@@ -1,17 +1,14 @@
 import express from 'express';
 import authRoutes from './auth.routes.js';
+import productRoutes from './product.routes.js';
+import categoryRoutes from './category.routes.js';
 
 const router = express.Router();
 
-// Import routes
-// import userRoutes from './user.routes.js';
-// import productRoutes from './product.routes.js';
-// ... etc
-
 // Use routes
 router.use('/auth', authRoutes);
-// router.use('/users', userRoutes);
-// router.use('/products', productRoutes);
+router.use('/products', productRoutes);
+router.use('/categories', categoryRoutes);
 
 // Temporary welcome route
 router.get('/', (req, res) => {

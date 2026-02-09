@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { X, Plus, Sparkles, Image as ImageIcon, Upload, Wand2 } from 'lucide-react';
-import { User } from '../../App';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface CreateProductModalProps {
-  currentUser: User;
   onClose: () => void;
   onSubmit: (product: any) => void;
 }
 
-export function CreateProductModal({ currentUser, onClose, onSubmit }: CreateProductModalProps) {
+export function CreateProductModal({ onClose, onSubmit }: CreateProductModalProps) {
+  const { user } = useAuth();
   const [useAI, setUseAI] = useState(false);
   const [aiMode, setAIMode] = useState<'image' | 'text' | 'enhance'>('enhance');
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  if (!user) return null;
   
   const [formData, setFormData] = useState({
     title: '',

@@ -1,16 +1,10 @@
-import { useState } from 'react';
-import { Heart, Share2, ShoppingCart, MapPin, Star, MessageCircle, Send, Plus, Minus, Check, Truck, Shield, RotateCcw } from 'lucide-react';
-import { User, Product } from '../App';
-import { mockProducts } from '../data/mockData';
-import { PageLayout } from './Layout';
-
-interface ProductDetailPageProps {
-  productId: string;
-  currentUser: User;
-  onNavigate: (page: any, id?: string) => void;
-  onAddToCart: (product: Product, variant?: { [key: string]: string }) => void;
-  onLogout: () => void;
-}
+import { useState, useEffect } from 'react';
+import { Heart, ShoppingCart, Star, Plus, Minus, Check, Truck, Shield, RotateCcw, MapPin } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
+import productService, { Product as ProductType } from '../services/product.service';
+import { PageLayout } from './Layout/PageLayout';
 
 interface Review {
   id: string;
@@ -25,10 +19,17 @@ interface Review {
   isLiked: boolean;
 }
 
-export function ProductDetailPage({ productId, currentUser, onNavigate, onAddToCart, onLogout }: ProductDetailPageProps) {
-  const product = mockProducts.find(p => p.id === productId);
-  const [isLiked, setIsLiked] = useState(product?.isLiked || false);
-  const [likes, setLikes] = useState(product?.likes || 0);
+export function ProductDetailPage() {
+  const { id: productId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addToCart } = useCart();
+  
+  const [product, setProduct] = useState<ProductType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likes, setLikes] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedVariants, setSelectedVariants] = useState<{ [key: string]: string }>({});
@@ -36,13 +37,32 @@ export function ProductDetailPage({ productId, currentUser, onNavigate, onAddToC
   const [reviewText, setReviewText] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
 
-  // Mock product images (multiple images)
-  const productImages = [
-    product?.image || '',
-    'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800',
-    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
-    'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800'
-  ];
+  // Fetch product data
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!productId) return;
+      
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await productService.getProduct(productId);
+        setProduct(response.data);
+        setLikes(response.data.likesCount || 0);
+      } catch (err: any) {
+        console.error('Error fetching product:', err);
+        setError(err.response?.data?.message || 'Không thể tải thông tin sản phẩm');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [productId]);
+
+  // Product images from API or fallback
+  const productImages = product?.images && product.images.length > 0
+    ? product.images.map(img => img.imageUrl)
+    : ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800'];
 
   // Mock reviews
   const [reviews, setReviews] = useState<Review[]>([
@@ -83,19 +103,35 @@ export function ProductDetailPage({ productId, currentUser, onNavigate, onAddToC
     }
   ]);
 
-  if (!product) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl mb-4">Không tìm thấy sản phẩm</h2>
-          <button
-            onClick={() => onNavigate('home')}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Quay về trang chủ
-          </button>
+      <PageLayout>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Đang tải sản phẩm...</p>
+          </div>
         </div>
-      </div>
+      </PageLayout>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <PageLayout>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl mb-4">Không tìm thấy sản phẩm</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={() => navigate('/home')}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Quay về trang chủ
+            </button>
+          </div>
+        </div>
+      </PageLayout>
     );
   }
 
@@ -112,32 +148,65 @@ export function ProductDetailPage({ productId, currentUser, onNavigate, onAddToC
   };
 
   const handleAddToCart = () => {
-    onAddToCart(product, selectedVariants);
+    if (!product) return;
+    
+    // Convert API Product to App Product type for CartContext
+    const cartProduct = {
+      id: product.id,
+      sellerId: product.sellerId,
+      sellerName: product.seller?.fullName || 'Unknown',
+      sellerAvatar: product.seller?.avatarUrl || '',
+      sellerUsername: product.seller?.username || '',
+      title: product.title,
+      price: Number(product.price),
+      image: product.images?.[0]?.imageUrl || '',
+      description: product.description || '',
+      likes: product.likesCount,
+      comments: product.commentsCount,
+      isLiked: isLiked,
+      createdAt: product.createdAt,
+      category: product.category?.name || '',
+      stock: product.stockQuantity,
+      variants: product.variants?.map(v => ({
+        id: v.id,
+        name: v.variantName,
+        options: Object.values(v.options as Record<string, string>)
+      }))
+    };
+    
+    for (let i = 0; i < quantity; i++) {
+      addToCart(cartProduct, selectedVariants);
+    }
+    
     alert(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`);
   };
 
   const handleAddReview = (e: React.FormEvent) => {
     e.preventDefault();
-    if (reviewText.trim()) {
-      const newReview: Review = {
-        id: Date.now().toString(),
-        userId: currentUser.id,
-        userName: currentUser.name,
-        userAvatar: currentUser.avatar,
-        rating: reviewRating,
-        content: reviewText,
-        timestamp: 'Vừa xong',
-        likes: 0,
-        isLiked: false
-      };
-      setReviews([newReview, ...reviews]);
-      setReviewText('');
-      setReviewRating(5);
-    }
+    if (!user || !reviewText.trim()) return;
+    
+    const newReview: Review = {
+      id: Date.now().toString(),
+      userId: user.id,
+      userName: user.fullName,
+      userAvatar: user.avatar || '',
+      rating: reviewRating,
+      content: reviewText,
+      timestamp: 'Vừa xong',
+      likes: 0,
+      isLiked: false
+    };
+    setReviews([newReview, ...reviews]);
+    setReviewText('');
+    setReviewRating(5);
   };
 
-  const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
-  const relatedProducts = mockProducts.filter(p => p.id !== productId && p.category === product.category).slice(0, 4);
+  const averageRating = reviews.length > 0 
+    ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length 
+    : (product?._count?.reviews ? 4.5 : 0);
+  
+  // TODO: Implement related products API
+  const relatedProducts: any[] = [];
 
   // Color options with hex values
   const colorMap: { [key: string]: string } = {
@@ -153,10 +222,6 @@ export function ProductDetailPage({ productId, currentUser, onNavigate, onAddToC
 
   return (
     <PageLayout
-      currentUser={currentUser}
-      onNavigate={onNavigate}
-      onLogout={onLogout}
-      cartItemCount={0}
       activePage="product-detail"
       showFooter={true}
       showMobileNav={true}
@@ -173,9 +238,9 @@ export function ProductDetailPage({ productId, currentUser, onNavigate, onAddToC
                   alt={product.title}
                   className="w-full h-full object-cover"
                 />
-                {product.stock < 10 && (
+                {product.stockQuantity < 10 && (
                   <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm">
-                    Chỉ còn {product.stock} sản phẩm
+                    Chỉ còn {product.stockQuantity} sản phẩm
                   </div>
                 )}
               </div>
@@ -209,9 +274,9 @@ export function ProductDetailPage({ productId, currentUser, onNavigate, onAddToC
               {/* Category & Date */}
               <div className="flex items-center gap-2 mb-3">
                 <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm">
-                  {product.category}
+                  {product.category?.name || 'Chưa phân loại'}
                 </span>
-                <span className="text-sm text-gray-500">{product.createdAt}</span>
+                <span className="text-sm text-gray-500">{new Date(product.createdAt).toLocaleDateString('vi-VN')}</span>
               </div>
 
               {/* Product Title */}
@@ -242,7 +307,12 @@ export function ProductDetailPage({ productId, currentUser, onNavigate, onAddToC
 
               {/* Price */}
               <div className="mb-6">
-                <span className="text-4xl text-blue-600">{product.price.toLocaleString('vi-VN')}đ</span>
+                {product.compareAtPrice && (
+                  <span className="text-xl text-gray-500 line-through mr-3">
+                    {Number(product.compareAtPrice).toLocaleString('vi-VN')}đ
+                  </span>
+                )}
+                <span className="text-4xl text-blue-600">{Number(product.price).toLocaleString('vi-VN')}đ</span>
               </div>
 
               {/* Description */}
@@ -257,21 +327,21 @@ export function ProductDetailPage({ productId, currentUser, onNavigate, onAddToC
                   {product.variants.map((variant) => (
                     <div key={variant.id}>
                       <h3 className="text-sm text-gray-700 mb-3">
-                        {variant.name}: 
-                        {selectedVariants[variant.name] && (
-                          <span className="ml-2 text-blue-600">{selectedVariants[variant.name]}</span>
+                        {variant.variantName}: 
+                        {selectedVariants[variant.variantName] && (
+                          <span className="ml-2 text-blue-600">{selectedVariants[variant.variantName]}</span>
                         )}
                       </h3>
                       <div className="flex flex-wrap gap-2">
-                        {variant.options.map((option) => {
-                          const isColorVariant = variant.name === 'Màu sắc';
+                        {Object.values(variant.options as Record<string, string>).map((option: string, idx: number) => {
+                          const isColorVariant = variant.variantName === 'Màu sắc';
                           const colorHex = colorMap[option];
-                          const isSelected = selectedVariants[variant.name] === option;
+                          const isSelected = selectedVariants[variant.variantName] === option;
 
                           return (
                             <button
-                              key={option}
-                              onClick={() => handleVariantSelect(variant.name, option)}
+                              key={`${variant.id}-${idx}`}
+                              onClick={() => handleVariantSelect(variant.variantName, option)}
                               className={`relative px-4 py-2 rounded-lg border-2 transition-all ${
                                 isSelected
                                   ? 'border-blue-600 bg-blue-50'
@@ -317,16 +387,16 @@ export function ProductDetailPage({ productId, currentUser, onNavigate, onAddToC
                   <input
                     type="number"
                     value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock, parseInt(e.target.value) || 1)))}
+                    onChange={(e) => setQuantity(Math.max(1, Math.min(product.stockQuantity, parseInt(e.target.value) || 1)))}
                     className="w-20 text-center py-2 border border-gray-300 rounded-lg"
                   />
                   <button
-                    onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                    onClick={() => setQuantity(Math.min(product.stockQuantity, quantity + 1))}
                     className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
-                  <span className="text-sm text-gray-500">{product.stock} sản phẩm có sẵn</span>
+                  <span className="text-sm text-gray-500">{product.stockQuantity} sản phẩm có sẵn</span>
                 </div>
               </div>
 
@@ -383,16 +453,18 @@ export function ProductDetailPage({ productId, currentUser, onNavigate, onAddToC
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <img
-                    src={product.sellerAvatar}
-                    alt={product.sellerName}
-                    className="w-14 h-14 rounded-full"
+                    src={product.seller?.avatarUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400'}
+                    alt={product.seller?.fullName || 'Seller'}
+                    className="w-14 h-14 rounded-full object-cover"
                   />
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-lg">{product.sellerName}</span>
-                      <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
+                      <span className="text-lg">{product.seller?.fullName || 'Unknown Seller'}</span>
+                      {product.seller?.isVerified && (
+                        <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </div>
                     <div className="flex items-center gap-3 text-sm text-gray-600">
                       <div className="flex items-center gap-1">
@@ -452,11 +524,11 @@ export function ProductDetailPage({ productId, currentUser, onNavigate, onAddToC
                 <div className="grid grid-cols-2 gap-4 mt-6">
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-600">Danh mục</span>
-                    <span className="text-gray-900">{product.category}</span>
+                    <span className="text-gray-900">{product.category?.name || 'Chưa phân loại'}</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-600">Tình trạng</span>
-                    <span className="text-green-600">Còn {product.stock} sản phẩm</span>
+                    <span className="text-green-600">Còn {product.stockQuantity} sản phẩm</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-600">Thương hiệu</span>
@@ -671,7 +743,7 @@ export function ProductDetailPage({ productId, currentUser, onNavigate, onAddToC
                 <div
                   key={relatedProduct.id}
                   className="bg-white rounded-xl shadow-sm overflow-hidden cursor-pointer hover:shadow-lg transition-all group"
-                  onClick={() => onNavigate('product-detail', relatedProduct.id)}
+                  onClick={() => navigate(`/product/${relatedProduct.id}`)}
                 >
                   <div className="aspect-square relative overflow-hidden bg-gray-100">
                     <img

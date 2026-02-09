@@ -1,21 +1,20 @@
 import { useState } from 'react';
 import { Plus, Search, Edit, Trash2, Eye, MoreVertical } from 'lucide-react';
-import { User } from '../../App';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { mockProducts } from '../../data/mockData';
 import { CreateProductModal } from './CreateProductModal';
 import { PageLayout } from '../Layout/PageLayout';
 
-interface ProductManagementPageProps {
-  currentUser: User;
-  onNavigate: (page: any) => void;
-  onLogout: () => void;
-}
-
-export function ProductManagementPage({ currentUser, onNavigate, onLogout }: ProductManagementPageProps) {
+export function ProductManagementPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const myProducts = mockProducts.filter(p => p.sellerId === currentUser.id);
+  if (!user) return null;
+
+  const myProducts = mockProducts.filter(p => p.sellerId === user.id);
 
   const handleAddProduct = (product: any) => {
     console.log('Sản phẩm mới:', product);
@@ -25,9 +24,6 @@ export function ProductManagementPage({ currentUser, onNavigate, onLogout }: Pro
 
   return (
     <PageLayout 
-      currentUser={currentUser}
-      onNavigate={onNavigate}
-      onLogout={onLogout}
       activePage="seller-dashboard"
       showFooter={false}
       showMobileNav={false}
@@ -37,7 +33,7 @@ export function ProductManagementPage({ currentUser, onNavigate, onLogout }: Pro
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl">Quản lý sản phẩm</h1>
           <button
-            onClick={() => onNavigate('add-product')}
+            onClick={() => navigate('/seller/products/add')}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-5 h-5" />
@@ -132,7 +128,6 @@ export function ProductManagementPage({ currentUser, onNavigate, onLogout }: Pro
       {/* Add Product Modal */}
       {showAddModal && (
         <CreateProductModal
-          currentUser={currentUser}
           onClose={() => setShowAddModal(false)}
           onSubmit={handleAddProduct}
         />

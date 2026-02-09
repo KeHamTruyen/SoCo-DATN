@@ -1,14 +1,9 @@
 import { useState } from 'react';
 import { Upload, X, Plus, Trash2, Image as ImageIcon, Sparkles } from 'lucide-react';
-import { User } from '../../App';
-import { PageLayout } from '../Layout';
-
-interface AddProductPageProps {
-  currentUser: User;
-  onNavigate: (page: any) => void;
-  onAddProduct: (product: any) => void;
-  onLogout: () => void;
-}
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import productService from '../../services/product.service';
+import { PageLayout } from '../Layout/PageLayout';
 
 interface ProductVariant {
   id: string;
@@ -16,7 +11,9 @@ interface ProductVariant {
   options: string[];
 }
 
-export function AddProductPage({ currentUser, onNavigate, onAddProduct, onLogout }: AddProductPageProps) {
+export function AddProductPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [productName, setProductName] = useState('');
   const [price, setPrice] = useState('');
   const [compareAtPrice, setCompareAtPrice] = useState('');
@@ -29,6 +26,9 @@ export function AddProductPage({ currentUser, onNavigate, onAddProduct, onLogout
   const [tagInput, setTagInput] = useState('');
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [useAI, setUseAI] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (!user) return null;
 
   const categories = [
     'Thời trang nam',
@@ -132,46 +132,74 @@ export function AddProductPage({ currentUser, onNavigate, onAddProduct, onLogout
     alert('Đã tạo mô tả bằng AI!');
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!productName || !price || !category || images.length === 0) {
       alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
 
-    const product = {
-      id: Date.now().toString(),
-      title: productName,
-      price: parseFloat(price),
-      compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : null,
-      category,
-      description,
-      images,
-      stock: stock ? parseInt(stock) : 0,
-      sku,
-      tags,
-      variants,
-      sellerId: currentUser.id,
-      sellerName: currentUser.name,
-      sellerAvatar: currentUser.avatar,
-      createdAt: new Date().toISOString()
-    };
+    setIsSubmitting(true);
+    try {
+      await productService.createProduct({
+        title: productName,
+        description,
+        price: parseFloat(price),
+        compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
+        categoryId: category, // This should be a category UUID in real implementation
+        stockQuantity: stock ? parseInt(stock) : 0,
+        sku: sku || undefined,
+        images: images.map((url, index) => ({
+          url,
+          altText: productName
+        })),
+        variants: variants.map(v => ({
+          name: v.name,
+          options: v.options.reduce((acc, opt, idx) => ({
+            ...acc,
+            [`option${idx + 1}`]: opt
+          }), {}),
+          stockQuantity: 0
+        })),
+        metaKeywords: tags
+      });
 
-    onAddProduct(product);
-    alert('Đã thêm sản phẩm thành công!');
-    onNavigate('product-management');
+      alert('Đã thêm sản phẩm thành công!');
+      navigate('/seller/products');
+    } catch (error: any) {
+      console.error('Error creating product:', error);
+      alert(error.response?.data?.message || 'Không thể thêm sản phẩm. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <PageLayout
-      currentUser={currentUser}
-      onNavigate={onNavigate}
-      onLogout={onLogout}
-      cartItemCount={0}
       activePage="add-product"
       showFooter={false}
       showMobileNav={false}
     >
-      <div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl">Thêm sản phẩm mới</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/seller/products')}
+              className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Hủy
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Đang lưu...' : 'Lưu sản phẩm'}
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">

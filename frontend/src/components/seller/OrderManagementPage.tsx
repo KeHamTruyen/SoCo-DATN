@@ -1,17 +1,16 @@
 import { useState } from 'react';
 import { Search, Filter, Download, Eye } from 'lucide-react';
-import { User } from '../../App';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { PageLayout } from '../Layout/PageLayout';
 
-interface OrderManagementPageProps {
-  currentUser: User;
-  onNavigate: (page: any) => void;
-  onLogout: () => void;
-}
-
-export function OrderManagementPage({ currentUser, onNavigate, onLogout }: OrderManagementPageProps) {
+export function OrderManagementPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'shipping' | 'completed' | 'refund'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  if (!user) return null;
 
   const orders = [
     { id: '#1234', customer: 'Trần Thị Mai', product: 'Áo sơ mi cao cấp', quantity: 2, amount: '900,000đ', status: 'shipping', date: '15/12/2024', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400' },
@@ -46,9 +45,6 @@ export function OrderManagementPage({ currentUser, onNavigate, onLogout }: Order
 
   return (
     <PageLayout 
-      currentUser={currentUser}
-      onNavigate={onNavigate}
-      onLogout={onLogout}
       activePage="seller-dashboard"
       showFooter={false}
       showMobileNav={false}

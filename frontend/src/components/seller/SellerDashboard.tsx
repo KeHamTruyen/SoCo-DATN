@@ -1,14 +1,13 @@
 import { TrendingUp, Package, ShoppingBag, DollarSign, Users, Star, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { User } from '../../App';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { PageLayout } from '../Layout/PageLayout';
 
-interface SellerDashboardProps {
-  currentUser: User;
-  onNavigate: (page: any) => void;
-  onLogout: () => void;
-}
+export function SellerDashboard() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
-export function SellerDashboard({ currentUser, onNavigate, onLogout }: SellerDashboardProps) {
+  if (!user) return null;
   const stats = [
     {
       label: 'Doanh thu tháng này',
@@ -73,9 +72,6 @@ export function SellerDashboard({ currentUser, onNavigate, onLogout }: SellerDas
 
   return (
     <PageLayout 
-      currentUser={currentUser}
-      onNavigate={onNavigate}
-      onLogout={onLogout}
       activePage="seller-dashboard"
       showFooter={false}
     >
@@ -85,13 +81,13 @@ export function SellerDashboard({ currentUser, onNavigate, onLogout }: SellerDas
           <h1 className="text-2xl">Dashboard Người bán</h1>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => onNavigate('product-management')}
+              onClick={() => navigate('/seller/products')}
               className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Quản lý sản phẩm
             </button>
             <button
-              onClick={() => onNavigate('order-management')}
+              onClick={() => navigate('/seller/orders')}
               className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Quản lý đơn hàng
@@ -130,7 +126,7 @@ export function SellerDashboard({ currentUser, onNavigate, onLogout }: SellerDas
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg">Đơn hàng gần đây</h2>
               <button
-                onClick={() => onNavigate('order-management')}
+                onClick={() => navigate('/seller/orders')}
                 className="text-sm text-blue-600 hover:text-blue-700"
               >
                 Xem tất cả
