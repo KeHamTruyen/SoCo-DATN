@@ -2,16 +2,19 @@
 
 ## 🎯 Tổng quan tiến độ
 
-### ✅ Đã hoàn thành (Phase 1)
+### ✅ Đã hoàn thành (Phase 1 & 3)
 - Backend Auth API
 - Backend Product API  
 - Backend Category API
+- Backend Posts & Social Feed API
 - Frontend Auth pages
 - Frontend Layout components
 - Frontend Seller pages migration
 - Frontend Product pages migration
+- Frontend Posts & Social Feed
 
 ### ⏳ Đang thực hiện
+- Frontend PostDetailPage
 - Backend Cart & Order APIs
 - Frontend Shopping flow
 
@@ -134,36 +137,41 @@
 
 ---
 
-## 📝 5. POSTS & SOCIAL FEED (❌ Chưa làm - Phase 3)
+## 📝 5. POSTS & SOCIAL FEED (✅ Hoàn thành 90% - Phase 3)
 
 ### Backend
 - [x] Post model (Prisma schema)
 - [x] PostLike model (Prisma schema)
 - [x] PostComment model (Prisma schema)
-- [ ] **TODO: Post service**
-  - [ ] Create post
-  - [ ] Get post by ID
-  - [ ] Get user posts
-  - [ ] Get feed (following users)
-  - [ ] Update post
-  - [ ] Delete post
-  - [ ] Like/unlike post
-  - [ ] Add comment
-  - [ ] Get comments
-- [ ] **TODO: Post controller**
-- [ ] **TODO: Post routes (`/api/posts/*`)**
-- [ ] **TODO: Post validators**
+- [x] Post service (`post.service.js`)
+  - [x] Create post
+  - [x] Get post by ID
+  - [x] Get user posts
+  - [x] Get feed with filters (authorId, status, visibility, search)
+  - [x] Update post
+  - [x] Delete post
+  - [x] Like/unlike post
+  - [x] Add comment
+  - [x] Get comments with pagination
+- [x] Post controller (`post.controller.js`)
+- [x] Post routes (`/api/posts/*`) - 10 endpoints
+- [x] Post validators with express-validator
+- [x] Swagger documentation for all endpoints
+- [x] Fixed avatar -> avatarUrl field mapping
 
 ### Frontend
-- [x] HomePage feed (dùng mock data)
+- [x] HomePage feed (tích hợp API thật)
 - [x] PostWithProducts component (dùng navigate)
-- [x] CreatePostModal (đã có hooks)
+- [x] CreatePostModal (tích hợp API đầy đủ)
+- [x] Post service (`post.service.ts`) với TypeScript
+- [x] Post composer với Cloudinary media upload
+- [x] Like/unlike functionality với optimistic updates
+- [x] Pagination với Load More
+- [x] date-fns cho format ngày giờ
+- [x] Fixed uploadService import
 - [ ] **TODO: PostDetailPage - migrate to API**
-- [ ] **TODO: Tích hợp API thật vào HomePage feed**
-- [ ] **TODO: Infinite scroll cho feed**
-- [ ] **TODO: Post composer với media upload**
-- [ ] **TODO: Comment section**
-- [ ] **TODO: Like/unlike functionality**
+- [ ] **TODO: Comment section UI**
+- [ ] **TODO: Infinite scroll (hiện có Load More button)**
 
 ---
 
@@ -500,13 +508,13 @@
 ## 🎯 PRIORITY ORDER (Đề xuất)
 
 ### 🔥 HIGH PRIORITY (Làm ngay)
-1. **Cart & Checkout APIs + Frontend** (Phase 2)
-2. **Order Management APIs + Frontend** (Phase 2)
-3. **Upload middleware cho images**
-4. **Seed data để test**
+1. **PostDetailPage completion** (Phase 3)
+2. **Cart & Checkout APIs + Frontend** (Phase 2)
+3. **Order Management APIs + Frontend** (Phase 2)
+4. **Upload middleware cho images**
+5. **Seed data để test**
 
 ### 🟡 MEDIUM PRIORITY (Sau Phase 2)
-5. **Posts & Social Feed** (Phase 3)
 6. **Reviews & Ratings** (Phase 3)
 7. **Search & Filters** (Phase 4)
 8. **Messaging (Real-time)** (Phase 5)
@@ -526,7 +534,7 @@
 
 | Module | Backend | Frontend | Status |
 |--------|---------|----------|--------|
-| Auth | ✅ 100% | ✅ 100% | ✅ Done |
+| Auth | ✅✅ 100% | ✅ 90% | ✅ Donee |
 | Products | ✅ 90% | ✅ 80% | ⏳ Phase 1 |
 | Categories | ✅ 100% | ✅ 100% | ✅ Done |
 | Cart | ❌ 0% | 🟡 50% | ❌ Todo |
@@ -538,15 +546,15 @@
 | Search | ❌ 0% | ❌ 0% | ❌ Todo |
 | Admin | ❌ 0% | ❌ 0% | ❌ Todo |
 
-**Tổng tiến độ: ~25%** 🚧
+**Tổng tiến độ: ~35%** 🚧
 
 ---
 
 ## 🏁 Next Steps
 
 1. ✅ ~~Phase 1: Products & Categories~~ (DONE)
-2. 🎯 **Phase 2: Cart & Orders** (NEXT)
-3. 📝 Phase 3: Posts & Social
+2. ✅ ~~Phase 3: Posts & Social~~ (DONE - 90%)
+3. 🎯 **Phase 2: Cart & Orders** (NEXT)
 4. 💬 Phase 4: Messaging & Notifications
 5. 🔍 Phase 5: Search & Marketplace
 6. 👨‍💼 Phase 6: Admin & Analytics
@@ -554,4 +562,4 @@
 
 ---
 
-*Last updated: February 10, 2026*
+*Last updated: February 14, 2026*
