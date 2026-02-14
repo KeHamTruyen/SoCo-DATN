@@ -26,7 +26,7 @@ export function ProfilePage() {
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex flex-col md:flex-row md:items-start gap-6">
             <img
-              src={user.avatar || 'https://i.pravatar.cc/150'}
+              src={user.avatarUrl || 'https://i.pravatar.cc/150'}
               alt={user.fullName || 'User'}
               className="w-24 h-24 rounded-full"
             />

@@ -7,7 +7,7 @@ interface User {
   username: string;
   fullName: string;
   phone: string | null;
-  avatar: string | null;
+  avatarUrl: string | null;
   coverImage: string | null;
   bio: string | null;
   address: string | null;
@@ -46,16 +46,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initAuth = async () => {
       try {
         const token = authService.getToken();
-        if (token) {
+        const savedUser = authService.getCurrentUser();
+        
+        console.log('🔐 Auth Init:', { hasToken: !!token, hasSavedUser: !!savedUser });
+        
+        // If no token, user is not logged in
+        if (!token) {
+          console.log('❌ No token found, user not logged in');
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+        
+        // Load user from localStorage immediately to prevent flash
+        if (savedUser) {
+          console.log('✅ Loading cached user:', savedUser.username);
+          setUser(savedUser);
+        }
+        
+        // Then verify token with API
+        try {
           const response = await authService.getProfile();
+          console.log('✅ Token verified, user updated:', response.data.user.username);
           setUser(response.data.user);
+        } catch (apiErr: any) {
+          console.warn('⚠️ Failed to verify token:', apiErr.message);
+          
+          // Only clear auth if token is actually invalid (401)
+          if (apiErr.response?.status === 401) {
+            console.error('❌ Token invalid (401), logging out');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setUser(null);
+          } else {
+            // Network error or backend down - keep user logged in with cached data
+            console.warn('⚠️ Network error, keeping cached user');
+            // If we have savedUser, make sure it's set (in case it wasn't set above)
+            if (savedUser) {
+              setUser(savedUser);
+            }
+          }
         }
       } catch (err) {
-        console.error('Failed to initialize auth:', err);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        console.error('❌ Failed to initialize auth:', err);
+        // Even if outer try fails, if we have token and savedUser, keep user logged in
+        const token = authService.getToken();
+        const savedUser = authService.getCurrentUser();
+        if (token && savedUser) {
+          console.log('✅ Keeping cached user despite outer error');
+          setUser(savedUser);
+        }
       } finally {
         setLoading(false);
+        console.log('✅ Auth initialization complete');
       }
     };
 

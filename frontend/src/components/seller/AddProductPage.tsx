@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Upload, X, Plus, Trash2, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { X, Plus, Trash2, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import productService from '../../services/product.service';
 import { PageLayout } from '../Layout/PageLayout';
+import { ImageUpload } from '../common/ImageUpload';
 
 interface ProductVariant {
   id: string;
@@ -45,16 +46,10 @@ export function AddProductPage() {
     'Sách'
   ];
 
-  const handleImageUpload = () => {
-    // Mock upload - in real app would handle file upload
-    const mockImages = [
-      'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800',
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
-      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800',
-      'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=800'
-    ];
-    const randomImage = mockImages[Math.floor(Math.random() * mockImages.length)];
-    setImages([...images, randomImage]);
+  const handleImageUploaded = (url: string) => {
+    if (url && !images.includes(url)) {
+      setImages([...images, url]);
+    }
   };
 
   const removeImage = (index: number) => {
@@ -148,7 +143,7 @@ export function AddProductPage() {
         categoryId: category, // This should be a category UUID in real implementation
         stockQuantity: stock ? parseInt(stock) : 0,
         sku: sku || undefined,
-        images: images.map((url, index) => ({
+        images: images.map((url) => ({
           url,
           altText: productName
         })),
@@ -266,37 +261,45 @@ export function AddProductPage() {
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="text-lg mb-4">Hình ảnh sản phẩm <span className="text-red-500">*</span></h2>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {images.map((image, index) => (
-                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group">
-                    <img src={image} alt="" className="w-full h-full object-cover" />
-                    <button
-                      onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                    {index === 0 && (
-                      <div className="absolute bottom-2 left-2 px-2 py-1 bg-blue-600 text-white text-xs rounded">
-                        Ảnh chính
-                      </div>
-                    )}
-                  </div>
-                ))}
+              {/* Uploaded Images Grid */}
+              {images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  {images.map((image, index) => (
+                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group">
+                      <img src={image} alt="" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                      {index === 0 && (
+                        <div className="absolute bottom-2 left-2 px-2 py-1 bg-blue-600 text-white text-xs rounded">
+                          Ảnh chính
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
 
-                {images.length < 8 && (
-                  <button
-                    onClick={handleImageUpload}
-                    className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-blue-600 hover:bg-blue-50 transition-colors"
-                  >
-                    <Upload className="w-8 h-8 text-gray-400" />
-                    <span className="text-sm text-gray-600">Tải ảnh lên</span>
-                  </button>
-                )}
-              </div>
+              {/* Upload New Image */}
+              {images.length < 8 && (
+                <div className="mb-3">
+                  <ImageUpload
+                    onImageUploaded={handleImageUploaded}
+                    label={images.length === 0 ? "Upload ảnh sản phẩm (ảnh đầu tiên sẽ là ảnh chính)" : "Thêm ảnh"}
+                    maxSize={5}
+                  />
+                </div>
+              )}
 
-              <p className="text-sm text-gray-500 mt-3">
-                Tối đa 8 ảnh. Ảnh đầu tiên sẽ là ảnh đại diện sản phẩm.
+              <p className="text-sm text-gray-500">
+                💡 Tối đa 8 ảnh, mỗi ảnh tối đa 5MB. Ảnh đầu tiên sẽ là ảnh đại diện sản phẩm.
+              </p>
+              <p className="text-sm text-green-600 mt-1">
+                ✅ Ảnh được lưu trữ trên Cloudinary (CDN toàn cầu)
               </p>
             </div>
 

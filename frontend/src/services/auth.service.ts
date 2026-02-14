@@ -24,7 +24,7 @@ export interface AuthResponse {
       username: string;
       fullName: string;
       phone: string | null;
-      avatar: string | null;
+      avatarUrl: string | null;
       coverImage: string | null;
       bio: string | null;
       address: string | null;

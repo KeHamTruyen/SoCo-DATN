@@ -1,4 +1,4 @@
-import { body, query, param } from 'express-validator';
+import { body, query, param, validationResult } from 'express-validator';
 
 export const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -188,6 +188,3 @@ export const addImagesValidation = [
     .isLength({ max: 200 })
     .withMessage('Alt text must not exceed 200 characters')
 ];
-
-// Import validationResult at the top
-import { validationResult } from 'express-validator';

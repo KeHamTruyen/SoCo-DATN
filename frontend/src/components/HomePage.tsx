@@ -1,58 +1,107 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MessageCircle, ShoppingCart, Store, Users } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Store, Users, Loader2, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
-import { mockProducts } from '../data/mockData';
 import { CreatePostModal } from './CreatePostModal';
-import { PostWithProducts } from './PostWithProducts';
 import { PageLayout } from './Layout';
-
-interface Product {
-  id: string;
-  sellerId: string;
-  sellerName: string;
-  sellerAvatar: string;
-  title: string;
-  description: string;
-  price: number;
-  image: string;
-  category: string;
-  likes: number;
-  comments: number;
-  isLiked: boolean;
-  createdAt: string;
-  stock: number;
-}
+import * as postService from '../services/post.service';
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 export function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addToCart } = useCart();
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [posts, setPosts] = useState<postService.Post[]>([]);
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   if (!user) return null;
 
-  const handleLike = (productId: string) => {
-    setProducts(prev =>
-      prev.map(p =>
-        p.id === productId
-          ? { ...p, isLiked: !p.isLiked, likes: p.isLiked ? p.likes - 1 : p.likes + 1 }
-          : p
-      )
-    );
+  // Load posts
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        setLoading(true);
+        const response = await postService.getPosts({ page: 1, limit: 20, status: 'PUBLISHED' });
+        setPosts(response.data);
+        setHasMore(response.pagination.currentPage < response.pagination.totalPages);
+      } catch (error) {
+        console.error('Error loading posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPosts();
+  }, []);
+
+  // Load more posts
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+
+    try {
+      setLoadingMore(true);
+      const nextPage = page + 1;
+      const response = await postService.getPosts({ page: nextPage, limit: 20, status: 'PUBLISHED' });
+      setPosts([...posts, ...response.data]);
+      setPage(nextPage);
+      setHasMore(response.pagination.currentPage < response.pagination.totalPages);
+    } catch (error) {
+      console.error('Error loading more posts:', error);
+    } finally {
+      setLoadingMore(false);
+    }
   };
 
-  const handleAddToCart = (product: Product, e: React.MouseEvent) => {
-    e.stopPropagation();
-    // Convert local Product to App Product format
-    addToCart({ ...product, sellerUsername: product.sellerName } as any);
+  const handleLike = async (postId: string) => {
+    try {
+      // Optimistic update
+      setPosts(prev =>
+        prev.map(p =>
+          p.id === postId
+            ? { 
+                ...p, 
+                isLiked: !p.isLiked, 
+                likesCount: p.isLiked ? p.likesCount - 1 : p.likesCount + 1 
+              }
+            : p
+        )
+      );
+
+      await postService.toggleLike(postId);
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      // Revert on error
+      setPosts(prev =>
+        prev.map(p =>
+          p.id === postId
+            ? { 
+                ...p, 
+                isLiked: !p.isLiked, 
+                likesCount: p.isLiked ? p.likesCount + 1 : p.likesCount - 1 
+              }
+            : p
+        )
+      );
+    }
   };
 
-  const handleCreatePost = (post: any) => {
-    console.log('Bài viết mới:', post);
-    alert('Bài viết đã được tạo thành công!');
+  const handleCreatePost = (post: postService.Post) => {
+    // Add new post to the top of the feed
+    setPosts([post, ...posts]);
+  };
+
+  const formatTime = (date: string) => {
+    try {
+      return formatDistanceToNow(new Date(date), { addSuffix: true, locale: vi });
+    } catch {
+      return 'Vừa xong';
+    }
   };
 
   return (
@@ -68,7 +117,7 @@ export function HomePage() {
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <img
-                src={user.avatar || 'https://i.pravatar.cc/150'}
+                src={user.avatarUrl || 'https://i.pravatar.cc/150'}
                 alt={user.fullName || 'User'}
                 className="w-12 h-12 rounded-full"
               />
@@ -158,7 +207,7 @@ export function HomePage() {
               className="w-full flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-left"
             >
               <img
-                src={user.avatar || 'https://i.pravatar.cc/150'}
+                src={user.avatarUrl || 'https://i.pravatar.cc/150'}
                 alt={user.fullName || 'User'}
                 className="w-10 h-10 rounded-full"
               />
@@ -166,82 +215,29 @@ export function HomePage() {
             </button>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+          )}
+
           {/* Posts Feed */}
           <div className="space-y-4">
-            {/* Post with Tagged Products - Example */}
-            <PostWithProducts
-              post={{
-                id: 'post-tagged-1',
-                author: {
-                  id: 'seller-1',
-                  name: 'Shop Thời Trang Việt',
-                  avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
-                  isVerified: true
-                },
-                content: '🔥 FLASH SALE CUỐI TUẦN! 🔥\n\nGiảm giá SỐC lên đến 50% cho tất cả sản phẩm áo thun và giày sneaker! \n\nCác bạn nhanh tay đặt hàng ngay kẻo hết nhé! Số lượng có hạn! 🛒✨\n\n#FlashSale #ThờiTrang #SaleOff #MuaSắm',
-                image: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800',
-                timestamp: '2 giờ trước',
-                likes: 456,
-                comments: 89,
-                shares: 34,
-                isLiked: false,
-                taggedProducts: [
-                  {
-                    id: '1',
-                    title: 'Áo thun nam cotton cao cấp',
-                    price: 299000,
-                    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400',
-                    stock: 150
-                  },
-                  {
-                    id: '2',
-                    title: 'Giày sneaker thể thao năng động',
-                    price: 899000,
-                    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400',
-                    stock: 80
-                  }
-                ]
-              }}
-              onLike={() => console.log('Liked post')}
-            />
+            {!loading && posts.length === 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+                <p className="text-gray-500 mb-4">Chưa có bài viết nào</p>
+                <button
+                  onClick={() => setShowCreatePost(true)}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  Tạo bài viết đầu tiên
+                </button>
+              </div>
+            )}
 
-            {/* Sample Posts */}
-            {[
-              {
-                id: 'post-1',
-                type: 'post',
-                author: {
-                  id: '1',
-                  name: 'Nguyễn Văn A',
-                  avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
-                  isVerified: true
-                },
-                content: 'Hôm nay mình nhận được bộ outfit mới! Chất vải mềm mại, thiết kế sang trọng. Các bạn xem hình nhé! 🔥✨',
-                image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800',
-                timestamp: '3 giờ trước',
-                likes: 234,
-                comments: 45,
-                shares: 12,
-                isLiked: false
-              },
-              {
-                id: 'post-2',
-                type: 'post',
-                author: {
-                  id: '2',
-                  name: 'Trần Thị B',
-                  avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-                  isVerified: false
-                },
-                content: 'Review chi tiết về chiếc túi xách mới! Link các sản phẩm tương tự ở trong bài viết nhé 👜💕',
-                image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800',
-                timestamp: '5 giờ trước',
-                likes: 189,
-                comments: 32,
-                shares: 8,
-                isLiked: true
-              }
-            ].map((post) => (
+            {/* Real Posts from API */}
+            {posts.map((post) => (
               <div
                 key={post.id}
                 className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
@@ -251,51 +247,76 @@ export function HomePage() {
                 <div className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
                     <img
-                      src={post.author.avatar}
-                      alt={post.author.name}
-                      className="w-10 h-10 rounded-full"
+                      src={post.author.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.fullName || post.author.username)}`}
+                      alt={post.author.fullName || post.author.username}
+                      className="w-10 h-10 rounded-full object-cover"
                     />
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">{post.author.name}</span>
-                        {post.author.isVerified && (
-                          <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500">{post.timestamp}</p>
+                      <p className="text-sm font-medium">{post.author.fullName || post.author.username}</p>
+                      <p className="text-xs text-gray-500">{formatTime(post.createdAt)}</p>
                     </div>
                   </div>
-                  <button 
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-gray-400"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                    </svg>
-                  </button>
                 </div>
 
                 {/* Post Content */}
                 <div className="px-4 pb-3">
-                  <p className="text-gray-700">{post.content}</p>
+                  <p className="text-gray-700 whitespace-pre-wrap">{post.content}</p>
                 </div>
 
-                {/* Post Image */}
-                <div className="relative">
-                  <img
-                    src={post.image}
-                    alt=""
-                    className="w-full h-auto"
-                  />
-                </div>
+                {/* Post Media */}
+                {post.mediaUrls && post.mediaUrls.length > 0 && (
+                  <div className={`grid gap-2 ${post.mediaUrls.length === 1 ? 'grid-cols-1' : post.mediaUrls.length === 2 ? 'grid-cols-2' : 'grid-cols-2'}`}>
+                    {post.mediaUrls.slice(0, 4).map((url, index) => (
+                      <div key={index} className="relative aspect-square">
+                        <img
+                          src={url}
+                          alt={`Media ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        {index === 3 && post.mediaUrls.length > 4 && (
+                          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-2xl font-bold">
+                            +{post.mediaUrls.length - 4}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Tagged Product */}
+                {post.product && (
+                  <div 
+                    className="mx-4 mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/product/${post.product!.slug}`);
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                        <img 
+                          src={post.product.images[0]?.url || 'https://via.placeholder.com/64'} 
+                          alt={post.product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium line-clamp-1">{post.product.name}</p>
+                        <p className="text-lg font-semibold text-blue-600">
+                          {post.product.price.toLocaleString('vi-VN')}đ
+                        </p>
+                      </div>
+                      <ShoppingBag className="w-5 h-5 text-blue-600" />
+                    </div>
+                  </div>
+                )}
 
                 {/* Interaction Bar */}
                 <div className="flex items-center justify-between p-4 border-t border-gray-100">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      handleLike(post.id);
                     }}
                     className={`flex items-center gap-2 ${
                       post.isLiked ? 'text-red-500' : 'text-gray-600'
@@ -304,132 +325,45 @@ export function HomePage() {
                     <Heart
                       className={`w-5 h-5 ${post.isLiked ? 'fill-current' : ''}`}
                     />
-                    <span className="text-sm">{post.likes}</span>
+                    <span className="text-sm">{post.likesCount}</span>
                   </button>
                   <button
                     onClick={(e) => e.stopPropagation()}
                     className="flex items-center gap-2 text-gray-600"
                   >
                     <MessageCircle className="w-5 h-5" />
-                    <span className="text-sm">{post.comments}</span>
+                    <span className="text-sm">{post.commentsCount}</span>
                   </button>
                   <button
                     onClick={(e) => e.stopPropagation()}
                     className="flex items-center gap-2 text-gray-600"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                    </svg>
-                    <span className="text-sm">{post.shares}</span>
+                    <Share2 className="w-5 h-5" />
+                    <span className="text-sm">{post.sharesCount}</span>
                   </button>
                 </div>
               </div>
             ))}
 
-            {/* Products Feed (existing products) */}
-            {products.map((product) => (
-              <div
-                key={product.id}
-                className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => navigate(`/product/${product.id}`)}
-              >
-                {/* Seller Info */}
-                <div className="flex items-center justify-between p-4">
-                  <div 
-                    className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 -m-2 p-2 rounded-lg transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/store/${product.sellerId}`);
-                    }}
-                  >
-                    <img
-                      src={product.sellerAvatar}
-                      alt={product.sellerName}
-                      className="w-10 h-10 rounded-full"
-                    />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm hover:text-blue-600">{product.sellerName}</span>
-                        {product.id === '1' && (
-                          <span className="text-blue-600">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500">{product.createdAt}</p>
-                    </div>
-                  </div>
-                  <button className="text-gray-400">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Product Image */}
-                <div className="relative aspect-square">
-                  <img
-                    src={product.image}
-                    alt={product.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
-                    {product.category}
-                  </div>
-                </div>
-
-                {/* Product Info */}
-                <div className="p-4">
-                  <h3 className="text-lg mb-2">{product.title}</h3>
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-2xl text-blue-600">{product.price.toLocaleString('vi-VN')}đ</span>
-                    <button
-                      onClick={(e) => handleAddToCart(product, e)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      Thêm vào giỏ
-                    </button>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-6 pt-4 border-t border-gray-100">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleLike(product.id);
-                      }}
-                      className={`flex items-center gap-2 ${
-                        product.isLiked ? 'text-red-500' : 'text-gray-600'
-                      }`}
-                    >
-                      <Heart
-                        className={`w-5 h-5 ${product.isLiked ? 'fill-current' : ''}`}
-                      />
-                      <span className="text-sm">{product.likes}</span>
-                    </button>
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex items-center gap-2 text-gray-600"
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      <span className="text-sm">{product.comments}</span>
-                    </button>
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-gray-600 ml-auto"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
+            {/* Load More Button */}
+            {!loading && hasMore && (
+              <div className="flex justify-center py-6">
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="bg-white text-blue-600 px-6 py-3 rounded-lg border border-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {loadingMore ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Đang tải...
+                    </>
+                  ) : (
+                    'Xem thêm bài viết'
+                  )}
+                </button>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

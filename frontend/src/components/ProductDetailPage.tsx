@@ -189,7 +189,7 @@ export function ProductDetailPage() {
       id: Date.now().toString(),
       userId: user.id,
       userName: user.fullName,
-      userAvatar: user.avatar || '',
+      userAvatar: user.avatarUrl || '',
       rating: reviewRating,
       content: reviewText,
       timestamp: 'Vừa xong',
