@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Share2, Store, Users, Loader2, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useCart } from '../contexts/CartContext';
 import { CreatePostModal } from './CreatePostModal';
 import { PageLayout } from './Layout';
 import * as postService from '../services/post.service';
@@ -12,7 +11,6 @@ import { vi } from 'date-fns/locale';
 export function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { addToCart } = useCart();
   const [posts, setPosts] = useState<postService.Post[]>([]);
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [loading, setLoading] = useState(true);

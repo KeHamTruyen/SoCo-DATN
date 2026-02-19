@@ -1,37 +1,137 @@
-import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
-import { CartItem, User } from '../App';
-import { PageLayout } from './Layout';
+import { Trash2, Plus, Minus, ShoppingBag, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import cartService, { Cart as CartType } from '../services/cart.service';
 
-interface CartPageProps {
-  currentUser: User;
-  cart: CartItem[];
-  onNavigate: (page: any) => void;
-  onUpdateQuantity: (productId: string, quantity: number) => void;
-  onClearCart: () => void;
-  onLogout: () => void;
-}
+export function CartPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [cart, setCart] = useState<CartType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [updating, setUpdating] = useState<string | null>(null); // Track which item is being updated
 
-export function CartPage({ currentUser, cart, onNavigate, onUpdateQuantity, onClearCart, onLogout }: CartPageProps) {
-  const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const shipping = subtotal > 500000 ? 0 : 30000;
-  const total = subtotal + shipping;
+  // Load cart data
+  useEffect(() => {
+    loadCart();
+  }, []);
 
-  const handleCheckout = () => {
-    onNavigate('checkout');
+  const loadCart = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await cartService.getCart();
+      setCart(response.data);
+    } catch (err: any) {
+      console.error('Load cart error:', err);
+      setError(err.response?.data?.message || 'Failed to load cart');
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
+    if (newQuantity < 1) {
+      // Remove item
+      await handleRemoveItem(itemId);
+      return;
+    }
+
+    try {
+      setUpdating(itemId);
+      const response = await cartService.updateCartItem(itemId, { quantity: newQuantity });
+      setCart(response.data);
+    } catch (err: any) {
+      console.error('Update quantity error:', err);
+      alert(err.response?.data?.message || 'Failed to update quantity');
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const handleRemoveItem = async (itemId: string) => {
+    try {
+      setUpdating(itemId);
+      const response = await cartService.removeFromCart(itemId);
+      setCart(response.data);
+    } catch (err: any) {
+      console.error('Remove item error:', err);
+      alert(err.response?.data?.message || 'Failed to remove item');
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const handleClearCart = async () => {
+    if (!confirm('Are you sure you want to clear your cart?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await cartService.clearCart();
+      setCart(response.data);
+    } catch (err: any) {
+      console.error('Clear cart error:', err);
+      alert(err.response?.data?.message || 'Failed to clear cart');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCheckout = () => {
+    navigate('/checkout');
+  };
+
+  if (!user) {
+    return null;
+  }
+
+  const subtotal = cart?.subtotal || 0;
+  const shipping = subtotal > 500000 ? 0 : 30000;
+  const total = subtotal + shipping;
+  const cartItems = cart?.items || [];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={loadCart}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <PageLayout
-      currentUser={currentUser}
-      onNavigate={onNavigate}
-      onLogout={onLogout}
-      cartItemCount={cart.length}
-      activePage="cart"
-      showFooter={true}
-      showMobileNav={true}
-    >
-      <div>
-        {cart.length === 0 ? (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-6">
+          <button
+            onClick={() => navigate('/')}
+            className="text-blue-600 hover:text-blue-700 mb-4"
+          >
+            ← Back to Home
+          </button>
+          <h1 className="text-2xl font-semibold">Shopping Cart</h1>
+        </div>
+
+        {cartItems.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <ShoppingBag className="w-10 h-10 text-gray-400" />
@@ -41,7 +141,7 @@ export function CartPage({ currentUser, cart, onNavigate, onUpdateQuantity, onCl
               Bạn chưa có sản phẩm nào trong giỏ hàng
             </p>
             <button
-              onClick={() => onNavigate('home')}
+              onClick={() => navigate('/')}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Khám phá sản phẩm
@@ -53,10 +153,10 @@ export function CartPage({ currentUser, cart, onNavigate, onUpdateQuantity, onCl
             <div className="lg:col-span-2 space-y-4">
               <div className="bg-white rounded-lg shadow-sm p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg">Sản phẩm đã chọn ({cart.length})</h2>
-                  {cart.length > 0 && (
+                  <h2 className="text-lg">Sản phẩm đã chọn ({cartItems.length})</h2>
+                  {cartItems.length > 0 && (
                     <button
-                      onClick={onClearCart}
+                      onClick={handleClearCart}
                       className="text-sm text-red-600 hover:text-red-700"
                     >
                       Xóa tất cả
@@ -65,52 +165,64 @@ export function CartPage({ currentUser, cart, onNavigate, onUpdateQuantity, onCl
                 </div>
 
                 <div className="space-y-4">
-                  {cart.map((item) => (
+                  {cartItems.map((item) => (
                     <div
-                      key={item.product.id}
+                      key={item.id}
                       className="flex gap-4 pb-4 border-b border-gray-100 last:border-0"
                     >
                       <div
                         className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
-                        onClick={() => onNavigate('product-detail', item.product.id)}
+                        onClick={() => navigate(`/product/${item.product.slug}`)}
                       >
                         <img
-                          src={item.product.image}
-                          alt={item.product.title}
+                          src={item.product.images[0]?.imageUrl || '/placeholder.png'}
+                          alt={item.product.name}
                           className="w-full h-full object-cover"
                         />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3
                           className="text-sm mb-1 line-clamp-2 cursor-pointer hover:text-blue-600"
-                          onClick={() => onNavigate('product-detail', item.product.id)}
+                          onClick={() => navigate(`/product/${item.product.slug}`)}
                         >
-                          {item.product.title}
+                          {item.product.name}
                         </h3>
-                        <p className="text-sm text-gray-500 mb-2">{item.product.sellerName}</p>
+                        <p className="text-sm text-gray-500 mb-2">{item.product.seller.fullName}</p>
+                        {item.selectedVariant && (
+                          <p className="text-xs text-gray-500 mb-2">
+                            Variant: {JSON.stringify(item.selectedVariant)}
+                          </p>
+                        )}
                         <div className="flex items-center justify-between">
                           <span className="text-blue-600">
-                            {item.product.price.toLocaleString('vi-VN')}đ
+                            {Number(item.product.price).toLocaleString('vi-VN')}đ
                           </span>
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)}
-                              className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                              onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                              disabled={updating === item.id}
+                              className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50"
                             >
                               <Minus className="w-4 h-4" />
                             </button>
                             <span className="w-8 text-center">{item.quantity}</span>
                             <button
-                              onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)}
-                              className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                              onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                              disabled={updating === item.id}
+                              className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => onUpdateQuantity(item.product.id, 0)}
-                              className="ml-2 text-red-600 hover:text-red-700"
+                              onClick={() => handleRemoveItem(item.id)}
+                              disabled={updating === item.id}
+                              className="ml-2 text-red-600 hover:text-red-700 disabled:opacity-50"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              {updating === item.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
                             </button>
                           </div>
                         </div>
@@ -155,7 +267,7 @@ export function CartPage({ currentUser, cart, onNavigate, onUpdateQuantity, onCl
                 </button>
 
                 <button
-                  onClick={() => onNavigate('home')}
+                  onClick={() => navigate('/')}
                   className="w-full py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Tiếp tục mua hàng
@@ -186,6 +298,6 @@ export function CartPage({ currentUser, cart, onNavigate, onUpdateQuantity, onCl
           </div>
         )}
       </div>
-    </PageLayout>
+    </div>
   );
 }

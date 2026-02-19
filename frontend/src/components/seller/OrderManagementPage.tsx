@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { Search, Filter, Download, Eye } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { PageLayout } from '../Layout/PageLayout';
 
 export function OrderManagementPage() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'shipping' | 'completed' | 'refund'>('all');
   const [searchQuery, setSearchQuery] = useState('');

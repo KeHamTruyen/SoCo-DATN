@@ -4,15 +4,21 @@ import productRoutes from './product.routes.js';
 import categoryRoutes from './category.routes.js';
 import uploadRoutes from './upload.routes.js';
 import postRoutes from './post.routes.js';
+import cartRoutes from './cart.routes.js';
+import orderRoutes from './order.routes.js';
+import userRoutes from './user.routes.js';
 
 const router = express.Router();
 
 // Use routes
 router.use('/auth', authRoutes);
+router.use('/users', userRoutes);
 router.use('/products', productRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/posts', postRoutes);
+router.use('/cart', cartRoutes);
+router.use('/orders', orderRoutes);
 
 // Temporary welcome route
 router.get('/', (req, res) => {

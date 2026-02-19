@@ -9,6 +9,7 @@ export interface User {
   fullName: string;
   avatarUrl: string | null;
   role: string;
+  isVerified: boolean;
 }
 
 export interface ProductBasic {
@@ -25,6 +26,8 @@ export interface ProductBasic {
     id: string;
     username: string;
     fullName: string;
+    avatarUrl: string | null;
+    isVerified: boolean;
   };
 }
 

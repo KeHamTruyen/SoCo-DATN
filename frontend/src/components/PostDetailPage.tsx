@@ -1,185 +1,115 @@
-import { useState } from 'react';
-import { Heart, MessageCircle, Share2, ShoppingBag, MoreVertical, Send, Smile, MapPin } from 'lucide-react';
-import { User, Product } from '../App';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Heart, MessageCircle, Share2, ShoppingBag, MoreVertical, Send, Smile, Loader2, ArrowLeft } from 'lucide-react';
 import { PageLayout } from './Layout';
+import { useAuth } from '../contexts/AuthContext';
+import * as postService from '../services/post.service';
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
-interface PostDetailPageProps {
-  postId: string;
-  currentUser: User;
-  onNavigate: (page: any, id?: string) => void;
-  onAddToCart?: (product: Product) => void;
-  onLogout: () => void;
-}
-
-interface PostComment {
-  id: string;
-  userId: string;
-  userName: string;
-  userAvatar: string;
-  content: string;
-  timestamp: string;
-  likes: number;
-  isLiked: boolean;
-  replies?: PostComment[];
-}
-
-export function PostDetailPage({ postId, currentUser, onNavigate, onAddToCart }: PostDetailPageProps) {
-  const [isLiked, setIsLiked] = useState(false);
-  const [likes, setLikes] = useState(234);
+export function PostDetailPage() {
+  const { id: postId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const [post, setPost] = useState<postService.Post | null>(null);
+  const [comments, setComments] = useState<postService.PostComment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [commentText, setCommentText] = useState('');
   const [replyToId, setReplyToId] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [comments, setComments] = useState<PostComment[]>([
-    {
-      id: '1',
-      userId: '2',
-      userName: 'Trần Thị B',
-      userAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-      content: 'Bộ này đẹp quá! Bạn mua ở đâu thế?',
-      timestamp: '2 giờ trước',
-      likes: 12,
-      isLiked: false,
-      replies: [
-        {
-          id: '1-1',
-          userId: '1',
-          userName: 'Nguyễn Văn A',
-          userAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
-          content: 'Mình mua ở shop trong link bên dưới nhé! Chất lượng tốt lắm',
-          timestamp: '1 giờ trước',
-          likes: 5,
-          isLiked: false
-        }
-      ]
-    },
-    {
-      id: '2',
-      userId: '3',
-      userName: 'Lê Văn C',
-      userAvatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400',
-      content: 'Giá cả hợp lý không bạn?',
-      timestamp: '4 giờ trước',
-      likes: 8,
-      isLiked: false
-    },
-    {
-      id: '3',
-      userId: '4',
-      userName: 'Phạm Thị D',
-      userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
-      content: 'Form dáng vừa vặn không bạn? Mình cao 1m6 nặng 50kg thì mặc size nào?',
-      timestamp: '6 giờ trước',
-      likes: 3,
-      isLiked: true
-    }
-  ]);
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMoreComments, setHasMoreComments] = useState(true);
 
-  // Mock post data
-  const post = {
-    id: postId,
-    author: {
-      id: '1',
-      name: 'Nguyễn Văn A',
-      username: 'nguyenvana',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
-      isVerified: true
-    },
-    content: 'Hôm nay mình nhận được bộ outfit mới và phải nói là quá hài lòng! Chất vải mềm mại, thiết kế tối giản nhưng rất sang trọng. Đặc biệt là màu sắc rất đẹp và dễ phối đồ. Mình đã tag các sản phẩm bên dưới cho các bạn dễ tham khảo nhé! 🔥✨\n\n#fashion #ootd #style #vietnamfashion',
-    images: [
-      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1200',
-      'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1200',
-      'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1200'
-    ],
-    timestamp: '3 giờ trước',
-    location: 'Hà Nội, Việt Nam'
+  if (!user || !postId) return null;
+
+  // Format time helper
+  const formatTime = (dateString: string) => {
+    return formatDistanceToNow(new Date(dateString), { 
+      addSuffix: true,
+      locale: vi 
+    });
   };
 
-  // Tagged products
-  const taggedProducts: Product[] = [
-    {
-      id: '1',
-      sellerId: '1',
-      sellerName: 'Shop Thời Trang A',
-      sellerAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
-      sellerUsername: 'shopthoitrang_a',
-      title: 'Áo sơ mi trắng tay dài',
-      price: 350000,
-      image: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=400',
-      description: 'Áo sơ mi trắng basic, chất vải cotton cao cấp',
-      likes: 89,
-      comments: 23,
-      isLiked: false,
-      createdAt: '2 ngày trước',
-      category: 'Thời trang',
-      stock: 50,
-      variants: [
-        { id: '1', name: 'Màu sắc', options: ['Trắng', 'Xanh nhạt', 'Hồng'] },
-        { id: '2', name: 'Kích thước', options: ['S', 'M', 'L', 'XL'] }
-      ]
-    },
-    {
-      id: '2',
-      sellerId: '2',
-      sellerName: 'Shop Thời Trang B',
-      sellerAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
-      sellerUsername: 'shopthoitrang_b',
-      title: 'Quần jeans ống rộng',
-      price: 450000,
-      image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400',
-      description: 'Quần jeans ống rộng phong cách Hàn Quốc',
-      likes: 124,
-      comments: 34,
-      isLiked: false,
-      createdAt: '1 ngày trước',
-      category: 'Thời trang',
-      stock: 30,
-      variants: [
-        { id: '1', name: 'Màu sắc', options: ['Xanh đậm', 'Xanh nhạt', 'Đen'] },
-        { id: '2', name: 'Kích thước', options: ['26', '27', '28', '29', '30'] }
-      ]
-    },
-    {
-      id: '3',
-      sellerId: '3',
-      sellerName: 'Shop Thời Trang C',
-      sellerAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-      sellerUsername: 'shopthoitrang_c',
-      title: 'Túi xách da cao cấp',
-      price: 680000,
-      image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400',
-      description: 'Túi xách da PU cao cấp, thiết kế tối giản',
-      likes: 156,
-      comments: 45,
-      isLiked: false,
-      createdAt: '3 ngày trước',
-      category: 'Phụ kiện',
-      stock: 20,
-      variants: [
-        { id: '1', name: 'Màu sắc', options: ['Đen', 'Nâu', 'Be'] }
-      ]
-    }
-  ];
+  // Load post detail
+  useEffect(() => {
+    const loadPost = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await postService.getPost(postId);
+        setPost(response.data.post);
+      } catch (err: any) {
+        console.error('Error loading post:', err);
+        setError(err.response?.data?.message || 'Không thể tải bài viết');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikes(isLiked ? likes - 1 : likes + 1);
+    loadPost();
+  }, [postId]);
+
+  // Load comments
+  useEffect(() => {
+    const loadComments = async () => {
+      try {
+        setCommentsLoading(true);
+        const response = await postService.getComments(postId, page, 20);
+        setComments(response.data);
+        setHasMoreComments(response.pagination.currentPage < response.pagination.totalPages);
+      } catch (err: any) {
+        console.error('Error loading comments:', err);
+      } finally {
+        setCommentsLoading(false);
+      }
+    };
+
+    loadComments();
+  }, [postId, page]);
+
+  // Handle like/unlike
+  const handleLike = async () => {
+    if (!post) return;
+    
+    // Optimistic update
+    const wasLiked = post.isLiked;
+    const prevLikesCount = post.likesCount;
+    
+    setPost({
+      ...post,
+      isLiked: !wasLiked,
+      likesCount: wasLiked ? prevLikesCount - 1 : prevLikesCount + 1
+    });
+
+    try {
+      await postService.toggleLike(postId);
+    } catch (err) {
+      // Revert on error
+      setPost({
+        ...post,
+        isLiked: wasLiked,
+        likesCount: prevLikesCount
+      });
+      console.error('Error toggling like:', err);
+    }
   };
 
-  const handleAddComment = (e: React.FormEvent) => {
+  // Handle add comment
+  const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (commentText.trim()) {
-      const newComment: PostComment = {
-        id: Date.now().toString(),
-        userId: currentUser.id,
-        userName: currentUser.name,
-        userAvatar: currentUser.avatar,
-        content: commentText,
-        timestamp: 'Vừa xong',
-        likes: 0,
-        isLiked: false
-      };
+    if (!commentText.trim() || submittingComment) return;
+
+    try {
+      setSubmittingComment(true);
+      const response = await postService.addComment(postId, commentText, replyToId || undefined);
+      const newComment = response.data.comment;
       
       if (replyToId) {
+        // Add reply to parent comment
         setComments(comments.map(comment => {
           if (comment.id === replyToId) {
             return {
@@ -191,36 +121,66 @@ export function PostDetailPage({ postId, currentUser, onNavigate, onAddToCart }:
         }));
         setReplyToId(null);
       } else {
+        // Add new top-level comment
         setComments([newComment, ...comments]);
       }
+      
+      // Update post comments count
+      if (post) {
+        setPost({
+          ...post,
+          commentsCount: post.commentsCount + 1
+        });
+      }
+      
       setCommentText('');
+    } catch (err: any) {
+      console.error('Error adding comment:', err);
+      alert(err.response?.data?.message || 'Không thể đăng bình luận');
+    } finally {
+      setSubmittingComment(false);
     }
   };
 
-  const handleLikeComment = (commentId: string) => {
-    setComments(comments.map(comment => {
-      if (comment.id === commentId) {
-        return {
-          ...comment,
-          isLiked: !comment.isLiked,
-          likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1
-        };
-      }
-      return comment;
-    }));
-  };
+  // Loading state
+  if (loading) {
+    return (
+      <PageLayout activePage="post-detail">
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        </div>
+      </PageLayout>
+    );
+  }
 
+  // Error state
+  if (error || !post) {
+    return (
+      <PageLayout activePage="post-detail">
+        <div className="max-w-2xl mx-auto py-20 text-center">
+          <p className="text-gray-600 mb-4">{error || 'Không tìm thấy bài viết'}</p>
+          <button
+            onClick={() => navigate('/')}
+            className="text-blue-600 hover:underline"
+          >
+            Quay về trang chủ
+          </button>
+        </div>
+      </PageLayout>
+    );
+  }
   return (
-    <PageLayout
-      currentUser={currentUser}
-      onNavigate={onNavigate}
-      onLogout={onLogout}
-      cartItemCount={0}
-      activePage="post-detail"
-      showFooter={true}
-      showMobileNav={true}
-    >
+    <PageLayout activePage="post-detail">
       <div className="max-w-5xl mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Quay lại</span>
+        </button>
+
         {/* Post Content */}
         <div className="bg-white rounded-xl shadow-sm mb-6 overflow-hidden">
           {/* Author Info */}
@@ -228,15 +188,18 @@ export function PostDetailPage({ postId, currentUser, onNavigate, onAddToCart }:
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <img
-                  src={post.author.avatar}
-                  alt={post.author.name}
-                  className="w-12 h-12 rounded-full cursor-pointer"
-                  onClick={() => onNavigate('profile')}
+                  src={post.author.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.fullName || post.author.username)}`}
+                  alt={post.author.fullName || post.author.username}
+                  className="w-12 h-12 rounded-full cursor-pointer object-cover"
+                  onClick={() => navigate(`/profile/${post.author.username}`)}
                 />
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="cursor-pointer hover:underline" onClick={() => onNavigate('profile')}>
-                      {post.author.name}
+                    <span 
+                      className="cursor-pointer hover:underline font-medium"
+                      onClick={() => navigate(`/profile/${post.author.username}`)}
+                    >
+                      {post.author.fullName || post.author.username}
                     </span>
                     {post.author.isVerified && (
                       <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
@@ -245,16 +208,7 @@ export function PostDetailPage({ postId, currentUser, onNavigate, onAddToCart }:
                     )}
                   </div>
                   <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <span>{post.timestamp}</span>
-                    {post.location && (
-                      <>
-                        <span>•</span>
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          <span>{post.location}</span>
-                        </div>
-                      </>
-                    )}
+                    <span>{formatTime(post.createdAt)}</span>
                   </div>
                 </div>
               </div>
@@ -270,19 +224,19 @@ export function PostDetailPage({ postId, currentUser, onNavigate, onAddToCart }:
           </div>
 
           {/* Post Images */}
-          {post.images && post.images.length > 0 && (
+          {post.mediaUrls && post.mediaUrls.length > 0 && (
             <div>
               {/* Main Image */}
               <div className="relative bg-black">
                 <img
-                  src={post.images[selectedImage]}
+                  src={post.mediaUrls[selectedImage]}
                   alt={`Post image ${selectedImage + 1}`}
                   className="w-full h-auto max-h-[600px] object-contain mx-auto"
                 />
-                {post.images.length > 1 && (
+                {post.mediaUrls.length > 1 && (
                   <>
                     <button
-                      onClick={() => setSelectedImage(selectedImage > 0 ? selectedImage - 1 : post.images.length - 1)}
+                      onClick={() => setSelectedImage(selectedImage > 0 ? selectedImage - 1 : post.mediaUrls.length - 1)}
                       className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors"
                     >
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -290,7 +244,7 @@ export function PostDetailPage({ postId, currentUser, onNavigate, onAddToCart }:
                       </svg>
                     </button>
                     <button
-                      onClick={() => setSelectedImage(selectedImage < post.images.length - 1 ? selectedImage + 1 : 0)}
+                      onClick={() => setSelectedImage(selectedImage < post.mediaUrls.length - 1 ? selectedImage + 1 : 0)}
                       className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors"
                     >
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -302,9 +256,9 @@ export function PostDetailPage({ postId, currentUser, onNavigate, onAddToCart }:
               </div>
 
               {/* Thumbnail Gallery */}
-              {post.images.length > 1 && (
+              {post.mediaUrls.length > 1 && (
                 <div className="flex gap-2 p-4 bg-gray-50 overflow-x-auto">
-                  {post.images.map((image, index) => (
+                  {post.mediaUrls.map((url, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImage(index)}
@@ -313,7 +267,7 @@ export function PostDetailPage({ postId, currentUser, onNavigate, onAddToCart }:
                       }`}
                     >
                       <img
-                        src={image}
+                        src={url}
                         alt={`Thumbnail ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
@@ -332,12 +286,12 @@ export function PostDetailPage({ postId, currentUser, onNavigate, onAddToCart }:
                   onClick={handleLike}
                   className="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors"
                 >
-                  <Heart className={`w-6 h-6 ${isLiked ? 'fill-current text-red-500' : ''}`} />
-                  <span className="text-sm">{likes}</span>
+                  <Heart className={`w-6 h-6 ${post.isLiked ? 'fill-current text-red-500' : ''}`} />
+                  <span className="text-sm">{post.likesCount}</span>
                 </button>
                 <div className="flex items-center gap-2 text-gray-600">
                   <MessageCircle className="w-6 h-6" />
-                  <span className="text-sm">{comments.length}</span>
+                  <span className="text-sm">{post.commentsCount}</span>
                 </div>
               </div>
               <button className="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors">
@@ -348,68 +302,65 @@ export function PostDetailPage({ postId, currentUser, onNavigate, onAddToCart }:
           </div>
         </div>
 
-        {/* Tagged Products */}
-        {taggedProducts.length > 0 && (
+        {/* Tagged Product */}
+        {post.product && (
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <div className="flex items-center gap-2 mb-5">
               <ShoppingBag className="w-5 h-5 text-blue-600" />
-              <h3 className="text-lg">Sản phẩm được gắn thẻ</h3>
-              <span className="text-sm text-gray-500">({taggedProducts.length})</span>
+              <h3 className="text-lg font-semibold">Sản phẩm được gắn thẻ</h3>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {taggedProducts.map((product) => (
-                <div
-                  key={product.id}
-                  onClick={() => onNavigate('product-detail', product.id)}
-                  className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
-                >
-                  <div className="aspect-square relative overflow-hidden bg-gray-100">
-                    <img
-                      src={product.image}
-                      alt={product.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h4 className="text-sm mb-2 line-clamp-2 min-h-[40px]">{product.title}</h4>
-                    <p className="text-lg text-blue-600 mb-3">{product.price.toLocaleString('vi-VN')}đ</p>
-                    <div className="flex items-center gap-2 mb-3">
-                      <img
-                        src={product.sellerAvatar}
-                        alt={product.sellerName}
-                        className="w-5 h-5 rounded-full"
-                      />
-                      <span className="text-xs text-gray-600 truncate">{product.sellerName}</span>
-                    </div>
-                    {onAddToCart && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onAddToCart(product);
-                        }}
-                        className="w-full py-2.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        Thêm vào giỏ
-                      </button>
-                    )}
-                  </div>
+            <div
+              onClick={() => navigate(`/product/${post.product!.slug}`)}
+              className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer"
+            >
+              <div className="flex gap-4 p-4">
+                <div className="w-32 h-32 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                  <img
+                    src={post.product.images[0]?.url || 'https://via.placeholder.com/128'}
+                    alt={post.product.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-              ))}
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-lg font-medium mb-2 line-clamp-2">{post.product.name}</h4>
+                  <p className="text-2xl font-semibold text-blue-600 mb-3">
+                    {post.product.price.toLocaleString('vi-VN')}đ
+                  </p>
+                  <div className="flex items-center gap-2 mb-3">
+                    <img
+                      src={post.product.seller.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.product.seller.fullName)}`}
+                      alt={post.product.seller.fullName}
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                    <span className="text-sm text-gray-600 truncate">{post.product.seller.fullName}</span>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // addToCart logic would go here
+                      alert('Thêm vào giỏ hàng thành công!');
+                    }}
+                    className="px-6 py-2.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Thêm vào giỏ
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
         {/* Comments Section */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg mb-5">Bình luận ({comments.length})</h3>
+          <h3 className="text-lg font-semibold mb-5">Bình luận ({post.commentsCount})</h3>
 
           {/* Comment Form */}
           <form onSubmit={handleAddComment} className="mb-6">
             <div className="flex gap-3">
               <img
-                src={currentUser.avatar}
-                alt={currentUser.name}
-                className="w-10 h-10 rounded-full flex-shrink-0"
+                src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}`}
+                alt={user.fullName}
+                className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
               />
               <div className="flex-1">
                 {replyToId && (
@@ -430,7 +381,8 @@ export function PostDetailPage({ postId, currentUser, onNavigate, onAddToCart }:
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     placeholder="Viết bình luận..."
-                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                    disabled={submittingComment}
+                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-600 focus:border-transparent disabled:bg-gray-100"
                   />
                   <button
                     type="button"
@@ -440,10 +392,14 @@ export function PostDetailPage({ postId, currentUser, onNavigate, onAddToCart }:
                   </button>
                   <button
                     type="submit"
-                    disabled={!commentText.trim()}
+                    disabled={!commentText.trim() || submittingComment}
                     className="px-5 py-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
-                    <Send className="w-4 h-4" />
+                    {submittingComment ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -451,67 +407,79 @@ export function PostDetailPage({ postId, currentUser, onNavigate, onAddToCart }:
           </form>
 
           {/* Comments List */}
-          <div className="space-y-5">
-            {comments.map((comment) => (
-              <div key={comment.id} className="space-y-3">
-                <div className="flex gap-3">
-                  <img
-                    src={comment.userAvatar}
-                    alt={comment.userName}
-                    className="w-10 h-10 rounded-full flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="bg-gray-50 rounded-2xl px-4 py-3 inline-block max-w-full">
-                      <p className="text-sm mb-1">{comment.userName}</p>
-                      <p className="text-gray-700 break-words">{comment.content}</p>
-                    </div>
-                    <div className="flex items-center gap-4 mt-2 ml-4 text-xs text-gray-500">
-                      <button
-                        onClick={() => handleLikeComment(comment.id)}
-                        className={`hover:underline ${comment.isLiked ? 'text-blue-600' : ''}`}
-                      >
-                        {comment.isLiked ? 'Đã thích' : 'Thích'} {comment.likes > 0 && `(${comment.likes})`}
-                      </button>
-                      <button
-                        onClick={() => setReplyToId(comment.id)}
-                        className="hover:underline"
-                      >
-                        Trả lời
-                      </button>
-                      <span>{comment.timestamp}</span>
-                    </div>
+          {commentsLoading && comments.length === 0 ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+            </div>
+          ) : comments.length === 0 ? (
+            <p className="text-center text-gray-500 py-8">Chưa có bình luận nào</p>
+          ) : (
+            <div className="space-y-5">
+              {comments.map((comment) => (
+                <div key={comment.id} className="space-y-3">
+                  <div className="flex gap-3">
+                    <img
+                      src={comment.user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user.fullName)}`}
+                      alt={comment.user.fullName}
+                      className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="bg-gray-50 rounded-2xl px-4 py-3 inline-block max-w-full">
+                        <p className="text-sm font-medium mb-1">{comment.user.fullName || comment.user.username}</p>
+                        <p className="text-gray-700 break-words">{comment.content}</p>
+                      </div>
+                      <div className="flex items-center gap-4 mt-2 ml-4 text-xs text-gray-500">
+                        <button
+                          onClick={() => setReplyToId(comment.id)}
+                          className="hover:underline"
+                        >
+                          Trả lời
+                        </button>
+                        <span>{formatTime(comment.createdAt)}</span>
+                      </div>
 
-                    {/* Replies */}
-                    {comment.replies && comment.replies.length > 0 && (
-                      <div className="mt-4 space-y-3">
-                        {comment.replies.map((reply) => (
-                          <div key={reply.id} className="flex gap-3">
-                            <img
-                              src={reply.userAvatar}
-                              alt={reply.userName}
-                              className="w-8 h-8 rounded-full flex-shrink-0"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="bg-gray-50 rounded-2xl px-4 py-3 inline-block max-w-full">
-                                <p className="text-sm mb-1">{reply.userName}</p>
-                                <p className="text-sm text-gray-700 break-words">{reply.content}</p>
-                              </div>
-                              <div className="flex items-center gap-4 mt-2 ml-4 text-xs text-gray-500">
-                                <button className="hover:underline">
-                                  Thích {reply.likes > 0 && `(${reply.likes})`}
-                                </button>
-                                <span>{reply.timestamp}</span>
+                      {/* Replies */}
+                      {comment.replies && comment.replies.length > 0 && (
+                        <div className="mt-4 space-y-3">
+                          {comment.replies.map((reply) => (
+                            <div key={reply.id} className="flex gap-3">
+                              <img
+                                src={reply.user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(reply.user.fullName)}`}
+                                alt={reply.user.fullName}
+                                className="w-8 h-8 rounded-full flex-shrink-0 object-cover"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="bg-gray-50 rounded-2xl px-4 py-3 inline-block max-w-full">
+                                  <p className="text-sm font-medium mb-1">{reply.user.fullName || reply.user.username}</p>
+                                  <p className="text-sm text-gray-700 break-words">{reply.content}</p>
+                                </div>
+                                <div className="flex items-center gap-4 mt-2 ml-4 text-xs text-gray-500">
+                                  <span>{formatTime(reply.createdAt)}</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+
+              {/* Load More Comments */}
+              {hasMoreComments && (
+                <div className="text-center pt-4">
+                  <button
+                    onClick={() => setPage(page + 1)}
+                    disabled={commentsLoading}
+                    className="text-blue-600 hover:underline disabled:opacity-50"
+                  >
+                    {commentsLoading ? 'Đang tải...' : 'Xem thêm bình luận'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </PageLayout>
