@@ -1,30 +1,56 @@
 import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, MapPin, Share2, MessageCircle, Heart, ShoppingCart, Filter, Grid, List, Store, Users, Package, CheckCircle } from 'lucide-react';
-import { User, Product } from '../App';
+import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
+import { Product } from '../App';
 import { mockProducts } from '../data/mockData';
 
-interface StorePageProps {
-  currentUser: User;
-  storeOwnerId?: string;
-  onNavigate: (page: any, productId?: string) => void;
-  onAddToCart: (product: Product) => void;
-}
-
-export function StorePage({ currentUser, storeOwnerId, onNavigate, onAddToCart }: StorePageProps) {
+export function StorePage() {
+  const { username } = useParams<{ username: string }>();
+  const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
+  const { addToCart } = useCart();
+  
   const [activeTab, setActiveTab] = useState<'products' | 'about'>('products');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isFollowing, setIsFollowing] = useState(false);
 
-  // Mock store owner data
-  const storeOwner: User = {
-    id: storeOwnerId || '1',
+  if (!currentUser) {
+    return null;
+  }
+
+  // Determine if viewing own store
+  const isOwnStore = !username || username === currentUser.username;
+
+  // Mock store owner data - Use currentUser if viewing own store
+  // TODO: In production, fetch store data from API using username
+  const storeOwner = isOwnStore ? {
+    id: currentUser.id,
+    name: currentUser.fullName,
+    username: currentUser.username,
+    email: currentUser.email,
+    avatar: currentUser.avatarUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+    coverImage: currentUser.coverImage || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200',
+    role: currentUser.role.toLowerCase() as 'seller' | 'buyer',
+    isVerified: currentUser.isVerified,
+    followers: currentUser._count?.followers || 0,
+    following: currentUser._count?.following || 0,
+    bio: currentUser.bio || 'Chuyên cung cấp các sản phẩm thời trang chất lượng cao, uy tín. Cam kết hàng chính hãng 100%',
+    phone: currentUser.phone || '0901234567',
+    address: currentUser.address || 'TP. Hồ Chí Minh',
+    createdAt: currentUser.createdAt
+  } : {
+    // For other users, use mock data
+    // TODO: Fetch from API using username
+    id: '1',
     name: 'Nguyễn Văn A',
-    username: 'nguyenvana',
+    username: username || 'nguyenvana',
     email: 'nguyenvana@example.com',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
     coverImage: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200',
-    role: 'seller',
+    role: 'seller' as const,
     isVerified: true,
     followers: 12500,
     following: 342,
@@ -56,7 +82,7 @@ export function StorePage({ currentUser, storeOwnerId, onNavigate, onAddToCart }
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
-              <button onClick={() => onNavigate('home')}>
+              <button onClick={() => navigate(-1)}>
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div className="flex items-center gap-2">
@@ -245,7 +271,7 @@ export function StorePage({ currentUser, storeOwnerId, onNavigate, onAddToCart }
                 {filteredProducts.map((product) => (
                   <div
                     key={product.id}
-                    onClick={() => onNavigate('product-detail', product.id)}
+                    onClick={() => navigate(`/product/${product.id}`)}
                     className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
                   >
                     <div className="relative aspect-square">
@@ -270,7 +296,7 @@ export function StorePage({ currentUser, storeOwnerId, onNavigate, onAddToCart }
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            onAddToCart(product);
+                            addToCart(product);
                           }}
                           className="p-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                         >
@@ -286,7 +312,7 @@ export function StorePage({ currentUser, storeOwnerId, onNavigate, onAddToCart }
                 {filteredProducts.map((product) => (
                   <div
                     key={product.id}
-                    onClick={() => onNavigate('product-detail', product.id)}
+                    onClick={() => navigate(`/product/${product.id}`)}
                     className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
                   >
                     <div className="flex gap-4 p-4">
@@ -303,7 +329,7 @@ export function StorePage({ currentUser, storeOwnerId, onNavigate, onAddToCart }
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              onAddToCart(product);
+                              addToCart(product);
                             }}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
                           >

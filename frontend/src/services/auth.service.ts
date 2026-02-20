@@ -49,6 +49,7 @@ export interface UpdateProfileData {
   phone?: string;
   bio?: string;
   address?: string;
+  role?: 'BUYER' | 'SELLER' | 'ADMIN';
 }
 
 export interface ChangePasswordData {

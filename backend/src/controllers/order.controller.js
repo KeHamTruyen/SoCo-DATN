@@ -8,7 +8,7 @@ import * as orderService from '../services/order.service.js';
 export const createOrder = async (req, res) => {
   try {
     const orderData = req.body;
-    const order = await orderService.createOrder(req.user.userId, orderData);
+    const order = await orderService.createOrder(req.user.id, orderData);
 
     res.status(201).json({
       success: true,
@@ -55,7 +55,7 @@ export const createOrder = async (req, res) => {
 export const getOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const order = await orderService.getOrder(orderId, req.user.userId);
+    const order = await orderService.getOrder(orderId, req.user.id);
 
     res.json({
       success: true,
@@ -94,7 +94,7 @@ export const getOrder = async (req, res) => {
 export const getMyOrders = async (req, res) => {
   try {
     const { status, page, limit } = req.query;
-    const result = await orderService.getUserOrders(req.user.userId, {
+    const result = await orderService.getUserOrders(req.user.id, {
       status,
       page: page ? parseInt(page) : undefined,
       limit: limit ? parseInt(limit) : undefined,
@@ -123,7 +123,7 @@ export const getMyOrders = async (req, res) => {
 export const getMySales = async (req, res) => {
   try {
     const { status, page, limit } = req.query;
-    const result = await orderService.getSellerOrders(req.user.userId, {
+    const result = await orderService.getSellerOrders(req.user.id, {
       status,
       page: page ? parseInt(page) : undefined,
       limit: limit ? parseInt(limit) : undefined,
@@ -156,7 +156,7 @@ export const updateOrderStatus = async (req, res) => {
 
     const order = await orderService.updateOrderStatus(
       orderId,
-      req.user.userId,
+      req.user.id,
       status
     );
 
@@ -209,7 +209,7 @@ export const cancelOrder = async (req, res) => {
 
     const order = await orderService.cancelOrder(
       orderId,
-      req.user.userId,
+      req.user.id,
       reason
     );
 

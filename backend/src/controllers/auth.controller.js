@@ -78,7 +78,7 @@ class AuthController {
 
       res.json({
         success: true,
-        data: user
+        data: { user }
       });
     } catch (error) {
       next(error);
@@ -96,7 +96,7 @@ class AuthController {
       res.json({
         success: true,
         message: 'Profile updated successfully',
-        data: user
+        data: { user }
       });
     } catch (error) {
       next(error);

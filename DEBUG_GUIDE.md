@@ -3,9 +3,11 @@
 ## ⚠️ Vấn đề bạn đang gặp:
 
 ### 1. Không truy cập được "Cửa hàng của tôi"
+
 **Nguyên nhân:** Tài khoản của bạn hiện đang là **BUYER**, chưa phải **SELLER**
 
 ### 2. Trạng thái đăng nhập không được duy trì khi reload trang
+
 **Nguyên nhân:** Backend chưa chạy hoặc API `/auth/me` bị lỗi
 
 ---
@@ -23,6 +25,7 @@ npm run dev
 ```
 
 **Expected output:**
+
 ```
 Server running on port 5000
 Database connected
@@ -43,6 +46,7 @@ npm run dev
 ```
 
 **Expected output:**
+
 ```
 VITE v6.x.x  ready in xxx ms
 
@@ -83,6 +87,7 @@ Content-Type: application/json
 ```
 
 **Expected response:**
+
 ```json
 {
   "success": true,
@@ -122,19 +127,23 @@ Content-Type: application/json
 ### Bước 5: Test các trang Seller
 
 #### 5.1. Seller Dashboard
+
 - URL: http://localhost:5173/seller/dashboard
 - Features: Stats (revenue, orders, products), charts
 
 #### 5.2. Quản lý sản phẩm
+
 - URL: http://localhost:5173/seller/products
 - Features: Product list, search, filters
 - ⚠️ **Lưu ý:** Đang dùng mock data
 
 #### 5.3. Thêm sản phẩm mới (✅ Tích hợp API)
+
 - URL: http://localhost:5173/seller/products/add
 - Click "Lưu sản phẩm" → Gọi API thật để tạo product
 
 **Test flow:**
+
 1. Điền thông tin sản phẩm:
    - Title: "iPhone 15 Pro Max"
    - Price: 29990000
@@ -157,6 +166,7 @@ Content-Type: application/json
    - Data được fetch từ API thật
 
 #### 5.4. Quản lý đơn hàng
+
 - URL: http://localhost:5173/seller/orders
 - ⚠️ **Lưu ý:** Đang dùng mock data (chưa có Order API)
 
@@ -178,19 +188,19 @@ Content-Type: application/json
 
 ```javascript
 // Check token
-console.log(localStorage.getItem('token'));
+console.log(localStorage.getItem("token"));
 
 // Check user
-console.log(JSON.parse(localStorage.getItem('user')));
+console.log(JSON.parse(localStorage.getItem("user")));
 
 // Check API response
-fetch('http://localhost:5000/api/auth/me', {
+fetch("http://localhost:5000/api/auth/me", {
   headers: {
-    'Authorization': `Bearer ${localStorage.getItem('token')}`
-  }
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
 })
-.then(res => res.json())
-.then(data => console.log('Profile:', data));
+  .then((res) => res.json())
+  .then((data) => console.log("Profile:", data));
 ```
 
 ### Nếu API `/auth/me` trả về lỗi:
@@ -205,11 +215,18 @@ fetch('http://localhost:5000/api/auth/me', {
 2. **CORS error:**
    - Backend chưa config CORS đúng
    - **Fix:** Check `backend/src/app.js`:
+
    ```javascript
-   app.use(cors({
-     origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'],
-     credentials: true
-   }));
+   app.use(
+     cors({
+       origin: [
+         "http://localhost:3000",
+         "http://localhost:3001",
+         "http://localhost:5173",
+       ],
+       credentials: true,
+     }),
+   );
    ```
 
 3. **Backend chưa chạy:**
@@ -223,8 +240,8 @@ fetch('http://localhost:5000/api/auth/me', {
 
 ```javascript
 // Paste vào Console (F12)
-const user = JSON.parse(localStorage.getItem('user'));
-console.log('Current role:', user?.role);
+const user = JSON.parse(localStorage.getItem("user"));
+console.log("Current role:", user?.role);
 
 // Expected: "SELLER" hoặc "ADMIN"
 // If "BUYER" → Không thấy menu Seller
@@ -238,8 +255,8 @@ console.log('Current role:', user?.role);
 
 ```sql
 -- Nếu bạn có quyền truy cập database
-UPDATE "User" 
-SET role = 'SELLER' 
+UPDATE "User"
+SET role = 'SELLER'
 WHERE email = 'your-email@example.com';
 ```
 
@@ -280,23 +297,27 @@ WHERE email = 'your-email@example.com';
 
 ```javascript
 // 1. Check backend health
-fetch('http://localhost:5000/api-docs')
-  .then(res => console.log('Backend:', res.ok ? '✅' : '❌'));
+fetch("http://localhost:5000/api-docs").then((res) =>
+  console.log("Backend:", res.ok ? "✅" : "❌"),
+);
 
 // 2. Check token exists
-console.log('Token:', localStorage.getItem('token') ? '✅' : '❌');
+console.log("Token:", localStorage.getItem("token") ? "✅" : "❌");
 
 // 3. Check user exists
-const user = JSON.parse(localStorage.getItem('user') || '{}');
-console.log('User:', user.id ? '✅' : '❌');
-console.log('Role:', user.role);
+const user = JSON.parse(localStorage.getItem("user") || "{}");
+console.log("User:", user.id ? "✅" : "❌");
+console.log("Role:", user.role);
 
 // 4. Check role is SELLER
-console.log('Is Seller:', ['SELLER', 'ADMIN'].includes(user.role) ? '✅' : '❌');
+console.log(
+  "Is Seller:",
+  ["SELLER", "ADMIN"].includes(user.role) ? "✅" : "❌",
+);
 
 // 5. Test navigate to seller page
 // Paste in console:
-window.location.href = '/seller/dashboard';
+window.location.href = "/seller/dashboard";
 ```
 
 ---
@@ -321,11 +342,13 @@ window.location.href = '/seller/dashboard';
 ### Lỗi 1: "Redirect to /login khi vào /seller/dashboard"
 
 **Nguyên nhân:**
+
 - Chưa đăng nhập
 - Token hết hạn
 - User không có role SELLER
 
 **Fix:**
+
 1. Đăng nhập lại
 2. Check localStorage có token
 3. Check user.role === "SELLER"
@@ -335,9 +358,11 @@ window.location.href = '/seller/dashboard';
 ### Lỗi 2: "Redirect to /home khi vào /seller/dashboard"
 
 **Nguyên nhân:**
+
 - User đã đăng nhập nhưng role là "BUYER"
 
 **Fix:**
+
 1. Check role: `JSON.parse(localStorage.getItem('user')).role`
 2. Nếu là "BUYER" → Đăng ký tài khoản mới với role "SELLER"
 
@@ -346,24 +371,27 @@ window.location.href = '/seller/dashboard';
 ### Lỗi 3: "Reload trang → bị logout"
 
 **Nguyên nhân:**
+
 - Backend không chạy
 - API `/auth/me` bị lỗi
 - Token không hợp lệ
 
 **Debug:**
+
 ```javascript
 // Check API response
-fetch('http://localhost:5000/api/auth/me', {
+fetch("http://localhost:5000/api/auth/me", {
   headers: {
-    'Authorization': `Bearer ${localStorage.getItem('token')}`
-  }
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
 })
-.then(res => res.json())
-.then(data => console.log('API Response:', data))
-.catch(err => console.error('API Error:', err));
+  .then((res) => res.json())
+  .then((data) => console.log("API Response:", data))
+  .catch((err) => console.error("API Error:", err));
 ```
 
 **Fix:**
+
 1. Đảm bảo backend đang chạy
 2. Check CORS configuration
 3. Đăng nhập lại để có token mới
@@ -373,10 +401,12 @@ fetch('http://localhost:5000/api/auth/me', {
 ### Lỗi 4: "Cannot read property 'role' of null"
 
 **Nguyên nhân:**
+
 - AuthContext chưa load xong user
 - User chưa đăng nhập
 
 **Fix:**
+
 - Đợi `loading === false` trước khi render
 - ProtectedRoute đang handle điều này với loading spinner
 
@@ -385,6 +415,7 @@ fetch('http://localhost:5000/api/auth/me', {
 ## 📞 CÁC API CẦN THIẾT (Phase 1)
 
 ### Auth APIs (✅ Done):
+
 - `POST /api/auth/register` - Đăng ký
 - `POST /api/auth/login` - Đăng nhập
 - `POST /api/auth/logout` - Đăng xuất
@@ -392,6 +423,7 @@ fetch('http://localhost:5000/api/auth/me', {
 - `PUT /api/auth/profile` - Cập nhật profile
 
 ### Product APIs (✅ Done):
+
 - `GET /api/products` - Lấy danh sách sản phẩm
 - `GET /api/products/:id` - Xem chi tiết sản phẩm
 - `POST /api/products` - Tạo sản phẩm mới (SELLER/ADMIN)
@@ -401,6 +433,7 @@ fetch('http://localhost:5000/api/auth/me', {
 - `GET /api/products/seller/me` - Lấy sản phẩm của seller
 
 ### Category APIs (✅ Done):
+
 - `GET /api/categories` - Lấy tất cả categories
 - `GET /api/categories/:id` - Chi tiết category
 
@@ -483,11 +516,13 @@ location.reload();
 ### Check tất cả routes có thể truy cập:
 
 **Public routes (không cần login):**
+
 - `/login`
 - `/register`
 - `/forgot-password`
 
 **Protected routes (cần login):**
+
 - `/home`
 - `/profile`
 - `/product/:id`
@@ -497,14 +532,16 @@ location.reload();
 - `/notifications`
 
 **Seller routes (cần role=SELLER hoặc ADMIN):**
+
 - `/seller/dashboard`
 - `/seller/products`
 - `/seller/products/add`
 - `/seller/orders`
 
 **Admin routes (cần role=ADMIN):**
+
 - `/admin/dashboard`
 
 ---
 
-*Last updated: February 13, 2026*
+_Last updated: February 13, 2026_

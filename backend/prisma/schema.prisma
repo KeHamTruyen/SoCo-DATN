@@ -104,7 +104,9 @@ model User {
   fullName     String    @map("full_name")
   phone        String?   @db.VarChar(20)
   avatarUrl    String?   @map("avatar_url")
+  coverImage   String?   @map("cover_image")
   bio          String?
+  address      String?
   role         UserRole  @default(BUYER)
   isVerified   Boolean   @default(false) @map("is_verified")
   isActive     Boolean   @default(true) @map("is_active")

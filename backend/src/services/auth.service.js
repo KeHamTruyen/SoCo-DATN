@@ -119,13 +119,13 @@ class AuthService {
         fullName: true,
         phone: true,
         avatarUrl: true,
+        coverImage: true,
         bio: true,
+        address: true,
         role: true,
         isVerified: true,
         isActive: true,
         createdAt: true,
-        updatedAt: true,
-        lastLogin: true,
         _count: {
           select: {
             followers: true,
@@ -148,7 +148,7 @@ class AuthService {
    * Update user profile
    */
   async updateProfile(userId, data) {
-    const { email, username, fullName, phone, bio, avatarUrl } = data;
+    const { email, username, fullName, phone, bio, avatarUrl, coverImage, address, role } = data;
 
     // Check if email/username is taken by another user
     if (email || username) {
@@ -176,17 +176,28 @@ class AuthService {
       }
     }
 
+    // Build update data
+    const updateData = {
+      ...(email && { email }),
+      ...(username && { username }),
+      ...(fullName && { fullName }),
+      ...(phone && { phone }),
+      ...(bio !== undefined && { bio }),
+      ...(avatarUrl !== undefined && { avatarUrl }),
+      ...(coverImage !== undefined && { coverImage }),
+      ...(address !== undefined && { address })
+    };
+
+    // Allow role update for becoming a seller
+    // TODO: In production, this should require admin approval
+    if (role && (role === 'SELLER' || role === 'BUYER')) {
+      updateData.role = role;
+    }
+
     // Update user
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: {
-        ...(email && { email }),
-        ...(username && { username }),
-        ...(fullName && { fullName }),
-        ...(phone && { phone }),
-        ...(bio !== undefined && { bio }),
-        ...(avatarUrl !== undefined && { avatarUrl })
-      },
+      data: updateData,
       select: {
         id: true,
         email: true,
@@ -194,10 +205,13 @@ class AuthService {
         fullName: true,
         phone: true,
         avatarUrl: true,
+        coverImage: true,
         bio: true,
+        address: true,
         role: true,
+        isActive: true,
         isVerified: true,
-        updatedAt: true
+        createdAt: true
       }
     });
 

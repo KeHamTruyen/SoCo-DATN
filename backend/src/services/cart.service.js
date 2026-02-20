@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
  * Get or create user's cart
  */
 const getOrCreateCart = async (userId) => {
-  let cart = await prisma.cart.findUnique({
+  let cart = await prisma.cart.findFirst({
     where: { userId },
     include: {
       items: {
@@ -35,7 +35,9 @@ const getOrCreateCart = async (userId) => {
   if (!cart) {
     cart = await prisma.cart.create({
       data: {
-        userId,
+        user: {
+          connect: { id: userId }
+        }
       },
       include: {
         items: {

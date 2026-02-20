@@ -1,6 +1,6 @@
 import express from 'express';
 import userController from '../controllers/user.controller.js';
-import { authenticateToken } from '../middlewares/auth.middleware.js';
+import { protect } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
@@ -16,14 +16,14 @@ const router = express.Router();
  * GET /api/users/me
  * Requires authentication
  */
-router.get('/me', authenticateToken, userController.getMyProfile);
+router.get('/me', protect, userController.getMyProfile);
 
 /**
  * Update current user profile
  * PUT /api/users/me
  * Requires authentication
  */
-router.put('/me', authenticateToken, userController.updateProfile);
+router.put('/me', protect, userController.updateProfile);
 
 /**
  * Get user profile by username

@@ -1,7 +1,7 @@
 import express from 'express';
 import * as cartController from '../controllers/cart.controller.js';
 import * as cartValidator from '../validators/cart.validator.js';
-import { authenticateToken } from '../middleware/auth.middleware.js';
+import { protect } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
@@ -61,7 +61,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.get('/', authenticateToken, cartController.getCart);
+router.get('/', protect, cartController.getCart);
 
 /**
  * @swagger
@@ -91,7 +91,7 @@ router.get('/', authenticateToken, cartController.getCart);
  *       500:
  *         description: Server error
  */
-router.get('/count', authenticateToken, cartController.getCartItemsCount);
+router.get('/count', protect, cartController.getCartItemsCount);
 
 /**
  * @swagger
@@ -144,7 +144,7 @@ router.get('/count', authenticateToken, cartController.getCartItemsCount);
  */
 router.post(
   '/items',
-  authenticateToken,
+  protect,
   cartValidator.validateAddToCart,
   cartController.addToCart
 );
@@ -204,7 +204,7 @@ router.post(
  */
 router.put(
   '/items/:itemId',
-  authenticateToken,
+  protect,
   cartValidator.validateUpdateCartItem,
   cartController.updateCartItem
 );
@@ -250,7 +250,7 @@ router.put(
  */
 router.delete(
   '/items/:itemId',
-  authenticateToken,
+  protect,
   cartValidator.validateRemoveFromCart,
   cartController.removeFromCart
 );
@@ -282,6 +282,6 @@ router.delete(
  *       500:
  *         description: Server error
  */
-router.delete('/', authenticateToken, cartController.clearCart);
+router.delete('/', protect, cartController.clearCart);
 
 export default router;

@@ -57,6 +57,7 @@ npm run dev
 ```
 
 ✅ Kiểm tra console phải thấy:
+
 ```
 Server running on port 5000
 Database connected
@@ -80,6 +81,7 @@ Database connected
 7. Click **"Execute"**
 
 ✅ Expected response:
+
 ```json
 {
   "success": true,
@@ -130,9 +132,11 @@ Database connected
 ## ❗ Troubleshooting
 
 ### Lỗi: "Request failed with status code 401"
+
 **Nguyên nhân:** JWT token không hợp lệ hoặc hết hạn
 
 **Fix:**
+
 1. Đăng xuất
 2. Đăng nhập lại
 3. Test upload lại
@@ -140,9 +144,11 @@ Database connected
 ---
 
 ### Lỗi: "Invalid credentials"
+
 **Nguyên nhân:** Sai Cloud Name, API Key, hoặc API Secret
 
 **Fix:**
+
 1. Double check credentials trong Cloudinary Dashboard
 2. Copy lại chính xác (không có khoảng trắng)
 3. Restart backend
@@ -150,21 +156,28 @@ Database connected
 ---
 
 ### Lỗi: "File too large"
+
 **Nguyên nhân:** Ảnh > 5MB
 
 **Fix:**
+
 1. Compress ảnh trước khi upload
 2. Hoặc tăng limit trong `backend/src/config/cloudinary.js`:
+
 ```javascript
-limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+limits: {
+  fileSize: 10 * 1024 * 1024;
+} // 10MB
 ```
 
 ---
 
 ### Lỗi: "Cannot read property 'path' of undefined"
+
 **Nguyên nhân:** Multer không nhận được file
 
 **Fix:**
+
 1. Check Content-Type header phải là `multipart/form-data`
 2. Check field name phải là `image` (cho single upload)
 3. Check file có được select đúng không
@@ -192,4 +205,4 @@ Sau khi setup thành công:
 
 ---
 
-*Setup guide updated: February 13, 2026*
+_Setup guide updated: February 13, 2026_

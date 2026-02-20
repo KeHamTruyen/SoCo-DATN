@@ -1,7 +1,7 @@
 import express from 'express';
 import * as orderController from '../controllers/order.controller.js';
 import * as orderValidator from '../validators/order.validator.js';
-import { authenticateToken } from '../middleware/auth.middleware.js';
+import { protect } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
@@ -70,7 +70,7 @@ const router = express.Router();
  */
 router.post(
   '/',
-  authenticateToken,
+  protect,
   orderValidator.validateCreateOrder,
   orderController.createOrder
 );
@@ -112,7 +112,7 @@ router.post(
  */
 router.get(
   '/my/purchases',
-  authenticateToken,
+  protect,
   orderValidator.validateGetOrders,
   orderController.getMyOrders
 );
@@ -154,7 +154,7 @@ router.get(
  */
 router.get(
   '/my/sales',
-  authenticateToken,
+  protect,
   orderValidator.validateGetOrders,
   orderController.getMySales
 );
@@ -188,7 +188,7 @@ router.get(
  */
 router.get(
   '/:orderId',
-  authenticateToken,
+  protect,
   orderValidator.validateOrderId,
   orderController.getOrder
 );
@@ -236,7 +236,7 @@ router.get(
  */
 router.put(
   '/:orderId/status',
-  authenticateToken,
+  protect,
   orderValidator.validateUpdateOrderStatus,
   orderController.updateOrderStatus
 );
@@ -281,7 +281,7 @@ router.put(
  */
 router.post(
   '/:orderId/cancel',
-  authenticateToken,
+  protect,
   orderValidator.validateCancelOrder,
   orderController.cancelOrder
 );
@@ -315,7 +315,7 @@ router.post(
  */
 router.post(
   '/:orderId/payment/confirm',
-  authenticateToken,
+  protect,
   orderValidator.validateOrderId,
   orderController.confirmPayment
 );

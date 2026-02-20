@@ -3,13 +3,15 @@
 ## ✅ Đã thay đổi gì?
 
 ### **Trước đây (State-based routing):**
+
 ```tsx
 // URL không đổi, luôn là "/"
-const [currentPage, setCurrentPage] = useState('home');
-onNavigate('profile')  // Chỉ đổi state, không đổi URL
+const [currentPage, setCurrentPage] = useState("home");
+onNavigate("profile"); // Chỉ đổi state, không đổi URL
 ```
 
 ### **Bây giờ (URL-based routing):**
+
 ```tsx
 // URL thay đổi theo page
 navigate('/profile')  // URL thành "/profile"
@@ -21,11 +23,13 @@ navigate('/profile')  // URL thành "/profile"
 ## 📋 Cấu trúc Routes
 
 ### **Public Routes** (Không cần đăng nhập)
+
 - `/login` - Trang đăng nhập
 - `/register` - Trang đăng ký
 - `/forgot-password` - Quên mật khẩu
 
 ### **Protected Routes** (Cần đăng nhập)
+
 - `/` hoặc `/home` - Trang chủ
 - `/profile/:username` - Profile user khác
 - `/profile` - Profile của mình
@@ -45,12 +49,14 @@ navigate('/profile')  // URL thành "/profile"
 - `/become-seller` - Đăng ký seller
 
 ### **Seller Routes** (Chỉ SELLER hoặc ADMIN)
+
 - `/seller/dashboard` - Dashboard người bán
 - `/seller/products` - Quản lý sản phẩm
 - `/seller/products/add` - Thêm sản phẩm
 - `/seller/orders` - Quản lý đơn hàng
 
 ### **Admin Routes** (Chỉ ADMIN)
+
 - `/admin/dashboard` - Dashboard admin
 
 ---
@@ -58,11 +64,13 @@ navigate('/profile')  // URL thành "/profile"
 ## 🔒 Route Guards
 
 ### **ProtectedRoute**
+
 - Kiểm tra user đã đăng nhập chưa
 - Nếu chưa → redirect về `/login`
 - Lưu URL đang cố truy cập để redirect lại sau khi login
 
 ### **RoleRoute**
+
 - Kiểm tra user có role phù hợp không
 - Nếu không → redirect về `/home`
 
@@ -71,23 +79,25 @@ navigate('/profile')  // URL thành "/profile"
 ## 🎯 Cách sử dụng trong Components
 
 ### **1. Navigate programmatically:**
+
 ```tsx
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 function MyComponent() {
   const navigate = useNavigate();
-  
+
   const goToProfile = () => {
-    navigate('/profile/john');
+    navigate("/profile/john");
   };
-  
+
   const goBack = () => {
-    navigate(-1);  // Quay lại trang trước
+    navigate(-1); // Quay lại trang trước
   };
 }
 ```
 
 ### **2. Link components:**
+
 ```tsx
 import { Link } from 'react-router-dom';
 
@@ -96,31 +106,34 @@ import { Link } from 'react-router-dom';
 ```
 
 ### **3. Get URL params:**
+
 ```tsx
-import { useParams } from 'react-router-dom';
+import { useParams } from "react-router-dom";
 
 function ProductDetailPage() {
-  const { id } = useParams();  // Từ URL: /product/123 → id = "123"
+  const { id } = useParams(); // Từ URL: /product/123 → id = "123"
 }
 ```
 
 ### **4. Get search params:**
+
 ```tsx
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from "react-router-dom";
 
 function SearchPage() {
   const [searchParams] = useSearchParams();
-  const query = searchParams.get('q');  // Từ URL: /search?q=laptop → query = "laptop"
+  const query = searchParams.get("q"); // Từ URL: /search?q=laptop → query = "laptop"
 }
 ```
 
 ### **5. Check current location:**
+
 ```tsx
-import { useLocation } from 'react-router-dom';
+import { useLocation } from "react-router-dom";
 
 function MyComponent() {
   const location = useLocation();
-  const isActive = location.pathname === '/home';
+  const isActive = location.pathname === "/home";
 }
 ```
 
@@ -129,6 +142,7 @@ function MyComponent() {
 ## 🔄 Migration từ old code
 
 ### **OLD (Props-based):**
+
 ```tsx
 interface PageProps {
   currentUser: User;
@@ -137,28 +151,21 @@ interface PageProps {
 }
 
 function HomePage({ currentUser, onNavigate, onLogout }: PageProps) {
-  return (
-    <button onClick={() => onNavigate('profile')}>
-      Go to Profile
-    </button>
-  );
+  return <button onClick={() => onNavigate("profile")}>Go to Profile</button>;
 }
 ```
 
 ### **NEW (Hooks-based):**
+
 ```tsx
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 function HomePage() {
-  const { user, logout } = useAuth();  // Get from context
+  const { user, logout } = useAuth(); // Get from context
   const navigate = useNavigate();
-  
-  return (
-    <button onClick={() => navigate('/profile')}>
-      Go to Profile
-    </button>
-  );
+
+  return <button onClick={() => navigate("/profile")}>Go to Profile</button>;
 }
 ```
 
@@ -167,12 +174,14 @@ function HomePage() {
 ## 🧪 Test Routing
 
 ### **1. Start frontend:**
+
 ```bash
 cd frontend
 npm run dev
 ```
 
 ### **2. Test các URLs:**
+
 - `http://localhost:3000/` → Redirect to `/home` (nếu đã login) hoặc `/login`
 - `http://localhost:3000/login` → Login page
 - `http://localhost:3000/register` → Register page
@@ -182,11 +191,13 @@ npm run dev
 - `http://localhost:3000/admin/dashboard` → Admin (cần ADMIN role)
 
 ### **3. Test Protected Routes:**
+
 1. Chưa login → Vào `/home` → Tự động redirect về `/login`
 2. Login xong → Tự động redirect về `/home`
 3. Login rồi → Vào `/seller/dashboard` nhưng không phải seller → Redirect về `/home`
 
 ### **4. Test Browser Features:**
+
 - ✅ Back/Forward buttons hoạt động
 - ✅ Bookmark URLs
 - ✅ Share links
@@ -197,10 +208,17 @@ npm run dev
 ## ⚡ Context Providers
 
 App được wrap bởi 3 providers:
+
 ```tsx
-<AuthProvider>      {/* Quản lý authentication */}
-  <CartProvider>    {/* Quản lý giỏ hàng */}
-    <BrowserRouter> {/* Quản lý routing */}
+<AuthProvider>
+  {" "}
+  {/* Quản lý authentication */}
+  <CartProvider>
+    {" "}
+    {/* Quản lý giỏ hàng */}
+    <BrowserRouter>
+      {" "}
+      {/* Quản lý routing */}
       <App />
     </BrowserRouter>
   </CartProvider>
@@ -208,9 +226,10 @@ App được wrap bởi 3 providers:
 ```
 
 ### **Sử dụng Contexts:**
+
 ```tsx
-import { useAuth } from './contexts/AuthContext';
-import { useCart } from './contexts/CartContext';
+import { useAuth } from "./contexts/AuthContext";
+import { useCart } from "./contexts/CartContext";
 
 function MyComponent() {
   const { user, login, logout } = useAuth();
@@ -223,7 +242,9 @@ function MyComponent() {
 ## 🚨 Breaking Changes
 
 ### **Components cần update:**
+
 Tất cả page components sẽ không còn nhận props sau đây:
+
 - ❌ `currentUser` → Dùng `useAuth().user`
 - ❌ `onNavigate` → Dùng `useNavigate()`
 - ❌ `onLogout` → Dùng `useAuth().logout()`
@@ -236,6 +257,7 @@ Tất cả page components sẽ không còn nhận props sau đây:
 ## 📝 TODO: Update còn lại
 
 Các page components sau vẫn dùng props cũ, cần refactor:
+
 - [ ] HomePage
 - [ ] ProfilePage
 - [ ] MarketplacePage
@@ -251,6 +273,7 @@ Các page components sau vẫn dùng props cũ, cần refactor:
 - [ ] Và tất cả các pages khác...
 
 **Cách refactor:**
+
 1. Remove props interface
 2. Add hooks: `useAuth()`, `useCart()`, `useNavigate()`
 3. Replace `onNavigate('page')` → `navigate('/page')`
@@ -267,7 +290,7 @@ Các page components sau vẫn dùng props cũ, cần refactor:
 ✅ **Protected routes** - Auto redirect chưa login  
 ✅ **Role-based access** - Kiểm tra permissions  
 ✅ **Better UX** - Loading states, redirects  
-✅ **SEO friendly** - Mỗi page có URL riêng  
+✅ **SEO friendly** - Mỗi page có URL riêng
 
 ---
 

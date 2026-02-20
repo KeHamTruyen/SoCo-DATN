@@ -7,7 +7,7 @@ import * as cartService from '../services/cart.service.js';
  */
 export const getCart = async (req, res) => {
   try {
-    const cart = await cartService.getCart(req.user.userId);
+    const cart = await cartService.getCart(req.user.id);
 
     res.json({
       success: true,
@@ -33,7 +33,7 @@ export const addToCart = async (req, res) => {
     const { productId, quantity, selectedVariant } = req.body;
 
     const cart = await cartService.addToCart(
-      req.user.userId,
+      req.user.id,
       productId,
       quantity,
       selectedVariant
@@ -83,7 +83,7 @@ export const updateCartItem = async (req, res) => {
     const { quantity } = req.body;
 
     const cart = await cartService.updateCartItem(
-      req.user.userId,
+      req.user.id,
       itemId,
       quantity
     );
@@ -137,7 +137,7 @@ export const removeFromCart = async (req, res) => {
   try {
     const { itemId } = req.params;
 
-    const cart = await cartService.removeFromCart(req.user.userId, itemId);
+    const cart = await cartService.removeFromCart(req.user.id, itemId);
 
     res.json({
       success: true,
@@ -176,7 +176,7 @@ export const removeFromCart = async (req, res) => {
  */
 export const clearCart = async (req, res) => {
   try {
-    const cart = await cartService.clearCart(req.user.userId);
+    const cart = await cartService.clearCart(req.user.id);
 
     res.json({
       success: true,
@@ -201,7 +201,7 @@ export const clearCart = async (req, res) => {
  */
 export const getCartItemsCount = async (req, res) => {
   try {
-    const count = await cartService.getCartItemsCount(req.user.userId);
+    const count = await cartService.getCartItemsCount(req.user.id);
 
     res.json({
       success: true,

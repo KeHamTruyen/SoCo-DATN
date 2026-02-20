@@ -1,14 +1,13 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, CheckCircle, ShieldCheck, Store, TrendingUp } from 'lucide-react';
-
-interface BecomeSellerPageProps {
-  onNavigate: (page: 'home' | 'profile' | 'become-seller' | 'product-detail' | 'cart') => void;
-  onComplete: () => void;
-}
+import { useAuth } from '../contexts/AuthContext';
 
 type Step = 'intro' | 'form' | 'verification' | 'success';
 
-export function BecomeSellerPage({ onNavigate, onComplete }: BecomeSellerPageProps) {
+export function BecomeSellerPage() {
+  const navigate = useNavigate();
+  const { user, updateProfile } = useAuth();
   const [currentStep, setCurrentStep] = useState<Step>('intro');
   const [formData, setFormData] = useState({
     shopName: '',
@@ -18,6 +17,8 @@ export function BecomeSellerPage({ onNavigate, onComplete }: BecomeSellerPagePro
     idCardFront: null as File | null,
     idCardBack: null as File | null,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'idCardFront' | 'idCardBack') => {
     if (e.target.files && e.target.files[0]) {
@@ -25,17 +26,36 @@ export function BecomeSellerPage({ onNavigate, onComplete }: BecomeSellerPagePro
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
     setCurrentStep('verification');
-    // Simulate verification process
-    setTimeout(() => {
+
+    try {
+      // TODO: Upload ID card images to server (Cloudinary)
+      // TODO: Submit seller verification request to backend
+      
+      // Simulate verification process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Auto-approve: Update user role to SELLER
+      // NOTE: In production, this should be done after admin approval
+      // This is a temporary implementation for development
+      await updateProfile({ role: 'SELLER' });
+
       setCurrentStep('success');
-    }, 3000);
+    } catch (err: any) {
+      console.error('Become seller error:', err);
+      setError(err.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+      setCurrentStep('form');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleComplete = () => {
-    onComplete();
+    navigate('/profile');
   };
 
   if (currentStep === 'intro') {
@@ -45,7 +65,7 @@ export function BecomeSellerPage({ onNavigate, onComplete }: BecomeSellerPagePro
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center h-16">
               <button
-                onClick={() => onNavigate('home')}
+                onClick={() => navigate('/')}
                 className="flex items-center gap-2 text-gray-700"
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -163,6 +183,13 @@ export function BecomeSellerPage({ onNavigate, onComplete }: BecomeSellerPagePro
             </div>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm p-6 space-y-6">
             <div>
               <label className="block text-sm mb-2">Tên cửa hàng *</label>
@@ -263,15 +290,16 @@ export function BecomeSellerPage({ onNavigate, onComplete }: BecomeSellerPagePro
               <ul className="list-disc list-inside space-y-1">
                 <li>Thông tin phải chính xác và trung thực</li>
                 <li>Ảnh CMND/CCCD cần rõ nét, đầy đủ thông tin</li>
-                <li>Quá trình xác thực có thể mất 1-3 ngày làm việc</li>
+                <li>Quá trình xác thực tự động (tạm thời cho phát triển)</li>
               </ul>
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
+              disabled={isSubmitting}
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Gửi yêu cầu xác thực
+              {isSubmitting ? 'Đang xử lý...' : 'Gửi yêu cầu xác thực'}
             </button>
           </form>
         </div>
@@ -320,7 +348,7 @@ export function BecomeSellerPage({ onNavigate, onComplete }: BecomeSellerPagePro
                 Đến trang cá nhân
               </button>
               <button
-                onClick={() => onNavigate('home')}
+                onClick={() => navigate('/')}
                 className="w-full py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Khám phá trang chủ

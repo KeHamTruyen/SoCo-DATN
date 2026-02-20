@@ -45,9 +45,9 @@ CLOUDINARY_API_SECRET="your_api_secret"
 ### 3.3. Tạo file config: `backend/src/config/cloudinary.js`
 
 ```javascript
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const multer = require('multer');
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const multer = require("multer");
 
 // Configure Cloudinary
 cloudinary.config({
@@ -60,11 +60,11 @@ cloudinary.config({
 const productStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'social-commerce/products',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+    folder: "social-commerce/products",
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "gif"],
     transformation: [
-      { width: 1200, height: 1200, crop: 'limit' },
-      { quality: 'auto', fetch_format: 'auto' }
+      { width: 1200, height: 1200, crop: "limit" },
+      { quality: "auto", fetch_format: "auto" },
     ],
   },
 });
@@ -73,11 +73,11 @@ const productStorage = new CloudinaryStorage({
 const avatarStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'social-commerce/avatars',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    folder: "social-commerce/avatars",
+    allowed_formats: ["jpg", "jpeg", "png", "webp"],
     transformation: [
-      { width: 400, height: 400, crop: 'fill', gravity: 'face' },
-      { quality: 'auto' }
+      { width: 400, height: 400, crop: "fill", gravity: "face" },
+      { quality: "auto" },
     ],
   },
 });
@@ -86,30 +86,30 @@ const avatarStorage = new CloudinaryStorage({
 const postStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'social-commerce/posts',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4'],
-    resource_type: 'auto', // Supports both images and videos
+    folder: "social-commerce/posts",
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "gif", "mp4"],
+    resource_type: "auto", // Supports both images and videos
     transformation: [
-      { width: 1080, height: 1080, crop: 'limit' },
-      { quality: 'auto' }
+      { width: 1080, height: 1080, crop: "limit" },
+      { quality: "auto" },
     ],
   },
 });
 
 // Multer upload middleware
-const uploadProduct = multer({ 
+const uploadProduct = multer({
   storage: productStorage,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
 });
 
-const uploadAvatar = multer({ 
+const uploadAvatar = multer({
   storage: avatarStorage,
-  limits: { fileSize: 2 * 1024 * 1024 } // 2MB limit
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
 });
 
-const uploadPost = multer({ 
+const uploadPost = multer({
   storage: postStorage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 });
 
 // Helper function to delete image from Cloudinary
@@ -118,7 +118,7 @@ const deleteImage = async (publicId) => {
     const result = await cloudinary.uploader.destroy(publicId);
     return result;
   } catch (error) {
-    console.error('Error deleting image from Cloudinary:', error);
+    console.error("Error deleting image from Cloudinary:", error);
     throw error;
   }
 };
@@ -126,20 +126,20 @@ const deleteImage = async (publicId) => {
 // Helper function to extract public_id from Cloudinary URL
 const getPublicIdFromUrl = (url) => {
   if (!url) return null;
-  
+
   // Example URL: https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg
   // Public ID: sample
-  const parts = url.split('/');
+  const parts = url.split("/");
   const filename = parts[parts.length - 1];
-  const publicId = filename.split('.')[0];
-  
+  const publicId = filename.split(".")[0];
+
   // Include folder path
-  const folderIndex = parts.indexOf('upload') + 1;
+  const folderIndex = parts.indexOf("upload") + 1;
   if (folderIndex > 0 && folderIndex < parts.length - 1) {
     const folders = parts.slice(folderIndex + 1, parts.length - 1);
-    return folders.length > 0 ? `${folders.join('/')}/${publicId}` : publicId;
+    return folders.length > 0 ? `${folders.join("/")}/${publicId}` : publicId;
   }
-  
+
   return publicId;
 };
 
@@ -156,10 +156,14 @@ module.exports = {
 ### 3.4. Tạo upload routes: `backend/src/routes/upload.routes.js`
 
 ```javascript
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { protect } = require('../middleware/authMiddleware');
-const { uploadProduct, uploadAvatar, uploadPost } = require('../config/cloudinary');
+const { protect } = require("../middleware/authMiddleware");
+const {
+  uploadProduct,
+  uploadAvatar,
+  uploadPost,
+} = require("../config/cloudinary");
 
 /**
  * @swagger
@@ -197,28 +201,28 @@ const { uploadProduct, uploadAvatar, uploadPost } = require('../config/cloudinar
  *                     publicId:
  *                       type: string
  */
-router.post('/product', protect, uploadProduct.single('image'), (req, res) => {
+router.post("/product", protect, uploadProduct.single("image"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: 'No file uploaded',
+        message: "No file uploaded",
       });
     }
 
     res.json({
       success: true,
-      message: 'Image uploaded successfully',
+      message: "Image uploaded successfully",
       data: {
         url: req.file.path,
         publicId: req.file.filename,
       },
     });
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error("Upload error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to upload image',
+      message: "Failed to upload image",
       error: error.message,
     });
   }
@@ -248,36 +252,41 @@ router.post('/product', protect, uploadProduct.single('image'), (req, res) => {
  *       200:
  *         description: Images uploaded successfully
  */
-router.post('/products', protect, uploadProduct.array('images', 10), (req, res) => {
-  try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({
+router.post(
+  "/products",
+  protect,
+  uploadProduct.array("images", 10),
+  (req, res) => {
+    try {
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "No files uploaded",
+        });
+      }
+
+      const uploadedImages = req.files.map((file) => ({
+        url: file.path,
+        publicId: file.filename,
+      }));
+
+      res.json({
+        success: true,
+        message: `${req.files.length} images uploaded successfully`,
+        data: {
+          images: uploadedImages,
+        },
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      res.status(500).json({
         success: false,
-        message: 'No files uploaded',
+        message: "Failed to upload images",
+        error: error.message,
       });
     }
-
-    const uploadedImages = req.files.map(file => ({
-      url: file.path,
-      publicId: file.filename,
-    }));
-
-    res.json({
-      success: true,
-      message: `${req.files.length} images uploaded successfully`,
-      data: {
-        images: uploadedImages,
-      },
-    });
-  } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to upload images',
-      error: error.message,
-    });
-  }
-});
+  },
+);
 
 /**
  * @swagger
@@ -301,28 +310,28 @@ router.post('/products', protect, uploadProduct.array('images', 10), (req, res) 
  *       200:
  *         description: Avatar uploaded successfully
  */
-router.post('/avatar', protect, uploadAvatar.single('image'), (req, res) => {
+router.post("/avatar", protect, uploadAvatar.single("image"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: 'No file uploaded',
+        message: "No file uploaded",
       });
     }
 
     res.json({
       success: true,
-      message: 'Avatar uploaded successfully',
+      message: "Avatar uploaded successfully",
       data: {
         url: req.file.path,
         publicId: req.file.filename,
       },
     });
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error("Upload error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to upload avatar',
+      message: "Failed to upload avatar",
       error: error.message,
     });
   }
@@ -350,18 +359,18 @@ router.post('/avatar', protect, uploadAvatar.single('image'), (req, res) => {
  *       200:
  *         description: Media uploaded successfully
  */
-router.post('/post', protect, uploadPost.single('media'), (req, res) => {
+router.post("/post", protect, uploadPost.single("media"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: 'No file uploaded',
+        message: "No file uploaded",
       });
     }
 
     res.json({
       success: true,
-      message: 'Media uploaded successfully',
+      message: "Media uploaded successfully",
       data: {
         url: req.file.path,
         publicId: req.file.filename,
@@ -369,10 +378,10 @@ router.post('/post', protect, uploadPost.single('media'), (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error("Upload error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to upload media',
+      message: "Failed to upload media",
       error: error.message,
     });
   }
@@ -384,17 +393,17 @@ module.exports = router;
 ### 3.5. Register routes trong `backend/src/routes/index.js`
 
 ```javascript
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const authRoutes = require('./auth.routes');
-const productRoutes = require('./product.routes');
-const categoryRoutes = require('./category.routes');
-const uploadRoutes = require('./upload.routes'); // ADD THIS
+const authRoutes = require("./auth.routes");
+const productRoutes = require("./product.routes");
+const categoryRoutes = require("./category.routes");
+const uploadRoutes = require("./upload.routes"); // ADD THIS
 
-router.use('/auth', authRoutes);
-router.use('/products', productRoutes);
-router.use('/categories', categoryRoutes);
-router.use('/upload', uploadRoutes); // ADD THIS
+router.use("/auth", authRoutes);
+router.use("/products", productRoutes);
+router.use("/categories", categoryRoutes);
+router.use("/upload", uploadRoutes); // ADD THIS
 
 module.exports = router;
 ```
@@ -402,12 +411,14 @@ module.exports = router;
 ### 3.6. Test Backend Upload
 
 Start backend:
+
 ```bash
 cd backend
 npm run dev
 ```
 
 Test với curl hoặc Postman:
+
 ```bash
 # Upload single image
 curl -X POST http://localhost:5000/api/upload/product \
@@ -416,6 +427,7 @@ curl -X POST http://localhost:5000/api/upload/product \
 ```
 
 Expected response:
+
 ```json
 {
   "success": true,
@@ -432,7 +444,7 @@ Expected response:
 ### 4.1. Tạo upload service: `frontend/src/services/upload.service.ts`
 
 ```typescript
-import api from './api';
+import api from "./api";
 
 interface UploadResponse {
   success: boolean;
@@ -461,13 +473,17 @@ class UploadService {
    */
   async uploadProductImage(file: File): Promise<UploadResponse> {
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append("image", file);
 
-    const response = await api.post<UploadResponse>('/upload/product', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
+    const response = await api.post<UploadResponse>(
+      "/upload/product",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       },
-    });
+    );
 
     return response.data;
   }
@@ -477,15 +493,19 @@ class UploadService {
    */
   async uploadProductImages(files: File[]): Promise<MultiUploadResponse> {
     const formData = new FormData();
-    files.forEach(file => {
-      formData.append('images', file);
+    files.forEach((file) => {
+      formData.append("images", file);
     });
 
-    const response = await api.post<MultiUploadResponse>('/upload/products', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
+    const response = await api.post<MultiUploadResponse>(
+      "/upload/products",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       },
-    });
+    );
 
     return response.data;
   }
@@ -495,13 +515,17 @@ class UploadService {
    */
   async uploadAvatar(file: File): Promise<UploadResponse> {
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append("image", file);
 
-    const response = await api.post<UploadResponse>('/upload/avatar', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
+    const response = await api.post<UploadResponse>(
+      "/upload/avatar",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       },
-    });
+    );
 
     return response.data;
   }
@@ -511,11 +535,11 @@ class UploadService {
    */
   async uploadPostMedia(file: File): Promise<UploadResponse> {
     const formData = new FormData();
-    formData.append('media', file);
+    formData.append("media", file);
 
-    const response = await api.post<UploadResponse>('/upload/post', formData, {
+    const response = await api.post<UploadResponse>("/upload/post", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
 
@@ -540,11 +564,11 @@ interface ImageUploadProps {
   maxSize?: number; // in MB
 }
 
-export function ImageUpload({ 
-  onImageUploaded, 
-  currentImage, 
+export function ImageUpload({
+  onImageUploaded,
+  currentImage,
   label = 'Upload Image',
-  maxSize = 5 
+  maxSize = 5
 }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(currentImage || null);
   const [uploading, setUploading] = useState(false);
@@ -600,12 +624,12 @@ export function ImageUpload({
   return (
     <div className="space-y-2">
       {label && <label className="block text-sm font-medium text-gray-700">{label}</label>}
-      
+
       {preview ? (
         <div className="relative">
-          <img 
-            src={preview} 
-            alt="Preview" 
+          <img
+            src={preview}
+            alt="Preview"
             className="w-full h-64 object-cover rounded-lg border-2 border-gray-200"
           />
           {!uploading && (
@@ -703,13 +727,16 @@ import { ImageUpload } from '../common/ImageUpload';
 ## ⚠️ Important Notes
 
 ### Free Tier Limits:
+
 - 25 GB storage
 - 25 GB bandwidth/month
 - 25 credits/month for transformations
 
 ### Security Best Practices:
+
 1. **NEVER** commit `.env` file
 2. Add to `.gitignore`:
+
 ```
 .env
 .env.local
@@ -719,7 +746,9 @@ import { ImageUpload } from '../common/ImageUpload';
 3. Trong production, dùng environment variables từ hosting platform
 
 ### Image Optimization:
+
 Cloudinary tự động:
+
 - Convert sang WebP khi browser support
 - Resize theo transformation rules
 - Compress với quality: auto
@@ -734,4 +763,4 @@ Cloudinary tự động:
 
 ---
 
-*Last updated: February 13, 2026*
+_Last updated: February 13, 2026_

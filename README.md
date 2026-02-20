@@ -37,6 +37,7 @@ social-commerce-platform/
 ## 🛠️ Công nghệ sử dụng
 
 ### Backend
+
 - **Node.js** + **Express.js** - REST API
 - **Prisma ORM** - Database ORM
 - **PostgreSQL** - Database
@@ -45,6 +46,7 @@ social-commerce-platform/
 - **bcryptjs** - Password hashing
 
 ### Frontend
+
 - **React 18** + **TypeScript**
 - **Vite** - Build tool
 - **Tailwind CSS** - Styling
@@ -55,6 +57,7 @@ social-commerce-platform/
 ## 📦 Cài đặt
 
 ### Yêu cầu
+
 - Node.js >= 18
 - PostgreSQL >= 14
 - npm hoặc yarn
@@ -97,6 +100,7 @@ Frontend sẽ chạy tại `http://localhost:5173`
 Dự án sử dụng PostgreSQL với Prisma ORM. Schema database nằm trong `backend/prisma/schema.prisma`.
 
 ### Các bảng chính:
+
 - Users
 - Posts
 - Products
@@ -110,6 +114,7 @@ Dự án sử dụng PostgreSQL với Prisma ORM. Schema database nằm trong `b
 ## 🔐 Biến môi trường
 
 ### Backend (.env)
+
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
 PORT=5000
@@ -124,6 +129,7 @@ UPLOAD_PATH=./src/uploads
 ## 📝 Scripts
 
 ### Backend
+
 ```bash
 npm start          # Chạy production server
 npm run dev        # Chạy development server với nodemon
@@ -133,6 +139,7 @@ npm run prisma:studio    # Mở Prisma Studio GUI
 ```
 
 ### Frontend
+
 ```bash
 npm run dev        # Chạy development server
 npm run build      # Build production
@@ -141,6 +148,7 @@ npm run build      # Build production
 ## 🤝 Đóng góp
 
 Mọi đóng góp đều được chào đón! Vui lòng:
+
 1. Fork dự án
 2. Tạo branch mới (`git checkout -b feature/AmazingFeature`)
 3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
