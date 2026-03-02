@@ -34,6 +34,7 @@ export const getPosts = async (req, res, next) => {
       visibility: req.query.visibility,
       status: req.query.status || 'PUBLISHED',
       search: req.query.search,
+      userId: req.user?.id || null,
     };
 
     const result = await postService.getPosts(filters);

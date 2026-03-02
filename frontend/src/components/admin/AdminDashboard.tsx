@@ -4,14 +4,14 @@ import {
   Package, UserCheck, Flag, Search, MoreVertical, Check, X, Eye, 
   Ban, Shield, MessageSquare, Star, ChevronDown, Filter
 } from 'lucide-react';
-import { User } from '../../App';
+import { useAuth } from '../../contexts/AuthContext';
 
-interface AdminDashboardProps {
-  currentUser: User;
-  onNavigate: (page: any) => void;
-}
-
-export function AdminDashboard({ currentUser, onNavigate }: AdminDashboardProps) {
+export function AdminDashboard() {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return <div>Loading...</div>;
+  }
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'sellers' | 'products' | 'reports'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'banned' | 'pending'>('all');

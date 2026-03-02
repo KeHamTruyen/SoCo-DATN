@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { ArrowLeft, Calendar, Clock, Edit, Trash2, Eye, Filter, ChevronDown, SortAsc } from 'lucide-react';
-import { User } from '../App';
+import { useAuth } from '../contexts/AuthContext';
 
-interface SchedulePostsPageProps {
-  currentUser: User;
-  onNavigate: (page: any) => void;
-}
-
-export function SchedulePostsPage({ currentUser, onNavigate }: SchedulePostsPageProps) {
+export function SchedulePostsPage() {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return <div>Loading...</div>;
+  }
   const [filterStatus, setFilterStatus] = useState<'all' | 'scheduled' | 'published'>('all');
   const [filterDateRange, setFilterDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');

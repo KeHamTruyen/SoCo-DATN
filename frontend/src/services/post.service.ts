@@ -164,7 +164,9 @@ export const getPosts = async (filters: PostFilters = {}): Promise<PostsResponse
   if (filters.status) params.append('status', filters.status);
   if (filters.search) params.append('search', filters.search);
 
-  const response = await axios.get(`${API_URL}/posts?${params.toString()}`);
+  const response = await axios.get(`${API_URL}/posts?${params.toString()}`, {
+    headers: getAuthHeader(),
+  });
   return response.data;
 };
 

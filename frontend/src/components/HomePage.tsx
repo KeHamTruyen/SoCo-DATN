@@ -57,31 +57,38 @@ export function HomePage() {
   };
 
   const handleLike = async (postId: string) => {
-    try {
-      // Optimistic update
-      setPosts(prev =>
-        prev.map(p =>
-          p.id === postId
-            ? { 
-                ...p, 
-                isLiked: !p.isLiked, 
-                likesCount: p.isLiked ? p.likesCount - 1 : p.likesCount + 1 
-              }
-            : p
-        )
-      );
+    // Save original values before optimistic update
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const wasLiked = post.isLiked;
+    const prevCount = post.likesCount;
+    
+    // Optimistic update
+    setPosts(prev =>
+      prev.map(p =>
+        p.id === postId
+          ? { 
+              ...p, 
+              isLiked: !wasLiked, 
+              likesCount: wasLiked ? prevCount - 1 : prevCount + 1 
+            }
+          : p
+      )
+    );
 
+    try {
       await postService.toggleLike(postId);
     } catch (error) {
       console.error('Error toggling like:', error);
-      // Revert on error
+      // Revert to original values
       setPosts(prev =>
         prev.map(p =>
           p.id === postId
             ? { 
                 ...p, 
-                isLiked: !p.isLiked, 
-                likesCount: p.isLiked ? p.likesCount + 1 : p.likesCount - 1 
+                isLiked: wasLiked, 
+                likesCount: prevCount 
               }
             : p
         )
@@ -239,7 +246,7 @@ export function HomePage() {
               <div
                 key={post.id}
                 className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => navigate(`/posts/${post.id}`)}
+                onClick={() => navigate(`/post/${post.id}`)}
               >
                 {/* Author Info */}
                 <div className="flex items-center justify-between p-4">
@@ -312,7 +319,9 @@ export function HomePage() {
                 {/* Interaction Bar */}
                 <div className="flex items-center justify-between p-4 border-t border-gray-100">
                   <button
+                    type="button"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       handleLike(post.id);
                     }}
@@ -326,14 +335,23 @@ export function HomePage() {
                     <span className="text-sm">{post.likesCount}</span>
                   </button>
                   <button
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-2 text-gray-600"
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      navigate(`/post/${post.id}`);
+                    }}
+                    className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors"
                   >
                     <MessageCircle className="w-5 h-5" />
                     <span className="text-sm">{post.commentsCount}</span>
                   </button>
                   <button
-                    onClick={(e) => e.stopPropagation()}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
                     className="flex items-center gap-2 text-gray-600"
                   >
                     <Share2 className="w-5 h-5" />

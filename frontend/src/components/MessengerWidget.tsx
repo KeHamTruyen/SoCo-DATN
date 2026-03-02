@@ -1,27 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Minimize2, Search, Phone, Video, MoreVertical, Smile, Paperclip } from 'lucide-react';
+import { MessageCircle, X, Send, Minimize2, Search, Phone, Video, Smile, Paperclip } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-
-interface Message {
-  id: string;
-  text: string;
-  senderId: string;
-  timestamp: string;
-  isRead?: boolean;
-}
-
-interface Conversation {
-  id: string;
-  user: {
-    id: string;
-    name: string;
-    avatar: string;
-    online: boolean;
-  };
-  lastMessage: string;
-  timestamp: string;
-  unread: number;
-}
+import { useSocket } from '../contexts/SocketContext';
+import messageService, { Conversation as APIConversation, Message as APIMessage } from '../services/message.service';
 
 export function MessengerWidget() {
   const { user: currentUser } = useAuth();
@@ -33,108 +14,176 @@ export function MessengerWidget() {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messageText, setMessageText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [conversations, setConversations] = useState<APIConversation[]>([]);
+  const [messages, setMessages] = useState<APIMessage[]>([]);
+  const [isLoadingConversations, setIsLoadingConversations] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const {
+    isConnected,
+    joinConversation,
+    leaveConversation,
+    onNewMessage,
+    onUserOnline,
+    onUserOffline,
+  } = useSocket();
 
   // Save isOpen state to localStorage
   useEffect(() => {
     localStorage.setItem('messengerWidget_isOpen', JSON.stringify(isOpen));
   }, [isOpen]);
 
-  const conversations: Conversation[] = [
-    {
-      id: '1',
-      user: {
-        id: '2',
-        name: 'Trần Thị Mai',
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-        online: true
-      },
-      lastMessage: 'Sản phẩm còn hàng không shop?',
-      timestamp: '5 phút',
-      unread: 2
-    },
-    {
-      id: '2',
-      user: {
-        id: '3',
-        name: 'Lê Văn Hoàng',
-        avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400',
-        online: true
-      },
-      lastMessage: 'Cảm ơn bạn nhiều nhé!',
-      timestamp: '1 giờ',
-      unread: 0
-    },
-    {
-      id: '3',
-      user: {
-        id: '4',
-        name: 'Phạm Thị Lan',
-        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
-        online: false
-      },
-      lastMessage: 'Bạn có thể giao hàng cho mình vào sáng mai được không?',
-      timestamp: '3 giờ',
-      unread: 0
-    },
-  ];
-
-  const messages: Message[] = [
-    {
-      id: '1',
-      senderId: '2',
-      receiverId: '1',
-      content: 'Chào bạn! Mình muốn hỏi về sản phẩm này',
-      timestamp: '10:30',
-      read: true
-    },
-    {
-      id: '2',
-      senderId: '1',
-      receiverId: '2',
-      content: 'Chào bạn! Bạn muốn hỏi gì về sản phẩm ạ?',
-      timestamp: '10:32',
-      read: true
-    },
-    {
-      id: '3',
-      senderId: '2',
-      receiverId: '1',
-      content: 'Sản phẩm còn hàng không shop?',
-      timestamp: '10:35',
-      read: true
-    },
-    {
-      id: '4',
-      senderId: '2',
-      receiverId: '1',
-      content: 'Và có thể giao hàng trong ngày không?',
-      timestamp: '10:35',
-      read: false
+  // Load conversations when widget opens
+  useEffect(() => {
+    if (isOpen && currentUser) {
+      loadConversations();
     }
-  ];
+  }, [isOpen, currentUser]);
 
-  const totalUnread = conversations.reduce((sum, conv) => sum + conv.unread, 0);
-  const selectedConv = conversations.find(c => c.id === selectedConversation);
+  // Setup socket listeners
+  useEffect(() => {
+    if (!isConnected || !currentUser) return;
 
+    // Listen for new messages
+    const unsubscribeNewMessage = onNewMessage((data) => {
+      // Update conversations list
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.id === data.conversationId
+            ? {
+                ...conv,
+                lastMessage: data.message.content,
+                lastMessageAt: data.message.createdAt,
+                unreadCount: conv.id === selectedConversation ? (conv.unreadCount ?? 0) : (conv.unreadCount ?? 0) + 1,
+              }
+            : conv
+        ).sort((a, b) => new Date(b.lastMessageAt ?? b.updatedAt).getTime() - new Date(a.lastMessageAt ?? a.updatedAt).getTime())
+      );
+
+      // If message is for current conversation, add to messages
+      if (data.conversationId === selectedConversation) {
+        setMessages((prev) => [...prev, data.message]);
+      }
+    });
+
+    // Listen for online/offline status
+    const unsubscribeOnline = onUserOnline((data) => {
+      setOnlineUsers((prev) => new Set(prev).add(data.userId));
+    });
+
+    const unsubscribeOffline = onUserOffline((data) => {
+      setOnlineUsers((prev) => {
+        const next = new Set(prev);
+        next.delete(data.userId);
+        return next;
+      });
+    });
+
+    return () => {
+      unsubscribeNewMessage();
+      unsubscribeOnline();
+      unsubscribeOffline();
+    };
+  }, [isConnected, currentUser, selectedConversation, onNewMessage, onUserOnline, onUserOffline]);
+
+  // Join/leave conversation when selection changes
+  useEffect(() => {
+    if (selectedConversation && currentUser) {
+      joinConversation(selectedConversation);
+      loadMessages(selectedConversation);
+      return () => {
+        leaveConversation(selectedConversation);
+      };
+    }
+  }, [selectedConversation, currentUser, joinConversation, leaveConversation]);
+
+  // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [selectedConversation]);
+  }, [messages, selectedConversation]);
 
-  const handleSendMessage = () => {
-    if (messageText.trim()) {
-      // Mock send message
+  const loadConversations = async () => {
+    try {
+      setIsLoadingConversations(true);
+      const response = await messageService.getUserConversations();
+      const convs = response.data.conversations.map((conv: APIConversation) => ({
+        ...conv,
+        lastMessage: conv.messages?.[0]?.content || '',
+        lastMessageAt: conv.messages?.[0]?.createdAt || conv.updatedAt
+      }));
+      setConversations(convs);
+    } catch (error) {
+      console.error('Failed to load conversations:', error);
+    } finally {
+      setIsLoadingConversations(false);
+    }
+  };
+
+  const loadMessages = async (conversationId: string) => {
+    try {
+      setIsLoadingMessages(true);
+      const response = await messageService.getConversationMessages(conversationId);
+      setMessages(response.data.messages);
+    } catch (error) {
+      console.error('Failed to load messages:', error);
+    } finally {
+      setIsLoadingMessages(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !selectedConversation || !currentUser) return;
+
+    try {
+      const message = await messageService.sendMessage(selectedConversation, { 
+        content: messageText.trim() 
+      });
+      setMessages((prev) => [...prev, message]);
       setMessageText('');
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      
+      // Update conversation list
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.id === selectedConversation
+            ? {
+                ...conv,
+                lastMessage: messageText.trim(),
+                lastMessageAt: new Date().toISOString(),
+              }
+            : conv
+        ).sort((a, b) => new Date(b.lastMessageAt ?? b.updatedAt).getTime() - new Date(a.lastMessageAt ?? a.updatedAt).getTime())
+      );
+    } catch (error) {
+      console.error('Failed to send message:', error);
     }
   };
 
   const handleConversationClick = (convId: string) => {
     setSelectedConversation(convId);
     setIsMinimized(false);
+    
+    // Mark conversation as read
+    setConversations((prev) =>
+      prev.map((conv) =>
+        conv.id === convId ? { ...conv, unreadCount: 0 } : conv
+      )
+    );
   };
+
+  const totalUnread = conversations.reduce((sum, conv) => sum + (conv.unreadCount ?? 0), 0);
+  const selectedConv = conversations.find(c => c.id === selectedConversation);
+  const otherParticipant = selectedConv?.participants.find((p) => p.user.id !== currentUser?.id)?.user;
+  const isOtherUserOnline = otherParticipant ? onlineUsers.has(otherParticipant.id) : false;
+  
+  const filteredConversations = conversations.filter(conv => {
+    const otherUser = conv.participants.find((p) => p.user.id !== currentUser?.id)?.user;
+    return otherUser?.fullName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+           otherUser?.username.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   if (!isOpen) {
     return (
@@ -152,6 +201,26 @@ export function MessengerWidget() {
     );
   }
 
+  if (!currentUser) {
+    return null;
+  }
+
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Vừa xong';
+    if (diffInMinutes < 60) return `${diffInMinutes} phút`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} giờ`;
+    return `${Math.floor(diffInMinutes / 1440)} ngày`;
+  };
+
+  const formatMessageTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {/* Chat Window */}
@@ -163,7 +232,7 @@ export function MessengerWidget() {
         {/* Header */}
         <div className="bg-blue-600 text-white p-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {selectedConv && !isMinimized ? (
+            {selectedConv && otherParticipant && !isMinimized ? (
               <>
                 <button
                   onClick={() => setSelectedConversation(null)}
@@ -173,16 +242,20 @@ export function MessengerWidget() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <img src={selectedConv.user.avatar} alt="" className="w-8 h-8 rounded-full" />
+                <img 
+                  src={otherParticipant.avatarUrl || `https://ui-avatars.com/api/?name=${otherParticipant.fullName}&background=random`} 
+                  alt="" 
+                  className="w-8 h-8 rounded-full" 
+                />
                 <div>
-                  <p className="text-sm">{selectedConv.user.name}</p>
-                  <p className="text-xs opacity-90">{selectedConv.user.online ? 'Đang hoạt động' : 'Không hoạt động'}</p>
+                  <p className="text-sm font-medium">{otherParticipant.fullName}</p>
+                  <p className="text-xs opacity-90">{isOtherUserOnline ? 'Đang hoạt động' : 'Không hoạt động'}</p>
                 </div>
               </>
             ) : (
               <>
                 <MessageCircle className="w-5 h-5" />
-                <span className="text-sm">Đoạn chat</span>
+                <span className="text-sm font-medium">Đoạn chat</span>
                 {totalUnread > 0 && (
                   <span className="ml-1 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
                     {totalUnread}
@@ -242,70 +315,105 @@ export function MessengerWidget() {
 
                 {/* Conversations List */}
                 <div className="flex-1 overflow-y-auto">
-                  {conversations
-                    .filter(conv => 
-                      conv.user.name.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map((conv) => (
-                    <button
-                      key={conv.id}
-                      onClick={() => handleConversationClick(conv.id)}
-                      className="w-full p-3 flex items-center gap-3 hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="relative flex-shrink-0">
-                        <img src={conv.user.avatar} alt={conv.user.name} className="w-12 h-12 rounded-full" />
-                        {conv.user.online && (
-                          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
-                        )}
-                      </div>
-                      <div className="flex-1 text-left min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm truncate">{conv.user.name}</span>
-                          <span className="text-xs text-gray-500">{conv.timestamp}</span>
-                        </div>
-                        <p className={`text-sm truncate ${conv.unread > 0 ? 'text-gray-900' : 'text-gray-600'}`}>
-                          {conv.lastMessage}
-                        </p>
-                      </div>
-                      {conv.unread > 0 && (
-                        <div className="w-5 h-5 bg-blue-600 text-white text-xs rounded-full flex items-center justify-center flex-shrink-0">
-                          {conv.unread}
-                        </div>
-                      )}
-                    </button>
-                  ))}
+                  {isLoadingConversations ? (
+                    <div className="flex items-center justify-center h-32">
+                      <div className="text-sm text-gray-500">Đang tải...</div>
+                    </div>
+                  ) : filteredConversations.length === 0 ? (
+                    <div className="flex items-center justify-center h-32">
+                      <div className="text-sm text-gray-500">Chưa có đoạn chat nào</div>
+                    </div>
+                  ) : (
+                    filteredConversations.map((conv) => {
+                      const otherUser = conv.participants.find((p) => p.user.id !== currentUser.id)?.user;
+                      if (!otherUser) return null;
+                      const isOnline = onlineUsers.has(otherUser.id);
+                      
+                      return (
+                        <button
+                          key={conv.id}
+                          onClick={() => handleConversationClick(conv.id)}
+                          className="w-full p-3 flex items-center gap-3 hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="relative flex-shrink-0">
+                            <img 
+                              src={otherUser.avatarUrl || `https://ui-avatars.com/api/?name=${otherUser.fullName}&background=random`} 
+                              alt={otherUser.fullName} 
+                              className="w-12 h-12 rounded-full object-cover" 
+                            />
+                            {isOnline && (
+                              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+                            )}
+                          </div>
+                          <div className="flex-1 text-left min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-medium truncate">{otherUser.fullName}</span>
+                              <span className="text-xs text-gray-500">
+                                {formatTimestamp(conv.lastMessageAt || conv.updatedAt)}
+                              </span>
+                            </div>
+                            <p className={`text-sm truncate ${(conv.unreadCount ?? 0) > 0 ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
+                              {conv.lastMessage || 'Chưa có tin nhắn'}
+                            </p>
+                          </div>
+                          {(conv.unreadCount ?? 0) > 0 && (
+                            <div className="w-5 h-5 bg-blue-600 text-white text-xs rounded-full flex items-center justify-center flex-shrink-0">
+                              {(conv.unreadCount ?? 0) > 9 ? '9+' : conv.unreadCount}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             ) : (
               <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50">
-                  {messages.map((message, index) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.senderId === currentUser.id ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div className={`flex gap-2 max-w-[75%] ${message.senderId === currentUser.id ? 'flex-row-reverse' : 'flex-row'}`}>
-                        {message.senderId !== currentUser.id && (
-                          <img src={selectedConv.user.avatar} alt="" className="w-7 h-7 rounded-full flex-shrink-0" />
-                        )}
-                        <div>
-                          <div
-                            className={`px-3 py-2 rounded-2xl ${
-                              message.senderId === currentUser.id
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white text-gray-900'
-                            }`}
-                          >
-                            <p className="text-sm break-words">{message.content}</p>
-                          </div>
-                          <p className={`text-xs text-gray-500 mt-1 ${message.senderId === currentUser.id ? 'text-right' : 'text-left'}`}>
-                            {message.timestamp}
-                          </p>
-                        </div>
-                      </div>
+                  {isLoadingMessages ? (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-sm text-gray-500">Đang tải tin nhắn...</div>
                     </div>
-                  ))}
+                  ) : messages.length === 0 ? (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-sm text-gray-500">Chưa có tin nhắn nào</div>
+                    </div>
+                  ) : (
+                    messages.map((message) => {
+                      const isCurrentUser = message.senderId === currentUser.id;
+                      return (
+                        <div
+                          key={message.id}
+                          className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div className={`flex gap-2 max-w-[75%] ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}>
+                            {!isCurrentUser && otherParticipant && (
+                              <img 
+                                src={otherParticipant.avatarUrl || `https://ui-avatars.com/api/?name=${otherParticipant.fullName}&background=random`} 
+                                alt="" 
+                                className="w-7 h-7 rounded-full flex-shrink-0 object-cover" 
+                              />
+                            )}
+                            <div>
+                              <div
+                                className={`px-3 py-2 rounded-2xl ${
+                                  isCurrentUser
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-white text-gray-900'
+                                }`}
+                              >
+                                <p className="text-sm break-words">{message.content}</p>
+                              </div>
+                              <p className={`text-xs text-gray-500 mt-1 ${isCurrentUser ? 'text-right' : 'text-left'}`}>
+                                {formatMessageTime(message.createdAt)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                   <div ref={messagesEndRef} />
                 </div>
 
@@ -319,7 +427,7 @@ export function MessengerWidget() {
                       type="text"
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                      onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                       placeholder="Aa"
                       className="flex-1 px-3 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
                     />

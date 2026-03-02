@@ -35,7 +35,7 @@ class UserService {
           },
           select: {
             id: true,
-            name: true,
+            title: true,
             slug: true,
             price: true,
             images: {
@@ -93,7 +93,7 @@ class UserService {
           },
           select: {
             id: true,
-            name: true,
+            title: true,
             slug: true,
             price: true,
             images: {

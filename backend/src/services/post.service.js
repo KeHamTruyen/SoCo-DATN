@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import notificationService from './notification.service.js';
 
 const prisma = new PrismaClient();
 
@@ -69,6 +70,7 @@ export const getPosts = async (filters = {}) => {
     visibility = 'PUBLIC',
     status = 'PUBLISHED',
     search,
+    userId = null,
   } = filters;
 
   const skip = (page - 1) * limit;
@@ -120,6 +122,12 @@ export const getPosts = async (filters = {}) => {
             },
           },
         },
+        likes: userId
+          ? {
+              where: { userId },
+              select: { id: true },
+            }
+          : false,
         _count: {
           select: {
             likes: true,
@@ -130,6 +138,14 @@ export const getPosts = async (filters = {}) => {
     }),
     prisma.post.count({ where }),
   ]);
+
+  // Add isLiked flag if user is logged in
+  if (userId) {
+    posts.forEach(post => {
+      post.isLiked = post.likes && post.likes.length > 0;
+      delete post.likes;
+    });
+  }
 
   return {
     posts,
@@ -349,6 +365,16 @@ export const deletePost = async (postId, authorId) => {
  * Like/Unlike post
  */
 export const toggleLike = async (postId, userId) => {
+  // Get post to check author
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    select: { authorId: true },
+  });
+
+  if (!post) {
+    throw new Error('Post not found');
+  }
+
   const existingLike = await prisma.postLike.findUnique({
     where: {
       postId_userId: {
@@ -396,6 +422,15 @@ export const toggleLike = async (postId, userId) => {
       }),
     ]);
 
+    // Send notification if not liking own post
+    if (userId !== post.authorId) {
+      try {
+        await notificationService.notifyPostLike(postId, post.authorId, userId);
+      } catch (error) {
+        console.error('Failed to send like notification:', error);
+      }
+    }
+
     return { liked: true, message: 'Post liked' };
   }
 };
@@ -404,6 +439,16 @@ export const toggleLike = async (postId, userId) => {
  * Add comment to post
  */
 export const addComment = async (postId, userId, content, parentId = null) => {
+  // Get post to check author
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    select: { authorId: true },
+  });
+
+  if (!post) {
+    throw new Error('Post not found');
+  }
+
   const comment = await prisma.$transaction(async (tx) => {
     const newComment = await tx.postComment.create({
       data: {
@@ -437,6 +482,15 @@ export const addComment = async (postId, userId, content, parentId = null) => {
 
     return newComment;
   });
+
+  // Send notification if not commenting on own post
+  if (userId !== post.authorId) {
+    try {
+      await notificationService.notifyPostComment(postId, post.authorId, userId, content);
+    } catch (error) {
+      console.error('Failed to send comment notification:', error);
+    }
+  }
 
   return comment;
 };

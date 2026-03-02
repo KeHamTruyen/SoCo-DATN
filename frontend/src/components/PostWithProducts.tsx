@@ -77,7 +77,7 @@ export function PostWithProducts({ post, onLike }: PostWithProductsProps) {
       {/* Post Content */}
       <div 
         className="px-4 pb-3 cursor-pointer"
-        onClick={() => navigate(`/posts/${post.id}`)}
+        onClick={() => navigate(`/post/${post.id}`)}
       >
         <p className="text-gray-700 whitespace-pre-line">{post.content}</p>
       </div>
@@ -86,7 +86,7 @@ export function PostWithProducts({ post, onLike }: PostWithProductsProps) {
       {post.image && (
         <div 
           className="relative cursor-pointer"
-          onClick={() => navigate(`/posts/${post.id}`)}
+          onClick={() => navigate(`/post/${post.id}`)}
         >
           <img
             src={post.image}
@@ -164,7 +164,7 @@ export function PostWithProducts({ post, onLike }: PostWithProductsProps) {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/posts/${post.id}`);
+                navigate(`/post/${post.id}`);
               }}
               className="w-full mt-2 py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-lg transition-colors"
             >
@@ -192,7 +192,7 @@ export function PostWithProducts({ post, onLike }: PostWithProductsProps) {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            navigate(`/posts/${post.id}`);
+            navigate(`/post/${post.id}`);
           }}
           className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors"
         >

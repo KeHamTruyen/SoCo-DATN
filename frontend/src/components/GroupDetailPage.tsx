@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { ArrowLeft, Users, MoreVertical, Settings, Bell, BellOff, Search, Image as ImageIcon, Video, Calendar, Link as LinkIcon, MapPin, Globe, Lock, UserPlus, UserCheck, Heart, MessageCircle, Share2, Send } from 'lucide-react';
-import { User } from '../App';
+import { useAuth } from '../contexts/AuthContext';
+import { useParams } from 'react-router-dom';
 
-interface GroupDetailPageProps {
-  currentUser: User;
-  groupId: string;
-  onNavigate: (page: any, id?: string) => void;
-}
-
-export function GroupDetailPage({ currentUser, groupId, onNavigate }: GroupDetailPageProps) {
+export function GroupDetailPage() {
+  const { user } = useAuth();
+  const { id: groupId } = useParams<{ id: string }>();
+  
+  if (!user || !groupId) {
+    return <div>Loading...</div>;
+  }
   const [activeTab, setActiveTab] = useState<'posts' | 'members' | 'media' | 'about'>('posts');
   const [isMember, setIsMember] = useState(true);
   const [notificationsOn, setNotificationsOn] = useState(true);

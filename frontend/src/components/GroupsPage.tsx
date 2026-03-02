@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { Search, Users, Plus, Lock, Globe, TrendingUp } from 'lucide-react';
-import { User } from '../App';
 import { PageLayout } from './Layout/PageLayout';
+import { useAuth } from '../contexts/AuthContext';
 
-interface GroupsPageProps {
-  currentUser: User;
-  onNavigate: (page: any) => void;
-  onLogout: () => void;
-}
-
-export function GroupsPage({ currentUser, onNavigate, onLogout }: GroupsPageProps) {
+export function GroupsPage() {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return <div>Loading...</div>;
+  }
   const [activeTab, setActiveTab] = useState<'my-groups' | 'discover'>('my-groups');
 
   const myGroups = [
@@ -68,9 +67,6 @@ export function GroupsPage({ currentUser, onNavigate, onLogout }: GroupsPageProp
 
   return (
     <PageLayout 
-      currentUser={currentUser}
-      onNavigate={onNavigate}
-      onLogout={onLogout}
       activePage="groups"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { Search, Filter, ShoppingCart, Heart, Star, ChevronDown, Grid, List, Store, TrendingUp, Award, Zap } from 'lucide-react';
-import { User, Product } from '../App';
+import { Product } from '../App';
 import { mockProducts } from '../data/mockData';
 import { MessengerWidget } from './MessengerWidget';
 import { PageLayout } from './Layout/PageLayout';
+import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 
-interface MarketplacePageProps {
-  currentUser: User;
-  onNavigate: (page: any, productId?: string) => void;
-  onAddToCart: (product: Product) => void;
-  cartItemCount: number;
-  onLogout: () => void;
-}
-
-export function MarketplacePage({ currentUser, onNavigate, onAddToCart, cartItemCount, onLogout }: MarketplacePageProps) {
+export function MarketplacePage() {
+  const { user } = useAuth();
+  const { addToCart } = useCart();
+  
+  if (!user) {
+    return <div>Loading...</div>;
+  }
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState<'newest' | 'price-low' | 'price-high' | 'popular'>('newest');

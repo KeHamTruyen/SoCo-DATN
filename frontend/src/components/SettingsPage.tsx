@@ -5,15 +5,14 @@ import {
   Camera, Mail, Phone, MapPin, Calendar, EyeOff, MessageSquare, KeyRound,
   UserX, Filter, Archive, Reply, Info
 } from 'lucide-react';
-import { User } from '../App';
+import { useAuth } from '../contexts/AuthContext';
 
-interface SettingsPageProps {
-  currentUser: User;
-  onNavigate: (page: any) => void;
-  onLogout: () => void;
-}
-
-export function SettingsPage({ currentUser, onNavigate, onLogout }: SettingsPageProps) {
+export function SettingsPage() {
+  const { user, logout } = useAuth();
+  
+  if (!user) {
+    return <div>Loading...</div>;
+  }
   const [activeTab, setActiveTab] = useState<'account' | 'privacy' | 'notifications' | 'security' | 'messaging' | 'recovery'>('account');
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showSessions, setShowSessions] = useState(false);

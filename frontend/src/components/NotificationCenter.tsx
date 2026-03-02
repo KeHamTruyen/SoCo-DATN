@@ -1,111 +1,65 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Heart, MessageCircle, ShoppingCart, UserPlus, AtSign, Package, Tag, X, Check, Trash2, Settings } from 'lucide-react';
-
-interface Notification {
-  id: string;
-  type: 'like' | 'comment' | 'order' | 'follow' | 'mention' | 'system' | 'product';
-  title: string;
-  message: string;
-  avatar?: string;
-  image?: string;
-  timestamp: string;
-  isRead: boolean;
-  actionUrl?: string;
-}
+import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import notificationService from '../services/notification.service';
+import { Notification } from '../services/notification.service';
+import { useSocket } from '../contexts/SocketContext';
 
 export function NotificationCenter() {
   const navigate = useNavigate();
+  const { onNewNotification, onNotificationCount } = useSocket();
   const [showDropdown, setShowDropdown] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'like',
-      title: 'Minh Anh',
-      message: 'đã thích bài viết của bạn',
-      avatar: 'https://i.pravatar.cc/150?img=5',
-      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100',
-      timestamp: '2 phút trước',
-      isRead: false
-    },
-    {
-      id: '2',
-      type: 'comment',
-      title: 'Quang Huy',
-      message: 'đã bình luận: "Sản phẩm này có màu xanh không shop?"',
-      avatar: 'https://i.pravatar.cc/150?img=12',
-      timestamp: '15 phút trước',
-      isRead: false
-    },
-    {
-      id: '3',
-      type: 'order',
-      title: 'Đơn hàng mới',
-      message: 'Bạn có 1 đơn hàng mới trị giá 850,000đ',
-      avatar: 'https://i.pravatar.cc/150?img=25',
-      timestamp: '1 giờ trước',
-      isRead: false
-    },
-    {
-      id: '4',
-      type: 'follow',
-      title: 'Thu Hà',
-      message: 'đã bắt đầu theo dõi bạn',
-      avatar: 'https://i.pravatar.cc/150?img=9',
-      timestamp: '2 giờ trước',
-      isRead: true
-    },
-    {
-      id: '5',
-      type: 'mention',
-      title: 'Văn Đức',
-      message: 'đã nhắc đến bạn trong một bình luận',
-      avatar: 'https://i.pravatar.cc/150?img=33',
-      timestamp: '3 giờ trước',
-      isRead: true
-    },
-    {
-      id: '6',
-      type: 'product',
-      title: 'Sản phẩm được tag',
-      message: 'Lan Anh đã tag sản phẩm của bạn vào bài viết',
-      avatar: 'https://i.pravatar.cc/150?img=47',
-      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100',
-      timestamp: '5 giờ trước',
-      isRead: true
-    },
-    {
-      id: '7',
-      type: 'system',
-      title: 'Cập nhật hệ thống',
-      message: 'Phiên bản mới với tính năng AI đã được ra mắt! 🎉',
-      timestamp: 'Hôm qua',
-      isRead: true
-    },
-    {
-      id: '8',
-      type: 'order',
-      title: 'Đơn hàng đã giao',
-      message: 'Đơn hàng #DH1234 đã được giao thành công',
-      avatar: 'https://i.pravatar.cc/150?img=18',
-      timestamp: 'Hôm qua',
-      isRead: true
-    },
-    {
-      id: '9',
-      type: 'like',
-      title: 'Hoàng Nam và 15 người khác',
-      message: 'đã thích bài viết của bạn',
-      avatar: 'https://i.pravatar.cc/150?img=52',
-      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100',
-      timestamp: '2 ngày trước',
-      isRead: true
-    }
-  ]);
-
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  // Load notifications on mount and when dropdown opens
+  useEffect(() => {
+    if (showDropdown) {
+      loadNotifications();
+    }
+  }, [showDropdown, filter]);
+
+  // Setup Socket.IO listeners
+  useEffect(() => {
+    // Listen for new notifications
+    const unsubscribeNewNotification = onNewNotification?.((notification) => {
+      setNotifications((prev) => [notification, ...prev]);
+      if (!notification.isRead) {
+        setUnreadCount((prev) => prev + 1);
+      }
+    });
+
+    // Listen for unread count updates
+    const unsubscribeCount = onNotificationCount?.((count) => {
+      setUnreadCount(count);
+    });
+
+    return () => {
+      unsubscribeNewNotification?.();
+      unsubscribeCount?.();
+    };
+  }, [onNewNotification, onNotificationCount]);
+
+  const loadNotifications = async () => {
+    try {
+      setIsLoading(true);
+      const response = await notificationService.getUserNotifications(
+        1,
+        10,
+        filter === 'unread' ? false : undefined
+      );
+      setNotifications(response.data.notifications);
+      setUnreadCount(response.data.unreadCount);
+    } catch (error) {
+      console.error('Failed to load notifications:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredNotifications = filter === 'unread' 
     ? notifications.filter(n => !n.isRead)
@@ -130,39 +84,56 @@ export function NotificationCenter() {
     }
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, isRead: true } : n
-    ));
+  const markAsRead = async (id: string) => {
+    try {
+      await notificationService.markAsRead(id);
+      setNotifications(notifications.map(n => 
+        n.id === id ? { ...n, isRead: true } : n
+      ));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+  const markAllAsRead = async () => {
+    try {
+      await notificationService.markAllAsRead();
+      setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Failed to mark all as read:', error);
+    }
   };
 
-  const deleteNotification = (id: string) => {
-    setNotifications(notifications.filter(n => n.id !== id));
+  const deleteNotification = async (id: string) => {
+    try {
+      await notificationService.deleteNotification(id);
+      setNotifications(notifications.filter(n => n.id !== id));
+      const deletedNotif = notifications.find(n => n.id === id);
+      if (deletedNotif && !deletedNotif.isRead) {
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    markAsRead(notification.id);
+    if (!notification.isRead) {
+      markAsRead(notification.id);
+    }
     
-    // Navigate based on notification type
-    switch (notification.type) {
-      case 'order':
-        navigate('/seller/orders');
-        break;
-      case 'like':
-      case 'comment':
-      case 'product':
-        navigate('/home');
-        break;
-      case 'follow':
-        // Navigate to profile
-        break;
+    // Navigate to actionUrl if available
+    if (notification.actionUrl) {
+      navigate(notification.actionUrl);
     }
     
     setShowDropdown(false);
+  };
+
+  const formatTimestamp = (date: Date | string) => {
+    return formatDistanceToNow(new Date(date), { addSuffix: true, locale: vi });
   };
 
   return (
@@ -250,7 +221,11 @@ export function NotificationCenter() {
 
             {/* Notification List */}
             <div className="flex-1 overflow-y-auto">
-              {filteredNotifications.length > 0 ? (
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : filteredNotifications.length > 0 ? (
                 <div className="divide-y divide-gray-100">
                   {filteredNotifications.map((notification) => (
                     <div
@@ -263,9 +238,9 @@ export function NotificationCenter() {
                       <div className="flex gap-3">
                         {/* Avatar/Icon */}
                         <div className="relative flex-shrink-0">
-                          {notification.avatar ? (
+                          {notification.relatedUser?.avatarUrl ? (
                             <img
-                              src={notification.avatar}
+                              src={notification.relatedUser.avatarUrl}
                               alt=""
                               className="w-12 h-12 rounded-full"
                             />
@@ -288,12 +263,12 @@ export function NotificationCenter() {
                                 {' '}
                                 <span className="text-gray-700">{notification.message}</span>
                               </p>
-                              <p className="text-xs text-gray-500 mt-1">{notification.timestamp}</p>
+                              <p className="text-xs text-gray-500 mt-1">{formatTimestamp(notification.createdAt)}</p>
                             </div>
 
-                            {notification.image && (
+                            {notification.imageUrl && (
                               <img
-                                src={notification.image}
+                                src={notification.imageUrl}
                                 alt=""
                                 className="w-12 h-12 rounded-lg object-cover"
                               />
@@ -356,7 +331,7 @@ export function NotificationCenter() {
                 <button
                   onClick={() => {
                     setShowDropdown(false);
-                    // Navigate to full notifications page
+                    navigate('/notifications');
                   }}
                   className="w-full text-sm text-blue-600 hover:text-blue-700 py-2"
                 >

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as postController from '../controllers/post.controller.js';
-import { protect } from '../middlewares/auth.middleware.js';
+import { protect, optionalAuth } from '../middlewares/auth.middleware.js';
 import * as postValidator from '../validators/post.validator.js';
 import { validate } from '../validators/post.validator.js';
 
@@ -243,7 +243,7 @@ router.post('/', protect, postValidator.createPostValidation, validate, postCont
  *                     itemsPerPage:
  *                       type: integer
  */
-router.get('/', postValidator.getPostsValidation, validate, postController.getPosts);
+router.get('/', optionalAuth, postValidator.getPostsValidation, validate, postController.getPosts);
 
 /**
  * @swagger
@@ -343,7 +343,7 @@ router.get('/user/:userId', postValidator.getUserPostsValidation, validate, post
  *       404:
  *         description: Post not found
  */
-router.get('/:id', postValidator.getPostByIdValidation, validate, postController.getPostById);
+router.get('/:id', optionalAuth, postValidator.getPostByIdValidation, validate, postController.getPostById);
 
 /**
  * @swagger

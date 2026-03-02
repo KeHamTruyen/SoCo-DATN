@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import { ArrowLeft, Search, Filter, Users, Package, FileText, User as UserIcon, Heart, MessageCircle, ShoppingCart, MapPin, UserPlus, Check } from 'lucide-react';
-import { User, Product } from '../App';
+import { Product } from '../App';
 import { mockProducts } from '../data/mockData';
+import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
+import { useSearchParams } from 'react-router-dom';
 
-interface SearchResultsPageProps {
-  currentUser: User;
-  onNavigate: (page: any, id?: string) => void;
-  searchQuery?: string;
-  onAddToCart: (product: Product) => void;
-}
-
-export function SearchResultsPage({ currentUser, onNavigate, searchQuery = '', onAddToCart }: SearchResultsPageProps) {
+export function SearchResultsPage() {
+  const { user } = useAuth();
+  const { addToCart } = useCart();
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') || '';
+  
+  if (!user) {
+    return <div>Loading...</div>;
+  }
   const [query, setQuery] = useState(searchQuery);
   const [activeTab, setActiveTab] = useState<'all' | 'posts' | 'products' | 'groups' | 'users'>('all');
   const [showFilters, setShowFilters] = useState(false);

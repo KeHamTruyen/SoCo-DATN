@@ -2,22 +2,26 @@
 
 ## 🎯 Tổng quan tiến độ
 
-### ✅ Đã hoàn thành (Phase 1 & 3)
+### ✅ Đã hoàn thành (Phase 1, 2, 3 & 4)
 
 - Backend Auth API
 - Backend Product API
 - Backend Category API
 - Backend Posts & Social Feed API
+- Backend Cart & Order APIs
+- Backend Notifications API (with real-time Socket.IO)
 - Frontend Auth pages
 - Frontend Layout components
 - Frontend Seller pages migration
 - Frontend Product pages migration
 - Frontend Posts & Social Feed
+- Frontend Shopping flow (Cart & Orders)
+- Frontend Notifications (real-time)
 
 ### ⏳ Đang thực hiện
 
-- Backend Cart & Order APIs
-- Frontend Shopping flow
+- Backend Messaging optimization
+- Frontend Messaging improvements
 
 ---
 
@@ -204,50 +208,77 @@
 
 ---
 
-## 💬 7. MESSAGING (❌ Chưa làm - Phase 5)
+## 💬 7. MESSAGING (⏳ Phase 4 - 75% Complete)
 
 ### Backend
 
 - [x] Conversation model (Prisma schema)
 - [x] Message model (Prisma schema)
 - [x] ConversationParticipant model (Prisma schema)
-- [ ] **TODO: Message service**
-- [ ] **TODO: Message controller**
-- [ ] **TODO: Message routes (`/api/messages/*`)**
-- [ ] **TODO: WebSocket/Socket.IO integration cho real-time chat**
-- [ ] **TODO: Message pagination**
-- [ ] **TODO: Read receipts**
+- [x] **Message service** (8 methods)
+  - [x] Get/create conversation
+  - [x] Get user conversations with pagination
+  - [x] Get conversation messages
+  - [x] Send message
+  - [x] Mark as read
+  - [x] Delete message
+  - [x] Get unread count
+  - [x] Search conversations
+- [x] **Message controller** (8 endpoints)
+- [x] **Message routes** (`/api/messages/*`)
+- [x] **Message validators**
+- [x] **Socket.IO integration cho real-time chat** (cơ bản)
+- [ ] **TODO: File upload for message attachments**
 
 ### Frontend
 
-- [ ] **TODO: MessagesPage - migrate to hooks + API**
-- [x] MessengerWidget - migrated to hooks (chưa có API)
-- [ ] **TODO: Real-time message updates (Socket.IO)**
+- [x] **message.service.ts** - TypeScript API client
+- [x] **MessagesPage - migrated to hooks + full API integration**
+- [x] **MessengerWidget - migrated to hooks + full API integration**
+- [x] **Real-time message updates (Socket.IO)**
+- [x] **Typing indicators**
+- [x] **Online/offline status**
+- [x] **Message search**
 - [ ] **TODO: Chat UI với emoji picker**
 - [ ] **TODO: File/image attachments trong messages**
-- [ ] **TODO: Typing indicators**
 
 ---
 
-## 🔔 8. NOTIFICATIONS (❌ Chưa làm - Phase 5)
+## 🔔 8. NOTIFICATIONS (✅ Hoàn thành 100% - Phase 4)
 
 ### Backend
 
 - [x] Notification model (Prisma schema)
-- [ ] **TODO: Notification service**
-- [ ] **TODO: Notification controller**
-- [ ] **TODO: Notification routes (`/api/notifications/*`)**
-- [ ] **TODO: WebSocket cho real-time notifications**
+- [x] Notification service (notification.service.js)
+  - [x] Create notification
+  - [x] Get user notifications (with pagination & filters)
+  - [x] Get notification by ID
+  - [x] Mark as read
+  - [x] Mark all as read
+  - [x] Delete notification
+  - [x] Get unread count
+  - [x] Cleanup old notifications
+  - [x] Helper methods (like, comment, follow, order, message, product mention)
+- [x] Notification controller (notification.controller.js)
+- [x] Notification routes (`/api/notifications/*`)
+- [x] Socket.IO real-time notification emission
+- [x] sendNotificationToUser() and emitNotificationCount() helpers
 - [ ] **TODO: Email notifications**
 - [ ] **TODO: Push notifications (FCM)**
 
 ### Frontend
 
-- [x] NotificationCenter component - migrated to hooks (chưa API)
-- [ ] **TODO: NotificationsPage - migrate to API**
-- [ ] **TODO: Real-time notification updates**
+- [x] notification.service.ts - TypeScript API client
+- [x] NotificationCenter component - Full API integration with real-time
+- [x] NotificationsPage - Full API integration with real-time
+- [x] Real-time notification updates via Socket.IO
+- [x] Mark as read functionality
+- [x] Mark all as read functionality
+- [x] Delete notification functionality
+- [x] Unread count badge with real-time updates
+- [x] Notification tabs (all/unread/interaction/commerce)
+- [x] Navigation to action URLs
 - [ ] **TODO: Notification preferences page**
-- [ ] **TODO: Mark as read functionality**
 
 ---
 
@@ -329,7 +360,7 @@
 
 ### Frontend
 
-- [x] SellerDashboard - migrated to hooks (chưa có API thật)
+- [x] SellerDashboard - migrated to hooks (cleaned up unused imports)
 - [x] ProductManagementPage - migrated to hooks (chưa có API thật)
 - [x] OrderManagementPage - migrated to hooks (chưa có API thật)
 - [x] AddProductPage - migrated to hooks + API
@@ -338,27 +369,28 @@
   - ⚠️ **TODO FOR PRODUCTION**: Implement admin approval workflow
   - ⚠️ **TODO**: Upload ID card images to Cloudinary
   - ⚠️ **TODO**: Store verification data in SellerVerification table
-- [ ] **TODO: StorePage - migrate to hooks + API**
+- [x] **StorePage - migrated to hooks**
 - [ ] **TODO: Seller verification flow (3 steps với admin approval)**
 - [ ] **TODO: Revenue charts**
 - [ ] **TODO: Sales analytics**
 
 ---
 
-## 👤 13. USER PROFILE & SOCIAL (⏳ Một phần hoàn thành)
+## 👤 13. USER PROFILE & SOCIAL (✅ Hoàn thành Profile API)
 
 ### Backend
 
 - [x] Follow model (Prisma schema)
+- [x] User profile endpoints (getUserByUsername, getUserById, getMyProfile)
+- [x] Fixed Product field mapping (title instead of name)
 - [ ] **TODO: Follow/unfollow endpoints**
 - [ ] **TODO: Get followers/following lists**
-- [ ] **TODO: User profile endpoints**
-- [ ] **TODO: Update profile endpoint (đã có trong auth)**
 
 ### Frontend
 
-- [x] ProfilePage - migrated to hooks (chưa fetch other users)
-- [ ] **TODO: Fetch other user profiles by username**
+- [x] ProfilePage - migrated to hooks + API integration
+- [x] StorePage - migrated to hooks
+- [ ] **TODO: Fetch other user profiles by username (ProfilePage)**
 - [ ] **TODO: Follow/unfollow button**
 - [ ] **TODO: Followers/following lists**
 - [ ] **TODO: User posts grid**
@@ -586,13 +618,13 @@
 | Cart          | ✅ 100% | ✅ 100%  | ✅ Done    |
 | Orders        | ✅ 100% | ✅ 100%  | ✅ Done    |
 | Posts         | ✅ 100% | ✅ 100%  | ✅ Done    |
-| Messages      | ❌ 0%   | 🟡 20%   | ❌ Todo    |
-| Notifications | ❌ 0%   | 🟡 30%   | ❌ Todo    |
+| Messages      | ✅ 90%  | ✅ 75%   | ⏳ Phase 4 |
+| Notifications | ✅ 100% | ✅ 100%  | ✅ Done    |
 | Reviews       | ❌ 0%   | ❌ 0%    | ❌ Todo    |
 | Search        | ❌ 0%   | ❌ 0%    | ❌ Todo    |
 | Admin         | ❌ 0%   | ❌ 0%    | ❌ Todo    |
 
-**Tổng tiến độ: ~60%** 🚀
+**Tổng tiến độ: ~75%** 🚀
 
 ---
 
@@ -608,4 +640,4 @@
 
 ---
 
-_Last updated: February 19, 2026_
+_Last updated: March 3, 2026_

@@ -7,6 +7,8 @@ import postRoutes from './post.routes.js';
 import cartRoutes from './cart.routes.js';
 import orderRoutes from './order.routes.js';
 import userRoutes from './user.routes.js';
+import messageRoutes from './message.routes.js';
+import notificationRoutes from './notification.routes.js';
 
 const router = express.Router();
 
@@ -19,6 +21,8 @@ router.use('/upload', uploadRoutes);
 router.use('/posts', postRoutes);
 router.use('/cart', cartRoutes);
 router.use('/orders', orderRoutes);
+router.use('/messages', messageRoutes);
+router.use('/notifications', notificationRoutes);
 
 // Temporary welcome route
 router.get('/', (req, res) => {

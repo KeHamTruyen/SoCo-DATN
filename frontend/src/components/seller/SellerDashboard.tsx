@@ -1,4 +1,4 @@
-import { TrendingUp, Package, ShoppingBag, DollarSign, Users, Star, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Package, ShoppingBag, DollarSign, Star, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { PageLayout } from '../Layout/PageLayout';
