@@ -263,6 +263,7 @@
 - [x] Notification routes (`/api/notifications/*`)
 - [x] Socket.IO real-time notification emission
 - [x] sendNotificationToUser() and emitNotificationCount() helpers
+- [x] **Post Like/Comment notification integration** ✅ (fixed 2025-02-21)
 - [ ] **TODO: Email notifications**
 - [ ] **TODO: Push notifications (FCM)**
 
@@ -270,7 +271,7 @@
 
 - [x] notification.service.ts - TypeScript API client
 - [x] NotificationCenter component - Full API integration with real-time
-- [x] NotificationsPage - Full API integration with real-time
+- [x] NotificationsPage - Full API integration with real-time ✅ (type mismatch fixed 2025-02-21)
 - [x] Real-time notification updates via Socket.IO
 - [x] Mark as read functionality
 - [x] Mark all as read functionality
@@ -279,6 +280,13 @@
 - [x] Notification tabs (all/unread/interaction/commerce)
 - [x] Navigation to action URLs
 - [ ] **TODO: Notification preferences page**
+
+### Integration Notes
+- ✅ Like/Comment notifications trigger correctly when users interact with posts
+- ✅ No self-notification (users don't receive notifications for their own actions)
+- ✅ Real-time delivery via Socket.IO confirmed working
+- ✅ Notification types use lowercase format: 'like', 'comment', 'follow', etc.
+- ✅ Action URLs properly formatted: `/post/:id` for post-related notifications
 
 ---
 

@@ -60,11 +60,11 @@ export function NotificationsPage() {
       // Filter by tab type
       if (activeTab === 'interaction') {
         filteredNotifications = filteredNotifications.filter(n => 
-          ['LIKE', 'COMMENT', 'FOLLOW'].includes(n.type)
+          ['like', 'comment', 'follow'].includes(n.type)
         );
       } else if (activeTab === 'commerce') {
         filteredNotifications = filteredNotifications.filter(n => 
-          ['ORDER', 'PRODUCT_TAG', 'REVIEW'].includes(n.type)
+          ['order', 'product_tag', 'review'].includes(n.type)
         );
       }
       
@@ -82,8 +82,8 @@ export function NotificationsPage() {
   const shouldShowInTab = (notification: Notification, tab: TabType): boolean => {
     if (tab === 'all') return true;
     if (tab === 'unread') return !notification.isRead;
-    if (tab === 'interaction') return ['LIKE', 'COMMENT', 'FOLLOW'].includes(notification.type);
-    if (tab === 'commerce') return ['ORDER', 'PRODUCT_TAG', 'REVIEW'].includes(notification.type);
+    if (tab === 'interaction') return ['like', 'comment', 'follow'].includes(notification.type);
+    if (tab === 'commerce') return ['order', 'product_tag', 'review'].includes(notification.type);
     return true;
   };
 
@@ -131,19 +131,19 @@ export function NotificationsPage() {
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'LIKE':
+      case 'like':
         return <Heart className="w-5 h-5 text-red-500" fill="currentColor" />;
-      case 'COMMENT':
+      case 'comment':
         return <MessageCircle className="w-5 h-5 text-blue-500" />;
-      case 'FOLLOW':
+      case 'follow':
         return <UserPlus className="w-5 h-5 text-green-500" />;
-      case 'ORDER':
+      case 'order':
         return <ShoppingBag className="w-5 h-5 text-purple-500" />;
-      case 'REVIEW':
+      case 'review':
         return <Star className="w-5 h-5 text-yellow-500" fill="currentColor" />;
-      case 'MESSAGE':
+      case 'message':
         return <MessageCircle className="w-5 h-5 text-blue-500" />;
-      case 'PRODUCT_TAG':
+      case 'product_tag':
         return <Tag className="w-5 h-5 text-indigo-500" />;
       default:
         return <Package className="w-5 h-5 text-gray-500" />;
