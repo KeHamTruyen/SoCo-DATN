@@ -12,10 +12,13 @@ import adminRoutes from './admin.routes.js';
 import aiRoutes from './ai.routes.js';
 import scheduledPostRoutes from './scheduledPost.routes.js';
 import sellerRoutes from './seller.routes.js';
+import messageRoutes from './message.routes.js';
+import groupRoutes from './group.routes.js';
+import reportRoutes from './report.routes.js';
 
 const router = express.Router();
 
-// Existing routes
+// Core routes
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/products', productRoutes);
@@ -25,12 +28,17 @@ router.use('/posts', postRoutes);
 router.use('/cart', cartRoutes);
 router.use('/orders', orderRoutes);
 
-// New infrastructure routes
+// Infrastructure routes
 router.use('/notifications', notificationRoutes);
 router.use('/admin', adminRoutes);
 router.use('/ai', aiRoutes);
 router.use('/scheduled-posts', scheduledPostRoutes);
 router.use('/seller', sellerRoutes);
+
+// Module 2 - Social & Content
+router.use('/messages', messageRoutes);
+router.use('/groups', groupRoutes);
+router.use('/reports', reportRoutes);
 
 router.get('/', (req, res) => {
   res.json({
@@ -48,6 +56,9 @@ router.get('/', (req, res) => {
       ai: '/api/ai',
       scheduledPosts: '/api/scheduled-posts',
       seller: '/api/seller',
+      messages: '/api/messages',
+      groups: '/api/groups',
+      reports: '/api/reports',
     }
   });
 });
