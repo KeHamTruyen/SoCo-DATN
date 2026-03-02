@@ -15,8 +15,11 @@ class UserService {
         phone: true,
         role: true,
         avatarUrl: true,
+        coverImage: true,
         bio: true,
+        address: true,
         isVerified: true,
+        privacySettings: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -73,8 +76,11 @@ class UserService {
         phone: true,
         role: true,
         avatarUrl: true,
+        coverImage: true,
         bio: true,
+        address: true,
         isVerified: true,
+        privacySettings: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -121,55 +127,32 @@ class UserService {
    * Update user profile
    */
   async updateProfile(userId, data) {
-    const { fullName, phone, bio, avatarUrl, role } = data;
+    const { fullName, phone, bio, avatarUrl, coverImage, address } = data;
 
-    // Check if username is being updated and if it's already taken
     if (data.username) {
       const existingUser = await prisma.user.findFirst({
-        where: {
-          username: data.username,
-          NOT: {
-            id: userId
-          }
-        }
+        where: { username: data.username, NOT: { id: userId } },
       });
-
-      if (existingUser) {
-        throw new Error('Username already taken');
-      }
+      if (existingUser) throw new Error('Username already taken');
     }
 
-    // Build update data object
-    const updateData = {
-      ...(fullName && { fullName }),
-      ...(phone !== undefined && { phone }),
-      ...(bio !== undefined && { bio }),
-      ...(avatarUrl !== undefined && { avatarUrl }),
-      ...(data.username && { username: data.username }),
-    };
-
-    // Allow role update for becoming a seller
-    // TODO: In production, this should require admin approval or separate endpoint
-    if (role && (role === 'SELLER' || role === 'BUYER')) {
-      updateData.role = role;
-    }
+    const updateData = {};
+    if (fullName) updateData.fullName = fullName;
+    if (phone !== undefined) updateData.phone = phone;
+    if (bio !== undefined) updateData.bio = bio;
+    if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
+    if (coverImage !== undefined) updateData.coverImage = coverImage;
+    if (address !== undefined) updateData.address = address;
+    if (data.username) updateData.username = data.username;
 
     const user = await prisma.user.update({
       where: { id: userId },
       data: updateData,
       select: {
-        id: true,
-        email: true,
-        username: true,
-        fullName: true,
-        phone: true,
-        role: true,
-        avatarUrl: true,
-        bio: true,
-        isVerified: true,
-        createdAt: true,
-        updatedAt: true
-      }
+        id: true, email: true, username: true, fullName: true, phone: true,
+        role: true, avatarUrl: true, coverImage: true, bio: true, address: true,
+        isVerified: true, privacySettings: true, createdAt: true, updatedAt: true,
+      },
     });
 
     return user;

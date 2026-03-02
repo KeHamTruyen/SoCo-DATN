@@ -1,13 +1,13 @@
 import authService from '../services/auth.service.js';
+import { isTokenBlacklisted } from '../utils/tokenBlacklist.js';
 
 /**
- * Protect routes - Verify JWT token
+ * Protect routes – Verify JWT token + check blacklist
  */
 export const protect = async (req, res, next) => {
   try {
     let token;
 
-    // Get token from header or cookie
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     } else if (req.cookies.token) {
@@ -15,34 +15,25 @@ export const protect = async (req, res, next) => {
     }
 
     if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: 'Not authorized to access this route'
-      });
+      return res.status(401).json({ success: false, message: 'Not authorized to access this route' });
+    }
+
+    if (isTokenBlacklisted(token)) {
+      return res.status(401).json({ success: false, message: 'Token has been revoked' });
     }
 
     try {
-      // Verify token
       const decoded = authService.verifyToken(token);
-
-      // Get user from token
       const user = await authService.getProfile(decoded.id);
 
       if (!user || !user.isActive) {
-        return res.status(401).json({
-          success: false,
-          message: 'User no longer exists or is deactivated'
-        });
+        return res.status(401).json({ success: false, message: 'User no longer exists or is deactivated' });
       }
 
-      // Attach user to request
       req.user = user;
       next();
-    } catch (error) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid or expired token'
-      });
+    } catch {
+      return res.status(401).json({ success: false, message: 'Invalid or expired token' });
     }
   } catch (error) {
     next(error);
@@ -55,17 +46,14 @@ export const protect = async (req, res, next) => {
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: 'You do not have permission to perform this action'
-      });
+      return res.status(403).json({ success: false, message: 'You do not have permission to perform this action' });
     }
     next();
   };
 };
 
 /**
- * Optional auth - Attach user if token exists
+ * Optional auth – Attach user if token exists, but don't block
  */
 export const optionalAuth = async (req, res, next) => {
   try {
@@ -77,15 +65,15 @@ export const optionalAuth = async (req, res, next) => {
       token = req.cookies.token;
     }
 
-    if (token) {
+    if (token && !isTokenBlacklisted(token)) {
       try {
         const decoded = authService.verifyToken(token);
         const user = await authService.getProfile(decoded.id);
         if (user && user.isActive) {
           req.user = user;
         }
-      } catch (error) {
-        // Token invalid, but continue without user
+      } catch {
+        // Token invalid, continue without user
       }
     }
 

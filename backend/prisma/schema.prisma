@@ -110,6 +110,7 @@ model User {
   role         UserRole  @default(BUYER)
   isVerified   Boolean   @default(false) @map("is_verified")
   isActive     Boolean   @default(true) @map("is_active")
+  privacySettings Json?  @default("{}") @map("privacy_settings")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
   lastLogin    DateTime? @map("last_login")

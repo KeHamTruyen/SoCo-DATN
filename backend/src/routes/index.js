@@ -11,6 +11,7 @@ import notificationRoutes from './notification.routes.js';
 import adminRoutes from './admin.routes.js';
 import aiRoutes from './ai.routes.js';
 import scheduledPostRoutes from './scheduledPost.routes.js';
+import sellerRoutes from './seller.routes.js';
 
 const router = express.Router();
 
@@ -29,6 +30,7 @@ router.use('/notifications', notificationRoutes);
 router.use('/admin', adminRoutes);
 router.use('/ai', aiRoutes);
 router.use('/scheduled-posts', scheduledPostRoutes);
+router.use('/seller', sellerRoutes);
 
 router.get('/', (req, res) => {
   res.json({
@@ -45,6 +47,7 @@ router.get('/', (req, res) => {
       admin: '/api/admin',
       ai: '/api/ai',
       scheduledPosts: '/api/scheduled-posts',
+      seller: '/api/seller',
     }
   });
 });
