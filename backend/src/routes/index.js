@@ -7,10 +7,14 @@ import postRoutes from './post.routes.js';
 import cartRoutes from './cart.routes.js';
 import orderRoutes from './order.routes.js';
 import userRoutes from './user.routes.js';
+import notificationRoutes from './notification.routes.js';
+import adminRoutes from './admin.routes.js';
+import aiRoutes from './ai.routes.js';
+import scheduledPostRoutes from './scheduledPost.routes.js';
 
 const router = express.Router();
 
-// Use routes
+// Existing routes
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/products', productRoutes);
@@ -20,7 +24,12 @@ router.use('/posts', postRoutes);
 router.use('/cart', cartRoutes);
 router.use('/orders', orderRoutes);
 
-// Temporary welcome route
+// New infrastructure routes
+router.use('/notifications', notificationRoutes);
+router.use('/admin', adminRoutes);
+router.use('/ai', aiRoutes);
+router.use('/scheduled-posts', scheduledPostRoutes);
+
 router.get('/', (req, res) => {
   res.json({
     message: 'Welcome to Social Commerce API',
@@ -32,9 +41,10 @@ router.get('/', (req, res) => {
       orders: '/api/orders',
       cart: '/api/cart',
       posts: '/api/posts',
-      groups: '/api/groups',
-      messages: '/api/messages',
-      notifications: '/api/notifications'
+      notifications: '/api/notifications',
+      admin: '/api/admin',
+      ai: '/api/ai',
+      scheduledPosts: '/api/scheduled-posts',
     }
   });
 });
