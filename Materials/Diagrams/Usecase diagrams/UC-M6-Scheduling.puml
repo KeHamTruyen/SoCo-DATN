@@ -1,0 +1,21 @@
+@startuml UC-M6-Scheduling
+!theme plain
+left to right direction
+title Use Case Diagram - Module 6: Lên lịch & Điều phối Bài đăng
+
+actor "Người dùng" as User
+actor "Người bán" as Seller
+Seller --|> User
+
+rectangle "Module 6 - Scheduling" {
+  usecase "Lên lịch đăng bài" as UC61
+  usecase "Quản lý bài viết đã lên lịch\n(Chỉnh sửa/Đổi lịch/Xóa/Đăng ngay)" as UC62
+}
+
+User --> UC61
+User --> UC62
+
+UC62 ..> UC61 : <<extend>>
+
+@enduml
+

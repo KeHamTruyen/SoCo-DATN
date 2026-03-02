@@ -1,0 +1,3639 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2685.2">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 26.0px Arial; color: #000000}
+    p.p2 {margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times; color: #1b1c1d}
+    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times}
+    p.p6 {margin: 0.0px 0.0px 6.0px 0.0px; font: 12.0px Times; color: #1b1c1d}
+    p.p7 {margin: 0.0px 0.0px 6.0px 0.0px; font: 11.0px Times; color: #1b1c1d}
+    p.p8 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times; min-height: 14.0px}
+    p.p10 {margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times; color: #000000}
+    p.p11 {margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times; min-height: 14.0px}
+    p.p12 {margin: 0.0px 0.0px 12.0px 0.0px; font: 13.0px Times; color: #1b1c1d}
+    p.p13 {margin: 0.0px 0.0px 12.0px 0.0px; font: 11.0px Times; color: #1b1c1d}
+    p.p14 {margin: 12.0px 0.0px 12.0px 0.0px; font: 13.0px Times; color: #1b1c1d}
+    p.p15 {margin: 0.0px 0.0px 0.0px 0.0px; text-align: center; font: 12.0px Times}
+    p.p16 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Arial Unicode MS'}
+    p.p17 {margin: 12.0px 0.0px 12.0px 0.0px; font: 12.0px Times; min-height: 14.0px}
+    li.li4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times; color: #1b1c1d}
+    li.li5 {margin: 0.0px 0.0px 18.0px 0.0px; font: 12.0px Times; color: #1b1c1d}
+    li.li9 {margin: 12.0px 0.0px 12.0px 0.0px; font: 12.0px Times; color: #1b1c1d}
+    span.s1 {text-decoration: underline line-through}
+    span.s2 {color: #575b5f}
+    table.t1 {border-collapse: collapse}
+    td.td1 {border-style: solid; border-width: 1.0px 1.0px 1.0px 1.0px; border-color: #bfbfbf #bfbfbf #bfbfbf #bfbfbf; padding: 0.0px 5.0px 0.0px 5.0px}
+    ul.ul1 {list-style-type: disc}
+  </style>
+</head>
+<body>
+<p class="p1"><span class="s1"><b><i>Tổng hợp các usecases cho từng module</i></b><b><i></i></b></span></p>
+<p class="p2">Dưới đây là danh sách các use-case được chia theo từng module chính của dự án:</p>
+<p class="p3">Module 1: Quản lý Người dùng và Xác thực (Actor: Người dùng chưa đăng nhập, Người dùng)</p>
+<ul class="ul1">
+  <li class="li4"><b>UC1.1:</b> Đăng ký tài khoản (Người dùng chưa đăng nhập)</li>
+  <li class="li4"><b>UC1.2:</b> Đăng nhập vào hệ thống (Người dùng chưa đăng nhập)</li>
+  <li class="li4"><b>UC1.3:</b> Sử dụng xác thực hai yếu tố (2FA) khi đăng nhập (Người dùng)<span class="Apple-converted-space"> </span></li>
+  <li class="li4"><b>UC1.4:</b> Khôi phục mật khẩu (Người dùng chưa đăng nhập)<span class="Apple-converted-space"> </span></li>
+  <li class="li4"><b>UC1.5:</b> Đăng xuất (Người dùng)</li>
+  <li class="li4"><b>UC1.6:</b> Quản lý hồ sơ cá nhân (thay đổi ảnh đại diện, ảnh bìa, thông tin) (Người dùng)<span class="Apple-converted-space"> </span></li>
+  <li class="li4"><b>UC1.7:</b> Cài đặt quyền riêng tư cho tài khoản (Người dùng)<span class="Apple-converted-space"> </span></li>
+  <li class="li5"><b>UC1.8:</b> Đăng ký trở thành Người bán (Người dùng - vai trò Buyer)<span class="Apple-converted-space"> </span></li>
+</ul>
+<p class="p3">Module 2: Tương tác Xã hội (Actor: Người dùng, Người bán)</p>
+<p class="p6">Đây là phần "Social" của Social Commerce, nơi người dùng kết nối và chia sẻ.<span class="Apple-converted-space"> </span></p>
+<ul class="ul1">
+  <li class="li4"><b>UC2.1:</b> Xem bảng tin (Feed) cá nhân hóa (Người dùng)<span class="Apple-converted-space"> </span></li>
+  <li class="li4"><b>UC2.2:</b> Tạo bài đăng (văn bản, hình ảnh) (Người dùng)<span class="Apple-converted-space"> </span></li>
+  <li class="li4"><b>UC2.3:</b> Gắn thẻ sản phẩm vào bài đăng (Người bán)<span class="Apple-converted-space"> </span></li>
+  <li class="li4"><b>UC2.4:</b> Tương tác với bài đăng (Thích, Bình luận) (Người dùng)</li>
+  <li class="li4"><b>UC2.5:</b> Theo dõi người dùng khác (Người dùng)</li>
+  <li class="li4"><b>UC2.6:</b> Nhắn tin 1-1 với người dùng khác (Người dùng)<span class="Apple-converted-space"> </span></li>
+  <li class="li4"><b>UC2.7:</b> Tham gia và tương tác trong Nhóm (Người dùng)</li>
+  <li class="li5"><b>UC2.8:</b> Báo cáo nội dung/hành vi vi phạm (Người dùng)</li>
+</ul>
+<p class="p3">Module 3: Hoạt động Thương mại (Actor: Người mua, Người bán)</p>
+<p class="p2">Đây là phần "Commerce" của Social Commerce, tập trung vào các hoạt động mua bán.<span class="Apple-converted-space"> </span></p>
+<p class="p7"><b>Dành cho Người mua (Buyer)</b></p>
+<ul class="ul1">
+  <li class="li4"><b>UC3.1:</b> Tìm kiếm sản phẩm (theo tên, danh mục, tags) (Người mua)<span class="Apple-converted-space"> </span></li>
+  <li class="li4"><b>UC3.2:</b> Xem chi tiết sản phẩm (Người mua)</li>
+  <li class="li4"><b>UC3.3:</b> Thêm sản phẩm vào giỏ hàng (Người mua)<span class="Apple-converted-space"> </span></li>
+  <li class="li4"><b>UC3.4:</b> Quản lý giỏ hàng (Xem, Cập nhật số lượng, Xóa) (Người mua)</li>
+  <li class="li4"><b>UC3.5:</b> Thực hiện thanh toán (giả lập) (Người mua)<span class="Apple-converted-space"> </span></li>
+  <li class="li4"><b>UC3.6:</b> Theo dõi trạng thái đơn hàng (Người mua)<span class="Apple-converted-space"> </span></li>
+  <li class="li5"><b>UC3.7:</b> Đánh giá và xếp hạng sản phẩm/người bán (Người mua)<span class="Apple-converted-space"> </span></li>
+</ul>
+<p class="p7"><b>Dành cho Người bán (Seller)</b></p>
+<ul class="ul1">
+  <li class="li4"><b>UC3.8:</b> Quản lý sản phẩm (Thêm, Sửa, Xóa, quản lý biến thể) (Người bán)</li>
+  <li class="li4"><b>UC3.9:</b> Xem dashboard hiệu suất kinh doanh (lượt xem, doanh số) (Người bán)</li>
+  <li class="li4"><b>UC3.10:</b> Quản lý đơn hàng (xem, cập nhật trạng thái) (Người bán)</li>
+  <li class="li4"><b>UC3.11:</b> Xử lý yêu cầu hoàn tiền (giả lập) (Người bán)</li>
+  <li class="li5"><b>UC3.12:</b> Phản hồi đánh giá của người mua (Người bán)</li>
+</ul>
+<p class="p8"><br></p>
+<p class="p3">Module 4: Hệ thống Quản trị (Actor: Quản trị viên)</p>
+<p class="p6">Module này dành riêng cho quản trị viên để giám sát và vận hành hệ thống.</p>
+<ul class="ul1">
+  <li class="li4"><b>UC4.1:</b> Quản lý tài khoản người dùng (Tìm kiếm, Lọc, Vô hiệu hóa) (Quản trị viên)<span class="Apple-converted-space"> </span></li>
+  <li class="li4"><b>UC4.2:</b> Quản lý nội dung (Bài đăng, Sản phẩm) (Quản trị viên)</li>
+  <li class="li4"><b>UC4.3:</b> Xem và xử lý các báo cáo vi phạm (Quản trị viên)</li>
+  <li class="li5"><b>UC4.4:</b> Xem thống kê và phân tích hệ thống (biểu đồ tăng trưởng, tỷ lệ buyer/seller) (Quản trị viên)</li>
+</ul>
+<p class="p8"><br></p>
+<p class="p3">Module 5: Tích hợp AI Hỗ trợ Sáng tạo Nội dung (Actor: Người dùng, Người bán)</p>
+<p class="p6">Đây là tính năng độc đáo giúp người dùng, đặc biệt là người bán, tạo ra nội dung hấp dẫn.<span class="Apple-converted-space"> </span></p>
+<ul class="ul1">
+  <li class="li4"><b>UC5.1:</b> Tạo nội dung bài viết từ ý tưởng (Text-to-Text) (Người dùng)</li>
+  <li class="li4"><b>UC5.2:</b> Tạo caption từ hình ảnh (Image-to-Text) (Người dùng)</li>
+  <li class="li4"><b>UC5.3:</b> Tạo bài viết quảng cáo từ sản phẩm đã gắn thẻ (Product-to-Text) (Người bán)</li>
+  <li class="li5"><b>UC5.4:</b> Tạo nội dung kết hợp đa phương thức (Văn bản + Ảnh + Sản phẩm) (Người bán)</li>
+</ul>
+<p class="p8"><br></p>
+<p class="p3">Module 6: Lên lịch và Điều phối Bài đăng (Actor: Người dùng, Người bán)</p>
+<p class="p6">Công cụ giúp người dùng quản lý thời gian đăng bài hiệu quả.<span class="Apple-converted-space"> </span></p>
+<ul class="ul1">
+  <li class="li4"><b>UC6.1:</b> Lên lịch đăng bài (Người dùng)</li>
+  <li class="li5"><b>UC6.2:</b> Quản lý các bài viết đã lên lịch (Xem, Sửa, Xóa) (Người dùng)</li>
+</ul>
+<p class="p8"><br></p>
+<p class="p3">Module 7: Hệ thống Thông báo (Notification System)</p>
+<p class="p6">Module này tập trung vào real-time notifications cho tương tác bài viết (like, comment, follow) và tương tác shop (đặt đơn, hủy đơn, cập nhật trạng thái đơn, hoàn tiền, v.v.).<span class="Apple-converted-space"> </span></p>
+<ul class="ul1">
+  <li class="li9"><b>UC7.1: </b>Nhận thông báo tức thì về tương tác trên bài viết</li>
+  <li class="li9"><b>UC7.2: </b>Nhận thông báo tức thì về hoạt động mua bán</li>
+  <li class="li9"><b>UC7.3: </b>Xem danh sách và quản lý thông báo đã nhận</li>
+  <li class="li9"><b>UC7.4</b>: Tùy chỉnh cài đặt thông báo cá nhân</li>
+</ul>
+<p class="p1"><span class="s1"><b><i>Bảng đặc tả từng usecase</i></b><b><i></i></b></span></p>
+<p class="p10">Module 1: Quản lý Người dùng và Xác thực (Actor: Người dùng chưa đăng nhập, Người dùng)</p>
+<p class="p11"><br></p>
+<p class="p12"><b>UC1.1: Đăng ký tài khoản</b><b></b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đăng ký tài khoản</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng chưa đăng nhập</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người dùng mới tạo một tài khoản trên hệ thống Social Commerce với vai trò mặc định là "Người mua" (Buyer).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng nhấn vào nút "Đăng ký" trên giao diện.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người dùng chưa đăng nhập vào hệ thống.</p>
+        <p class="p2">• Người dùng phải có một địa chỉ email hợp lệ và chưa được sử dụng để đăng ký.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Một tài khoản người dùng mới được tạo trong cơ sở dữ liệu với trạng thái "chưa xác thực" .</p>
+        <p class="p2">• Vai trò (role) của người dùng được gán là buyer.</p>
+        <p class="p2">• Hệ thống gửi email/tin nhắn để xác thực tài khoản.</p>
+        <p class="p2">• Người dùng được chuyển hướng đến trang yêu cầu xác thực.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng truy cập trang Đăng ký.</p>
+        <p class="p2">2. Người dùng nhập các thông tin bắt buộc.</p>
+        <p class="p2">3. Người dùng nhấn nút "Đăng ký".</p>
+        <p class="p2">4. Hệ thống kiểm tra tính hợp lệ của dữ liệu.</p>
+        <p class="p2">5. Hệ thống kiểm tra xem email đã tồn tại chưa.</p>
+        <p class="p2">6. Hệ thống tạo người dùng mới với trạng thái "chưa xác thực".</p>
+        <p class="p2">7. Hệ thống gửi email/SMS xác thực.</p>
+        <p class="p2">8. Hệ thống hiển thị thông báo thành công và yêu cầu xác thực.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• E1: Email không hợp lệ -&gt; Báo lỗi "Định dạng email không hợp lệ" .</p>
+        <p class="p2">• E2: Mật khẩu không khớp -&gt; Báo lỗi "Mật khẩu xác nhận không khớp" .</p>
+        <p class="p2">• E3: Email đã tồn tại -&gt; Báo lỗi "Email này đã được sử dụng" .</p>
+        <p class="p2">• E4: Lỗi gửi email -&gt; Báo lỗi và đề nghị thử lại.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đây là bước đầu tiên để tham gia vào hệ sinh thái Social Commerce.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC1.2: Đăng nhập vào hệ thống</b><b></b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đăng nhập vào hệ thống</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng chưa đăng nhập</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người dùng đã có tài khoản truy cập vào hệ thống bằng email và mật khẩu.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng nhấn vào nút "Đăng nhập" sau khi điền thông tin.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng phải có một tài khoản đã được đăng ký và xác thực.</p>
+        <p class="p11"><br></p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Hệ thống tạo một phiên làm việc (session) cho người dùng.</p>
+        <p class="p2">• Hệ thống cấp một JSON Web Token (JWT) để xác thực.</p>
+        <p class="p2">• Người dùng được chuyển hướng đến trang chủ.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng truy cập trang Đăng nhập.</p>
+        <p class="p2">2. Người dùng nhập email và mật khẩu.</p>
+        <p class="p2">3. Người dùng nhấn nút "Đăng nhập".</p>
+        <p class="p2">4. Hệ thống xác thực thông tin.</p>
+        <p class="p2">5. Nếu thông tin chính xác và tài khoản không bật 2FA, hệ thống tạo JWT và chuyển hướng người dùng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• E1: Sai email hoặc mật khẩu -&gt; Báo lỗi "Thông tin đăng nhập không chính xác".</p>
+        <p class="p2">• E2: Tài khoản chưa được xác thực -&gt; Báo lỗi và yêu cầu xác thực.</p>
+        <p class="p2">• E3: Tài khoản bị khóa -&gt; Báo lỗi "Tài khoản của bạn đã bị khóa".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quá trình xác thực sử dụng JWT để đảm bảo an toàn.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC1.3: Sử dụng xác thực hai yếu tố (2FA)</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Sử dụng xác thực hai yếu tố (2FA)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cung cấp một lớp bảo mật bổ sung khi đăng nhập bằng mã xác thực tạm thời.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng có bật 2FA và vừa nhập đúng mật khẩu ở bước đăng nhập.</p>
+        <p class="p11"><br></p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người dùng đã kích hoạt tính năng 2FA.</p>
+        <p class="p2">• Người dùng đã nhập chính xác email và mật khẩu.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Danh tính người dùng được xác thực hoàn toàn.</p>
+        <p class="p2">• Người dùng được đăng nhập thành công.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Hệ thống hiển thị trang nhập mã 2FA.</p>
+        <p class="p2">2. Người dùng lấy mã từ email.</p>
+        <p class="p2">3. Người dùng nhập mã 2FA.</p>
+        <p class="p2">4. Người dùng nhấn "Xác nhận".</p>
+        <p class="p2">5. Hệ thống kiểm tra mã.</p>
+        <p class="p2">6. Nếu mã hợp lệ, quá trình đăng nhập hoàn tất.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• E1: Nhập sai mã 2FA -&gt; Báo lỗi "Mã xác thực không chính xác" .</p>
+        <p class="p2">• E2: Mã 2FA hết hạn -&gt; Báo lỗi và yêu cầu thử lại.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tính năng này tùy chọn và quan trọng cho tài khoản người bán.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC1.4: Khôi phục mật khẩu</b><b></b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Khôi phục mật khẩu</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng chưa đăng nhập</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người dùng đặt lại mật khẩu trong trường hợp họ quên.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng nhấn vào liên kết "Quên mật khẩu?" trên trang Đăng nhập</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người dùng có một tài khoản đã đăng ký.</p>
+        <p class="p2">• Người dùng có quyền truy cập vào email đã đăng ký.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Mật khẩu của người dùng được cập nhật thành công.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng nhấn "Quên mật khẩu?".</p>
+        <p class="p2">2. Hệ thống yêu cầu người dùng nhập email.</p>
+        <p class="p2">3. Người dùng nhập email và nhấn "Gửi".</p>
+        <p class="p2">4. Hệ thống gửi email chứa liên kết hoặc mã OTP.</p>
+        <p class="p2">5. Người dùng làm theo hướng dẫn trong email.</p>
+        <p class="p2">6. Hệ thống chuyển hướng đến trang tạo mật khẩu mới.</p>
+        <p class="p2">7. Người dùng nhập mật khẩu mới và xác nhận.</p>
+        <p class="p2">8. Người dùng nhấn "Lưu thay đổi".</p>
+        <p class="p2">9. Hệ thống cập nhật mật khẩu và thông báo thành công.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• E1: Email không tồn tại -&gt; Hệ thống hiển thị thông báo chung để bảo mật .</p>
+        <p class="p2">• E2: Liên kết/mã OTP hết hạn hoặc không hợp lệ -&gt; Báo lỗi và yêu cầu làm lại .</p>
+        <p class="p2">• E3: Mật khẩu mới không khớp -&gt; Báo lỗi.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đây là một tính năng bảo mật quan trọng.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC1.5: Đăng xuất</b><b></b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đăng xuất</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người dùng kết thúc phiên làm việc hiện tại một cách an toàn.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng nhấn vào nút "Đăng xuất".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng đang đăng nhập vào hệ thống.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Phiên làm việc của người dùng bị hủy.</p>
+        <p class="p2">• JWT trên client bị xóa.</p>
+        <p class="p2">• Người dùng được chuyển hướng về trang chủ.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng nhấn nút "Đăng xuất".</p>
+        <p class="p2">2. Hệ thống hủy phiên làm việc và xóa token.</p>
+        <p class="p2">3. Hệ thống chuyển hướng người dùng về trang chủ.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC1.6: Quản lý hồ sơ cá nhân</b><b></b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản lý hồ sơ cá nhân</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người dùng xem và chỉnh sửa thông tin cá nhân, ảnh đại diện và ảnh bìa.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng truy cập trang cá nhân và chọn chức năng chỉnh sửa.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng đang đăng nhập vào hệ thống.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Thông tin cá nhân của người dùng được cập nhật.</p>
+        <p class="p2">• Thay đổi được hiển thị ngay lập tức.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng vào trang hồ sơ cá nhân.</p>
+        <p class="p2">2. Người dùng nhấn "Chỉnh sửa hồ sơ".</p>
+        <p class="p2">3. Người dùng thay đổi thông tin.</p>
+        <p class="p2">4. Người dùng nhấn "Lưu thay đổi".</p>
+        <p class="p2">5. Hệ thống xác thực và cập nhật dữ liệu.</p>
+        <p class="p2">6. Hệ thống hiển thị thông báo thành công.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>A1:</b> Người dùng nhấn "Hủy" và các thay đổi sẽ không được lưu.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• E1: Lỗi tải lên hình ảnh -&gt; Báo lỗi tương ứng.</p>
+        <p class="p2">• E2: Dữ liệu nhập không hợp lệ -&gt; Báo lỗi tại trường dữ liệu đó.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Giao diện quản lý cần trực quan và dễ sử dụng.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC1.7: Cài đặt quyền riêng tư cho tài khoản</b><b></b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cài đặt quyền riêng tư cho tài khoản</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người dùng tùy chỉnh ai có thể xem hồ sơ, bài đăng hoặc danh sách người theo dõi.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng truy cập vào mục "Cài đặt &amp; Quyền riêng tư".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng đang đăng nhập vào hệ thống.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Các thiết lập quyền riêng tư của người dùng được cập nhật.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng vào trang "Cài đặt".</p>
+        <p class="p2">2. Người dùng chọn tab "Quyền riêng tư"100.</p>
+        <p class="p2">3. Người dùng thay đổi các tùy chọn.</p>
+        <p class="p2">4. Người dùng nhấn "Lưu thay đổi".</p>
+        <p class="p2">5. Hệ thống cập nhật và hiển thị thông báo thành công.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tính năng này quan trọng để người dùng cảm thấy an toàn và kiểm soát thông tin.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC1.8: Đăng ký trở thành Người bán</b><b></b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đăng ký trở thành Người bán</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng (với vai trò Buyer)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cung cấp quy trình để người dùng "Người mua" nâng cấp tài khoản thành "Người bán".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng nhấn vào nút "Trở thành người bán".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng đang đăng nhập và có vai trò là <span class="s2">buyer</span>.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Vai trò của người dùng được cập nhật thành seller.</p>
+        <p class="p2">• Người dùng có quyền truy cập các chức năng dành cho người bán.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng truy cập trang "Đăng ký Bán hàng".</p>
+        <p class="p2">2. Người dùng điền các thông tin bổ sung.</p>
+        <p class="p2">3. Người dùng nhấn "Đăng ký".</p>
+        <p class="p2">4. Hệ thống yêu cầu xác minh bổ sung qua email/số điện thoại.</p>
+        <p class="p2">5. Người dùng hoàn thành xác minh.</p>
+        <p class="p2">6. Hệ thống cập nhật vai trò của người dùng thành seller.</p>
+        <p class="p2">7. Hệ thống hiển thị thông báo chúc mừng và chuyển hướng đến Bảng điều khiển bán hàng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>A1:</b> Người dùng hủy bỏ quá trình đăng ký.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• E1: Thông tin cung cấp không hợp lệ -&gt; Báo lỗi.</p>
+        <p class="p2">• E2: Quá trình xác minh thất bại -&gt; Báo lỗi và yêu cầu thử lại.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đây là use case cốt lõi thể hiện mô hình "buyer-to-seller" của dự án.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p10">Module 2: Tương tác Xã hội</p>
+<p class="p11"><br></p>
+<p class="p12"><b>UC2.1: Xem bảng tin (Feed) cá nhân hóa</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Xem bảng tin (Feed) cá nhân hóa</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Hiển thị một Bảng tin (Feed) được cá nhân hóa cho người dùng, ưu tiên hiển thị các bài đăng từ những người họ theo dõi và các bài viết có tương tác cao.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng truy cập vào trang chủ sau khi đăng nhập.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng đã đăng nhập vào hệ thống.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng xem được danh sách các bài đăng mới nhất và phù hợp nhất.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng đăng nhập thành công và được chuyển hướng đến trang chủ. 2. Hệ thống truy vấn cơ sở dữ liệu để lấy danh sách bài đăng từ những người dùng mà họ đang theo dõi. 3. Hệ thống cũng lấy các bài đăng có mức độ tương tác cao hoặc được gợi ý. 4. Hệ thống sắp xếp các bài đăng theo thuật toán (ví dụ: mới nhất, tương tác cao nhất) và hiển thị cho người dùng. 5. Khi người dùng cuộn trang, hệ thống sẽ tải thêm các bài đăng cũ hơn (infinite scroll).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Lỗi tải dữ liệu -&gt; Hệ thống hiển thị thông báo lỗi và nút "Thử lại".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Thuật toán sắp xếp feed có thể được cải tiến trong tương lai để tăng tính cá nhân hóa.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC2.2: Tạo bài đăng (văn bản, hình ảnh)</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tạo bài đăng (văn bản, hình ảnh)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người dùng tạo và chia sẻ các bài đăng với nội dung văn bản và hình ảnh lên trang cá nhân của họ và Bảng tin của những người theo dõi.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng nhấn vào nút "Tạo bài đăng" trên giao diện.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng đã đăng nhập vào hệ thống.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Một bài đăng mới được tạo và lưu vào cơ sở dữ liệu. • Bài đăng mới xuất hiện trên trang cá nhân của người dùng và Bảng tin của những người theo dõi.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng nhấn vào ô tạo bài đăng. 2. Người dùng nhập nội dung văn bản. 3. Người dùng tùy chọn tải lên một hoặc nhiều hình ảnh. 4. Người dùng nhấn nút "Đăng". 5. Hệ thống kiểm tra tính hợp lệ của nội dung. 6. Hệ thống lưu bài đăng vào cơ sở dữ liệu. 7. Hệ thống hiển thị bài đăng mới ngay trên giao diện của người dùng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>A1:</b> Người dùng hủy bỏ việc tạo bài đăng, nội dung nháp sẽ bị xóa.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• <b>E1:</b> Lỗi tải lên hình ảnh (kích thước quá lớn, định dạng không hỗ trợ) -&gt; Hệ thống báo lỗi. • <b>E2:</b> Mất kết nối mạng khi đang đăng bài -&gt; Hệ thống báo lỗi và lưu lại nội dung nháp (nếu có thể).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đây là hành động tương tác xã hội cơ bản nhất.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC2.3: Gắn thẻ sản phẩm vào bài đăng</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Gắn thẻ sản phẩm vào bài đăng</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán (Seller)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người dùng "Người bán" gắn thẻ các sản phẩm từ cửa hàng của mình trực tiếp vào bài đăng, giúp người xem dễ dàng khám phá và mua sản phẩm.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán nhấn vào tùy chọn "Gắn thẻ sản phẩm" khi đang tạo bài đăng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người dùng đã đăng nhập với vai trò <span class="s2">seller</span>. • Người dùng đang trong quá trình tạo hoặc chỉnh sửa một bài đăng. • Người bán đã có ít nhất một sản phẩm trong cửa hàng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Bài đăng được tạo ra có chứa liên kết trực tiếp đến trang sản phẩm đã được gắn thẻ.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Khi đang soạn bài đăng, người bán chọn chức năng "Gắn thẻ sản phẩm". 2. Hệ thống hiển thị giao diện tìm kiếm và danh sách sản phẩm của người bán. 3. Người bán chọn một hoặc nhiều sản phẩm để gắn thẻ. 4. Người bán hoàn tất việc tạo bài đăng và nhấn "Đăng". 5. Hệ thống lưu bài đăng cùng với thông tin sản phẩm được gắn thẻ. 6. Khi hiển thị, bài đăng sẽ có các sản phẩm được gắn thẻ kèm thông tin cơ bản.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Người bán cố gắng gắn thẻ một sản phẩm đã bị xóa hoặc ẩn -&gt; Hệ thống báo lỗi.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đây là tính năng kết nối trực tiếp giữa hoạt động xã hội và thương mại, là điểm nhấn của dự án.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC2.4: Tương tác với bài đăng (Thích, Bình luận)</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tương tác với bài đăng (Thích, Bình luận)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người dùng thể hiện sự quan tâm hoặc thảo luận về một bài đăng bằng cách nhấn "Thích" (Like) hoặc để lại "Bình luận" (Comment).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng nhấn vào nút "Thích" hoặc ô "Bình luận" bên dưới một bài đăng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng đã đăng nhập vào hệ thống.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• <b>Khi Thích:</b> Lượt thích của bài đăng được tăng lên. Nếu thích lại, lượt thích sẽ bị hủy. • <b>Khi Bình luận:</b> Một bình luận mới được thêm vào bài đăng và hiển thị cho người dùng khác.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• <b>Thích bài đăng:</b> 1. Người dùng nhấn vào biểu tượng "Thích". 2. Hệ thống cập nhật số lượt thích và lưu trạng thái "đã thích" của người dùng. • <b>Bình luận bài đăng:</b> 1. Người dùng nhấn vào ô bình luận. 2. Người dùng nhập nội dung và nhấn gửi. 3. Hệ thống lưu bình luận và hiển thị nó bên dưới bài đăng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Mất kết nối mạng -&gt; Hành động không thể thực hiện, hệ thống báo lỗi.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tương tác là yếu tố quan trọng để đánh giá độ hấp dẫn của nội dung và sắp xếp Bảng tin.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC2.5: Theo dõi người dùng khác</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Theo dõi người dùng khác</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người dùng theo dõi (follow) một người dùng khác để xem các bài đăng của họ trên Bảng tin cá nhân.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng nhấn vào nút "Theo dõi" trên trang cá nhân của một người dùng khác.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng đã đăng nhập vào hệ thống.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Một mối quan hệ "theo dõi" được thiết lập. • Các bài đăng trong tương lai của người bị theo dõi sẽ xuất hiện trên Bảng tin của người theo dõi.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng truy cập trang cá nhân của một người khác. 2. Người dùng nhấn nút "Theo dõi". 3. Hệ thống ghi nhận mối quan hệ theo dõi vào cơ sở dữ liệu. 4. Nút "Theo dõi" chuyển thành "Đang theo dõi".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>A1:</b> Người dùng nhấn nút "Hủy theo dõi" để xóa bỏ mối quan hệ.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Người dùng cố gắng theo dõi chính mình -&gt; Hệ thống không cho phép.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tính năng này là nền tảng để xây dựng một Bảng tin cá nhân hóa.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC2.6: Nhắn tin 1-1 với người dùng khác</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Nhắn tin 1-1 với người dùng khác</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cung cấp hệ thống chat thời gian thực cho phép người dùng nhắn tin trực tiếp với nhau, tạo điều kiện cho người mua và người bán trao đổi về sản phẩm.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng nhấn vào nút "Nhắn tin" trên trang cá nhân của người khác.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng đã đăng nhập vào hệ thống.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Tin nhắn được gửi thành công và hiển thị trong cửa sổ chat của cả hai người dùng trong thời gian thực. • Tin nhắn được lưu lại trong lịch sử trò chuyện.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng A mở cửa sổ chat với người dùng B. 2. Người dùng A nhập tin nhắn và nhấn gửi. 3. Hệ thống (sử dụng Socket.io) gửi tin nhắn đến người dùng B ngay lập tức. 4. Tin nhắn hiển thị trên giao diện của cả hai người. 5. Hệ thống lưu tin nhắn vào cơ sở dữ liệu.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• <b>E1:</b> Người nhận đã chặn người gửi -&gt; Hệ thống báo lỗi không thể gửi tin nhắn. • <b>E2:</b> Mất kết nối mạng -&gt; Hệ thống báo lỗi gửi không thành công và cho phép thử gửi lại.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tính năng này rất quan trọng cho việc tư vấn và chốt đơn hàng.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC2.7: Tham gia và tương tác trong Nhóm</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tham gia và tương tác trong Nhóm</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người dùng tham gia vào các Nhóm (Groups) hoặc cộng đồng để thảo luận về những chủ đề chung mà họ quan tâm.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng tìm kiếm và yêu cầu tham gia một nhóm.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng đã đăng nhập vào hệ thống.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người dùng trở thành thành viên của nhóm. • Người dùng có thể xem và tạo bài đăng bên trong nhóm đó.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng tìm kiếm hoặc được gợi ý các nhóm. 2. Người dùng nhấn nút "Tham gia nhóm". 3. Nếu là nhóm công khai, người dùng ngay lập tức trở thành thành viên. Nếu là nhóm riêng tư, yêu cầu sẽ được gửi đến quản trị viên nhóm để phê duyệt. 4. Sau khi trở thành thành viên, người dùng có thể tương tác với các nội dung trong nhóm.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>A1:</b> Người dùng rời khỏi một nhóm mà họ đã tham gia.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Người dùng bị cấm (ban) khỏi nhóm -&gt; Hệ thống không cho phép tham gia lại.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tính năng này giúp xây dựng các cộng đồng nhỏ, gắn kết bên trong nền tảng.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC2.8: Báo cáo nội dung/hành vi vi phạm</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Báo cáo nội dung/hành vi vi phạm</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cung cấp công cụ để người dùng báo cáo (report) các bài đăng, sản phẩm, hoặc hành vi của người dùng khác mà họ cho là vi phạm.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng nhấn vào tùy chọn "Báo cáo" trên một bài đăng, bình luận hoặc trang cá nhân.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng đã đăng nhập vào hệ thống.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Một báo cáo được tạo và gửi đến hệ thống quản trị để xem xét.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng chọn đối tượng cần báo cáo. 2. Người dùng nhấn vào tùy chọn "Báo cáo". 3. Hệ thống hiển thị biểu mẫu yêu cầu chọn lý do báo cáo. 4. Người dùng chọn lý do và có thể thêm mô tả chi tiết. 5. Người dùng nhấn "Gửi báo cáo". 6. Hệ thống ghi nhận báo cáo và thông báo cho người dùng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Người dùng cố gắng báo cáo cùng một đối tượng nhiều lần trong thời gian ngắn -&gt; Hệ thống có thể hạn chế để tránh spam.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đây là một tính năng quan trọng để duy trì một môi trường an toàn và trong sạch cho cộng đồng.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p10">Module 3: Hoạt động Thương mại.</p>
+<p class="p12"><b>Phần 1: Dành cho Người mua (Buyer)</b></p>
+<p class="p11"><br></p>
+<p class="p13"><b>UC3.1: Tìm kiếm sản phẩm</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tìm kiếm sản phẩm (theo tên, danh mục, tags)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua (Buyer)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người mua tìm kiếm các sản phẩm họ quan tâm bằng cách sử dụng thanh tìm kiếm và các bộ lọc chi tiết như danh mục và thẻ (tags).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua nhập từ khóa vào thanh tìm kiếm hoặc chọn các bộ lọc trên trang sản phẩm.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua có thể đã đăng nhập hoặc chưa.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Một danh sách các sản phẩm phù hợp với tiêu chí tìm kiếm được hiển thị cho người mua.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người mua truy cập trang khám phá sản phẩm. 2. Người mua nhập từ khóa vào thanh tìm kiếm. 3. Người mua tùy chọn áp dụng các bộ lọc. 4. Hệ thống truy vấn cơ sở dữ liệu và trả về danh sách sản phẩm khớp. 5. Giao diện hiển thị kết quả tìm kiếm cho người mua.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Không tìm thấy sản phẩm nào -&gt; Hệ thống hiển thị thông báo "Không tìm thấy kết quả phù hợp".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Chức năng tìm kiếm hiệu quả là rất quan trọng để cải thiện trải nghiệm mua sắm.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p13"><b>UC3.2: Xem chi tiết sản phẩm</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Xem chi tiết sản phẩm</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua (Buyer)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người mua xem thông tin chi tiết về một sản phẩm, bao gồm hình ảnh, mô tả, giá, các biến thể, thông tin người bán và các đánh giá.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua nhấp vào một sản phẩm từ kết quả tìm kiếm, Bảng tin hoặc bất kỳ đâu trên nền tảng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Sản phẩm phải tồn tại và đang được bán.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua nắm được đầy đủ thông tin về sản phẩm để ra quyết định mua hàng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người mua nhấp vào một sản phẩm. 2. Hệ thống tải và hiển thị trang chi tiết sản phẩm với đầy đủ thông tin. 3. Người mua có thể xem các hình ảnh, chọn các biến thể (nếu có) và đọc các đánh giá.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Sản phẩm không còn tồn tại hoặc đã bị ẩn -&gt; Hệ thống hiển thị trang lỗi "Sản phẩm không tìm thấy".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Trang chi tiết sản phẩm là nơi quan trọng để thuyết phục khách hàng.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p13"><b>UC3.3: Thêm sản phẩm vào giỏ hàng</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Thêm sản phẩm vào giỏ hàng</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua (Buyer)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người mua thêm sản phẩm, bao gồm các biến thể đã chọn, vào giỏ hàng của mình. Người mua có thể thêm sản phẩm từ nhiều cửa hàng khác nhau.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua nhấn nút "Thêm vào giỏ hàng" trên trang chi tiết sản phẩm.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người mua đã đăng nhập vào hệ thống. • Người mua đã chọn đầy đủ các biến thể bắt buộc của sản phẩm (nếu có).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Sản phẩm được thêm vào giỏ hàng của người mua. • Biểu tượng giỏ hàng trên giao diện được cập nhật số lượng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Trên trang chi tiết sản phẩm, người mua chọn số lượng và các biến thể mong muốn. 2. Người mua nhấn "Thêm vào giỏ hàng". 3. Hệ thống lưu thông tin sản phẩm vào giỏ hàng của người mua. 4. Hệ thống hiển thị thông báo thành công.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Sản phẩm đã hết hàng -&gt; Hệ thống báo lỗi và không cho phép thêm vào giỏ.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p13"><b>UC3.4: Quản lý giỏ hàng</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản lý giỏ hàng (Xem, Cập nhật số lượng, Xóa)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua (Buyer)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người mua xem lại tất cả sản phẩm trong giỏ hàng, cập nhật số lượng, hoặc xóa sản phẩm khỏi giỏ hàng trước khi thanh toán.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua nhấp vào biểu tượng giỏ hàng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua đã đăng nhập và có ít nhất một sản phẩm trong giỏ hàng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Giỏ hàng của người mua được cập nhật theo các thay đổi (số lượng, sản phẩm bị xóa).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người mua truy cập trang giỏ hàng. 2. Hệ thống hiển thị danh sách các sản phẩm đã thêm. 3. Người mua có thể: Tăng/giảm số lượng hoặc xóa sản phẩm. 4. Hệ thống tự động cập nhật lại tổng số tiền.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Cập nhật số lượng vượt quá số lượng tồn kho -&gt; Hệ thống báo lỗi.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p13"><b>UC3.5: Thực hiện thanh toán</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Thực hiện thanh toán (giả lập)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua (Buyer)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người mua hoàn tất quy trình mua sắm bằng cách cung cấp thông tin giao hàng và thực hiện thanh toán qua một giao diện giả lập.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua nhấn nút "Thanh toán" từ trang giỏ hàng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người mua đã đăng nhập. • Giỏ hàng có ít nhất một sản phẩm.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Một đơn hàng mới được tạo trong hệ thống với trạng thái "Đang xử lý". • Giỏ hàng của người mua được làm rỗng. • Người mua được chuyển đến trang xác nhận đơn hàng thành công.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Từ giỏ hàng, người mua nhấn "Thanh toán". 2. Người mua điền thông tin giao hàng. 3. Người mua chọn phương thức thanh toán (giả lập). 4. Người mua xác nhận đơn hàng. 5. Hệ thống tạo bản ghi đơn hàng mới. 6. Hệ thống hiển thị thông báo đặt hàng thành công.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Một sản phẩm trong giỏ đã hết hàng -&gt; Hệ thống báo lỗi và yêu cầu cập nhật giỏ hàng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Vì là đồ án, quy trình thanh toán chỉ cần giả lập, không cần tích hợp cổng thanh toán thật.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p13"><b>UC3.6: Theo dõi trạng thái đơn hàng</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Theo dõi trạng thái đơn hàng</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua (Buyer)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người mua xem danh sách các đơn hàng đã đặt và theo dõi trạng thái hiện tại của chúng (ví dụ: Đang xử lý, Đang giao, Đã giao).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua truy cập vào mục "Đơn hàng của tôi" trong trang cá nhân.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua đã đăng nhập và đã đặt ít nhất một đơn hàng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua biết được tình trạng hiện tại của đơn hàng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người mua vào trang quản lý đơn hàng. 2. Hệ thống hiển thị danh sách tất cả các đơn hàng đã đặt, kèm theo mã đơn hàng, ngày đặt và trạng thái. 3. Người mua có thể nhấp vào một đơn hàng để xem chi tiết.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Trạng thái đơn hàng sẽ do Người bán cập nhật (tham chiếu UC3.10).</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p13"><b>UC3.7: Đánh giá và xếp hạng sản phẩm/người bán</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đánh giá và xếp hạng sản phẩm/người bán</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua (Buyer)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Sau khi mua hàng, người mua có thể để lại phản hồi bằng cách viết đánh giá và cho điểm (xếp hạng sao) cho sản phẩm và người bán.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người mua nhấn vào nút "Đánh giá" bên cạnh một sản phẩm trong đơn hàng đã hoàn thành.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người mua đã đăng nhập. • Đơn hàng chứa sản phẩm đó phải ở trạng thái "Đã giao" hoặc "Hoàn thành".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Một đánh giá mới được lưu vào cơ sở dữ liệu. • Đánh giá và xếp hạng được hiển thị công khai.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người mua vào mục đơn hàng đã hoàn thành. 2. Người mua chọn sản phẩm muốn đánh giá và nhấn "Đánh giá". 3. Hệ thống hiển thị form đánh giá (chọn sao, viết bình luận, tải ảnh). 4. Người mua điền thông tin và nhấn "Gửi đánh giá". 5. Hệ thống lưu lại đánh giá.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Người mua cố gắng đánh giá một sản phẩm họ chưa mua -&gt; Hệ thống không cho phép.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đánh giá là một phần quan trọng để xây dựng lòng tin trong cộng đồng.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>Phần 2: Dành cho Người bán (Seller)</b></p>
+<p class="p11"><br></p>
+<p class="p13"><b>UC3.8: Quản lý sản phẩm</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản lý sản phẩm (Thêm, Sửa, Xóa, quản lý biến thể)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán (Seller)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cung cấp công cụ để người bán thêm, sửa, xóa sản phẩm và quản lý thông tin nâng cao như biến thể (kích cỡ, màu sắc), danh mục và thẻ.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán truy cập vào mục "Quản lý sản phẩm" trong Bảng điều khiển của mình.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng phải đăng nhập với vai trò <span class="s2">seller</span>.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Danh sách sản phẩm của cửa hàng được cập nhật.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người bán vào trang quản lý sản phẩm và nhấn "Thêm sản phẩm mới". 2. Người bán điền đầy đủ thông tin: tên, mô tả, giá, tồn kho, hình ảnh... 3. Người bán tùy chọn thêm các biến thể, danh mục, thẻ. 4. Người bán nhấn "Lưu". 5. Hệ thống xác thực dữ liệu và tạo một bản ghi sản phẩm mới.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán có thể chọn một sản phẩm có sẵn để "Sửa" hoặc "Xóa".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Dữ liệu nhập vào không hợp lệ (ví dụ: giá âm) -&gt; Hệ thống báo lỗi.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đây là chức năng cốt lõi cho phép người bán đưa hàng hóa lên nền tảng.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p13"><b>UC3.9: Xem dashboard hiệu suất kinh doanh</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Xem dashboard hiệu suất kinh doanh</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán (Seller)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cung cấp một Bảng điều khiển (dashboard) trực quan để người bán theo dõi hiệu suất kinh doanh qua các chỉ số như lượt xem, doanh số, số đơn hàng...</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán truy cập vào trang Dashboard chính sau khi đăng nhập.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng phải đăng nhập với vai trò <span class="s2">seller</span>.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán nắm được tình hình kinh doanh tổng quan của mình.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người bán truy cập trang Dashboard. 2. Hệ thống tổng hợp dữ liệu trong một khoảng thời gian nhất định. 3. Hệ thống hiển thị dữ liệu dưới dạng các con số, biểu đồ để dễ theo dõi.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán có thể thay đổi khoảng thời gian xem báo cáo (ví dụ: tháng này, năm này).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Giúp người bán đưa ra các quyết định kinh doanh tốt hơn.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p13"><b>UC3.10: Quản lý đơn hàng</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản lý đơn hàng (xem, cập nhật trạng thái)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán (Seller)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người bán xem danh sách các đơn hàng và cập nhật trạng thái của chúng (ví dụ: từ "Đang xử lý" sang "Đang giao").</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán truy cập vào mục "Quản lý đơn hàng" trong dashboard.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người dùng phải đăng nhập với vai trò <span class="s2">seller</span>. • Cửa hàng có ít nhất một đơn hàng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Trạng thái của đơn hàng được cập nhật, và người mua sẽ thấy được sự thay đổi này.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người bán vào trang quản lý đơn hàng. 2. Hệ thống hiển thị danh sách các đơn hàng mới. 3. Người bán nhấp vào một đơn hàng để xem chi tiết. 4. Sau khi chuẩn bị xong, người bán thay đổi trạng thái đơn hàng. 5. Hệ thống lưu lại trạng thái mới.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán có thể hủy đơn hàng nếu có lý do chính đáng.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p13"><b>UC3.11: Xử lý yêu cầu hoàn tiền</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Xử lý yêu cầu hoàn tiền (giả lập)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán (Seller)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cung cấp một quy trình (giả lập) để người bán xem xét và xử lý các yêu cầu hoàn tiền từ người mua.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Một người mua gửi yêu cầu hoàn tiền cho một đơn hàng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng phải đăng nhập với vai trò <span class="s2">seller</span>.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Yêu cầu hoàn tiền được giải quyết (chấp nhận hoặc từ chối).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người bán nhận được thông báo về một yêu cầu hoàn tiền mới. 2. Người bán vào mục "Yêu cầu hoàn tiền" để xem chi tiết lý do. 3. Người bán đưa ra quyết định "Chấp nhận" hoặc "Từ chối" yêu cầu. 4. Hệ thống ghi nhận quyết định và thông báo lại cho người mua.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán có thể liên hệ với người mua qua tin nhắn để thảo luận thêm.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quy trình này được giả lập trong phạm vi đồ án.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p13"><b>UC3.12: Phản hồi đánh giá của người mua</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Phản hồi đánh giá của người mua</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán (Seller)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người bán viết phản hồi công khai cho các đánh giá mà người mua đã để lại, giúp tăng cường tương tác và xây dựng niềm tin.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán nhận được một đánh giá mới và muốn trả lời.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người dùng phải đăng nhập với vai trò <span class="s2">seller</span>. • Phải có ít nhất một đánh giá từ người mua.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Phản hồi của người bán được lưu và hiển thị ngay bên dưới đánh giá của người mua.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người bán vào mục quản lý đánh giá. 2. Người bán chọn một đánh giá và nhấn nút "Phản hồi". 3. Người bán nhập nội dung phản hồi và nhấn gửi. 4. Hệ thống lưu và hiển thị phản hồi đó.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đây là một công cụ tốt để thể hiện sự chuyên nghiệp và chăm sóc khách hàng.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p10">Module 4: Hệ thống Quản trị</p>
+<p class="p11"><br></p>
+<p class="p12"><b>UC4.1: Quản lý tài khoản người dùng</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản lý tài khoản người dùng (Tìm kiếm, Lọc, Vô hiệu hóa)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản trị viên</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cung cấp cho quản trị viên các công cụ để xem, tìm kiếm, lọc và thực hiện các hành động trên tài khoản người dùng như vô hiệu hóa hoặc cấp lại quyền.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản trị viên truy cập vào mục "Quản lý Người dùng" trong Bảng điều khiển quản trị (Admin Dashboard).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản trị viên đã đăng nhập vào hệ thống với quyền hạn phù hợp.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Thông tin hoặc trạng thái của một hoặc nhiều tài khoản người dùng được thay đổi (ví dụ: tài khoản bị vô hiệu hóa).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Quản trị viên truy cập trang quản lý người dùng. 2. Hệ thống hiển thị danh sách tất cả người dùng. 3. Quản trị viên sử dụng các bộ lọc để tìm kiếm người dùng theo tiêu chí. 4. Quản trị viên chọn một tài khoản người dùng để xem thông tin chi tiết. 5. Quản trị viên thực hiện một hành động (ví dụ: nhấn nút "Vô hiệu hóa tài khoản"). 6. Hệ thống yêu cầu xác nhận hành động. 7. Quản trị viên xác nhận, và hệ thống cập nhật trạng thái của tài khoản.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>A1:</b> Quản trị viên chỉ xem thông tin mà không thực hiện hành động nào.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Quản trị viên cố gắng thực hiện hành động trên tài khoản quản trị viên khác có quyền hạn cao hơn -&gt; Hệ thống từ chối.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Chức năng này giúp admin duy trì sự kiểm soát đối với cộng đồng người dùng.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC4.2: Quản lý nội dung</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản lý nội dung (Bài đăng, Sản phẩm)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản trị viên</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép quản trị viên tìm kiếm, xem và xóa các nội dung do người dùng tạo ra như bài đăng hoặc sản phẩm không phù hợp.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản trị viên truy cập vào các mục quản lý nội dung (ví dụ: "Quản lý Bài đăng", "Quản lý Sản phẩm") trong dashboard.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản trị viên đã đăng nhập vào hệ thống.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Nội dung không phù hợp (bài đăng, sản phẩm) bị xóa khỏi hệ thống.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Quản trị viên chọn mục nội dung cần quản lý. 2. Hệ thống hiển thị danh sách các nội dung liên quan. 3. Quản trị viên sử dụng bộ lọc để tìm kiếm nội dung. 4. Quản trị viên chọn một nội dung để xem xét. 5. Nếu nội dung vi phạm, quản trị viên nhấn nút "Xóa". 6. Hệ thống xác nhận và xóa nội dung khỏi cơ sở dữ liệu.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>A1:</b> Quản trị viên xem xét và thấy nội dung không vi phạm, sau đó bỏ qua.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Việc kiểm duyệt nội dung là cần thiết để giữ cho nền tảng lành mạnh.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC4.3: Xem và xử lý các báo cáo vi phạm</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Xem và xử lý các báo cáo vi phạm</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản trị viên</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép quản trị viên xem lại các báo cáo vi phạm được gửi bởi người dùng và đưa ra hành động xử lý phù hợp (ví dụ: xóa nội dung, khóa tài khoản).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản trị viên truy cập vào mục "Báo cáo vi phạm" trong dashboard.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Quản trị viên đã đăng nhập vào hệ thống. • Có ít nhất một báo cáo từ người dùng được gửi đến hệ thống.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Báo cáo được đánh dấu là "đã xử lý". • Hành động xử lý đối với nội dung hoặc người dùng bị báo cáo được thực thi.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Quản trị viên vào trang quản lý báo cáo. 2. Hệ thống hiển thị danh sách các báo cáo chưa được xử lý, sắp xếp theo mức độ ưu tiên. 3. Quản trị viên chọn một báo cáo để xem chi tiết. 4. Quản trị viên điều hướng đến nội dung/người dùng bị báo cáo để kiểm tra. 5. Dựa trên kết quả, quản trị viên quyết định hành động (ví dụ: Xóa bài đăng). 6. Quản trị viên thực hiện hành động thông qua các công cụ quản lý. 7. Quản trị viên đánh dấu báo cáo là "Đã xử lý".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>A1:</b> Quản trị viên xác định báo cáo là không hợp lệ và đánh dấu là "Từ chối".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Nội dung bị báo cáo đã được người dùng tự xóa trước khi admin xử lý -&gt; Admin đánh dấu báo cáo là đã giải quyết.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đây là chức năng tương tác trực tiếp với phản hồi của cộng đồng để duy trì một môi trường an toàn.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC4.4: Xem thống kê và phân tích hệ thống</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Xem thống kê và phân tích hệ thống</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản trị viên</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cung cấp các biểu đồ và số liệu thống kê trực quan để quản trị viên theo dõi sự phát triển và "sức khỏe" của nền tảng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản trị viên truy cập vào mục "Thống kê &amp; Phân tích" trong dashboard.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản trị viên đã đăng nhập vào hệ thống.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản trị viên nắm được các chỉ số quan trọng về hoạt động của hệ thống để đưa ra quyết định vận hành.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Quản trị viên truy cập trang thống kê. 2. Hệ thống truy vấn và tổng hợp dữ liệu. 3. Hệ thống hiển thị các thông tin tổng quan (tổng số người dùng, sản phẩm, bài đăng). 4. Hệ thống hiển thị các biểu đồ trực quan, chẳng hạn như: • Biểu đồ đường thể hiện số lượng người dùng mới. • Biểu đồ tròn thể hiện tỷ lệ giữa người mua và người bán.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>A1:</b> Quản trị viên có thể thay đổi khoảng thời gian xem thống kê (ví dụ: 7 ngày qua, 30 ngày qua).</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Lỗi khi tổng hợp dữ liệu -&gt; Hệ thống báo lỗi.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Các công cụ phân tích này rất quan trọng để theo dõi sự tăng trưởng của hệ thống.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p10">Module 5: Tích hợp AI Hỗ trợ Sáng tạo Nội dung</p>
+<p class="p11"><br></p>
+<p class="p12"><b>UC5.1: Tạo nội dung bài viết từ ý tưởng (Text-to-Text)</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tạo nội dung bài viết từ ý tưởng (Text-to-Text)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng, Người bán</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người dùng tạo ra một bài viết hoàn chỉnh chỉ từ một vài từ khóa hoặc một câu mô tả ngắn.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Khi đang soạn thảo bài đăng, người dùng nhấn vào tùy chọn "Tạo nội dung từ ý tưởng với AI".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người dùng đã đăng nhập và đang trong giao diện tạo bài đăng. • Người dùng đã nhập ít nhất một vài từ khóa hoặc ý tưởng vào ô nhập liệu.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Một nội dung bài viết hoàn chỉnh, bao gồm tiêu đề, mô tả và hashtags, được tạo ra và chèn vào trình soạn thảo.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng nhập một câu mô tả ngắn về ý tưởng. 2. Người dùng nhấn nút "Tạo nội dung từ ý tưởng với AI". 3. Hệ thống gửi yêu cầu chứa đoạn văn bản đó đến một mô hình ngôn ngữ lớn (LLM). 4. Hệ thống nhận lại một bài viết hoàn chỉnh do AI tạo ra. 5. Hệ thống hiển thị nội dung này trong trình soạn thảo để người dùng xem và chỉnh sửa.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• <b>A1:</b> Người dùng không hài lòng với kết quả và nhấn "Tạo lại" để AI đưa ra một phương án khác. • <b>A2:</b> Người dùng chỉnh sửa lại nội dung do AI tạo ra trước khi đăng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Lỗi kết nối đến dịch vụ AI -&gt; Hệ thống báo lỗi "Không thể tạo nội dung lúc này, vui lòng thử lại sau".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tính năng này giúp người dùng tiết kiệm thời gian và có được những bài viết quảng cáo hấp dẫn.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC5.2: Tạo caption từ hình ảnh (Image-to-Text)</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tạo caption từ hình ảnh (Image-to-Text)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng, Người bán</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cho phép người dùng tự động tạo ra một chú thích (caption) phù hợp cho bài đăng chỉ bằng cách tải lên một hình ảnh.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Sau khi người dùng tải lên một hình ảnh, họ nhấn vào nút "Tạo caption cho ảnh bằng AI".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người dùng đã đăng nhập và đang trong giao diện tạo bài đăng. • Người dùng đã tải lên ít nhất một hình ảnh.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Một đoạn caption mô tả sản phẩm hoặc bối cảnh trong ảnh được tạo ra và chèn vào trình soạn thảo.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng tải lên một hình ảnh sản phẩm. 2. Người dùng nhấn nút "Tạo caption cho ảnh bằng AI". 3. Hệ thống gửi hình ảnh đến một mô hình AI có khả năng phân tích hình ảnh (vision model). 4. AI nhận diện các thuộc tính trong ảnh và tạo ra caption tương ứng. 5. Hệ thống hiển thị caption này trong trình soạn thảo.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>A1:</b> Người dùng chỉnh sửa lại caption do AI tạo ra để phù hợp hơn với giọng văn của mình.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> AI không thể nhận diện được đối tượng trong ảnh -&gt; Hệ thống báo lỗi "Không thể tạo caption từ hình ảnh này".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Giúp người dùng nhanh chóng có được phần mô tả cho các bài đăng chỉ có hình ảnh.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC5.3: Tạo bài viết quảng cáo từ sản phẩm đã gắn thẻ (Product-to-Text)</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tạo bài viết quảng cáo từ sản phẩm đã gắn thẻ (Product-to-Text)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán (Seller)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tự động tạo một bài đăng quảng cáo hoàn chỉnh dựa trên thông tin của một sản phẩm đã được người bán gắn thẻ vào bài viết.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Sau khi người bán gắn thẻ một sản phẩm vào bài đăng, họ nhấn vào tùy chọn "Tạo bài viết quảng cáo sản phẩm".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người dùng đã đăng nhập với vai trò <span class="s2">seller</span>. • Người bán đang tạo bài đăng và đã gắn thẻ ít nhất một sản phẩm từ cửa hàng của mình.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Một bài đăng quảng cáo hoàn chỉnh, nêu bật đặc điểm sản phẩm và có lời kêu gọi hành động, được tạo ra và chèn vào trình soạn thảo.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người bán tạo bài đăng và gắn thẻ một sản phẩm. 2. Người bán nhấn nút "Tạo bài viết quảng cáo sản phẩm". 3. Hệ thống tự động lấy thông tin từ sản phẩm đó và gửi đến mô hình AI. 4. AI phân tích thông tin và tạo ra một bài đăng quảng cáo hấp dẫn. 5. Hệ thống hiển thị kết quả trong trình soạn thảo.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Sản phẩm được gắn thẻ có quá ít thông tin mô tả -&gt; AI có thể tạo ra nội dung không chính xác hoặc chung chung.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Đây là công cụ marketing cực kỳ mạnh mẽ và tiết kiệm thời gian cho người bán.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC5.4: Tạo nội dung kết hợp đa phương thức (Multi-modal Generation)</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tạo nội dung kết hợp đa phương thức (Văn bản + Ảnh + Sản phẩm)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người bán (Seller)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Tính năng AI nâng cao nhất, cho phép tạo ra một bài đăng gắn kết bằng cách kết hợp nhiều nguồn thông tin: ý tưởng ngắn, hình ảnh, và sản phẩm đính kèm.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Khi người dùng đã cung cấp nhiều hơn một yếu tố (văn bản, ảnh, sản phẩm), họ nhấn vào nút "✨ Tạo nội dung kết hợp".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người dùng đã đăng nhập và đang tạo bài đăng. • Người dùng đã cung cấp ít nhất hai trong ba yếu tố: văn bản, hình ảnh, sản phẩm được gắn thẻ.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Một bài đăng có sự gắn kết cao, phân tích tất cả các yếu tố đầu vào, được tạo ra và hiển thị trong trình soạn thảo.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người bán cung cấp một ý tưởng ngắn, tải lên một hình ảnh, và đính kèm một sản phẩm. 2. Người bán nhấn nút "✨ Tạo nội dung kết hợp". 3. Hệ thống gửi tất cả thông tin này đến một mô hình AI đa phương thức. 4. AI phân tích tất cả các yếu tố để tạo ra một bài đăng gắn kết. 5. Hệ thống trả kết quả về trình soạn thảo.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>A1:</b> Người dùng chỉnh sửa lại nội dung để hoàn thiện hơn trước khi đăng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>E1:</b> Lỗi kết nối đến dịch vụ AI đa phương thức -&gt; Hệ thống báo lỗi.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Gợi ý triển khai tính năng này bằng các API mạnh như Google Gemini API.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p11"><br></p>
+<p class="p10">Module 6: Lên lịch và Điều phối Bài đăng</p>
+<p class="p12"><b>UC6.1: Lên lịch đăng bài</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2">Thuộc tính</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Chi tiết</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Lên lịch đăng bài (Post Scheduling)</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng, Người bán</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cung cấp cho người dùng tùy chọn để lên lịch cho một bài đăng, giúp bài viết được tự động xuất bản vào một thời điểm cụ thể trong tương lai.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Khi tạo một bài đăng mới, người dùng chọn tùy chọn "Lên lịch" thay vì "Đăng ngay".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người dùng đã đăng nhập vào hệ thống. • Người dùng đang ở trong giao diện tạo bài đăng và đã có nội dung cho bài viết.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Bài đăng được lưu vào cơ sở dữ liệu dưới dạng "bản nháp đã lên lịch". • Bài đăng sẽ không hiển thị công khai cho đến đúng thời điểm đã được lên lịch.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Trong giao diện tạo bài đăng, sau khi soạn xong nội dung, người dùng chọn tùy chọn "Lên lịch". 2. Một giao diện chọn ngày và giờ trong tương lai sẽ hiện ra. 3. Người dùng chọn ngày và giờ mong muốn để xuất bản bài viết. 4. Người dùng nhấn nút "Xác nhận Lịch". 5. Hệ thống lưu bài đăng với trạng thái "đã lên lịch" và thời điểm xuất bản đã chọn. 6. Hệ thống hiển thị thông báo "Bài viết đã được lên lịch thành công".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• <b>A1:</b> Người dùng quyết định không lên lịch nữa và chọn "Đăng ngay".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• <b>E1:</b> Người dùng chọn một thời điểm trong quá khứ -&gt; Hệ thống báo lỗi "Vui lòng chọn một thời điểm trong tương lai".</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Backend cần có một cơ chế (ví dụ: cron job) để kiểm tra và tự động xuất bản các bài đăng đã đến hạn.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p12"><b>UC6.2: Quản lý các bài viết đã lên lịch</b></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2">Thuộc tính</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Chi tiết</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tên (Name)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Quản lý các bài viết đã lên lịch</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Tác nhân (Actors)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng, Người bán</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Mô tả (Description)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Cung cấp một giao diện để người dùng có thể xem lại danh sách các bài viết đang chờ xuất bản, cũng như chỉnh sửa, thay đổi lịch hoặc xóa chúng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Kích hoạt (Trigger)</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Người dùng truy cập vào một mục riêng trong trang cá nhân để xem các bài viết đã lên lịch.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện tiên quyết</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• Người dùng đã đăng nhập vào hệ thống. • Người dùng có ít nhất một bài viết đã được lên lịch.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Điều kiện sau</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Bài viết đã lên lịch được cập nhật (thay đổi nội dung, thời gian) hoặc bị xóa khỏi hàng chờ xuất bản.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng sự kiện chính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">1. Người dùng truy cập vào trang "Quản lý bài viết đã lên lịch". 2. Hệ thống hiển thị danh sách các bài viết đang chờ, kèm theo nội dung xem trước và thời gian dự kiến đăng. 3. Người dùng chọn một bài viết và thực hiện một trong các hành động sau: • <b>Chỉnh sửa:</b> Thay đổi nội dung hoặc hình ảnh của bài viết. • <b>Thay đổi lịch:</b> Chọn lại ngày giờ xuất bản mới. • <b>Xóa:</b> Hủy bỏ bài viết đã lên lịch. 4. Hệ thống cập nhật thay đổi tương ứng vào cơ sở dữ liệu.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Luồng thay thế</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• <b>A1:</b> Người dùng chọn một bài viết và quyết định "Đăng ngay" thay vì chờ đến thời gian đã lên lịch.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ngoại lệ</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">• <b>E1:</b> Người dùng cố gắng chỉnh sửa một bài viết ngay tại thời điểm nó đang được hệ thống tự động xuất bản -&gt; Hệ thống báo lỗi hoặc thông báo bài viết đã được đăng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p2"><b>Ghi chú</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p2">Giao diện này mang lại sự linh hoạt và quyền kiểm soát hoàn toàn cho người dùng đối với kế hoạch nội dung của họ.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p11"><br></p>
+<p class="p3">Module 7: Hệ thống Thông báo (Notification System)</p>
+<p class="p14"><b>UC7.1: Nhận thông báo tức thì về tương tác trên bài viết</b></p>
+<p class="p8"><br></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p15"><b>Thuộc tính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p15"><b>Chi tiết</b><b></b></p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Tên (Name)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Nhận thông báo tức thì về tương tác trên bài viết</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Tác nhân (Actors)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Người dùng, Người bán</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Mô tả (Description)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Hệ thống tự động gửi thông báo ngay lập tức đến người sở hữu bài viết khi có người khác thực hiện các hành động: thích bài viết, bình luận, theo dõi người dùng, hoặc được nhắc đến trong bình luận/bài viết của người khác.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Kích hoạt (Trigger)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Một người dùng khác thực hiện hành động tương tác với bài viết hoặc tài khoản của người nhận.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Điều kiện tiên quyết</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">• Người nhận đã đăng nhập vào hệ thống ít nhất một lần trong phiên hiện tại.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">• Người nhận không tắt hoàn toàn thông báo tương tác xã hội.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Điều kiện sau</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">• Một thông báo mới xuất hiện trên giao diện người nhận (dạng popup nhỏ hoặc biểu tượng chuông).<span class="Apple-converted-space"> </span></p>
+        <p class="p3">• Số lượng thông báo chưa đọc tăng lên.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">• Thông báo được lưu lại để người dùng có thể xem lại sau.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Luồng sự kiện chính</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">1. Người dùng A thực hiện hành động (ví dụ: thích bài viết của Người dùng B).<span class="Apple-converted-space"> </span></p>
+        <p class="p3">2. Hệ thống phát hiện hành động này.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">3. Hệ thống xác định chủ sở hữu bài viết (Người dùng B).<span class="Apple-converted-space"> </span></p>
+        <p class="p3">4. Hệ thống tạo thông báo mới và gửi ngay lập tức đến Người dùng B.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">5. Giao diện của Người dùng B hiển thị thông báo (có âm thanh hoặc rung nếu bật).<span class="Apple-converted-space"> </span></p>
+        <p class="p3">6. Người dùng B có thể nhấn vào thông báo để chuyển thẳng đến bài viết hoặc bình luận liên quan.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Luồng thay thế</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">A1. Người dùng B đang không online → thông báo vẫn được lưu và sẽ hiển thị ngay khi người đó đăng nhập lại.<span class="Apple-converted-space"> </span></p>
+        <p class="p16">A2. Người dùng B tắt âm thanh thông báo → chỉ hiển thị hình ảnh mà không có âm thanh.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Ngoại lệ</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">E1. Người dùng B đã chặn Người dùng A → không gửi thông báo.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">E2. Bài viết ở chế độ riêng tư và Người dùng A không nằm trong danh sách được phép xem → không gửi thông báo.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Ghi chú</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Đây là tính năng quan trọng giúp tăng tính tương tác xã hội và giữ chân người dùng trên nền tảng.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p17"><br></p>
+<p class="p14"><b>UC7.2: Nhận thông báo tức thì về hoạt động mua bán</b></p>
+<p class="p8"><br></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p15"><b>Thuộc tính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p15"><b>Chi tiết</b><b></b></p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Tên (Name)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Nhận thông báo tức thì về hoạt động mua bán</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Tác nhân (Actors)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Người mua, Người bán</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Mô tả (Description)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Khi có sự kiện liên quan đến đơn hàng (đặt hàng mới, người bán xác nhận, giao hàng, hoàn thành, hủy đơn, yêu cầu hoàn tiền, có đánh giá mới…), hệ thống gửi thông báo ngay cho cả hai bên liên quan.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Kích hoạt (Trigger)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Bất kỳ thay đổi trạng thái nào của đơn hàng hoặc hành động liên quan đến đơn hàng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Điều kiện tiên quyết</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">• Người nhận có ít nhất một đơn hàng đang trong quá trình xử lý hoặc vừa hoàn tất.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">• Người nhận chưa tắt thông báo liên quan đến mua bán.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Điều kiện sau</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">• Cả người mua và người bán đều nhận được thông báo ngay lập tức.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">• Thông báo chứa liên kết dẫn trực tiếp đến trang chi tiết đơn hàng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Luồng sự kiện chính</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">1. Người mua đặt một đơn hàng mới.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">2. Hệ thống tạo thông báo “Bạn có đơn hàng mới” gửi đến Người bán.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">3. Người bán xác nhận đơn hàng.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">4. Hệ thống gửi thông báo “Đơn hàng của bạn đã được xác nhận” cho Người mua.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">5. Tương tự với các trạng thái: đang giao, đã giao, hoàn thành, hủy, có đánh giá mới, có yêu cầu hoàn tiền…</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Luồng thay thế</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">A1. Một bên đang offline → thông báo được lưu và hiển thị khi đăng nhập lại.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">A2. Có thể gửi thêm email song song nếu người dùng bật tùy chọn này.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Ngoại lệ</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">E1. Đơn hàng bị hủy ngay lập tức bởi người mua trước khi người bán nhìn thấy → chỉ gửi thông báo hủy, không gửi thông báo “đơn mới”.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Ghi chú</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Tính năng này giúp người bán phản hồi nhanh đơn hàng và người mua luôn nắm được trạng thái mua sắm.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p14"><b>UC7.3: Xem danh sách và quản lý thông báo đã nhận</b></p>
+<p class="p8"><br></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p15"><b>Thuộc tính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p15"><b>Chi tiết</b><b></b></p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Tên (Name)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Xem danh sách và quản lý thông báo đã nhận</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Tác nhân (Actors)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Người dùng, Người mua, Người bán</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Mô tả (Description)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Người dùng có thể mở ra xem toàn bộ danh sách thông báo đã nhận (cả đã đọc và chưa đọc), đánh dấu đã đọc, hoặc xóa thông báo không còn cần thiết.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Kích hoạt (Trigger)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Người dùng nhấn vào biểu tượng chuông hoặc mục “Thông báo” trên thanh điều hướng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Điều kiện tiên quyết</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Người dùng đã đăng nhập và từng nhận ít nhất một thông báo.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Điều kiện sau</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">• Danh sách thông báo được cập nhật trạng thái đọc/xóa theo hành động của người dùng.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">• Số lượng thông báo chưa đọc giảm tương ứng.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Luồng sự kiện chính</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">1. Người dùng nhấn vào biểu tượng thông báo.</p>
+        <p class="p3">2. Hệ thống hiển thị danh sách tất cả thông báo (mới nhất ở trên).<span class="Apple-converted-space"> </span></p>
+        <p class="p3">3. Thông báo chưa đọc được làm nổi bật.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">4. Người dùng có thể: <span class="Apple-converted-space">   </span></p>
+        <p class="p3">• Nhấn vào thông báo để đi đến nội dung liên quan <span class="Apple-converted-space">   </span></p>
+        <p class="p3">• Đánh dấu “Đã đọc” hoặc “Đánh dấu tất cả đã đọc” <span class="Apple-converted-space">   </span></p>
+        <p class="p3">• Xóa một hoặc nhiều thông báo<span class="Apple-converted-space"> </span></p>
+        <p class="p3">5. Hệ thống cập nhật lại trạng thái và giao diện ngay lập tức.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Luồng thay thế</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">A1. Người dùng chọn “Xóa tất cả thông báo” → toàn bộ thông báo bị xóa vĩnh viễn.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Ngoại lệ</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p16">E1. Không có thông báo nào → hiển thị dòng chữ “Bạn chưa có thông báo nào”.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Ghi chú</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Giao diện nên hỗ trợ phân loại thông báo (Xã hội / Đơn hàng / Hệ thống) để dễ theo dõi.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p11"><br></p>
+<p class="p14"><b>UC7.4: Tùy chỉnh cài đặt thông báo cá nhân</b></p>
+<p class="p8"><br></p>
+<table cellspacing="0" cellpadding="0" class="t1">
+  <tbody>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p15"><b>Thuộc tính</b><b></b></p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p15"><b>Chi tiết</b><b></b></p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Tên (Name)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Tùy chỉnh cài đặt thông báo cá nhân</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Tác nhân (Actors)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Người dùng, Người mua, Người bán</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Mô tả (Description)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Người dùng có thể tự quyết định sẽ nhận loại thông báo nào, qua kênh nào (trên web, âm thanh, email), và tắt hoàn toàn một số loại thông báo nếu muốn.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Kích hoạt (Trigger)</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Người dùng vào phần Cài đặt → Thông báo.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Điều kiện tiên quyết</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Người dùng đã đăng nhập.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Điều kiện sau</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Cài đặt thông báo của người dùng được lưu lại và áp dụng cho mọi phiên đăng nhập sau này.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Luồng sự kiện chính</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">1. Người dùng vào Trang cá nhân → Cài đặt → Thông báo.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">2. Hệ thống hiển thị danh sách các loại thông báo có thể bật/tắt: <span class="Apple-converted-space">   </span></p>
+        <p class="p3">• Thích bài viết <span class="Apple-converted-space">   </span></p>
+        <p class="p3">• Bình luận &amp; nhắc tên <span class="Apple-converted-space">   </span></p>
+        <p class="p3">• Theo dõi mới <span class="Apple-converted-space">   </span></p>
+        <p class="p3">• Đơn hàng mới / cập nhật trạng thái <span class="Apple-converted-space">   </span></p>
+        <p class="p3">• Đánh giá &amp; phản hồi <span class="Apple-converted-space">   </span></p>
+        <p class="p3">• Tin nhắn mới <span class="Apple-converted-space">   </span></p>
+        <p class="p3">• Thông báo hệ thống<span class="Apple-converted-space"> </span></p>
+        <p class="p3">3. Người dùng bật/tắt từng mục và chọn có nhận qua email hay không.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">4. Người dùng nhấn “Lưu cài đặt”.<span class="Apple-converted-space"> </span></p>
+        <p class="p3">5. Hệ thống lưu và áp dụng ngay lập tức.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Luồng thay thế</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p16">A1. Người dùng chọn “Tắt tất cả thông báo” → toàn bộ thông báo (trừ thông báo hệ thống bắt buộc) sẽ không hiển thị nữa.</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Ngoại lệ</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Không có</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="middle" class="td1">
+        <p class="p3">Ghi chú</p>
+      </td>
+      <td valign="middle" class="td1">
+        <p class="p3">Tính năng này rất quan trọng để tránh làm phiền người dùng và tăng trải nghiệm cá nhân hóa.</p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<p class="p8"><br></p>
+</body>
+</html>

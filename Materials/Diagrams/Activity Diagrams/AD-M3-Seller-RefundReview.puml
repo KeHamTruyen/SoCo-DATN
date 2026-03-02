@@ -1,0 +1,51 @@
+@startuml AD-M3-Seller-RefundReview
+!theme plain
+title Activity Diagram - Module 3 (Seller): Hoàn tiền & Phản hồi đánh giá
+caption Bao gồm: UC3.11 Xử lý hoàn tiền, UC3.12 Phản hồi đánh giá
+
+|Người bán|
+|Hệ thống|
+
+start
+
+|Người bán|
+:Đăng nhập vai trò Seller;
+:Mở Dashboard Bán hàng;
+
+if (Chọn nhánh?) then (Xử lý hoàn tiền)
+  |Hệ thống|
+  :Hiển thị danh sách yêu cầu hoàn tiền;
+
+  |Người bán|
+  :Xem lý do và chi tiết đơn;
+  if (Chấp nhận?) then (Có)
+    :Nhấn "Chấp nhận";
+
+    |Hệ thống|
+    :Cập nhật trạng thái đơn;
+    :Xử lý hoàn tiền (giả lập);
+  else (Từ chối)
+    :Nhấn "Từ chối";
+    :Nhập lý do từ chối;
+  endif
+
+  |Hệ thống|
+  :Gửi thông báo cho Người mua;
+else (Phản hồi đánh giá)
+  |Hệ thống|
+  :Hiển thị danh sách đánh giá;
+
+  |Người bán|
+  :Chọn đánh giá cần phản hồi;
+  :Nhập nội dung phản hồi;
+  :Nhấn "Gửi";
+
+  |Hệ thống|
+  :Lưu phản hồi;
+  :Hiển thị dưới đánh giá gốc;
+endif
+
+stop
+
+@enduml
+

@@ -1,0 +1,35 @@
+@startuml AD-M1-Profile-SellerUpgrade
+!theme plain
+title Activity Diagram - Module 1 (Profile): Đăng ký trở thành Người bán
+caption Bao gồm: UC1.8 Đăng ký Người bán
+
+|Người dùng (Buyer)|
+|Hệ thống|
+
+start
+
+|Người dùng (Buyer)|
+:Đăng nhập với vai trò Buyer;
+:Nhấn "Trở thành Người bán";
+
+|Hệ thống|
+:Hiển thị form đăng ký bán hàng;
+
+|Người dùng (Buyer)|
+:Điền thông tin shop (Tên, Địa chỉ, SĐT);
+:Gửi yêu cầu;
+
+|Hệ thống|
+:Gửi yêu cầu xác minh (Email/SĐT);
+
+|Người dùng (Buyer)|
+:Hoàn thành xác minh;
+
+|Hệ thống|
+:Cập nhật role = Seller;
+:Hiển thị Dashboard Bán hàng;
+
+stop
+
+@enduml
+

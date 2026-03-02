@@ -1,0 +1,66 @@
+%%{init: {"theme": "base", "themeVariables": { "primaryColor": "#ffffff", "primaryBorderColor": "#000000", "primaryTextColor": "#000000", "secondaryColor": "#ffffff", "secondaryBorderColor": "#000000", "secondaryTextColor": "#000000", "tertiaryColor": "#ffffff", "tertiaryBorderColor": "#000000", "tertiaryTextColor": "#000000", "lineColor": "#000000", "textColor": "#000000" }}}%%
+graph TB
+    subgraph "VIEW LAYER"
+        AdminPage["AdminPage<br/>Management Panel"]
+    end
+
+    subgraph "CONTROLLER LAYER"
+        AdminAuthCtrl["AdminAuthController"]
+        AdminCtrl["AdminController"]
+        ReportCtrl["ReportController"]
+        SellerAppCtrl["SellerApplicationController"]
+    end
+
+    subgraph "SERVICE LAYER"
+        AuthSvc["AuthService"]
+        AdminSvc["AdminService<br/>- User Mgmt<br/>- Moderation<br/>- Analytics"]
+        ReportSvc["ReportService"]
+        SellerAppSvc["SellerApplicationService"]
+    end
+
+    subgraph "MODEL LAYER"
+        Models["Data Models"]
+    end
+
+    subgraph "DATA"
+        PostgreSQL["PostgreSQL"]
+        Redis["Redis"]
+    end
+
+    %% View to Controller
+    AdminPage -->|"API"| AdminAuthCtrl
+    AdminPage -->|"API"| AdminCtrl
+    AdminPage -->|"API"| ReportCtrl
+    AdminPage -->|"API"| SellerAppCtrl
+
+    %% Controller to Service
+    AdminAuthCtrl --> AuthSvc
+    AdminCtrl --> AdminSvc
+    AdminCtrl --> ReportSvc
+    AdminCtrl --> SellerAppSvc
+    ReportCtrl --> ReportSvc
+    SellerAppCtrl --> SellerAppSvc
+
+    %% Service to Model
+    AuthSvc --> Models
+    AdminSvc --> Models
+    ReportSvc --> Models
+    SellerAppSvc --> Models
+
+    %% Model to Database
+    Models --> PostgreSQL
+    AuthSvc --> Redis
+    AdminSvc --> Redis
+
+    %% Styling (monochrome for printing)
+    classDef view fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef controller fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef service fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef model fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef data fill:#ffffff,stroke:#000000,stroke-width:2px
+    
+    class AdminPage view
+    class AdminAuthCtrl,AdminCtrl,ReportCtrl,SellerAppCtrl controller
+    class AuthSvc,AdminSvc,ReportSvc,SellerAppSvc service
+    class Models model
+    class PostgreSQL,Redis data

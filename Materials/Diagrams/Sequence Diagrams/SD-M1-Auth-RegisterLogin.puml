@@ -1,0 +1,55 @@
+@startuml
+!theme plain
+title SD-M1-Auth-RegisterLogin - Đăng ký & Đăng nhập/2FA
+caption Liên quan controllers: auth.controller.js, user.controller.js, emailService, generateToken
+
+actor User
+participant Frontend
+participant "AuthController" as Auth
+database "Users DB" as DB
+participant "EmailService" as Mail
+participant "TokenService (JWT)" as Token
+
+== Đăng ký (UC1.1) ==
+User -> Frontend: Điền email, mật khẩu
+Frontend -> Auth: POST /api/auth/register
+Auth -> DB: Kiểm tra email tồn tại
+DB --> Auth: Kết quả
+alt Email trùng
+  Auth --> Frontend: 409 Conflict
+else Hợp lệ
+  Auth -> DB: Tạo user (status=unverified, role=buyer)
+  Auth -> Mail: Gửi link/mã xác thực
+  Mail --> User: Email xác thực
+  Auth --> Frontend: 201 Created (chờ xác thực)
+end
+
+== Đăng nhập + 2FA (UC1.2, UC1.3) ==
+User -> Frontend: Nhập email, mật khẩu
+Frontend -> Auth: POST /api/auth/login
+Auth -> DB: Tìm user + verify password
+DB --> Auth: User
+alt Sai thông tin / khóa / chưa verify
+  Auth --> Frontend: 401/403 lỗi đăng nhập
+else Đúng
+  alt Bật 2FA
+    Auth -> Mail: Gửi mã OTP
+    Mail --> User: OTP
+    User -> Frontend: Nhập OTP
+    Frontend -> Auth: POST /api/auth/verify-2fa
+    Auth -> DB: Kiểm tra mã/expire
+    DB --> Auth: Hợp lệ?
+    alt OTP ok
+      Auth -> Token: Tạo JWT
+      Auth --> Frontend: 200 + JWT
+    else OTP sai
+      Auth --> Frontend: 401 Mã 2FA sai/hết hạn
+    end
+  else Không bật 2FA
+    Auth -> Token: Tạo JWT
+    Auth --> Frontend: 200 + JWT
+  end
+end
+
+@enduml
+

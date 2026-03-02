@@ -1,0 +1,35 @@
+@startuml UC-M1-Auth
+!theme plain
+left to right direction
+title Use Case Diagram - Module 1: Xác thực & Hồ sơ
+
+actor "Người dùng" as User
+actor "Người mua" as Buyer
+Buyer --|> User
+
+rectangle "Module 1 - Auth & Profile" {
+  usecase "Đăng ký tài khoản" as UC11
+  usecase "Đăng nhập" as UC12
+  usecase "Xác thực 2FA" as UC13
+  usecase "Khôi phục mật khẩu" as UC14
+  usecase "Đăng xuất" as UC15
+  usecase "Quản lý hồ sơ\n(Chỉnh sửa thông tin, ảnh)" as UC16
+  usecase "Cài đặt quyền riêng tư" as UC17
+  usecase "Nâng cấp Buyer -> Seller" as UC18
+}
+
+User --> UC11
+User --> UC12
+User --> UC13
+User --> UC14
+User --> UC15
+User --> UC16
+User --> UC17
+
+Buyer --> UC18
+
+UC12 ..> UC13 : <<extend>>
+UC18 ..> UC12 : <<include>>
+
+@enduml
+

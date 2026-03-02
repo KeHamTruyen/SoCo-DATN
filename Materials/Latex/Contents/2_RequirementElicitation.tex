@@ -1,0 +1,170 @@
+\chapter{Thu thập \& Phân tích yêu cầu (Requirement Elicitation)}
+
+\section{Các hệ thống liên quan (Related Works)}
+
+\subsection{Nền tảng social commerce}
+
+\subsubsection{TikTok Shop (mobile-first)}
+\paragraph{Chức năng – TikTok Shop}
+\begin{itemize}
+    \item \textbf{Tài khoản \& truy cập:} Đăng ký/đăng nhập, khôi phục mật khẩu.
+    \item \textbf{Nội dung \& tương tác:} Lướt feed video ngắn, like/comment/share, theo dõi creator.
+    \item \textbf{Mua trong luồng:} Xem sản phẩm gắn trong video, thêm giỏ, mua ngay.
+    \item \textbf{Bán hàng live \& ưu đãi:} Livestream bán hàng, flash sale, voucher, freeship theo điều kiện.
+    \item \textbf{Hậu mãi:} Theo dõi đơn, đánh giá sau mua, hỗ trợ đổi trả.
+\end{itemize}
+
+\paragraph{Thế mạnh – TikTok Shop}
+\begin{itemize}
+    \item \textbf{Video-first \& chuyển đổi:} Nội dung ngắn cuốn hút, dẫn dắt mua, tỷ lệ chuyển đổi cao.
+    \item \textbf{Mua trong luồng \& thanh toán:} In-stream purchase ít bước, hỗ trợ đa phương thức.
+    \item \textbf{Cá nhân hóa:} Thuật toán đề xuất mạnh (For You feed).
+    \item \textbf{Công cụ sáng tạo:} Hiệu ứng, nhạc, sticker, template kịch bản cho seller/creator.
+\end{itemize}
+
+\paragraph{Hạn chế – TikTok Shop}
+\begin{itemize}
+    \item \textbf{Thiên di động:} Trải nghiệm trên trình duyệt/PC còn hạn chế.
+    \item \textbf{Duyệt/so sánh trên web:} Khả năng điều hướng, so sánh sản phẩm kém hơn web truyền thống.
+    \item \textbf{Quản trị \& phân tích:} UI quản trị desktop chưa trực quan, báo cáo/analytics còn đơn giản.
+\end{itemize}
+
+\subsubsection{Facebook Marketplace \& Shops}
+\paragraph{Chức năng – Facebook Marketplace/Shops}
+\begin{itemize}
+    \item \textbf{Rao bán \& tìm kiếm/lọc:} Đăng/duyệt tin, tìm kiếm, lọc theo vị trí, giá, danh mục.
+    \item \textbf{Nhắn tin \& giao dịch:} Chat Messenger, thương lượng, hẹn giao dịch.
+    \item \textbf{Catalog \& gắn sản phẩm:} Tạo catalog, trang cửa hàng, gắn sản phẩm lên bài/Story/Ads (Shops).
+    \item \textbf{Checkout \& theo dõi:} Checkout (tùy thị trường), theo dõi đơn, phản hồi.
+\end{itemize}
+
+\paragraph{Thế mạnh – Facebook Marketplace/Shops}
+\begin{itemize}
+    \item \textbf{Niềm tin xã hội:} Hồ sơ cá nhân, bạn bè chung, cộng đồng lớn.
+    \item \textbf{Quảng cáo \& remarketing:} Nhắm mục tiêu đa dạng, tích hợp Ads.
+    \item \textbf{Đa nền tảng:} Mobile, web, desktop với UI quen thuộc.
+\end{itemize}
+
+\paragraph{Hạn chế – Facebook Marketplace/Shops}
+\begin{itemize}
+    \item \textbf{Mua trong luồng:} Chưa liền mạch ở nhiều thị trường (phụ thuộc khu vực).
+    \item \textbf{Nội dung ngắn:} Ít hấp dẫn hơn mô hình video-first.
+    \item \textbf{Live shopping:} Gắn sản phẩm vào livestream còn hạn chế so với TikTok Shop.
+\end{itemize}
+
+\paragraph{Kết luận về ưu và nhược điểm}
+TikTok Shop mạnh về video-first trên mobile nhưng yếu trên web/PC. Facebook Marketplace/Shops mạnh về niềm tin xã hội và đa thiết bị nhưng chưa tối ưu mua trong luồng. Cơ hội: kết hợp nội dung ngắn (TikTok-style) với multi-device và niềm tin xã hội (Facebook-style) trên web/desktop.
+
+\subsection{Phần mềm quản trị dịch vụ/bán hàng liên quan}
+
+\subsubsection{Shopify (Admin \& POS)}
+\paragraph{Chức năng – Shopify}
+\begin{itemize}
+    \item \textbf{Catalog \& tồn kho:} Quản lý sản phẩm, biến thể, giá, mã giảm giá, tồn kho.
+    \item \textbf{Đơn hàng \& thanh toán:} Xử lý đơn, vận chuyển, hoàn tiền; nhiều cổng thanh toán.
+    \item \textbf{Báo cáo \& mở rộng:} Báo cáo bán hàng/kênh/chiến dịch; app store mở rộng chức năng.
+    \item \textbf{Omnichannel:} Online store, social channel, POS.
+\end{itemize}
+
+\paragraph{Thế mạnh – Shopify}
+\begin{itemize}
+    \item \textbf{SaaS \& hệ sinh thái:} Ổn định, dễ khởi tạo, nhiều app mở rộng.
+    \item \textbf{Báo cáo vận hành:} Doanh thu, biên lợi nhuận, COGS rõ ràng; hỗ trợ đa kênh.
+    \item \textbf{UI quản trị:} Web/desktop tốt, quy trình fulfillment rõ.
+\end{itemize}
+
+\paragraph{Hạn chế – Shopify}
+\begin{itemize}
+    \item \textbf{Chi phí:} Phí nền tảng/giao dịch cao với seller nhỏ.
+    \item \textbf{Tùy biến sâu:} Cần app trả phí hoặc kỹ thuật riêng.
+    \item \textbf{Video-first/mua trong luồng:} Chưa tối ưu trải nghiệm nội dung ngắn kèm mua mạnh như TikTok Shop.
+\end{itemize}
+
+\subsubsection{Meta Business Suite}
+\paragraph{Chức năng – Meta Business Suite}
+\begin{itemize}
+    \item \textbf{Nội dung \& lịch đăng:} Quản lý Page, lịch đăng đa kênh (Facebook/Instagram).
+    \item \textbf{Tương tác \& Inbox:} Hộp thư hợp nhất, nhãn hội thoại, auto-reply cơ bản, quản lý bình luận/tin nhắn.
+    \item \textbf{Catalog \& Ads:} Quản lý catalog, gắn sản phẩm vào bài/Ads; báo cáo tương tác, hiệu quả quảng cáo.
+\end{itemize}
+
+\paragraph{Thế mạnh – Meta Business Suite}
+\begin{itemize}
+    \item \textbf{Hợp nhất trên web/desktop:} Quản trị nội dung và tương tác trong một nơi.
+    \item \textbf{Liên kết Ads:} Hỗ trợ remarketing, đo lường chiến dịch.
+    \item \textbf{UI thân thuộc:} Đa nền tảng, dễ làm quen.
+\end{itemize}
+
+\paragraph{Hạn chế – Meta Business Suite}
+\begin{itemize}
+    \item \textbf{Thương mại \& fulfillment:} Quản lý đơn/hoàn tiền chưa sâu như Shopify.
+    \item \textbf{Video-first \& mua trong luồng:} Thiếu trải nghiệm nội dung ngắn kèm mua mạnh như TikTok Shop.
+    \item \textbf{Workflow/automation:} Hạn chế, phụ thuộc API/third-party.
+\end{itemize}
+
+\paragraph{Ưu và nhược điểm}
+Shopify mạnh về vận hành đơn hàng và đa kênh nhưng thiếu trải nghiệm social video-first. Meta Business Suite mạnh về quản trị nội dung/xã hội trên web nhưng thương mại và automation còn hạn chế. Cơ hội: xây dựng backend/admin web hỗ trợ seller quản lý nội dung ngắn + đơn hàng + phân tích real-time trong cùng một giao diện.
+
+\paragraph{Kết luận}
+Điểm mạnh cần kế thừa: trải nghiệm video-first, mua trong luồng, niềm tin xã hội, hỗ trợ đa thiết bị, báo cáo rõ ràng. Khoảng trống cần giải quyết: thiếu trải nghiệm nội dung ngắn kèm mua sắm trên web/desktop; thiếu hợp nhất quản trị nội dung + thương mại + real-time cho seller; thiếu công cụ AI hai phía; UX so sánh và lọc sản phẩm trên desktop chưa tối ưu.
+
+\section{Các bên liên quan (Stakeholders)}
+\begin{itemize}
+    \item \textbf{Guest (khách vãng lai):} Người dùng chưa đăng ký, có thể duyệt feed, xem bài, xem sản phẩm gắn trong bài và xem chi tiết sản phẩm. Guest \textbf{không} được phép thực hiện các tương tác xã hội (như like, comment, follow) và \textbf{không} thực hiện được các thao tác thương mại (như thêm vào giỏ hàng, đặt hàng, đánh giá).
+    \item \textbf{User/Buyer đã đăng ký:} Người dùng đã có tài khoản, có thể theo dõi creator/seller, thêm sản phẩm vào giỏ, thanh toán, xem lịch sử đơn, đánh giá/bình luận sau mua, lưu danh sách yêu thích, nhận thông báo real-time.
+    \item \textbf{Seller (đã được duyệt):} Người dùng nâng cấp vai trò thông qua quy trình phê duyệt; có thể tạo sản phẩm, gắn sản phẩm vào bài/short video, quản lý đơn/hoàn tiền, phản hồi đánh giá, xem dashboard hiệu suất, lên lịch đăng, dùng AI gợi ý nội dung/caption.
+    \item \textbf{Admin/Moderator:} Quản trị hệ thống, phê duyệt seller, kiểm duyệt nội dung, xử lý báo cáo, quản lý người dùng và phân quyền, xem báo cáo tổng hợp, giám sát log/audit.
+\end{itemize}
+
+\section{Yêu cầu chức năng và phi chức năng}
+
+\subsection{Yêu cầu chức năng}
+
+\subsubsection{Chức năng chung cho Guest}
+\begin{itemize}
+    \item Đăng ký tài khoản, đăng nhập, quên/mất mật khẩu.
+    \item Xem feed nội dung, tìm kiếm và lọc bài/sản phẩm theo từ khóa, danh mục, giá, đánh giá, thời gian đăng.
+    \item Xem chi tiết sản phẩm: giá, biến thể, tồn kho, mô tả, media (ảnh/video), đánh giá.
+    \item Xem thông tin seller (tên cửa hàng, đánh giá, thời gian phản hồi).
+    \item Xem danh sách sản phẩm liên quan được hệ thống gợi ý (không kèm theo thao tác thương mại như thêm vào giỏ hoặc mua trực tiếp).
+    \item Nhận gợi ý bài viết/sản phẩm phù hợp ngữ cảnh hiển thị; để sử dụng đầy đủ tính năng cá nhân hóa và thương mại, người dùng cần đăng ký/đăng nhập.
+\end{itemize}
+
+\subsubsection{Chức năng cho User/Buyer đã đăng ký}
+\begin{itemize}
+    \item Quản lý hồ sơ: cập nhật thông tin, đổi mật khẩu, bật/tắt 2FA.
+    \item Theo dõi/huỷ theo dõi seller/creator; lưu danh sách yêu thích.
+    \item Quản lý giỏ hàng: thêm/xóa/cập nhật số lượng, chọn địa chỉ giao, phương thức thanh toán.
+    \item Thanh toán và theo dõi đơn hàng với thông báo real-time về trạng thái đơn.
+    \item Đánh giá/bình luận sản phẩm; báo cáo vi phạm.
+    \item Nhận thông báo real-time (đơn hàng, phản hồi, tin nhắn, ưu đãi).
+    \item Nhận gợi ý sản phẩm/nội dung cá nhân hóa (AI).
+\end{itemize}
+
+\subsubsection{Chức năng cho Seller}
+\begin{itemize}
+    \item Nâng cấp tài khoản thành seller (gửi yêu cầu, cung cấp giấy tờ; chờ admin duyệt).
+    \item Quản lý sản phẩm: tạo/sửa/xóa sản phẩm, biến thể, giá, tồn kho; gắn sản phẩm vào bài viết/video ngắn; lên lịch đăng bài.
+    \item Quản lý đơn hàng và hoàn tiền: xem, lọc, cập nhật trạng thái, xử lý yêu cầu hoàn/đổi.
+    \item Quản lý đánh giá: phản hồi đánh giá, theo dõi điểm chất lượng.
+    \item Sử dụng AI (Google Gemini API và Google Veo 2) để: tạo bài viết, hình ảnh và video ngắn từ mô tả/ý tưởng/hình ảnh đầu vào; gợi ý khung giờ và lên lịch đăng tự động.
+    \item Dashboard: xem doanh thu, tỷ lệ chuyển đổi, tồn kho thấp, hiệu suất bài gắn sản phẩm.
+\end{itemize}
+
+\subsubsection{Chức năng cho Admin/Moderator}
+\begin{itemize}
+    \item Quản trị người dùng và seller: duyệt/thu hồi quyền seller, khóa/mở khóa tài khoản, đặt lại mật khẩu.
+    \item Kiểm duyệt nội dung: bài viết/video, sản phẩm, bình luận; xử lý báo cáo vi phạm; áp dụng ẩn/xóa/tạm khóa.
+    \item Quản lý danh mục, thuộc tính.
+    \item Giám sát và báo cáo: xem dashboard hệ thống (DAU, MAU, đơn hàng, doanh thu, tỷ lệ lỗi).
+    \item Quản lý thông báo hệ thống.
+\end{itemize}
+
+\subsection{Yêu cầu phi chức năng}
+\begin{itemize}
+    \item \textbf{Usability:} Giao diện thân thiện, người dùng hoàn thành tác vụ chính $\leq$ 3 bước; responsive cho laptop/tablet/mobile; hỗ trợ tìm kiếm và lọc rõ ràng, gợi ý tự động.
+    \item \textbf{Security:} Mật khẩu băm (bcrypt/argon2), bắt buộc độ mạnh: 8–15 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt; hỗ trợ 2FA; mã hóa dữ liệu nhạy cảm (số điện thoại, địa chỉ, token thanh toán); phân quyền rõ ràng theo vai trò; ghi log và audit các thao tác nhạy cảm.
+    \item \textbf{Performance:} Thời gian phản hồi mục tiêu: tải trang 1–3 giây; tìm kiếm/lọc 1–2 giây; thanh toán 5–7 giây; đăng ký/đăng nhập 1–3 giây.
+    \item \textbf{Scalability/Throughput:} Hỗ trợ tối thiểu 1.000 yêu cầu đồng thời mà không suy giảm đáng kể hiệu năng; có thể mở rộng theo chiều ngang cho dịch vụ nội dung và thông báo real-time.
+    \item \textbf{Availability:} Hệ thống sẵn sàng 24/7; có cơ chế giám sát, cảnh báo; phương án phục hồi sự cố (backup/restore) cho CSDL và media.
+\end{itemize}

@@ -1,0 +1,62 @@
+@startuml AD-M3-Seller-ProductsOrders
+!theme plain
+title Activity Diagram - Module 3 (Seller): Sản phẩm & Đơn hàng
+caption Bao gồm: UC3.8 Quản lý sản phẩm, UC3.10 Quản lý đơn hàng (+ gắn dashboard ngữ cảnh)
+
+|Người bán|
+|Hệ thống|
+
+start
+
+|Người bán|
+:Đăng nhập vai trò Seller;
+:Truy cập Dashboard Bán hàng;
+
+|Hệ thống|
+:Hiển thị thống kê nhanh\n(doanh số, lượt xem, đơn mới);
+
+if (Chọn nhánh?) then (Quản lý Sản phẩm)
+  |Hệ thống|
+  :Hiển thị danh sách sản phẩm;
+
+  |Người bán|
+  switch (Hành động sản phẩm?)
+  case (Thêm/Sửa)
+    :Nhập thông tin sản phẩm\n(Tên, Giá, Tồn kho, Ảnh, Biến thể);
+    :Nhấn Lưu;
+
+    |Hệ thống|
+    :Xác thực & lưu sản phẩm;
+  case (Xóa)
+    :Chọn sản phẩm > Xóa;
+
+    |Hệ thống|
+    :Xác nhận & ẩn/xóa sản phẩm;
+  endswitch
+else (Quản lý Đơn hàng)
+  |Hệ thống|
+  :Hiển thị đơn hàng mới;
+
+  |Người bán|
+  :Xem chi tiết đơn;
+
+  switch (Cập nhật trạng thái?)
+  case ("Đang xử lý")
+    :Chuẩn bị hàng;
+  case ("Đang giao")
+    :Bàn giao vận chuyển;
+  case ("Đã giao")
+    :Xác nhận hoàn tất;
+  case ("Đã hủy")
+    :Nhập lý do hủy;
+  endswitch
+
+  |Hệ thống|
+  :Lưu trạng thái mới;
+  :Gửi thông báo cho Người mua;
+endif
+
+stop
+
+@enduml
+

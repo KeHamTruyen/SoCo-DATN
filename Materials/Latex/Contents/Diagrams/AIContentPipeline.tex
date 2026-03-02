@@ -1,0 +1,341 @@
+Phần này trình bày chi tiết thiết kế pipeline tạo nội dung AI cho hệ thống Social Commerce, bao gồm quy trình xây dựng prompt, tiêu chí đánh giá chất lượng kết quả, và chiến lược cải thiện khi kết quả chưa đạt yêu cầu.
+
+\subsection{Tổng quan Pipeline}
+
+Pipeline tạo nội dung AI được thiết kế theo mô hình \textbf{vòng lặp đánh giá -- cải thiện (Evaluate--Refine Loop)}, đảm bảo chất lượng đầu ra trước khi trả kết quả cho người dùng. Pipeline gồm 7 giai đoạn chính:
+
+\begin{enumerate}
+    \item \textbf{Thu nhận đầu vào (Input Collection)}: Thu thập mô tả, ý tưởng, hình ảnh tham khảo và ngữ cảnh từ người dùng.
+    \item \textbf{Phân tích đầu vào (Input Analysis)}: Trích xuất thực thể, xác định giọng điệu, phân loại nội dung.
+    \item \textbf{Xây dựng Prompt (Prompt Construction)}: Tổng hợp tất cả thông tin thành prompt có cấu trúc gửi đến API.
+    \item \textbf{Gọi API (API Invocation)}: Gửi prompt đến Google Gemini API (văn bản, hình ảnh) hoặc Google Veo 2 (video).
+    \item \textbf{Đánh giá chất lượng (Quality Evaluation)}: Chấm điểm kết quả theo các tiêu chí đã định nghĩa.
+    \item \textbf{Quyết định và Cải thiện (Decision \& Refinement)}: Nếu đạt ngưỡng thì trả kết quả; nếu chưa đạt thì sửa prompt và thử lại (tối đa 3 lần).
+    \item \textbf{Trả kết quả và Hỗ trợ chỉnh sửa (Result Delivery \& Editing Support)}: Hiển thị kết quả kèm điểm đánh giá và gợi ý chỉnh sửa cho người dùng.
+\end{enumerate}
+
+% TODO: Thêm hình minh họa pipeline tổng quan
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=\textwidth]{Images/AI-Pipeline-Overview.png}
+%   \caption{Tổng quan Pipeline tạo nội dung AI}
+%   \label{fig:ai-pipeline-overview}
+% \end{figure}
+
+Luồng xử lý tổng quát như sau: Khi người dùng gửi yêu cầu tạo nội dung, hệ thống phân tích đầu vào để hiểu ngữ cảnh và ý định, sau đó xây dựng prompt tối ưu cho từng loại nội dung (văn bản, hình ảnh, video). Kết quả từ API được đánh giá tự động bằng kết hợp \textbf{kiểm tra quy tắc (rule-based checks)} và \textbf{đánh giá bằng AI (AI-based evaluation)}. Nếu điểm đánh giá dưới ngưỡng chấp nhận, hệ thống tự động phân tích điểm yếu, bổ sung ràng buộc vào prompt và gọi lại API. Quy trình lặp tối đa 3 lần trước khi trả về kết quả tốt nhất kèm gợi ý chỉnh sửa.
+
+\subsection{Phân tích đầu vào (Input Analysis)}
+
+Trước khi xây dựng prompt, hệ thống thực hiện phân tích đầu vào để trích xuất thông tin có cấu trúc:
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Thông tin} & \textbf{Mô tả} \\ \hline
+Thực thể chính & Tên sản phẩm, đặc điểm nổi bật, lợi ích, giá cả (nếu có) được trích xuất từ mô tả của người dùng. \\ \hline
+Loại nội dung & Phân loại mục đích: quảng cáo sản phẩm, chia sẻ trải nghiệm, thông tin giáo dục, giải trí, hoặc kết hợp. \\ \hline
+Đối tượng mục tiêu & Xác định từ ngữ cảnh: thông tin hồ sơ người bán, danh mục sản phẩm, lịch sử bài đăng. \\ \hline
+Giọng điệu & Xác định từ từ khóa trong mô tả: chuyên nghiệp, thân thiện, hài hước, sang trọng, trẻ trung. \\ \hline
+Thông tin hình ảnh & Nếu có hình ảnh đầu vào: sử dụng Gemini Vision phân tích nội dung hình ảnh, màu sắc chủ đạo, đối tượng trong ảnh. \\ \hline
+Ngữ cảnh thương hiệu & Lấy từ hồ sơ shop của Seller: tên shop, phong cách, danh mục sản phẩm chính, tone \& voice. \\ \hline
+\end{tabularx}
+\caption{Các thông tin được trích xuất trong giai đoạn Phân tích đầu vào}
+\label{tab:input-analysis}
+\end{table}
+
+\subsection{Xây dựng Prompt (Prompt Engineering)}
+
+\subsubsection{Cấu trúc Prompt tổng quát}
+
+Mỗi prompt gửi đến Google Gemini API được xây dựng theo cấu trúc 5 phần:
+
+\begin{enumerate}
+    \item \textbf{System Instruction}: Định nghĩa vai trò và hành vi của AI (không thay đổi giữa các lần gọi).
+    \item \textbf{Context Block}: Ngữ cảnh nền tảng (Social Commerce), thông tin thương hiệu, đối tượng mục tiêu.
+    \item \textbf{User Input Block}: Mô tả, ý tưởng và hình ảnh tham khảo từ người dùng.
+    \item \textbf{Constraint Block}: Các ràng buộc về độ dài, giọng điệu, định dạng đầu ra, nội dung cần tránh.
+    \item \textbf{Output Format Specification}: Định dạng JSON cụ thể cho đầu ra để dễ parse và đánh giá.
+\end{enumerate}
+
+\subsubsection{Prompt cho nội dung văn bản (Text Generation)}
+
+Prompt tạo văn bản được thiết kế để sinh ra bài viết hoàn chỉnh cho nền tảng Social Commerce:
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Thành phần} & \textbf{Nội dung} \\ \hline
+System Instruction & ``Bạn là chuyên gia sáng tạo nội dung cho nền tảng Social Commerce. Nhiệm vụ: tạo bài viết hấp dẫn, thúc đẩy tương tác và chuyển đổi mua hàng.'' \\ \hline
+Context & Tên shop, danh mục sản phẩm, phong cách thương hiệu, nền tảng (Social Commerce với tính năng mua sắm trực tiếp). \\ \hline
+User Input & Mô tả/ý tưởng người dùng + kết quả phân tích hình ảnh (nếu có). \\ \hline
+Constraints & Độ dài: 100--300 từ; Hashtag: 5--10 cái liên quan; Phải có Call-to-Action; Ngôn ngữ: tiếng Việt; Không sử dụng nội dung nhạy cảm. \\ \hline
+Output Format & JSON: \texttt{\{title, body, hashtags[], callToAction, tone\}}. \\ \hline
+\end{tabularx}
+\caption{Cấu trúc Prompt cho Text Generation}
+\label{tab:prompt-text}
+\end{table}
+
+\subsubsection{Prompt cho hình ảnh (Image Generation)}
+
+Prompt tạo hình ảnh được xây dựng dựa trên nội dung văn bản đã tạo và ngữ cảnh sản phẩm:
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Thành phần} & \textbf{Nội dung} \\ \hline
+System Instruction & ``Tạo hình ảnh quảng cáo chất lượng cao cho nền tảng Social Commerce. Hình ảnh phải bắt mắt, phù hợp với nội dung bài viết và phong cách thương hiệu.'' \\ \hline
+Context & Nội dung bài viết đã tạo (hoặc đang tạo song song), thông tin sản phẩm, phong cách thương hiệu. \\ \hline
+Visual Spec & Phong cách hình ảnh (photorealistic, illustration, minimalist, etc.), bảng màu chủ đạo, bố cục mong muốn. \\ \hline
+Constraints & Tỷ lệ: 1:1 hoặc 4:5 (phù hợp social media); Không chứa text/watermark không mong muốn; Phù hợp với nội dung đã tạo. \\ \hline
+Negative Prompt & Nội dung cần tránh: hình ảnh mờ, biến dạng, không phù hợp, vi phạm bản quyền. \\ \hline
+\end{tabularx}
+\caption{Cấu trúc Prompt cho Image Generation}
+\label{tab:prompt-image}
+\end{table}
+
+\subsubsection{Prompt cho video (Video Generation)}
+
+Prompt tạo video sử dụng Google Veo 2 được thiết kế dựa trên storyboard tự động:
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Thành phần} & \textbf{Nội dung} \\ \hline
+System Instruction & ``Tạo video ngắn quảng cáo hấp dẫn cho nền tảng Social Commerce. Video phải thu hút sự chú ý trong 3 giây đầu tiên.'' \\ \hline
+Context & Nội dung bài viết, hình ảnh đã tạo (làm keyframe tham chiếu), thông tin sản phẩm. \\ \hline
+Storyboard & Mô tả các cảnh chính: cảnh mở đầu (hook), cảnh giới thiệu sản phẩm, cảnh highlight đặc điểm, cảnh Call-to-Action. \\ \hline
+Constraints & Độ dài: 15--30 giây; Chuyển cảnh mượt; Phong cách nhất quán với hình ảnh đã tạo; Phù hợp cho xem trên thiết bị di động. \\ \hline
+Technical Spec & Tỷ lệ: 9:16 (vertical) hoặc 1:1 (square); Tốc độ: phù hợp với nội dung; Không cần audio (sẽ thêm sau). \\ \hline
+\end{tabularx}
+\caption{Cấu trúc Prompt cho Video Generation}
+\label{tab:prompt-video}
+\end{table}
+
+\subsection{Tiêu chí đánh giá chất lượng kết quả}
+
+Sau khi nhận kết quả từ API, hệ thống thực hiện đánh giá chất lượng bằng phương pháp \textbf{kết hợp (hybrid)}: kiểm tra quy tắc tự động (rule-based) cho các tiêu chí có thể đo lường được, và sử dụng chính Gemini API để đánh giá các tiêu chí mang tính chủ quan (AI-based evaluation). Mỗi tiêu chí được chấm trên thang điểm \textbf{1--10}. Điểm tổng hợp là \textbf{trung bình có trọng số (weighted average)} và ngưỡng chấp nhận là \textbf{$\geq$ 7.0/10}.
+
+\subsubsection{Tiêu chí đánh giá nội dung văn bản}
+
+\begin{longtable}{|p{2.8cm}|p{5cm}|p{1.2cm}|p{4.5cm}|}
+\caption{Tiêu chí đánh giá chất lượng nội dung văn bản} \label{tab:eval-text} \\
+\hline
+\textbf{Tiêu chí} & \textbf{Mô tả} & \textbf{Trọng số} & \textbf{Phương pháp đánh giá} \\ \hline
+\endfirsthead
+
+\multicolumn{4}{c}%
+{{\bfseries \tablename\ \thetable{} -- tiếp tục từ trang trước}} \\
+\hline
+\textbf{Tiêu chí} & \textbf{Mô tả} & \textbf{Trọng số} & \textbf{Phương pháp đánh giá} \\ \hline
+\endhead
+
+\hline \multicolumn{4}{|r|}{{Tiếp tục ở trang sau}} \\ \hline
+\endfoot
+
+\hline
+\endlastfoot
+
+Tính liên quan (Relevance) & Nội dung phù hợp với mô tả, ý tưởng và hình ảnh đầu vào của người dùng. & 0.25 & AI-based: Gemini so sánh ngữ nghĩa giữa đầu vào và đầu ra. \\ \hline
+Tính hấp dẫn (Engagement) & Nội dung có sức hút, có hook cảm xúc, câu hỏi gợi mở, hoặc Call-to-Action rõ ràng. & 0.20 & AI-based: Gemini đánh giá engagement potential. \\ \hline
+Cấu trúc hoàn chỉnh (Structure) & Có đầy đủ tiêu đề, nội dung chính, hashtags theo đúng format yêu cầu. & 0.15 & Rule-based: Kiểm tra sự hiện diện của từng trường trong JSON output. \\ \hline
+Độ dài phù hợp (Length) & Nội dung nằm trong khoảng 100--300 từ, phù hợp nền tảng social media. & 0.10 & Rule-based: Đếm số từ, so sánh với khoảng cho phép. \\ \hline
+Chất lượng ngôn ngữ (Language) & Ngữ pháp chính xác, văn phong tự nhiên, giọng điệu phù hợp với yêu cầu. & 0.15 & AI-based: Gemini đánh giá grammar và naturalness. \\ \hline
+Giá trị thương mại (Commercial Value) & Nếu là bài bán hàng: phải highlight lợi ích sản phẩm, tạo nhu cầu mua, có CTA mua hàng. & 0.15 & AI-based: Gemini đánh giá persuasion và commercial intent. \\ \hline
+\end{longtable}
+
+\subsubsection{Tiêu chí đánh giá hình ảnh}
+
+\begin{longtable}{|p{2.8cm}|p{5cm}|p{1.2cm}|p{4.5cm}|}
+\caption{Tiêu chí đánh giá chất lượng hình ảnh} \label{tab:eval-image} \\
+\hline
+\textbf{Tiêu chí} & \textbf{Mô tả} & \textbf{Trọng số} & \textbf{Phương pháp đánh giá} \\ \hline
+\endfirsthead
+
+\multicolumn{4}{c}%
+{{\bfseries \tablename\ \thetable{} -- tiếp tục từ trang trước}} \\
+\hline
+\textbf{Tiêu chí} & \textbf{Mô tả} & \textbf{Trọng số} & \textbf{Phương pháp đánh giá} \\ \hline
+\endhead
+
+\hline \multicolumn{4}{|r|}{{Tiếp tục ở trang sau}} \\ \hline
+\endfoot
+
+\hline
+\endlastfoot
+
+Tính liên quan (Relevance) & Hình ảnh phù hợp với nội dung bài viết và sản phẩm được mô tả. & 0.30 & AI-based: Gemini Vision phân tích hình ảnh và so sánh với context. \\ \hline
+Chất lượng kỹ thuật (Technical Quality) & Độ phân giải đủ cao, không bị mờ, méo, artifact; tỷ lệ khung hình phù hợp. & 0.25 & Rule-based: Kiểm tra resolution, aspect ratio. AI-based: Kiểm tra artifact. \\ \hline
+Tính thẩm mỹ (Aesthetic) & Bố cục cân đối, màu sắc hài hòa, ánh sáng tự nhiên, tổng thể bắt mắt. & 0.25 & AI-based: Gemini Vision đánh giá aesthetic quality. \\ \hline
+Nhất quán thương hiệu (Brand Consistency) & Phong cách hình ảnh phù hợp với tone của thương hiệu và các hình ảnh khác trong bài. & 0.20 & AI-based: Gemini so sánh style với brand profile. \\ \hline
+\end{longtable}
+
+\subsubsection{Tiêu chí đánh giá video}
+
+\begin{longtable}{|p{2.8cm}|p{5cm}|p{1.2cm}|p{4.5cm}|}
+\caption{Tiêu chí đánh giá chất lượng video} \label{tab:eval-video} \\
+\hline
+\textbf{Tiêu chí} & \textbf{Mô tả} & \textbf{Trọng số} & \textbf{Phương pháp đánh giá} \\ \hline
+\endfirsthead
+
+\multicolumn{4}{c}%
+{{\bfseries \tablename\ \thetable{} -- tiếp tục từ trang trước}} \\
+\hline
+\textbf{Tiêu chí} & \textbf{Mô tả} & \textbf{Trọng số} & \textbf{Phương pháp đánh giá} \\ \hline
+\endhead
+
+\hline \multicolumn{4}{|r|}{{Tiếp tục ở trang sau}} \\ \hline
+\endfoot
+
+\hline
+\endlastfoot
+
+Tính mạch lạc (Coherence) & Nội dung video logic, mạch lạc, có cấu trúc mở đầu -- thân -- kết. & 0.25 & AI-based: Gemini phân tích các frame chính và đánh giá narrative flow. \\ \hline
+Chất lượng hình ảnh (Visual Quality) & Chuyển cảnh mượt mà, hình ảnh sắc nét, không bị giật hoặc biến dạng. & 0.25 & AI-based: Gemini đánh giá visual quality trên các frame trích xuất. \\ \hline
+Độ dài phù hợp (Duration) & Video nằm trong khoảng 15--30 giây, phù hợp cho social media. & 0.15 & Rule-based: Kiểm tra duration metadata. \\ \hline
+Tính hấp dẫn (Engagement) & Thu hút sự chú ý ngay từ đầu (3 giây đầu), nội dung compelling, kết thúc ấn tượng. & 0.20 & AI-based: Gemini đánh giá hook strength và overall engagement. \\ \hline
+Nhất quán nội dung (Content Consistency) & Phong cách video nhất quán với hình ảnh và bài viết đã tạo trong cùng bài đăng. & 0.15 & AI-based: Gemini so sánh style giữa video, hình ảnh và text. \\ \hline
+\end{longtable}
+
+\subsubsection{Quy trình đánh giá tự động}
+
+Quy trình đánh giá được thực hiện theo hai bước:
+
+\textbf{Bước 1 -- Kiểm tra quy tắc (Rule-based Checks):} Hệ thống thực hiện các kiểm tra tự động có thể lập trình được:
+\begin{itemize}
+    \item Kiểm tra định dạng JSON output có đúng schema yêu cầu.
+    \item Kiểm tra độ dài nội dung văn bản (100--300 từ).
+    \item Kiểm tra số lượng hashtag (5--10).
+    \item Kiểm tra sự hiện diện của Call-to-Action.
+    \item Kiểm tra tỷ lệ khung hình và độ phân giải hình ảnh.
+    \item Kiểm tra độ dài video (15--30 giây).
+\end{itemize}
+
+Nếu bất kỳ kiểm tra rule-based nào thất bại, tiêu chí tương ứng tự động nhận điểm thấp (1--3) mà không cần gọi AI đánh giá, giúp tiết kiệm chi phí API.
+
+\textbf{Bước 2 -- Đánh giá bằng AI (AI-based Evaluation):} Đối với các tiêu chí mang tính chủ quan, hệ thống gửi một prompt đánh giá đến Gemini API với cấu trúc:
+
+\begin{itemize}
+    \item \textbf{Input}: Đầu vào gốc của người dùng + kết quả vừa tạo.
+    \item \textbf{Rubric}: Bảng tiêu chí đánh giá với mô tả chi tiết cho từng mức điểm.
+    \item \textbf{Output}: JSON chứa điểm số (1--10) và lý do ngắn gọn cho từng tiêu chí.
+\end{itemize}
+
+Điểm tổng hợp được tính theo công thức:
+
+\[
+\text{Score}_{total} = \sum_{i=1}^{n} w_i \times s_i
+\]
+
+trong đó $w_i$ là trọng số và $s_i$ là điểm của tiêu chí thứ $i$. Nếu $\text{Score}_{total} \geq 7.0$, kết quả được coi là đạt yêu cầu.
+
+\subsection{Chiến lược cải thiện kết quả}
+
+Khi điểm đánh giá tổng hợp $< 7.0/10$, hệ thống thực hiện cải thiện tự động theo chiến lược phân tầng:
+
+\subsubsection{Tự động sửa Prompt (Automatic Prompt Refinement)}
+
+Quy trình sửa prompt tự động gồm 3 bước:
+
+\textbf{Bước 1 -- Xác định điểm yếu:} Hệ thống phân tích kết quả đánh giá, xác định tiêu chí nào có điểm thấp nhất (dưới 6/10). Ví dụ: nếu tiêu chí ``Tính hấp dẫn'' chỉ đạt 4/10, đây là tiêu chí cần cải thiện ưu tiên.
+
+\textbf{Bước 2 -- Sinh ràng buộc bổ sung:} Dựa trên tiêu chí yếu, hệ thống áp dụng bảng ánh xạ sau để bổ sung ràng buộc vào prompt:
+
+\begin{longtable}{|p{3cm}|p{5.5cm}|p{5cm}|}
+\caption{Ánh xạ tiêu chí yếu $\rightarrow$ Ràng buộc bổ sung cho Prompt} \label{tab:refinement-map} \\
+\hline
+\textbf{Tiêu chí yếu} & \textbf{Ràng buộc bổ sung vào Prompt} & \textbf{Ví dụ} \\ \hline
+\endfirsthead
+
+\multicolumn{3}{c}%
+{{\bfseries \tablename\ \thetable{} -- tiếp tục từ trang trước}} \\
+\hline
+\textbf{Tiêu chí yếu} & \textbf{Ràng buộc bổ sung vào Prompt} & \textbf{Ví dụ} \\ \hline
+\endhead
+
+\hline \multicolumn{3}{|r|}{{Tiếp tục ở trang sau}} \\ \hline
+\endfoot
+
+\hline
+\endlastfoot
+
+Tính liên quan thấp & Thêm câu: ``Bài viết PHẢI đề cập trực tiếp đến: [danh sách thực thể chính].'' Kèm theo kết quả trước đó và lý do không liên quan. & ``Bài viết PHẢI đề cập trực tiếp đến: kem chống nắng, SPF 50+, bảo vệ da.'' \\ \hline
+Tính hấp dẫn thấp & Thêm: ``Bắt đầu bằng câu hỏi gợi mở hoặc số liệu ấn tượng. Thêm ít nhất 2 emoji liên quan. Kết thúc bằng CTA mạnh mẽ.'' & ``Bạn có biết 80\% người dùng...?'' \\ \hline
+Cấu trúc chưa đạt & Thêm: ``Output PHẢI tuân thủ chính xác JSON schema sau: [schema]. Mỗi trường là BẮT BUỘC.'' & Nhấn mạnh format và ví dụ output mong muốn. \\ \hline
+Ngôn ngữ chưa tốt & Thêm: ``Viết bằng tiếng Việt tự nhiên, tránh dịch máy. Giọng điệu [tone cụ thể]. Không sử dụng thuật ngữ quá chuyên môn.'' & ``Giọng điệu thân thiện, gần gũi như đang tư vấn cho bạn bè.'' \\ \hline
+Giá trị thương mại thấp & Thêm: ``Highlight rõ ràng 3 lợi ích chính của sản phẩm. Tạo cảm giác khan hiếm hoặc ưu đãi. Đưa ra lý do nên mua ngay.'' & ``Ưu đãi chỉ còn 2 ngày! Mua ngay để nhận...'' \\ \hline
+Hình ảnh không liên quan & Bổ sung mô tả chi tiết hơn về đối tượng chính cần xuất hiện trong ảnh, kèm negative prompt mạnh hơn. & ``Hình ảnh PHẢI chứa lọ kem chống nắng ở vị trí trung tâm, nền biển hoặc ngoài trời.'' \\ \hline
+Video thiếu mạch lạc & Bổ sung storyboard chi tiết hơn với mô tả từng cảnh cụ thể, thời lượng từng cảnh, và chuyển cảnh. & ``Cảnh 1 (0--5s): Cận ảnh sản phẩm. Cảnh 2 (5--15s): Demo sử dụng...'' \\ \hline
+\end{longtable}
+
+\textbf{Bước 3 -- Gọi lại API:} Hệ thống gửi prompt đã cải thiện đến API. Kết quả mới được đánh giá lại. Quá trình lặp tối đa \textbf{3 lần (max\_retries = 3)}. Sau mỗi lần lặp, hệ thống theo dõi xem điểm có cải thiện hay không. Nếu điểm không cải thiện sau 2 lần liên tiếp, hệ thống dừng lặp sớm để tránh lãng phí tài nguyên.
+
+\subsubsection{Hỗ trợ chỉnh sửa trực tiếp bởi người dùng}
+
+Sau khi pipeline tự động hoàn tất (dù đạt hay chưa đạt ngưỡng), kết quả được trả về cho người dùng kèm theo:
+
+\begin{itemize}
+    \item \textbf{Điểm đánh giá chi tiết}: Hiển thị điểm từng tiêu chí và điểm tổng hợp dưới dạng trực quan (thanh tiến trình hoặc biểu đồ radar).
+    \item \textbf{Gợi ý cải thiện}: Dựa trên tiêu chí có điểm thấp, hệ thống gợi ý cụ thể cho người dùng.
+    \item \textbf{Công cụ chỉnh sửa}: Tùy theo loại nội dung.
+\end{itemize}
+
+\textbf{Chỉnh sửa nội dung văn bản:}
+\begin{itemize}
+    \item Rich text editor cho phép chỉnh sửa trực tiếp tiêu đề, nội dung, hashtags.
+    \item Nút ``Viết lại đoạn này'' cho phép chọn một phần nội dung và yêu cầu AI viết lại riêng đoạn đó với hướng dẫn cụ thể (ngắn hơn, hấp dẫn hơn, chuyên nghiệp hơn).
+    \item Điều chỉnh giọng điệu: dropdown chọn tone (chuyên nghiệp, thân thiện, hài hước, sang trọng) để AI viết lại toàn bộ theo giọng điệu mới.
+    \item Thêm/bớt hashtags thủ công hoặc yêu cầu AI gợi ý thêm.
+\end{itemize}
+
+\textbf{Chỉnh sửa hình ảnh:}
+\begin{itemize}
+    \item Tạo lại hình ảnh với mô tả cụ thể hơn (người dùng bổ sung yêu cầu).
+    \item Chọn phong cách hình ảnh khác (photorealistic, illustration, flat design, etc.) và tạo lại.
+    \item Giữ hình ảnh hiện tại nhưng yêu cầu AI chỉnh sửa cụ thể (thay đổi màu nền, thêm/bớt đối tượng).
+    \item Tải lên hình ảnh thay thế từ thiết bị.
+\end{itemize}
+
+\textbf{Chỉnh sửa video:}
+\begin{itemize}
+    \item Tạo lại video với mô tả storyboard chi tiết hơn từ người dùng.
+    \item Yêu cầu thay đổi tốc độ, phong cách, hoặc bố cục cảnh.
+    \item Tạo lại chỉ một phần video (ví dụ: chỉ cảnh mở đầu).
+    \item Tải lên video thay thế từ thiết bị.
+\end{itemize}
+
+\subsubsection{Tổng hợp luồng quyết định}
+
+Toàn bộ luồng quyết định của pipeline được tóm tắt như sau:
+
+\begin{enumerate}
+    \item Nhận kết quả từ API $\rightarrow$ Đánh giá chất lượng.
+    \item Nếu \textbf{Score $\geq$ 7.0}: Trả kết quả cho người dùng (trạng thái: \textit{Đạt yêu cầu}).
+    \item Nếu \textbf{Score $<$ 7.0} và \textbf{retry $<$ max\_retries}:
+    \begin{itemize}
+        \item Xác định tiêu chí yếu nhất.
+        \item Bổ sung ràng buộc tương ứng vào prompt.
+        \item Gọi lại API $\rightarrow$ Quay lại bước 1.
+    \end{itemize}
+    \item Nếu \textbf{Score $<$ 7.0} và \textbf{retry $\geq$ max\_retries}:
+    \begin{itemize}
+        \item Chọn kết quả có điểm cao nhất trong tất cả các lần thử.
+        \item Trả kết quả kèm gợi ý chỉnh sửa cụ thể (trạng thái: \textit{Cần chỉnh sửa}).
+        \item Người dùng chỉnh sửa trực tiếp hoặc nhập thêm yêu cầu và tạo lại.
+    \end{itemize}
+\end{enumerate}
+
+% TODO: Thêm hình minh họa luồng quyết định (flowchart)
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=\textwidth]{Images/AI-Pipeline-Decision-Flow.png}
+%   \caption{Luồng quyết định trong Pipeline AI Content Generation}
+%   \label{fig:ai-pipeline-decision}
+% \end{figure}

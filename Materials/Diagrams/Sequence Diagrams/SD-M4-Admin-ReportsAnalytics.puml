@@ -1,0 +1,46 @@
+@startuml
+!theme plain
+title SD-M4-Admin-ReportsAnalytics - Admin - Báo cáo & Thống kê (UC4.3, UC4.4)
+caption Controllers: admin/reports.controller.js, admin/dashboard.controller.js
+
+actor Admin
+participant Frontend
+participant "Admin ReportsController" as AR
+participant "Admin DashboardController" as AD
+database "DB (Reports/Content/Users)" as DB
+
+== Xử lý báo cáo vi phạm (UC4.3) ==
+Admin -> Frontend: Mở danh sách báo cáo
+Frontend -> AR: GET /api/admin/reports?status=pending
+AR -> DB: Query reports
+DB --> AR: List
+AR --> Frontend: Data
+
+Admin -> Frontend: Mở chi tiết report
+Frontend -> AR: GET /api/admin/reports/:id
+AR -> DB: Lấy report + target
+DB --> AR: Data
+AR --> Frontend: Chi tiết
+
+alt Báo cáo hợp lệ
+  Admin -> Frontend: Chọn hành động (Xóa nội dung / Khóa user / Cảnh cáo)
+  Frontend -> AR: POST /api/admin/reports/:id/resolve {action}
+  AR -> DB: Thực thi (xóa/disable/cảnh cáo)
+  DB --> AR: OK
+else Không hợp lệ
+  Frontend -> AR: POST ... {action:"reject"}
+  AR -> DB: Cập nhật status = rejected
+  DB --> AR: OK
+end
+AR --> Frontend: 200
+
+== Thống kê & phân tích (UC4.4) ==
+Admin -> Frontend: Chọn khoảng thời gian
+Frontend -> AD: GET /api/admin/dashboard?range=...
+AD -> DB: Tổng hợp số liệu (users, posts, products, orders)
+DB --> AD: Aggregates
+AD --> Frontend: Metrics + charts data
+Frontend -> Admin: Hiển thị dashboard
+
+@enduml
+

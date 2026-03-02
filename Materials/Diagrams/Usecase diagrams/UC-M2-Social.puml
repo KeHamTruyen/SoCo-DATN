@@ -1,0 +1,37 @@
+@startuml UC-M2-Social
+!theme plain
+left to right direction
+title Use Case Diagram - Module 2: Tương tác Xã hội
+
+actor "Người dùng" as User
+actor "Người bán" as Seller
+Seller --|> User
+
+rectangle "Module 2 - Social Features" {
+  usecase "Xem feed cá nhân hóa" as UC21
+  usecase "Tạo bài đăng\n(văn bản/hình ảnh)" as UC22
+  usecase "Gắn thẻ sản phẩm\ntrong bài đăng" as UC23
+  usecase "Thích/Bình luận bài đăng" as UC24
+  usecase "Theo dõi người dùng khác" as UC25
+  usecase "Nhắn tin 1-1" as UC26
+  usecase "Tham gia & tương tác trong Nhóm" as UC27
+  usecase "Báo cáo nội dung/hành vi" as UC28
+}
+
+User --> UC21
+User --> UC22
+User --> UC24
+User --> UC25
+User --> UC26
+User --> UC27
+User --> UC28
+
+Seller --> UC23
+
+UC23 ..> UC22 : <<extend>>
+UC24 ..> UC21 : <<include>>
+UC27 ..> UC22 : <<include>>
+UC28 ..> UC24 : <<extend>>
+
+@enduml
+

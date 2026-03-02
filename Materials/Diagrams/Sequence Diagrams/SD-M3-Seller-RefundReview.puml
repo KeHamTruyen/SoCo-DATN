@@ -1,0 +1,45 @@
+@startuml
+!theme plain
+title SD-M3-Seller-RefundReview - Seller - Hoàn tiền & Phản hồi đánh giá (UC3.11, UC3.12)
+caption Controllers: order.controller.js (refund flow), review.controller.js, notification
+
+actor Seller
+participant Frontend
+participant "OrderController" as OrderCtl
+participant "ReviewController" as RevCtl
+participant "NotificationService" as Noti
+database "DB (Orders/Reviews)" as DB
+
+== Xử lý hoàn tiền (UC3.11, giả lập) ==
+Seller -> Frontend: Mở yêu cầu hoàn tiền
+Frontend -> OrderCtl: GET /api/seller/refunds
+OrderCtl -> DB: Lấy danh sách yêu cầu
+DB --> OrderCtl: Requests
+OrderCtl --> Frontend: Data
+
+Seller -> Frontend: Chọn yêu cầu
+alt Chấp nhận
+  Frontend -> OrderCtl: POST /api/orders/:id/refund {accept:true}
+  OrderCtl -> DB: Cập nhật trạng thái, ghi lịch sử
+  DB --> OrderCtl: OK
+  OrderCtl -> Noti: Thông báo Buyer hoàn tiền
+  Noti --> Buyer: Refund accepted
+else Từ chối
+  Frontend -> OrderCtl: POST /api/orders/:id/refund {accept:false,reason}
+  OrderCtl -> DB: Ghi lý do từ chối
+  DB --> OrderCtl: OK
+  OrderCtl -> Noti: Thông báo Buyer bị từ chối
+end
+OrderCtl --> Frontend: Kết quả
+
+== Phản hồi đánh giá (UC3.12) ==
+Seller -> Frontend: Chọn review cần phản hồi
+Frontend -> RevCtl: POST /api/reviews/:id/reply {text}
+RevCtl -> DB: Lưu phản hồi gắn với review
+DB --> RevCtl: OK
+RevCtl -> Noti: Thông báo Buyer
+Noti --> Buyer: Shop phản hồi đánh giá
+RevCtl --> Frontend: 201 Created
+
+@enduml
+

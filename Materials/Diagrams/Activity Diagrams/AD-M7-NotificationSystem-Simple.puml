@@ -1,0 +1,137 @@
+@startuml AD-M7-NotificationSystem
+!theme plain
+title Activity Diagram - Module 7: Hệ thống Thông báo
+caption Bao gồm: UC7.1-UC7.4 (Thông báo tương tác, Thông báo mua bán, Quản lý thông báo, Cài đặt)
+
+|Người dùng A|
+|Người dùng B|
+|Hệ thống|
+|Real-time Service|
+
+start
+
+|Người dùng A|
+:Thực hiện tương tác:\n- Thích bài viết\n- Bình luận\n- Theo dõi\n- Nhắc đến (@mention);
+
+|Hệ thống|
+:Phát hiện sự kiện tương tác;
+:Xác định người nhận (B);
+
+if (B đã chặn A?) then (Có)
+  :Không gửi thông báo;
+else (Không)
+  if (B bật thông báo loại này?) then (Có)
+    :Tạo thông báo mới;
+    
+    |Real-time Service|
+    if (B đang online?) then (Có)
+      :Gửi thông báo qua WebSocket;
+      
+      |Người dùng B|
+      :Nhận thông báo real-time;
+      :Hiển thị popup/badge;
+    else (Không)
+      |Hệ thống|
+      :Lưu thông báo để hiển thị sau;
+    endif
+  else (Không)
+    :Bỏ qua;
+  endif
+endif
+
+fork
+  :Người mua đặt hàng;
+  
+  |Hệ thống|
+  :Gửi "Đơn hàng mới" cho Người bán;
+fork again
+  :Người bán xác nhận đơn;
+  
+  |Hệ thống|
+  :Gửi "Đơn đã xác nhận" cho Người mua;
+fork again
+  :Cập nhật trạng thái giao hàng;
+  
+  |Hệ thống|
+  :Gửi thông báo trạng thái cho cả hai;
+fork again
+  :Yêu cầu hoàn tiền;
+  
+  |Hệ thống|
+  :Thông báo cho bên liên quan;
+fork again
+  :Có đánh giá mới;
+  
+  |Hệ thống|
+  :Thông báo cho Người bán;
+end fork
+
+|Người dùng B|
+:Nhấn vào biểu tượng chuông;
+
+|Hệ thống|
+:Hiển thị danh sách thông báo\n(Mới nhất ở trên, chưa đọc được highlight);
+
+|Người dùng B|
+switch (Hành động?)
+case (Xem chi tiết)
+  :Nhấn vào thông báo;
+  
+  |Hệ thống|
+  :Đánh dấu "Đã đọc";
+  :Chuyển đến nội dung liên quan;
+
+case (Đánh dấu đã đọc)
+  :Chọn "Đánh dấu đã đọc";
+  
+  |Hệ thống|
+  :Cập nhật trạng thái;
+  :Giảm số thông báo chưa đọc;
+
+case (Đánh dấu tất cả đã đọc)
+  :Nhấn "Đánh dấu tất cả đã đọc";
+  
+  |Hệ thống|
+  :Cập nhật tất cả thông báo;
+  :Reset badge về 0;
+
+case (Xóa thông báo)
+  :Chọn thông báo > "Xóa";
+  
+  |Hệ thống|
+  :Xóa thông báo khỏi danh sách;
+
+case (Xóa tất cả)
+  :Nhấn "Xóa tất cả";
+  
+  |Hệ thống|
+  :Xác nhận xóa;
+  :Xóa toàn bộ thông báo;
+
+endswitch
+
+|Người dùng B|
+:Vào Cài đặt > Thông báo;
+
+|Hệ thống|
+:Hiển thị tùy chọn thông báo:\n- Thích bài viết [ON/OFF]\n- Bình luận & nhắc tên [ON/OFF]\n- Theo dõi mới [ON/OFF]\n- Đơn hàng [ON/OFF]\n- Đánh giá [ON/OFF]\n- Tin nhắn mới [ON/OFF]\n- Nhận email [ON/OFF];
+
+|Người dùng B|
+:Bật/Tắt từng loại thông báo;
+:Chọn kênh nhận (Web/Email);
+:Nhấn "Lưu cài đặt";
+
+|Hệ thống|
+:Lưu cấu hình;
+:Áp dụng ngay cho các thông báo mới;
+
+stop
+
+note right
+  Hệ thống thông báo sử dụng
+  WebSocket (Socket.io) để
+  gửi thông báo real-time
+end note
+
+@enduml
+

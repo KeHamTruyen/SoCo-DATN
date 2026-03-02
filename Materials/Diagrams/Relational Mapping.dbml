@@ -1,0 +1,206 @@
+// DACN Database Schema - Relational Mapping
+// For use with dbdiagram.io
+
+// Core User Management Tables
+Table users {
+  id uuid [pk]
+  username varchar [unique]
+  email varchar [unique]
+}
+
+Table user_profiles {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+}
+
+Table user_authentications {
+  id uuid [pk]
+  user_id uuid [ref: > users.id, unique]
+}
+
+Table user_follows {
+  id uuid [pk]
+  follower_id uuid [ref: > users.id]
+  following_id uuid [ref: > users.id]
+}
+
+Table user_blocks {
+  id uuid [pk]
+  blocker_id uuid [ref: > users.id]
+  blocked_id uuid [ref: > users.id]
+}
+
+// Notifications
+Table notification_settings {
+  id uuid [pk]
+  user_id uuid [ref: > users.id, unique]
+}
+
+Table notifications {
+  id uuid [pk]
+  from_user_id uuid [ref: > users.id]
+  to_user_id uuid [ref: > users.id]
+}
+
+// Groups
+Table groups {
+  id uuid [pk]
+}
+
+Table group_members {
+  id uuid [pk]
+  group_id uuid [ref: > groups.id]
+  user_id uuid [ref: > users.id]
+}
+
+// Posts
+Table posts {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  original_post_id uuid [ref: > posts.id]
+  group_id uuid [ref: > groups.id]
+  hidden_by uuid [ref: > users.id]
+}
+
+Table post_images {
+  id uuid [pk]
+  post_id uuid [ref: > posts.id]
+}
+
+Table post_likes {
+  id uuid [pk]
+  post_id uuid [ref: > posts.id]
+  user_id uuid [ref: > users.id]
+}
+
+Table post_saves {
+  id uuid [pk]
+  post_id uuid [ref: > posts.id]
+  user_id uuid [ref: > users.id]
+}
+
+Table post_reposts {
+  id uuid [pk]
+  post_id uuid [ref: > posts.id]
+  user_id uuid [ref: > users.id]
+}
+
+Table comments {
+  id uuid [pk]
+  post_id uuid [ref: > posts.id]
+  user_id uuid [ref: > users.id]
+}
+
+// Products
+Table products {
+  id uuid [pk]
+  seller_id uuid [ref: > users.id]
+}
+
+Table product_images {
+  id uuid [pk]
+  product_id uuid [ref: > products.id]
+}
+
+Table product_variants {
+  id uuid [pk]
+  product_id uuid [ref: > products.id]
+}
+
+Table product_variant_options {
+  id uuid [pk]
+  variant_id uuid [ref: > product_variants.id]
+}
+
+// Cart & Orders
+Table carts {
+  id uuid [pk]
+  user_id uuid [ref: > users.id, unique]
+}
+
+Table cart_items {
+  id uuid [pk]
+  cart_id uuid [ref: > carts.id]
+  product_id uuid [ref: > products.id]
+}
+
+Table orders {
+  id uuid [pk]
+  order_number varchar [unique]
+  buyer_id uuid [ref: > users.id]
+  seller_id uuid [ref: > users.id]
+  cancelled_by uuid [ref: > users.id]
+  refund_processed_by uuid [ref: > users.id]
+}
+
+Table order_items {
+  id uuid [pk]
+  order_id uuid [ref: > orders.id]
+  product_id uuid [ref: > products.id]
+  seller_id uuid [ref: > users.id]
+}
+
+Table order_status_history {
+  id uuid [pk]
+  order_id uuid [ref: > orders.id]
+  updated_by uuid [ref: > users.id]
+}
+
+// Reviews
+Table reviews {
+  id uuid [pk]
+  product_id uuid [ref: > products.id]
+  order_id uuid [ref: > orders.id]
+  user_id uuid [ref: > users.id]
+  seller_response_responded_by uuid [ref: > users.id]
+}
+
+Table review_images {
+  id uuid [pk]
+  review_id uuid [ref: > reviews.id]
+}
+
+Table review_helpful_votes {
+  id uuid [pk]
+  review_id uuid [ref: > reviews.id]
+  user_id uuid [ref: > users.id]
+}
+
+// Messages
+Table messages {
+  id uuid [pk]
+  sender_id uuid [ref: > users.id]
+  receiver_id uuid [ref: > users.id]
+  linked_product_id uuid [ref: > products.id]
+}
+
+// AI Content
+Table content_requests {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+}
+
+// Reports
+Table reports {
+  id uuid [pk]
+  reporter_id uuid [ref: > users.id]
+  reviewed_by uuid [ref: > users.id]
+}
+
+Table report_screenshots {
+  id uuid [pk]
+  report_id uuid [ref: > reports.id]
+}
+
+// Admin
+Table admins {
+  id uuid [pk]
+  email varchar [unique]
+}
+
+Table seller_applications {
+  id uuid [pk]
+  user_id uuid [ref: > users.id, unique]
+  reviewed_by uuid [ref: > admins.id]
+}
+

@@ -1,0 +1,30 @@
+@startuml
+!theme plain
+title SD-M1-Profile-SellerUpgrade - Đăng ký trở thành Người bán
+caption Controllers: sellerApplication.controller.js, user.controller.js, emailService
+
+actor "Buyer" as User
+participant Frontend
+participant "SellerApplicationController" as SellerApp
+participant "UserController" as UserCtl
+database "Users DB" as DB
+participant "EmailService" as Mail
+
+User -> Frontend: Nhấn "Trở thành Người bán"
+Frontend -> SellerApp: POST /api/seller/apply {shop info}
+SellerApp -> DB: Lưu hồ sơ ứng tuyển (pending)
+DB --> SellerApp: OK
+SellerApp -> Mail: Gửi email xác minh
+Mail --> User: Email xác minh
+
+User -> Frontend: Xác minh link/OTP
+Frontend -> SellerApp: POST /api/seller/verify {token}
+SellerApp -> DB: Cập nhật trạng thái = approved
+SellerApp -> UserCtl: Cập nhật role = seller
+UserCtl -> DB: Update role
+DB --> UserCtl: OK
+SellerApp --> Frontend: 200 Approved
+Frontend -> User: Điều hướng Dashboard Seller
+
+@enduml
+

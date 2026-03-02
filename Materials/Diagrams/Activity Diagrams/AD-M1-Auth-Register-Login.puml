@@ -1,0 +1,65 @@
+@startuml AD-M1-Auth-Register-Login
+!theme plain
+title Activity Diagram - Module 1 (Auth): Đăng ký & Đăng nhập/2FA
+caption Bao gồm: UC1.1 Đăng ký, UC1.2 Đăng nhập, UC1.3 2FA
+
+|Người dùng|
+|Hệ thống|
+
+start
+
+|Người dùng|
+:Truy cập trang xác thực;
+
+if (Chọn hành động?) then (Đăng ký)
+  |Người dùng|
+  :Nhập email, mật khẩu, thông tin cá nhân;
+
+  |Hệ thống|
+  :Kiểm tra hợp lệ & trùng email;
+  if (Dữ liệu hợp lệ?) then (Có)
+    :Tạo tài khoản mới (Chưa xác thực);
+    :Gửi email/SMS xác thực;
+
+    |Người dùng|
+    :Xác thực qua link/mã;
+
+    |Hệ thống|
+    :Kích hoạt tài khoản;
+    :Hiển thị thông báo thành công;
+  else (Không)
+    :Báo lỗi đăng ký;
+  endif
+else (Đăng nhập)
+  |Người dùng|
+  :Nhập email + mật khẩu;
+
+  |Hệ thống|
+  :Xác thực thông tin;
+  if (Đúng thông tin?) then (Có)
+    if (Bật 2FA?) then (Có)
+      :Gửi mã 2FA (Email/SMS);
+
+      |Người dùng|
+      :Nhập mã 2FA;
+
+      |Hệ thống|
+      if (Mã hợp lệ?) then (Có)
+        :Tạo JWT phiên;
+        :Chuyển đến Trang chủ;
+      else (Không)
+        :Báo lỗi mã 2FA;
+      endif
+    else (Không)
+      :Tạo JWT phiên;
+      :Chuyển đến Trang chủ;
+    endif
+  else (Sai)
+    :Báo lỗi đăng nhập;
+  endif
+endif
+
+stop
+
+@enduml
+

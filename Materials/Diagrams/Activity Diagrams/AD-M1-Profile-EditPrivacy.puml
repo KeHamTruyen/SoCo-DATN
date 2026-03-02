@@ -1,0 +1,46 @@
+@startuml AD-M1-Profile-EditPrivacy
+!theme plain
+title Activity Diagram - Module 1 (Profile): Chỉnh sửa hồ sơ & Quyền riêng tư
+caption Bao gồm: UC1.6 Quản lý hồ sơ, UC1.7 Quyền riêng tư
+
+|Người dùng|
+|Hệ thống|
+
+start
+
+|Người dùng|
+:Đăng nhập thành công;
+:Truy cập Trang cá nhân;
+
+if (Chọn thao tác?) then (Chỉnh sửa hồ sơ)
+  |Hệ thống|
+  :Hiển thị form chỉnh sửa;
+
+  |Người dùng|
+  :Cập nhật thông tin, ảnh đại diện/bìa;
+  :Nhấn "Lưu thay đổi";
+
+  |Hệ thống|
+  :Xác thực dữ liệu & upload ảnh;
+  if (Hợp lệ?) then (Có)
+    :Cập nhật hồ sơ;
+    :Hiển thị phiên bản mới;
+  else (Không)
+    :Báo lỗi theo trường;
+  endif
+else (Cài đặt quyền riêng tư)
+  |Hệ thống|
+  :Hiển thị tùy chọn quyền riêng tư;
+
+  |Người dùng|
+  :Chọn ai xem hồ sơ/bài đăng/nhắn tin;
+  :Nhấn "Lưu cài đặt";
+
+  |Hệ thống|
+  :Lưu cấu hình & áp dụng tức thì;
+endif
+
+stop
+
+@enduml
+

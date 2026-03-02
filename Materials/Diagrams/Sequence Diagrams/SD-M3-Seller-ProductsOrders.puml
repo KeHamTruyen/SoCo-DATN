@@ -1,0 +1,36 @@
+@startuml
+!theme plain
+title SD-M3-Seller-ProductsOrders - Seller - Sản phẩm & Đơn hàng (UC3.8, UC3.10)
+caption Controllers: product.controller.js, order.controller.js, notification
+
+actor Seller
+participant Frontend
+participant "ProductController" as ProdCtl
+participant "OrderController" as OrderCtl
+participant "NotificationService" as Noti
+database "DB (Products/Orders)" as DB
+
+== Quản lý Sản phẩm (UC3.8) ==
+Seller -> Frontend: Thêm/Sửa/Xóa sản phẩm
+Frontend -> ProdCtl: POST/PUT/DELETE /api/products/:id
+ProdCtl -> DB: Lưu/Cập nhật/Xóa (soft delete) sản phẩm + biến thể
+DB --> ProdCtl: OK / lỗi
+ProdCtl --> Frontend: Kết quả hành động
+
+== Quản lý Đơn hàng (UC3.10) ==
+Seller -> Frontend: Mở danh sách đơn mới
+Frontend -> OrderCtl: GET /api/seller/orders
+OrderCtl -> DB: Lấy orders thuộc shop
+DB --> OrderCtl: List
+OrderCtl --> Frontend: Data
+
+Seller -> Frontend: Cập nhật trạng thái đơn
+Frontend -> OrderCtl: PATCH /api/orders/:id {status}
+OrderCtl -> DB: Cập nhật trạng thái + history
+DB --> OrderCtl: OK
+OrderCtl -> Noti: Thông báo Buyer về trạng thái
+Noti --> Buyer: Cập nhật trạng thái đơn
+OrderCtl --> Frontend: 200
+
+@enduml
+

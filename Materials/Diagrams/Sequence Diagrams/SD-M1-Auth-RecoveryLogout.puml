@@ -1,0 +1,40 @@
+@startuml
+!theme plain
+title SD-M1-Auth-RecoveryLogout - Khôi phục mật khẩu & Đăng xuất
+caption Liên quan controllers: auth.controller.js, emailService, token blacklisting (nếu có)
+
+actor User
+participant Frontend
+participant "AuthController" as Auth
+database "Users DB" as DB
+participant "EmailService" as Mail
+participant "Token store" as TokenStore
+
+== Khôi phục mật khẩu (UC1.4) ==
+User -> Frontend: Nhấn "Quên mật khẩu"
+Frontend -> Auth: POST /api/auth/forgot {email}
+Auth -> DB: Kiểm tra email
+DB --> Auth: User?
+alt Không tồn tại
+  Auth --> Frontend: 200 (thông báo chung)
+else Tồn tại
+  Auth -> Mail: Gửi link/OTP reset
+  Mail --> User: Email reset
+  Auth --> Frontend: 200 (đã gửi)
+end
+
+User -> Frontend: Mở link/OTP + nhập mật khẩu mới
+Frontend -> Auth: POST /api/auth/reset {token,newPwd}
+Auth -> DB: Xác thực token + cập nhật mật khẩu
+DB --> Auth: OK
+Auth --> Frontend: 200 Đổi mật khẩu thành công
+
+== Đăng xuất (UC1.5) ==
+User -> Frontend: Nhấn "Đăng xuất"
+Frontend -> Auth: POST /api/auth/logout
+Auth -> TokenStore: (Tùy chọn) blacklist token / clear session
+Auth --> Frontend: 200 Cleared
+Frontend -> User: Chuyển về trang chủ
+
+@enduml
+

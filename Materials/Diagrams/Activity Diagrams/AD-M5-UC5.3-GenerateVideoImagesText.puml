@@ -1,0 +1,89 @@
+@startuml AD-M5-UC5.3-GenerateVideoImagesText
+!theme plain
+title Activity Diagram - UC5.3: Tạo video ngắn, hình ảnh và bài viết từ mô tả, ý tưởng và hình ảnh đầu vào
+caption Tạo nội dung đa phương thức qua Google Gemini API và Google Veo 2
+
+|Người dùng|
+|Hệ thống|
+|AI Service (Gemini API + Veo 2)|
+
+start
+
+|Người dùng|
+:Đăng nhập và mở trình soạn bài đăng;
+:Nhập mô tả/ý tưởng;
+note right: Có thể tải lên hình ảnh đầu vào để tham khảo
+:Nhấn "✨ Tạo video và nội dung đa phương thức với AI";
+
+|Hệ thống|
+:Thu thập mô tả, ý tưởng và hình ảnh đầu vào (nếu có);
+:Gửi đến AI Service;
+
+|AI Service (Gemini API + Veo 2)|
+:Gemini API và Veo 2 phân tích đầu vào;
+:Tạo đồng thời:\n- 1 video ngắn\n- Tối đa 3 hình ảnh\n- 1 bài viết;
+
+|Hệ thống|
+if (AI xử lý thành công?) then (Có)
+  if (Số hình ảnh > 3?) then (Có)
+    :Chỉ giữ lại 3 hình ảnh đầu tiên;
+    :Thông báo cho người dùng;
+  endif
+  
+  :Hiển thị video, hình ảnh và bài viết trong trình soạn thảo;
+  
+  |Người dùng|
+  if (Hài lòng?) then (Có)
+    :Chỉnh sửa nhẹ (nếu cần);
+    :Nhấn "Đăng bài";
+    
+    |Hệ thống|
+    :Lưu và xuất bản bài đăng kèm video và hình ảnh;
+  else (Không)
+    switch (Hành động?)
+    case (Tạo lại)
+      :Nhấn "Tạo lại";
+      
+      |AI Service (Gemini API + Veo 2)|
+      :Tạo phương án mới;
+      
+    case (Tạo lại một phần)
+      |Người dùng|
+      :Yêu cầu tạo lại chỉ video hoặc chỉ hình ảnh;
+      
+      |AI Service (Gemini API + Veo 2)|
+      :Tạo lại phần được yêu cầu;
+      
+    case (Chỉnh sửa thủ công)
+      |Người dùng|
+      :Chỉnh sửa, thay thế hoặc xóa một số nội dung;
+      
+    case (Chỉ sử dụng một phần)
+      |Người dùng|
+      :Chọn chỉ sử dụng video, hình ảnh hoặc bài viết;
+      
+    case (Hủy bỏ)
+      |Người dùng|
+      :Xóa nội dung AI;
+      :Tạo nội dung thủ công;
+    endswitch
+  endif
+else (Không)
+  if (Không thể tạo video?) then (Có)
+    :Chỉ trả về hình ảnh và bài viết;
+    :Thông báo cho người dùng;
+    
+    |Người dùng|
+    :Quyết định sử dụng hoặc tạo lại;
+  else (Lỗi khác)
+    :Hiển thị lỗi "Không thể tạo nội dung lúc này";
+    
+    |Người dùng|
+    :Thử lại hoặc tạo nội dung thủ công;
+  endif
+endif
+
+stop
+
+@enduml
+

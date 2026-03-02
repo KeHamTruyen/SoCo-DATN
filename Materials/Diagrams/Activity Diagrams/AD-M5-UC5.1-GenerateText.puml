@@ -1,0 +1,64 @@
+@startuml AD-M5-UC5.1-GenerateText
+!theme plain
+title Activity Diagram - UC5.1: Tạo bài viết từ mô tả, ý tưởng và hình ảnh sản phẩm
+caption Tạo nội dung bài viết qua Google Gemini API
+
+|Người dùng|
+|Hệ thống|
+|AI Service (Gemini API)|
+
+start
+
+|Người dùng|
+:Đăng nhập và mở trình soạn bài đăng;
+:Nhập mô tả/ý tưởng;
+note right: Có thể tải lên hình ảnh sản phẩm
+:Nhấn "Tạo bài viết với AI";
+
+|Hệ thống|
+:Thu thập mô tả, ý tưởng và hình ảnh (nếu có);
+
+|AI Service (Gemini API)|
+:Gemini API phân tích đầu vào đa phương thức;
+:Tạo bài viết (Tiêu đề, Mô tả, Hashtags);
+
+|Hệ thống|
+if (AI xử lý thành công?) then (Có)
+  :Hiển thị nội dung trong trình soạn thảo;
+  
+  |Người dùng|
+  if (Hài lòng?) then (Có)
+    :Chỉnh sửa nhẹ (nếu cần);
+    :Nhấn "Đăng bài";
+    
+    |Hệ thống|
+    :Lưu và xuất bản bài đăng;
+  else (Không)
+    switch (Hành động?)
+    case (Tạo lại)
+      :Nhấn "Tạo lại";
+      
+      |AI Service (Gemini API)|
+      :Tạo phương án mới;
+      
+    case (Chỉnh sửa thủ công)
+      |Người dùng|
+      :Chỉnh sửa nội dung theo ý muốn;
+      
+    case (Hủy bỏ)
+      |Người dùng|
+      :Xóa nội dung AI;
+      :Viết bài thủ công;
+    endswitch
+  endif
+else (Không)
+  :Hiển thị lỗi "Không thể tạo nội dung lúc này";
+  
+  |Người dùng|
+  :Thử lại hoặc viết thủ công;
+endif
+
+stop
+
+@enduml
+

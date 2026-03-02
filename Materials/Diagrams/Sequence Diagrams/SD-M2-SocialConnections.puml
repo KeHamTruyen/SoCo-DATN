@@ -1,0 +1,50 @@
+@startuml
+!theme plain
+title SD-M2-SocialConnections - Kết nối xã hội (UC2.5-2.8)
+caption Controllers: user.controller.js (follow/block), message.controller.js, group logic (giả lập), report.controller.js
+
+actor "User A" as UA
+actor "User B" as UB
+participant Frontend
+participant "UserController" as UserCtl
+participant "MessageController" as MsgCtl
+participant "ReportController" as ReportCtl
+database "DB (Users/Msgs/Reports)" as DB
+participant "NotificationService" as Noti
+
+== Theo dõi (UC2.5) ==
+UA -> Frontend: Nhấn Follow B
+Frontend -> UserCtl: POST /api/users/:bId/follow
+UserCtl -> DB: Tạo UserFollow
+DB --> UserCtl: OK
+UserCtl -> Noti: Notify B có follower mới
+Noti --> UB: Thông báo follow
+UserCtl --> Frontend: 200 + trạng thái theo dõi
+
+== Nhắn tin 1-1 (UC2.6) ==
+UA -> Frontend: Gửi tin cho B
+Frontend -> MsgCtl: POST /api/messages {to:B, text}
+MsgCtl -> DB: Lưu tin nhắn
+DB --> MsgCtl: OK
+MsgCtl -> Noti: Push realtime qua socket
+Noti --> UB: Tin nhắn mới (socket)
+MsgCtl --> Frontend: 200 + message
+
+== Tham gia nhóm (UC2.7, đơn giản) ==
+UA -> Frontend: Yêu cầu join group G
+Frontend -> UserCtl: POST /api/groups/:gId/join
+UserCtl -> DB: Thêm membership (pending/approved)
+DB --> UserCtl: OK
+UserCtl --> Frontend: 200 (hoặc chờ duyệt)
+
+== Báo cáo vi phạm (UC2.8) ==
+UA -> Frontend: Gửi report đối tượng X
+Frontend -> ReportCtl: POST /api/reports {target,reason}
+ReportCtl -> DB: Lưu báo cáo
+DB --> ReportCtl: OK
+ReportCtl -> Noti: Thông báo Admin
+Noti --> Admin: Báo cáo mới
+ReportCtl --> Frontend: 200 "Đã ghi nhận"
+
+@enduml
+

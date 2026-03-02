@@ -1,0 +1,68 @@
+@startuml
+!theme plain
+title SD-M3-BuyerFlow - Quy trình Buyer (UC3.1-3.7)
+caption Controllers: product.controller.js, cart.controller.js, order.controller.js, review.controller.js, notification
+
+actor Buyer
+participant Frontend
+participant "ProductController" as ProdCtl
+participant "CartController" as CartCtl
+participant "OrderController" as OrderCtl
+participant "ReviewController" as RevCtl
+participant "NotificationService" as Noti
+database "DB (Products/Cart/Orders/Reviews)" as DB
+
+== Tìm kiếm & xem sản phẩm (UC3.1-3.2) ==
+Buyer -> Frontend: Nhập từ khóa/bộ lọc
+Frontend -> ProdCtl: GET /api/products?query=...
+ProdCtl -> DB: Query sản phẩm
+DB --> ProdCtl: Danh sách
+ProdCtl --> Frontend: Results
+Buyer -> Frontend: Xem chi tiết sản phẩm
+Frontend -> ProdCtl: GET /api/products/:id
+ProdCtl -> DB: Lấy chi tiết + biến thể
+DB --> ProdCtl: Chi tiết
+ProdCtl --> Frontend: Data
+
+== Giỏ hàng & Thanh toán (UC3.3-3.5) ==
+Buyer -> Frontend: Thêm vào giỏ
+Frontend -> CartCtl: POST /api/cart/items
+CartCtl -> DB: Lưu cart item
+DB --> CartCtl: OK
+CartCtl --> Frontend: Cart cập nhật
+
+Buyer -> Frontend: Mở giỏ, chỉnh số lượng/xóa
+Frontend -> CartCtl: PATCH/DELETE /api/cart/items/:id
+CartCtl -> DB: Cập nhật cart
+DB --> CartCtl: OK
+
+Buyer -> Frontend: Nhấn "Thanh toán"
+Frontend -> OrderCtl: POST /api/orders {cart}
+OrderCtl -> DB: Kiểm tra tồn kho
+DB --> OrderCtl: OK/Fail
+alt Đủ hàng
+  OrderCtl -> DB: Tạo Order + OrderItems (status=Processing)
+  OrderCtl -> Noti: Gửi notify Người bán
+  Noti --> Seller: Đơn hàng mới
+  OrderCtl --> Frontend: 201 Đặt hàng thành công
+else Hết hàng
+  OrderCtl --> Frontend: 400 cập nhật giỏ
+end
+
+== Theo dõi đơn & Đánh giá (UC3.6-3.7) ==
+Buyer -> Frontend: Mở "Đơn hàng của tôi"
+Frontend -> OrderCtl: GET /api/orders
+OrderCtl -> DB: Lấy list
+DB --> OrderCtl: Orders + trạng thái
+OrderCtl --> Frontend: Data
+
+alt Đơn đã giao
+  Buyer -> Frontend: Gửi đánh giá
+  Frontend -> RevCtl: POST /api/reviews {orderItemId, rating, comment}
+  RevCtl -> DB: Lưu đánh giá
+  DB --> RevCtl: OK
+  RevCtl --> Frontend: 201
+end
+
+@enduml
+

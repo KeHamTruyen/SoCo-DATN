@@ -1,0 +1,58 @@
+@startuml
+!theme plain
+title SD-M7-NotificationSystem - Hệ thống Thông báo (UC7.1-7.4)
+caption Controllers: notification.controller.js, notificationSettings.controller.js, socket service
+
+actor Actor as UserA
+actor Recipient as UserB
+participant Frontend
+participant "NotificationController" as NotiCtl
+participant "NotificationSettingsController" as NotiCfg
+participant "NotificationService (socket)" as Socket
+database "DB (Notifications/Settings)" as DB
+
+== Tạo thông báo tương tác (UC7.1) ==
+UserA -> Frontend: Like/Comment/Follow/mention
+Frontend -> NotiCtl: POST /api/notifications {targetUser, type, refId}
+NotiCtl -> DB: Lưu notification
+DB --> NotiCtl: OK
+NotiCtl -> Socket: Emit to target (UserB)
+alt UserB online & bật loại này
+  Socket --> UserB: Push realtime
+else Offline/đã tắt
+  Socket --> NotiCtl: Không gửi realtime
+end
+
+== Thông báo mua bán (UC7.2) ==
+OrderSystem -> NotiCtl: create status-change notification
+NotiCtl -> DB: Lưu + đẩy Socket
+Socket --> BuyerSeller: Realtime (nếu bật)
+
+== Xem & quản lý thông báo (UC7.3) ==
+UserB -> Frontend: Mở danh sách thông báo
+Frontend -> NotiCtl: GET /api/notifications
+NotiCtl -> DB: Lấy list (sort mới nhất)
+DB --> NotiCtl: Data
+NotiCtl --> Frontend: Notifications
+
+UserB -> Frontend: Đánh dấu đã đọc / Xóa
+Frontend -> NotiCtl: PATCH /api/notifications/:id {read:true} hoặc DELETE
+NotiCtl -> DB: Cập nhật trạng thái
+DB --> NotiCtl: OK
+NotiCtl --> Frontend: 200
+
+== Cài đặt thông báo (UC7.4) ==
+UserB -> Frontend: Mở Settings
+Frontend -> NotiCfg: GET /api/notifications/settings
+NotiCfg -> DB: Lấy cấu hình
+DB --> NotiCfg: Settings
+NotiCfg --> Frontend: Data
+
+UserB -> Frontend: Bật/tắt loại thông báo
+Frontend -> NotiCfg: PUT /api/notifications/settings {options}
+NotiCfg -> DB: Lưu cấu hình
+DB --> NotiCfg: OK
+NotiCfg --> Frontend: 200
+
+@enduml
+

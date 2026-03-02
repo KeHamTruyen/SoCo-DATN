@@ -1,0 +1,25 @@
+@startuml UC-M4-Admin
+!theme plain
+left to right direction
+title Use Case Diagram - Module 4: Hệ thống Quản trị
+
+actor "Quản trị viên" as Admin
+
+rectangle "Module 4 - Admin" {
+  usecase "Quản lý tài khoản người dùng\n(Tìm kiếm/Lọc/Vô hiệu hóa)" as UC41
+  usecase "Quản lý nội dung\n(Bài đăng, Sản phẩm)" as UC42
+  usecase "Xem & xử lý báo cáo vi phạm" as UC43
+  usecase "Xem thống kê & phân tích" as UC44
+}
+
+Admin --> UC41
+Admin --> UC42
+Admin --> UC43
+Admin --> UC44
+
+UC43 ..> UC42 : <<include>>
+UC44 ..> UC41 : <<include>>
+UC44 ..> UC42 : <<include>>
+
+@enduml
+

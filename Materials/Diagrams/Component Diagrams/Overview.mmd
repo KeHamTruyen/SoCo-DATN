@@ -1,0 +1,55 @@
+%%{init: {"theme": "base", "themeVariables": { "primaryColor": "#ffffff", "primaryBorderColor": "#000000", "primaryTextColor": "#000000", "secondaryColor": "#ffffff", "secondaryBorderColor": "#000000", "secondaryTextColor": "#000000", "tertiaryColor": "#ffffff", "tertiaryBorderColor": "#000000", "tertiaryTextColor": "#000000", "lineColor": "#000000", "textColor": "#000000" }}}%%
+graph TB
+    subgraph "VIEW LAYER (Frontend)"
+        View["React.js Application<br/><<view>><br/>- Pages & Components<br/>- State Management<br/>- API Services"]
+    end
+
+    subgraph "CONTROLLER LAYER (Backend)"
+        Controller["Express Controllers<br/><<controller>><br/>- Request Handling<br/>- Response Formatting<br/>- Middleware Chain"]
+    end
+
+    subgraph "SERVICE LAYER (Backend)"
+        Service["Business Services<br/><<service>><br/>- Business Logic<br/>- Data Processing<br/>- External Integrations"]
+    end
+
+    subgraph "MODEL LAYER (Backend)"
+        Model["Sequelize Models<br/><<model>><br/>- Data Models<br/>- Database Schema<br/>- Relationships"]
+    end
+
+    subgraph "DATA STORAGE"
+        PostgreSQL["PostgreSQL<br/><<database>><br/>Primary Database"]
+        Redis["Redis<br/><<cache>><br/>Cache & Sessions"]
+    end
+
+    subgraph "EXTERNAL SERVICES"
+        AI["AI Services<br/>Gemini API & Veo 2"]
+        Storage["Cloudinary<br/>File Storage"]
+        Email["Gmail SMTP<br/>Email Service"]
+        Socket["Socket.IO<br/>Real-time"]
+    end
+
+    %% MVCS Flow
+    View -->|"HTTP/WebSocket"| Controller
+    Controller --> Service
+    Service --> Model
+    Model --> PostgreSQL
+    Service --> Redis
+    Service --> AI
+    Service --> Storage
+    Service --> Email
+    Service --> Socket
+
+    %% Styling (monochrome for printing)
+    classDef view fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef controller fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef service fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef model fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef data fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef external fill:#ffffff,stroke:#000000,stroke-width:2px
+    
+    class View view
+    class Controller controller
+    class Service service
+    class Model model
+    class PostgreSQL,Redis data
+    class AI,Storage,Email,Socket external

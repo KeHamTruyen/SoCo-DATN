@@ -1,0 +1,118 @@
+@startuml AD-M3-BuyerFlow
+!theme plain
+title Activity Diagram - Module 3: Quy trình Mua hàng (Buyer)
+caption Bao gồm: UC3.1-UC3.7 (Tìm kiếm, Xem, Giỏ hàng, Thanh toán, Theo dõi đơn, Đánh giá)
+
+|Người mua|
+|Hệ thống|
+
+start
+
+|Người mua|
+:Truy cập trang Sản phẩm;
+
+|Người mua|
+:Nhập từ khóa tìm kiếm;
+:Áp dụng bộ lọc (Danh mục, Giá, Tags);
+
+|Hệ thống|
+:Truy vấn sản phẩm phù hợp;
+
+if (Có kết quả?) then (Có)
+  :Hiển thị danh sách sản phẩm;
+else (Không)
+  :Hiển thị "Không tìm thấy";
+  stop
+endif
+
+|Người mua|
+:Chọn sản phẩm quan tâm;
+
+|Hệ thống|
+:Hiển thị trang chi tiết\n(Hình ảnh, Mô tả, Giá, Đánh giá);
+
+|Người mua|
+:Xem thông tin sản phẩm;
+:Chọn biến thể (Size, Màu sắc);
+:Chọn số lượng;
+
+if (Muốn mua?) then (Có)
+  :Nhấn "Thêm vào giỏ hàng";
+  
+  |Hệ thống|
+  if (Còn hàng?) then (Có)
+    :Lưu vào giỏ hàng;
+    :Cập nhật icon giỏ hàng;
+  else (Không)
+    :Báo lỗi "Hết hàng";
+  endif
+else (Không)
+  :Tiếp tục xem sản phẩm khác;
+endif
+
+|Người mua|
+:Truy cập Giỏ hàng;
+
+|Hệ thống|
+:Hiển thị danh sách sản phẩm;
+:Tính tổng tiền;
+
+|Người mua|
+while (Điều chỉnh giỏ hàng?)
+  :Cập nhật số lượng / Xóa sản phẩm;
+  
+  |Hệ thống|
+  :Cập nhật tổng tiền;
+endwhile
+
+|Người mua|
+:Nhấn "Thanh toán";
+
+|Hệ thống|
+:Kiểm tra sản phẩm còn hàng;
+
+if (Tất cả còn hàng?) then (Có)
+  :Hiển thị form thanh toán;
+  
+  |Người mua|
+  :Điền địa chỉ giao hàng;
+  :Chọn phương thức thanh toán (giả lập);
+  :Xác nhận đơn hàng;
+  
+  |Hệ thống|
+  :Tạo đơn hàng mới;
+  :Làm rỗng giỏ hàng;
+  :Gửi thông báo cho Người bán;
+  :Hiển thị "Đặt hàng thành công";
+else (Không)
+  :Yêu cầu cập nhật giỏ hàng;
+endif
+
+|Người mua|
+:Vào "Đơn hàng của tôi";
+
+|Hệ thống|
+:Hiển thị danh sách đơn hàng\n(Mã đơn, Trạng thái, Ngày đặt);
+
+|Người mua|
+:Theo dõi trạng thái đơn hàng;
+
+if (Đơn hàng đã giao?) then (Có)
+  |Người mua|
+  :Nhấn "Đánh giá sản phẩm";
+  :Chọn số sao;
+  :Viết nhận xét;
+  :Tải ảnh (tùy chọn);
+  :Nhấn "Gửi đánh giá";
+  
+  |Hệ thống|
+  :Lưu đánh giá;
+  :Hiển thị trên trang sản phẩm;
+else (Không)
+  :Chờ cập nhật từ Người bán;
+endif
+
+stop
+
+@enduml
+

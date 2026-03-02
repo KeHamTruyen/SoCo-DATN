@@ -1,0 +1,52 @@
+@startuml UC-M3-Commerce
+!theme plain
+left to right direction
+title Use Case Diagram - Module 3: Hoạt động Thương mại
+
+actor "Người mua (Buyer)" as Buyer
+actor "Người bán (Seller)" as Seller
+
+rectangle "Buyer Flows" {
+  usecase "Tìm kiếm sản phẩm" as UC31
+  usecase "Xem chi tiết sản phẩm" as UC32
+  usecase "Thêm vào giỏ hàng" as UC33
+  usecase "Quản lý giỏ hàng" as UC34
+  usecase "Thanh toán (giả lập)" as UC35
+  usecase "Theo dõi trạng thái đơn" as UC36
+  usecase "Đánh giá & xếp hạng" as UC37
+}
+
+rectangle "Seller Flows" {
+  usecase "Quản lý sản phẩm\n(Thêm/Sửa/Xóa/biến thể)" as UC38
+  usecase "Xem dashboard hiệu suất" as UC39
+  usecase "Quản lý đơn hàng\n(Cập nhật trạng thái)" as UC310
+  usecase "Xử lý yêu cầu hoàn tiền" as UC311
+  usecase "Phản hồi đánh giá" as UC312
+}
+
+Buyer --> UC31
+Buyer --> UC32
+Buyer --> UC33
+Buyer --> UC34
+Buyer --> UC35
+Buyer --> UC36
+Buyer --> UC37
+
+Seller --> UC38
+Seller --> UC39
+Seller --> UC310
+Seller --> UC311
+Seller --> UC312
+
+UC33 ..> UC32 : <<include>>
+UC34 ..> UC33 : <<include>>
+UC35 ..> UC34 : <<include>>
+UC36 ..> UC35 : <<extend>>
+UC37 ..> UC36 : <<extend>>
+
+UC310 ..> UC35 : <<include>>
+UC311 ..> UC310 : <<extend>>
+UC312 ..> UC37 : <<include>>
+
+@enduml
+

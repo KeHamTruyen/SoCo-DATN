@@ -1,0 +1,285 @@
+Phần này trình bày các Sequence Diagrams mô tả luồng tương tác giữa các thành phần hệ thống (Frontend, Controllers, Services, Database) thông qua các lời gọi API, kiểm tra điều kiện và phản hồi theo từng module. Mỗi module có mô tả tổng quan và các diagram chi tiết với hình ảnh minh họa.
+
+\subsection{Module 1 – Authentication \& Profile}
+
+Module này mô tả luồng tương tác trong xác thực người dùng: đăng ký, đăng nhập với 2FA, khôi phục mật khẩu, quản lý hồ sơ, và nâng cấp lên Seller. Các diagram thể hiện cách Frontend giao tiếp với AuthController, UserController, EmailService và TokenService.
+
+\subsubsection{SD-M1-Auth-RegisterLogin}
+
+Diagram này mô tả chuỗi tương tác trong quá trình đăng ký và đăng nhập, bao gồm ba use case chính.
+
+\textbf{UC1.1 – Đăng ký tài khoản:} Frontend gửi POST \texttt{/api/auth/register} với dữ liệu đăng ký. AuthController kiểm tra email đã tồn tại trong DB chưa. Nếu đã tồn tại, trả về 409 (Conflict). Nếu hợp lệ, AuthController tạo tài khoản với trạng thái \textit{unverified} và vai trò \textit{buyer}, gọi EmailService gửi email xác thực, và trả về 201 (Created).
+
+\textbf{UC1.2 – Đăng nhập:} Frontend gửi POST \texttt{/api/auth/login} với email và mật khẩu. AuthController xác thực thông tin trong DB. Nếu sai/khóa/chưa xác thực, trả về 401/403. Nếu đúng và không bật 2FA, AuthController gọi TokenService tạo JWT, trả về 200 kèm token. Nếu bật 2FA, chuyển sang UC1.3.
+
+\textbf{UC1.3 – Xác thực hai yếu tố (2FA):} AuthController gọi EmailService gửi mã OTP. Người dùng nhập mã OTP, Frontend gửi POST \texttt{/api/auth/verify-2fa}. AuthController kiểm tra mã OTP trong DB. Nếu hợp lệ, tạo JWT và trả về 200. Nếu sai/hết hạn, trả về 401.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Sequence diagrams/SD-M1-Auth-RegisterLogin.png}
+  \caption{Sequence Diagram - Đăng ký và Đăng nhập (SD-M1-Auth-RegisterLogin)}
+\end{figure}
+
+\subsubsection{SD-M1-Auth-RecoveryLogout}
+
+Diagram này mô tả chuỗi tương tác trong quá trình khôi phục mật khẩu và đăng xuất.
+
+\textbf{UC1.4 – Khôi phục mật khẩu:} Frontend gửi POST \texttt{/api/auth/forgot} với email. AuthController kiểm tra email trong DB. Nếu tồn tại, tạo token reset, lưu vào DB và gọi EmailService gửi email. Người dùng mở link/nhập mã và đặt mật khẩu mới. Frontend gửi POST \texttt{/api/auth/reset} với token/mã OTP và mật khẩu mới. AuthController xác thực, hash mật khẩu và cập nhật trong DB, trả về 200.
+
+\textbf{UC1.5 – Đăng xuất:} Frontend gửi POST \texttt{/api/auth/logout} kèm JWT token. AuthController gọi TokenStore blacklist token, trả về 200. Frontend xóa token khỏi local storage và chuyển hướng về Trang chủ.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Sequence diagrams/SD-M1-Auth-RecoveryLogout.png}
+  \caption{Sequence Diagram - Khôi phục mật khẩu và Đăng xuất (SD-M1-Auth-RecoveryLogout)}
+\end{figure}
+
+\subsubsection{SD-M1-Profile-EditPrivacy}
+
+Diagram này mô tả chuỗi tương tác trong quá trình chỉnh sửa hồ sơ và cài đặt quyền riêng tư.
+
+\textbf{UC1.6 – Chỉnh sửa hồ sơ:} Frontend gửi PUT \texttt{/api/users/me} kèm dữ liệu cập nhật, file ảnh (nếu có) và JWT token. UserController xác thực token, nếu có ảnh thì gọi Storage service upload và nhận URL ảnh. UserController cập nhật thông tin trong Users DB, trả về 200 kèm hồ sơ mới.
+
+\textbf{UC1.7 – Quyền riêng tư:} Frontend gửi PUT \texttt{/api/users/privacy} kèm cấu hình quyền riêng tư và JWT token. UserController xác thực token, lưu cấu hình vào Users DB và trả về 200.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Sequence diagrams/SD-M1-Profile-EditPrivacy.png}
+  \caption{Sequence Diagram - Chỉnh sửa hồ sơ và Quyền riêng tư (SD-M1-Profile-EditPrivacy)}
+\end{figure}
+
+\subsubsection{SD-M1-Profile-SellerUpgrade}
+
+Diagram này mô tả chuỗi tương tác trong quá trình đăng ký trở thành người bán.
+
+\textbf{UC1.8 – Đăng ký Người bán:} Frontend gửi POST \texttt{/api/seller/apply} kèm thông tin shop và JWT token. SellerApplicationController xác thực, lưu hồ sơ ứng tuyển với trạng thái \textit{pending} vào DB, gọi EmailService gửi email xác minh. Người dùng xác minh, Frontend gửi POST \texttt{/api/seller/verify} với token/mã OTP. Controller xác thực, cập nhật trạng thái \textit{approved}, gọi UserController cập nhật role thành \textit{seller}, trả về 200. Frontend điều hướng đến Seller Dashboard.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Sequence diagrams/SD-M1-Profile-SellerUpgrade.png}
+  \caption{Sequence Diagram - Đăng ký trở thành Người bán (SD-M1-Profile-SellerUpgrade)}
+\end{figure}
+
+\subsection{Module 2 – Social \& Content}
+
+Module này mô tả luồng tương tác trong tính năng mạng xã hội: xem feed, tạo và tương tác với bài đăng, follow, nhắn tin, tham gia nhóm, báo cáo vi phạm. Các diagram thể hiện cách Frontend giao tiếp với PostController, UserController, MessageController, ReportController, FeedService, ProductController và NotificationService.
+
+\subsubsection{SD-M2-FeedAndPosts}
+
+Diagram này mô tả chuỗi tương tác trong quá trình xem feed, tạo bài đăng và tương tác với nội dung.
+
+\textbf{UC2.1 – Xem Feed:} Frontend gửi GET \texttt{/api/feed} kèm JWT token và tham số phân trang. FeedService xác thực token, truy vấn DB lấy bài đăng từ người đang theo dõi kết hợp gợi ý, trả về danh sách đã sắp xếp. Frontend hiển thị với infinite scroll.
+
+\textbf{UC2.2 và UC2.3 – Tạo bài đăng và gắn thẻ sản phẩm:} Nếu Seller muốn gắn thẻ sản phẩm, Frontend gửi GET \texttt{/api/products/mine} để lấy danh sách sản phẩm. Sau khi chọn sản phẩm, Frontend gửi POST \texttt{/api/posts} kèm nội dung, hình ảnh, danh sách sản phẩm (nếu có) và JWT token. PostController xác thực, kiểm tra nội dung, lưu bài đăng vào DB, gọi NotificationService broadcast thông báo đến followers, trả về 201.
+
+\textbf{UC2.4 – Tương tác với bài đăng:} Frontend gửi POST \texttt{/api/posts/:id/like} hoặc \texttt{/api/posts/:id/comment} kèm nội dung (nếu comment) và JWT token. PostController xác thực, lưu lượt thích/bình luận vào DB, gọi NotificationService gửi thông báo đến chủ sở hữu bài đăng, trả về 200 kèm trạng thái mới.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Sequence diagrams/SD-M2-FeedAndPosts.png}
+  \caption{Sequence Diagram - Feed và Bài đăng (SD-M2-FeedAndPosts)}
+\end{figure}
+
+\subsubsection{SD-M2-SocialConnections}
+
+Diagram này mô tả chuỗi tương tác trong các kết nối xã hội giữa người dùng.
+
+\textbf{UC2.5 – Theo dõi người dùng:} Frontend gửi POST \texttt{/api/users/:bId/follow} kèm JWT token. UserController xác thực, kiểm tra A chưa follow B, tạo mối quan hệ UserFollow trong DB, gọi NotificationService gửi thông báo đến B, trả về 200.
+
+\textbf{UC2.6 – Nhắn tin 1-1:} Frontend gửi POST \texttt{/api/messages} kèm ID người nhận, nội dung và JWT token. MessageController xác thực, kiểm tra B có chặn A không. Nếu không bị chặn, lưu tin nhắn vào DB, gọi NotificationService push real-time đến B qua WebSocket (Socket.io), trả về 200.
+
+\textbf{UC2.7 – Tham gia nhóm:} Frontend gửi POST \texttt{/api/groups/:gId/join} kèm JWT token. UserController xác thực, kiểm tra loại nhóm. Nếu công khai, thêm membership với trạng thái \textit{approved}; nếu riêng tư, thêm với \textit{pending}. Lưu vào DB và trả về 200.
+
+\textbf{UC2.8 – Báo cáo vi phạm:} Frontend gửi POST \texttt{/api/reports} kèm thông tin đối tượng bị báo cáo, lý do, mô tả (nếu có) và JWT token. ReportController xác thực, lưu báo cáo với trạng thái \textit{pending} vào DB, gọi NotificationService thông báo Admin, trả về 200.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Sequence diagrams/SD-M2-SocialConnections.png}
+  \caption{Sequence Diagram - Kết nối Xã hội (SD-M2-SocialConnections)}
+\end{figure}
+
+\subsection{Module 3 – Commerce}
+
+Module này mô tả luồng tương tác trong hệ sinh thái thương mại: hành trình mua hàng của Buyer (tìm kiếm, xem sản phẩm, giỏ hàng, thanh toán, theo dõi đơn hàng, đánh giá) và tác vụ của Seller (quản lý sản phẩm, xử lý đơn hàng, hoàn tiền, phản hồi đánh giá). Các diagram thể hiện cách Frontend giao tiếp với ProductController, CartController, OrderController, ReviewController và NotificationService.
+
+\subsubsection{SD-M3-BuyerFlow}
+
+Diagram này mô tả chuỗi tương tác trong toàn bộ quy trình mua hàng từ góc nhìn của Buyer.
+
+\textbf{UC3.1 và UC3.2 – Tìm kiếm và xem sản phẩm:} Frontend gửi GET \texttt{/api/products?query=...\&filters=...} với tham số tìm kiếm và lọc. ProductController truy vấn DB, trả về danh sách sản phẩm. Frontend hiển thị danh sách. Để xem chi tiết, Frontend gửi GET \texttt{/api/products/:id}. ProductController truy vấn DB lấy chi tiết và biến thể, trả về dữ liệu chi tiết.
+
+\textbf{UC3.3 và UC3.4 – Quản lý giỏ hàng:} Frontend gửi POST \texttt{/api/cart/items} kèm ID sản phẩm, biến thể, số lượng và JWT token. CartController xác thực, kiểm tra tồn kho, lưu cart item vào DB, trả về giỏ hàng đã cập nhật. Để cập nhật/xóa: Frontend gửi PATCH \texttt{/api/cart/items/:id} hoặc DELETE. CartController cập nhật/xóa trong DB, tính lại tổng tiền, trả về giỏ hàng đã cập nhật.
+
+\textbf{UC3.5 – Thanh toán:} Frontend gửi POST \texttt{/api/orders} kèm thông tin giỏ hàng, địa chỉ giao hàng, phương thức thanh toán và JWT token. OrderController xác thực, kiểm tra tồn kho. Nếu đủ hàng, tạo Order với trạng thái \textit{Processing} và OrderItems trong DB, gọi NotificationService gửi thông báo đến Seller, trả về 201. Nếu hết hàng, trả về 400.
+
+\textbf{UC3.6 và UC3.7 – Theo dõi đơn hàng và đánh giá:} Frontend gửi GET \texttt{/api/orders} kèm JWT token. OrderController xác thực, truy vấn DB lấy danh sách đơn hàng của Buyer, trả về danh sách. Khi đơn hàng đã giao (\textit{Delivered}), Frontend gửi POST \texttt{/api/reviews} kèm ID order item, số sao, nhận xét, hình ảnh (nếu có) và JWT token. ReviewController xác thực, lưu đánh giá vào DB, trả về 201.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Sequence diagrams/SD-M3-BuyerFlow.png}
+  \caption{Sequence Diagram - Quy trình Mua hàng (SD-M3-BuyerFlow)}
+\end{figure}
+
+\subsubsection{SD-M3-Seller-ProductsOrders}
+
+Diagram này mô tả chuỗi tương tác trong quá trình quản lý sản phẩm và đơn hàng của Seller.
+
+\textbf{UC3.8 – Quản lý sản phẩm:} Frontend gửi POST \texttt{/api/products} (thêm), PUT \texttt{/api/products/:id} (sửa), hoặc DELETE \texttt{/api/products/:id} (xóa) kèm dữ liệu sản phẩm và JWT token. ProductController xác thực token và vai trò Seller, thực hiện lưu/cập nhật/soft-delete sản phẩm cùng biến thể trong DB, trả về 200/201.
+
+\textbf{UC3.10 – Quản lý đơn hàng:} Frontend gửi GET \texttt{/api/seller/orders} kèm JWT token. OrderController xác thực token và vai trò Seller, truy vấn DB lấy danh sách đơn hàng của shop, trả về danh sách. Để cập nhật trạng thái: Frontend gửi PATCH \texttt{/api/orders/:id} kèm trạng thái mới và JWT token. OrderController xác thực quyền, cập nhật trạng thái và lịch sử trong DB, gọi NotificationService thông báo Buyer, trả về 200.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Sequence diagrams/SD-M3-Seller-ProductsOrders.png}
+  \caption{Sequence Diagram - Quản lý Sản phẩm và Đơn hàng của Seller (SD-M3-Seller-ProductsOrders)}
+\end{figure}
+
+\subsubsection{SD-M3-Seller-RefundReview}
+
+Diagram này mô tả chuỗi tương tác trong quá trình xử lý hoàn tiền và phản hồi đánh giá của Seller.
+
+\textbf{UC3.11 – Xử lý hoàn tiền:} Frontend gửi GET \texttt{/api/seller/refunds} kèm JWT token. OrderController xác thực, truy vấn DB lấy danh sách yêu cầu hoàn tiền, trả về danh sách. Seller quyết định: Frontend gửi POST \texttt{/api/orders/:id/refund} kèm \texttt{\{accept: true/false, reason: "..."\}} và JWT token. OrderController cập nhật trạng thái \textit{Refunded} (nếu chấp nhận) hoặc ghi lý do từ chối, ghi lịch sử, xử lý hoàn tiền (nếu chấp nhận), gọi NotificationService thông báo Buyer, trả về kết quả.
+
+\textbf{UC3.12 – Phản hồi đánh giá:} Frontend gửi POST \texttt{/api/reviews/:id/reply} kèm nội dung phản hồi và JWT token. ReviewController xác thực token và vai trò Seller, lưu phản hồi vào DB, gọi NotificationService thông báo Buyer, trả về 201.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Sequence diagrams/SD-M3-Seller-RefundReview.png}
+  \caption{Sequence Diagram - Hoàn tiền và Phản hồi Đánh giá của Seller (SD-M3-Seller-RefundReview)}
+\end{figure}
+
+\subsection{Module 4 – Admin}
+
+Module này mô tả luồng tương tác trong công cụ quản trị: quản lý tài khoản, quản lý nội dung, xử lý báo cáo vi phạm, và thống kê phân tích. Các diagram thể hiện cách Frontend giao tiếp với Admin Controllers (UsersController, PostsController, ProductsController, ReportsController, DashboardController) và Database.
+
+\subsubsection{SD-M4-Admin-AccountsContent}
+
+Diagram này mô tả chuỗi tương tác trong quá trình quản lý tài khoản và nội dung của Admin.
+
+\textbf{UC4.1 – Quản lý tài khoản:} Frontend gửi GET \texttt{/api/admin/users?filters=...} với tham số lọc và JWT token. Admin UsersController xác thực token và vai trò Admin, truy vấn DB, trả về danh sách người dùng. Để thực hiện hành động: Frontend gửi PATCH \texttt{/api/admin/users/:id} kèm dữ liệu cập nhật (\texttt{\{disabled: true/false\}} hoặc \texttt{\{role: newRole\}}) và JWT token. Controller xác thực quyền, cập nhật trong DB, trả về 200.
+
+\textbf{UC4.2 – Quản lý nội dung:} Frontend gửi GET \texttt{/api/admin/posts} hoặc \texttt{/api/admin/products} kèm JWT token. Admin Controller xác thực token và vai trò Admin, truy vấn DB, trả về danh sách. Để xóa: Frontend gửi DELETE \texttt{/api/admin/posts/:id} hoặc \texttt{/api/admin/products/:id} kèm JWT token. Controller xác thực quyền, xóa/ẩn nội dung trong DB, (tùy chọn) gửi email thông báo, trả về 200.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Sequence diagrams/SD-M4-Admin-AccountsContent.png}
+  \caption{Sequence Diagram - Quản lý Tài khoản và Nội dung của Admin (SD-M4-Admin-AccountsContent)}
+\end{figure}
+
+\subsubsection{SD-M4-Admin-ReportsAnalytics}
+
+Diagram này mô tả chuỗi tương tác trong quá trình xử lý báo cáo và xem thống kê của Admin.
+
+\textbf{UC4.3 – Xử lý báo cáo vi phạm:} Frontend gửi GET \texttt{/api/admin/reports?status=pending} kèm JWT token. Admin ReportsController xác thực, truy vấn DB lấy danh sách báo cáo pending, trả về danh sách. Để xem chi tiết: Frontend gửi GET \texttt{/api/admin/reports/:id}. Controller truy vấn DB, trả về chi tiết. Để xử lý: Frontend gửi POST \texttt{/api/admin/reports/:id/resolve} kèm action và JWT token. Controller xác thực quyền, thực thi hành động trong DB, trả về 200.
+
+\textbf{UC4.4 – Thống kê và phân tích:} Frontend gửi GET \texttt{/api/admin/dashboard?range=...} kèm khoảng thời gian và JWT token. Admin DashboardController xác thực, truy vấn DB tổng hợp số liệu về người dùng, bài đăng, sản phẩm, đơn hàng, xử lý thành metrics và chart data, trả về dữ liệu thống kê.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Sequence diagrams/SD-M4-Admin-ReportsAnalytics.png}
+  \caption{Sequence Diagram - Báo cáo và Thống kê của Admin (SD-M4-Admin-ReportsAnalytics)}
+\end{figure}
+
+\subsection{Module 5 – AI Content Assistant}
+
+Module này mô tả luồng tương tác trong tính năng AI hỗ trợ tạo nội dung đa phương thức, với pipeline bao gồm: AIController, InputAnalyzer (phân tích đầu vào), PromptBuilder (xây dựng prompt), AI Service (Google Gemini API/Google Veo 2), QualityEvaluator (đánh giá chất lượng), và PromptRefiner (cải thiện prompt). Các thành phần phối hợp theo mô hình Evaluate--Refine Loop.
+
+\subsubsection{SD-M5-AIContentCreation}
+
+Diagram này mô tả chuỗi tương tác chi tiết trong quá trình tạo nội dung sử dụng AI, bao gồm pipeline đánh giá -- cải thiện.
+
+\textbf{UC5.1 – Generate Text:} Frontend gửi POST \texttt{/api/ai/generate-text} kèm mô tả, ý tưởng, hình ảnh (nếu có) và JWT token. Chuỗi tương tác:
+
+\begin{enumerate}
+    \item \textbf{AIController} nhận request, xác thực JWT token.
+    \item \textbf{AIController} gọi \textbf{InputAnalyzer.analyze()} với đầu vào người dùng. InputAnalyzer trích xuất thực thể chính, giọng điệu, loại nội dung; nếu có hình ảnh, gọi Gemini Vision API phân tích. Trả về \texttt{AnalysisResult} (entities, tone, contentType, imageContext).
+    \item \textbf{AIController} gọi \textbf{PromptBuilder.buildTextPrompt()} với AnalysisResult và user input. PromptBuilder lấy brand profile từ DB (nếu là Seller), tổng hợp thành prompt 5 phần (System Instruction + Context + User Input + Constraints + Output Format). Trả về \texttt{StructuredPrompt}.
+    \item \textbf{Vòng lặp Evaluate--Refine (tối đa 3 lần):}
+    \begin{itemize}
+        \item AIController gọi \textbf{GeminiAPI.generateContent(prompt)}. Gemini API trả về \texttt{GeneratedText} (JSON: title, body, hashtags, callToAction).
+        \item AIController gọi \textbf{QualityEvaluator.evaluateText()} với user input + generated text. QualityEvaluator thực hiện rule-based checks (format, length, hashtag count) và gọi Gemini API đánh giá (relevance, engagement, language, commercial value). Trả về \texttt{EvaluationResult} (scores per criterion, weightedScore, weakestCriteria, suggestions).
+        \item Nếu \texttt{weightedScore $\geq$ 7.0}: thoát vòng lặp, trả kết quả.
+        \item Nếu \texttt{weightedScore $<$ 7.0}: AIController gọi \textbf{PromptRefiner.refinePrompt()} với prompt hiện tại + EvaluationResult. PromptRefiner bổ sung ràng buộc dựa trên weakestCriteria. Trả về \texttt{RefinedPrompt}. Tiếp tục vòng lặp.
+    \end{itemize}
+    \item \textbf{AIController} trả về 200 kèm \texttt{\{generatedText, evaluationScores, suggestions, status\}} cho Frontend. Status là ``approved'' (đạt ngưỡng) hoặc ``needs\_review'' (cần chỉnh sửa).
+    \item \textbf{Frontend} hiển thị bài viết trong editor kèm điểm đánh giá và gợi ý chỉnh sửa.
+\end{enumerate}
+
+\textbf{UC5.2 – Generate Image + Text:} Frontend gửi POST \texttt{/api/ai/generate-image-text} kèm mô tả, ý tưởng, hình ảnh đầu vào (nếu có) và JWT token. Chuỗi tương tác:
+
+\begin{enumerate}
+    \item \textbf{AIController} xác thực JWT, gọi \textbf{InputAnalyzer.analyze()} (tương tự UC5.1, bổ sung phân tích visual style từ hình ảnh đầu vào).
+    \item \textbf{PromptBuilder.buildTextPrompt()} tạo prompt text. \textbf{Gọi Gemini API} tạo text $\rightarrow$ \textbf{QualityEvaluator.evaluateText()} đánh giá $\rightarrow$ Evaluate--Refine Loop cho text (tối đa 3 lần).
+    \item Sau khi có text đạt chất lượng, \textbf{PromptBuilder.buildImagePrompt()} tạo prompt image sử dụng text đã tạo làm context, kèm visual style, aspect ratio, negative prompt.
+    \item \textbf{Vòng lặp Evaluate--Refine cho Image:}
+    \begin{itemize}
+        \item Gọi \textbf{Gemini API} tạo hình ảnh.
+        \item \textbf{QualityEvaluator.evaluateImage()} đánh giá 4 tiêu chí (relevance, technical quality, aesthetic, brand consistency) sử dụng Gemini Vision.
+        \item Nếu đạt $\geq$ 7.0: thoát. Nếu chưa đạt: \textbf{PromptRefiner.refineImagePrompt()} bổ sung mô tả chi tiết hơn hoặc thay đổi style. Tiếp tục vòng lặp.
+    \end{itemize}
+    \item \textbf{AIController} trả về 200 kèm \texttt{\{generatedText, generatedImage, textScores, imageScores, suggestions\}}.
+    \item \textbf{Frontend} hiển thị bài viết và hình ảnh kèm điểm đánh giá riêng cho từng loại.
+\end{enumerate}
+
+\textbf{UC5.3 – Generate Video + Images + Text:} Frontend gửi POST \texttt{/api/ai/generate-video-images-text} kèm mô tả, ý tưởng, hình ảnh đầu vào (nếu có) và JWT token. Chuỗi tương tác:
+
+\begin{enumerate}
+    \item \textbf{AIController} xác thực JWT, gọi \textbf{InputAnalyzer.analyze()} (bổ sung xác định storyboard concept).
+    \item \textbf{Pipeline tuần tự ba tầng:}
+    \begin{itemize}
+        \item \textbf{Tầng 1 -- Text:} PromptBuilder.buildTextPrompt() $\rightarrow$ Gemini API $\rightarrow$ QualityEvaluator.evaluateText() $\rightarrow$ Evaluate--Refine Loop.
+        \item \textbf{Tầng 2 -- Images:} PromptBuilder.buildImagePrompt() (dùng text làm context) $\rightarrow$ Gemini API tạo tối đa 3 ảnh $\rightarrow$ QualityEvaluator.evaluateImage() cho từng ảnh $\rightarrow$ Evaluate--Refine Loop.
+        \item \textbf{Tầng 3 -- Video:} PromptBuilder.buildVideoPrompt() (dùng text + images làm context, tự động tạo storyboard) $\rightarrow$ Google Veo 2 API $\rightarrow$ QualityEvaluator.evaluateVideo() đánh giá 5 tiêu chí (coherence, visual quality, duration, engagement, content consistency) $\rightarrow$ Evaluate--Refine Loop.
+    \end{itemize}
+    \item Mỗi tầng chạy Evaluate--Refine Loop độc lập (tối đa 3 lần mỗi tầng). Nếu tầng trước đã đạt, kết quả được giữ nguyên khi tạo lại tầng sau.
+    \item \textbf{AIController} trả về 200 kèm \texttt{\{generatedText, generatedImages[], generatedVideo, textScores, imageScores, videoScores, suggestions\}}.
+    \item \textbf{Frontend} hiển thị tất cả nội dung kèm điểm đánh giá từng loại. Người dùng có thể tạo lại riêng từng thành phần.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Sequence diagrams/SD-M5-AIContentCreation.png}
+  \caption{Sequence Diagram - AI Pipeline tạo nội dung với Evaluate--Refine Loop (SD-M5-AIContentCreation)}
+\end{figure}
+
+\subsection{Module 6 – Post Scheduling}
+
+Module này mô tả luồng tương tác trong tính năng lên lịch đăng bài: tạo lịch đăng, quản lý bài đăng đã lên lịch, và tự động xuất bản qua cron job. Các diagram thể hiện cách Frontend giao tiếp với PostController, Database và CronScheduler.
+
+\subsubsection{SD-M6-PostScheduling}
+
+Diagram này mô tả chuỗi tương tác trong quá trình lên lịch đăng bài và quản lý bài đăng đã lên lịch, bao gồm cả tác vụ tự động của cron job.
+
+\textbf{UC6.1 – Lên lịch đăng bài:} Frontend gửi POST \texttt{/api/posts/schedule} kèm nội dung, thời gian xuất bản (publishAt) và JWT token. PostController xác thực, kiểm tra thời gian trong tương lai, lưu bài đăng với trạng thái \textit{scheduled} vào DB, trả về 201.
+
+\textbf{UC6.2 – Quản lý bài đăng đã lên lịch:} Frontend gửi GET \texttt{/api/posts/schedule} kèm JWT token. PostController xác thực, truy vấn DB lấy danh sách bài đăng \textit{scheduled}, trả về danh sách. Để chỉnh sửa: Frontend gửi PUT \texttt{/api/posts/schedule/:id}. Để đăng ngay: Frontend gửi POST \texttt{/api/posts/schedule/:id/publish} (PostController chuyển trạng thái \textit{published}). Để xóa: Frontend gửi DELETE \texttt{/api/posts/schedule/:id}. PostController xử lý trong DB, trả về kết quả.
+
+\textbf{Cron Job – Xuất bản tự động:} CronScheduler chạy định kỳ, truy vấn DB lấy bài viết có trạng thái \textit{scheduled} và thời gian publishAt đã đến. CronScheduler gọi PostController publish từng bài. PostController cập nhật trạng thái \textit{published}, xuất bản lên Feed trong DB, (tùy chọn) gửi thông báo đến tác giả.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Sequence diagrams/SD-M6-PostScheduling.png}
+  \caption{Sequence Diagram - Lên lịch và Điều phối Bài đăng (SD-M6-PostScheduling)}
+\end{figure}
+
+\subsection{Module 7 – Notification}
+
+Module này mô tả luồng tương tác trong hệ thống thông báo: tạo và gửi thông báo (tương tác xã hội, giao dịch), quản lý thông báo (xem, đánh dấu đã đọc, xóa), và cấu hình nhận thông báo. Các diagram thể hiện cách Frontend giao tiếp với NotificationController, NotificationSettingsController, NotificationService (Socket) và Database.
+
+\subsubsection{SD-M7-NotificationSystem}
+
+Diagram này mô tả chuỗi tương tác trong toàn bộ hệ thống thông báo, bao gồm bốn use case chính.
+
+\textbf{UC7.1 – Thông báo tương tác:} Frontend gửi POST \texttt{/api/notifications} kèm targetUser, type, refId và JWT token. NotificationController xác thực, kiểm tra B có chặn A và cài đặt thông báo của B. Nếu cho phép, lưu thông báo vào DB, gọi NotificationService emit qua socket. Nếu B online và bật nhận, push real-time; nếu offline hoặc tắt, lưu để hiển thị sau. Controller trả về 200.
+
+\textbf{UC7.2 – Thông báo giao dịch:} Khi có sự kiện giao dịch, hệ thống gọi NotificationController tạo thông báo. Controller lưu vào DB và gửi qua Socket đến Buyer/Seller. Nếu người nhận online và bật nhận, họ nhận real-time qua WebSocket.
+
+\textbf{UC7.3 – Quản lý thông báo:} Frontend gửi GET \texttt{/api/notifications} kèm JWT token. NotificationController xác thực, truy vấn DB lấy danh sách thông báo (sắp xếp theo thời gian, mới nhất trước), trả về danh sách. Để đánh dấu đã đọc: Frontend gửi PATCH \texttt{/api/notifications/:id} với \texttt{\{read: true\}}. Để xóa: Frontend gửi DELETE \texttt{/api/notifications/:id}. Controller cập nhật/xóa trong DB, trả về 200.
+
+\textbf{UC7.4 – Cài đặt thông báo:} Frontend gửi GET \texttt{/api/notifications/settings} kèm JWT token. NotificationSettingsController xác thực, truy vấn DB lấy cấu hình hiện tại, trả về cấu hình. Để cập nhật: Frontend gửi PUT \texttt{/api/notifications/settings} kèm cấu hình mới và JWT token. Controller xác thực, lưu cấu hình vào DB, trả về 200. Cấu hình được áp dụng ngay lập tức.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Sequence diagrams/SD-M7-NotificationSystem.png}
+  \caption{Sequence Diagram - Hệ thống Thông báo (SD-M7-NotificationSystem)}
+\end{figure}

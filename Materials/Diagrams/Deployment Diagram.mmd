@@ -1,0 +1,105 @@
+%%{init: {"theme": "base", "themeVariables": { "primaryColor": "#ffffff", "primaryBorderColor": "#000000", "primaryTextColor": "#000000", "secondaryColor": "#ffffff", "secondaryBorderColor": "#000000", "secondaryTextColor": "#000000", "tertiaryColor": "#ffffff", "tertiaryBorderColor": "#000000", "tertiaryTextColor": "#000000", "lineColor": "#000000", "textColor": "#000000" }}}%%
+graph TB
+    subgraph "CLIENT LAYER"
+        Desktop["Desktop Browser<br/>Chrome/Firefox/Safari"]
+        Mobile["Mobile Browser<br/>iOS Safari / Android Chrome"]
+        Tablet["Tablet Browser<br/>Responsive UI"]
+    end
+
+    subgraph "CDN LAYER (Optional)"
+        CDN["Cloudflare CDN<br/><<Optional>>"]
+    end
+
+    subgraph "APPLICATION SERVER - Render.com"
+        AppServer["Node.js Runtime<br/><<execution environment>><br/>Node: >=18.0.0"]
+        
+        ReactApp["React Frontend<br/><<static files>>"]
+        
+        ExpressApp["Express API Server<br/><<application>>"]
+        
+        SocketServer["Socket.IO Server<br/><<integrated>>"]
+        
+        CronJobs["Background Jobs<br/><<node-cron>>"]
+    end
+
+    subgraph "DATABASE - PostgreSQL"
+        PostgreSQL["PostgreSQL Database<br/><<managed database>><br/>ORM: Sequelize"]
+    end
+
+    subgraph "EXTERNAL SERVICES"
+        subgraph "AI Services"
+            GeminiAPI["Google Gemini API<br/>& Google Veo 2<br/><<external service>>"]
+        end
+        
+        FileStorage["Cloudinary<br/><<external service>>"]
+        
+        EmailService["Gmail SMTP<br/><<external service>>"]
+        
+        PaymentMock["Payment Simulator<br/><<mock service>>"]
+    end
+
+    subgraph "CI/CD PIPELINE"
+        GitHub["GitHub<br/><<repository>>"]
+    end
+
+    %% Client Connections
+    Desktop -->|"HTTPS (443)<br/>WebSocket (WSS)"| CDN
+    Mobile -->|"HTTPS (443)<br/>WebSocket (WSS)"| CDN
+    Tablet -->|"HTTPS (443)<br/>WebSocket (WSS)"| CDN
+    
+    %% CDN to App
+    CDN -->|"HTTPS (443)<br/>Cache miss"| AppServer
+    
+    %% Direct client to app (bypass CDN for WebSocket)
+    Desktop -.->|"WebSocket<br/>wss://<br/>Notifications"| SocketServer
+    Mobile -.->|"WebSocket<br/>wss://<br/>Notifications"| SocketServer
+    Tablet -.->|"WebSocket<br/>wss://<br/>Notifications"| SocketServer
+    
+    %% App Server Internals
+    AppServer --> ReactApp
+    AppServer --> ExpressApp
+    AppServer --> SocketServer
+    AppServer --> CronJobs
+    
+    %% Express to Socket.IO
+    ExpressApp -.->|"emit events<br/>notifications"| SocketServer
+    CronJobs -.->|"trigger jobs"| ExpressApp
+    
+    %% App to Database
+    ExpressApp -->|"Sequelize ORM<br/>SSL/TLS"| PostgreSQL
+    CronJobs -->|"Query & Update<br/>SSL/TLS"| PostgreSQL
+    
+    %% App to External APIs
+    ExpressApp -->|"HTTPS/REST<br/>API Key Auth"| GeminiAPI
+    
+    %% File Storage
+    ExpressApp -->|"HTTPS/REST<br/>Upload API"| FileStorage
+    
+    %% Email - Notifications
+    ExpressApp -->|"SMTP (587)<br/>TLS<br/>Send notifications"| EmailService
+    
+    %% Payment Simulation
+    ExpressApp -->|"Local call<br/>No network"| PaymentMock
+    
+    %% CI/CD
+    GitHub -->|"Manual deploy<br/>Git clone & npm start"| AppServer
+    
+    %% Styling (monochrome for printing)
+    classDef client fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef cdn fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef server fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef database fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef cache fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef external fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef free fill:#ffffff,stroke:#000000,stroke-width:3px
+    classDef cicd fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef optional fill:#ffffff,stroke:#000000,stroke-width:2px,stroke-dasharray: 5 5
+    
+    class Desktop,Mobile,Tablet client
+    class CDN cdn
+    class AppServer,ReactApp,ExpressApp,SocketServer,CronJobs server
+    class PostgreSQL database
+    class GeminiAPI,FileStorage,EmailService,PaymentMock external
+    class GeminiAPI,FileStorage,EmailService,PaymentMock free
+    class GitHub cicd
+    class CDN optional

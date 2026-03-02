@@ -1,0 +1,337 @@
+\chapter{Hiện thực hệ thống}
+
+Chương này trình bày chi tiết về quá trình hiện thực hệ thống Social Commerce, bao gồm thiết kế giao diện người dùng trên Figma và các phần hiện thực chức năng (sẽ được thực hiện ở giai đoạn 2).
+
+\section{Thiết kế giao diện trên Figma}
+
+Nhóm đã thiết kế toàn bộ giao diện người dùng trên Figma dựa trên yêu cầu đã phân tích và thiết kế hệ thống, theo nguyên tắc responsive cho cả thiết bị di động và máy tính. Các thiết kế được phân chia theo từng module chức năng, mỗi module bao gồm các trang và thành phần giao diện liên quan. Dưới đây là các thiết kế theo từng module:
+
+\subsection{Module 1: Quản lý Người dùng và Xác thực}
+
+Module này bao gồm các giao diện liên quan đến việc đăng ký, đăng nhập, quản lý tài khoản và cài đặt người dùng.
+
+\subsubsection{Trang Đăng ký}
+Giao diện đăng ký tài khoản mới với form đơn giản gồm các trường email, mật khẩu, xác nhận mật khẩu và điều khoản sử dụng.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module1_Register.png}
+\caption{Thiết kế trang Đăng ký}
+\label{fig:figma-module1-register}
+\end{figure}
+
+\subsubsection{Trang Đăng nhập}
+Giao diện đăng nhập với các trường email/username, mật khẩu, tùy chọn "Ghi nhớ đăng nhập", "Quên mật khẩu?". Hệ thống hỗ trợ xác thực hai yếu tố (2FA) qua email: sau khi nhập đúng thông tin đăng nhập, nếu tài khoản đã bật 2FA, hệ thống sẽ gửi mã OTP (One-Time Password) qua email. Người dùng sẽ được chuyển đến giao diện xác minh 2FA, hiển thị form nhập mã OTP 6 chữ số đã được gửi qua email, có đồng hồ đếm ngược thời gian hiệu lực của mã (10 phút), và tùy chọn gửi lại mã nếu cần thiết. Người dùng cần nhập mã OTP này để hoàn tất quá trình đăng nhập, tăng cường bảo mật cho tài khoản.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module1_Login.png}
+\caption{Thiết kế trang Đăng nhập}
+\label{fig:figma-module1-login}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module1_2FA.png}
+\caption{Thiết kế trang Xác minh 2FA}
+\label{fig:figma-module1-2fa}
+\end{figure}
+
+\subsubsection{Trang Quên mật khẩu}
+Giao diện khôi phục mật khẩu theo quy trình: nhập email, xác nhận mã OTP, đặt mật khẩu mới.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module1_ForgotPassword.png}
+\caption{Thiết kế trang Quên mật khẩu}
+\label{fig:figma-module1-forgotpassword}
+\end{figure}
+
+\subsubsection{Trang Hồ sơ cá nhân}
+Giao diện hiển thị hồ sơ người dùng được phân chia thành hai loại tùy theo vai trò:
+
+\textbf{Hồ sơ Người mua (Buyer Profile):} Giao diện cơ bản hiển thị ảnh đại diện, ảnh bìa, thông tin cá nhân (tên, bio, ngày sinh, giới tính), số lượng người theo dõi/đang theo dõi, và các bài đăng của người dùng. Hỗ trợ chỉnh sửa thông tin cá nhân. Đây là giao diện mặc định cho tất cả người dùng khi mới đăng ký tài khoản.
+
+\textbf{Hồ sơ Người bán (Seller Profile):} Ngoài tất cả các tính năng của hồ sơ người mua, hồ sơ người bán còn bao gồm thêm các phần: (1) \textit{Danh sách sản phẩm} - hiển thị các sản phẩm đang bán với hình ảnh, tên, giá và trạng thái; (2) \textit{Đánh giá và nhận xét} - hiển thị các đánh giá từ người mua về chất lượng sản phẩm và dịch vụ, bao gồm điểm đánh giá trung bình và các nhận xét chi tiết. Giao diện này giúp người bán xây dựng uy tín và người mua có thể đánh giá trước khi quyết định mua hàng. Hồ sơ này sẽ được kích hoạt sau khi người dùng đăng ký và được phê duyệt làm người bán.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module1_Profile_Buyer.png}
+\caption{Thiết kế trang Hồ sơ Người mua}
+\label{fig:figma-module1-profile-buyer}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module1_Profile_Seller.png}
+\caption{Thiết kế trang Hồ sơ Người bán}
+\label{fig:figma-module1-profile-seller}
+\end{figure}
+
+\subsubsection{Trang Cài đặt}
+Giao diện cài đặt được tổ chức theo các tab: thông tin cá nhân, bảo mật, quyền riêng tư và thông báo.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module1_Settings.png}
+\caption{Thiết kế trang Cài đặt}
+\label{fig:figma-module1-settings}
+\end{figure}
+
+\subsubsection{Trang Đăng ký Người bán}
+Quy trình đăng ký trở thành người bán bao gồm hai bước:
+
+\textbf{Giao diện giới thiệu:} Trang giới thiệu về lợi ích và cơ hội khi trở thành người bán trên nền tảng, bao gồm các thông tin như: khả năng tiếp cận với cộng đồng người mua lớn, công cụ quản lý cửa hàng tích hợp, hỗ trợ marketing và quảng bá sản phẩm. Trang này cung cấp nút "Bắt đầu đăng ký" để chuyển đến form đăng ký.
+
+\textbf{Giao diện form đăng ký:} Form đăng ký người bán thu thập các thông tin cần thiết bao gồm: tên cửa hàng, mô tả cửa hàng, loại hình kinh doanh, mã số thuế, các giấy tờ pháp lý (tải lên tài liệu xác minh), và các thông tin xác minh khác. Sau khi điền đầy đủ và gửi form, hệ thống sẽ gửi email xác minh và hồ sơ sẽ được xét duyệt bởi quản trị viên.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module1_BecomeSeller_Intro.png}
+\caption{Thiết kế giao diện giới thiệu trở thành Người bán}
+\label{fig:figma-module1-becomeseller-intro}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module1_BecomeSeller_Form.png}
+\caption{Thiết kế form Đăng ký Người bán}
+\label{fig:figma-module1-becomeseller-form}
+\end{figure}
+
+\subsection{Module 2: Tương tác Xã hội}
+
+Module này bao gồm các giao diện cho các tính năng xã hội như bảng tin, tạo bài đăng, tương tác và nhắn tin.
+
+\subsubsection{Trang chủ - Bảng tin}
+Giao diện feed hiển thị bài đăng từ người dùng đang theo dõi, có thanh tạo bài đăng nhanh và sắp xếp theo thuật toán cá nhân hóa.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module2_HomeFeed.png}
+\caption{Thiết kế trang chủ - Bảng tin}
+\label{fig:figma-module2-homefeed}
+\end{figure}
+
+\subsubsection{Giao diện Tạo bài đăng}
+Trình soạn thảo cho phép nhập văn bản, tải hình ảnh, gắn thẻ sản phẩm, lên lịch đăng bài và sử dụng AI tạo nội dung (bao gồm tạo văn bản, hình ảnh và video với AI). Giao diện có hai trạng thái chính:
+
+\textbf{Giao diện mặc định:} Trình soạn thảo cơ bản với các tính năng nhập văn bản, tải hình ảnh, gắn thẻ sản phẩm và các tùy chọn chỉnh sửa thông thường.
+
+\textbf{Giao diện với AI và Lên lịch:} Khi người dùng kích hoạt các tính năng AI hoặc lên lịch đăng bài, giao diện sẽ mở rộng để hiển thị các tùy chọn AI (tạo văn bản, hình ảnh, video) và công cụ lên lịch (chọn ngày, giờ đăng bài). Giao diện này tích hợp đầy đủ các tính năng AI hỗ trợ sáng tạo và lên lịch đăng bài trong một trình soạn thảo duy nhất.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module2_CreatePost.png}
+\caption{Thiết kế giao diện Tạo bài đăng (mặc định)}
+\label{fig:figma-module2-createpost}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module2_CreatePost_AI_Schedule.png}
+\caption{Thiết kế giao diện Tạo bài đăng với AI và Lên lịch}
+\label{fig:figma-module2-createpost-aischedule}
+\end{figure}
+
+\subsubsection{Trang Chi tiết Bài đăng}
+Giao diện hiển thị đầy đủ nội dung, hình ảnh, tương tác (like, comment) và phần bình luận.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module2_PostDetail.png}
+\caption{Thiết kế trang Chi tiết Bài đăng}
+\label{fig:figma-module2-postdetail}
+\end{figure}
+
+\subsubsection{Trang Nhắn tin}
+Giao diện hai cột: danh sách cuộc trò chuyện bên trái, cửa sổ chat bên phải, hỗ trợ gửi văn bản, hình ảnh và hiển thị trạng thái real-time.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module2_Messaging.png}
+\caption{Thiết kế trang Nhắn tin}
+\label{fig:figma-module2-messaging}
+\end{figure}
+
+\subsubsection{Trang Nhóm}
+Giao diện nhóm được chia thành hai phần chính:
+
+\textbf{Giao diện quản lý nhóm:} Trang tổng quan hiển thị danh sách các nhóm đã tham gia với thông tin cơ bản như tên nhóm, ảnh đại diện, số lượng thành viên, và bài đăng gần nhất. Trang này cũng hiển thị phần "Các nhóm đề xuất" - gợi ý các nhóm phù hợp dựa trên sở thích, hoạt động và mối quan hệ của người dùng. Người dùng có thể tìm kiếm nhóm, lọc theo danh mục, và tham gia hoặc rời khỏi nhóm từ giao diện này.
+
+\textbf{Giao diện bên trong nhóm:} Khi truy cập vào một nhóm cụ thể, giao diện hiển thị đầy đủ thông tin nhóm bao gồm ảnh bìa, ảnh đại diện, mô tả nhóm, danh sách thành viên, và các bài đăng trong nhóm. Người dùng có thể tạo bài đăng mới trong nhóm, tương tác với các bài đăng (like, comment), xem thông tin thành viên và quản lý cài đặt nhóm (nếu là quản trị viên). Giao diện này tạo không gian giao tiếp và chia sẻ tập trung cho các thành viên cùng sở thích.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module2_Groups_Management.png}
+\caption{Thiết kế giao diện quản lý nhóm}
+\label{fig:figma-module2-groups-management}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module2_Group_Detail.png}
+\caption{Thiết kế giao diện chi tiết nhóm}
+\label{fig:figma-module2-group-detail}
+\end{figure}
+
+\subsubsection{Trang Tìm kiếm}
+Giao diện tìm kiếm người dùng, bài đăng và nhóm với thanh tìm kiếm gợi ý tự động và tab phân loại kết quả.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module2_Search.png}
+\caption{Thiết kế trang Tìm kiếm}
+\label{fig:figma-module2-search}
+\end{figure}
+
+\subsection{Module 3: Hoạt động Thương mại}
+
+Module này bao gồm các giao diện cho các tính năng thương mại như duyệt sản phẩm, quản lý cửa hàng và thanh toán.
+
+\subsubsection{Trang Khám phá Sản phẩm}
+Giao diện dạng lưới hiển thị sản phẩm với hình ảnh, tên, giá, đánh giá, kèm bộ lọc và sắp xếp.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module3_ProductExplore.png}
+\caption{Thiết kế trang Khám phá Sản phẩm}
+\label{fig:figma-module3-productexplore}
+\end{figure}
+
+\subsubsection{Trang Chi tiết Sản phẩm}
+Giao diện hiển thị đầy đủ hình ảnh (có thể phóng to), mô tả, giá, biến thể (màu sắc, kích thước), thông tin người bán và đánh giá.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module3_ProductDetail.png}
+\caption{Thiết kế trang Chi tiết Sản phẩm}
+\label{fig:figma-module3-productdetail}
+\end{figure}
+
+\subsubsection{Trang Giỏ hàng}
+Giao diện hiển thị danh sách sản phẩm, cho phép chỉnh sửa số lượng, xóa sản phẩm và xem tổng tiền.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module3_Cart.png}
+\caption{Thiết kế trang Giỏ hàng}
+\label{fig:figma-module3-cart}
+\end{figure}
+
+\subsubsection{Trang Thanh toán}
+Giao diện theo các bước: chọn địa chỉ giao hàng, phương thức thanh toán và xác nhận đơn hàng.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module3_Checkout.png}
+\caption{Thiết kế trang Thanh toán}
+\label{fig:figma-module3-checkout}
+\end{figure}
+
+\subsubsection{Trang Quản lý Cửa hàng (Người bán)}
+Dashboard tổng quan gồm quản lý sản phẩm, đơn hàng và thống kê bán hàng.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module3_SellerDashboard.png}
+\caption{Thiết kế trang Quản lý Cửa hàng}
+\label{fig:figma-module3-sellerdashboard}
+\end{figure}
+
+\subsubsection{Trang Tạo/Sửa Sản phẩm}
+Form tạo và chỉnh sửa sản phẩm với các trường: tên, mô tả, giá, hình ảnh, biến thể và danh mục.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module3_CreateProduct.png}
+\caption{Thiết kế trang Tạo/Sửa Sản phẩm}
+\label{fig:figma-module3-createproduct}
+\end{figure}
+
+\subsubsection{Trang Quản lý Đơn hàng}
+Giao diện hiển thị danh sách đơn hàng với các trạng thái (chờ xử lý, đang giao, đã giao, đã hủy), cho phép theo dõi và thực hiện các hành động.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module3_Orders.png}
+\caption{Thiết kế trang Quản lý Đơn hàng}
+\label{fig:figma-module3-orders}
+\end{figure}
+
+\subsection{Module 4: Hệ thống Quản trị}
+
+Module này bao gồm các giao diện dành cho quản trị viên để quản lý hệ thống.
+
+\subsubsection{Trang Dashboard Quản trị}
+Dashboard tổng quan hiển thị thống kê về người dùng, sản phẩm, đơn hàng và báo cáo vi phạm.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module4_AdminDashboard.png}
+\caption{Thiết kế trang Dashboard Quản trị}
+\label{fig:figma-module4-admindashboard}
+\end{figure}
+
+\subsubsection{Trang Quản lý Người dùng}
+Giao diện cho phép xem danh sách, tìm kiếm, lọc và thực hiện các hành động như khóa/mở khóa tài khoản.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module4_UserManagement.png}
+\caption{Thiết kế trang Quản lý Người dùng}
+\label{fig:figma-module4-usermanagement}
+\end{figure}
+
+\subsubsection{Trang Xử lý Báo cáo}
+Giao diện hiển thị danh sách báo cáo vi phạm, cho phép xem chi tiết và thực hiện các hành động như cảnh báo, xóa nội dung hoặc khóa tài khoản.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module4_ReportManagement.png}
+\caption{Thiết kế trang Xử lý Báo cáo}
+\label{fig:figma-module4-reportmanagement}
+\end{figure}
+
+\subsection{Module 6: Quản lý Bài đăng Đã lên lịch}
+
+Module này bao gồm giao diện quản lý các bài đăng đã được lên lịch từ giao diện tạo bài đăng.
+
+\subsubsection{Trang Quản lý Bài đăng Đã lên lịch}
+Giao diện hiển thị danh sách bài đăng đang chờ đăng, cho phép xem, chỉnh sửa hoặc hủy lịch đăng.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module6_ScheduledPosts.png}
+\caption{Thiết kế trang Quản lý Bài đăng Đã lên lịch}
+\label{fig:figma-module6-scheduledposts}
+\end{figure}
+
+\subsection{Module 7: Hệ thống Thông báo}
+
+Module này bao gồm các giao diện cho hệ thống thông báo.
+
+\subsubsection{Trang Thông báo}
+Giao diện hiển thị danh sách thông báo phân loại theo loại (tương tác, thương mại, hệ thống), cho phép đánh dấu đã đọc, lọc và xóa.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Images/Figma/Module7_Notifications.png}
+\caption{Thiết kế trang Thông báo}
+\label{fig:figma-module7-notifications}
+\end{figure}
+
+\subsubsection{Component Thông báo Real-time}
+Popup thông báo real-time hiển thị khi có sự kiện mới, không làm gián đoạn trải nghiệm và có thể đóng dễ dàng.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{Images/Figma/Module7_NotificationPopup.png}
+\caption{Thiết kế Component Thông báo Real-time}
+\label{fig:figma-module7-notificationpopup}
+\end{figure}
+
+\section{Hiện thực chức năng}
+
+Phần hiện thực chức năng sẽ được trình bày chi tiết trong giai đoạn 2 của dự án, bao gồm việc triển khai các module đã được thiết kế ở trên sử dụng các công nghệ đã được nghiên cứu trong chương 4.
+

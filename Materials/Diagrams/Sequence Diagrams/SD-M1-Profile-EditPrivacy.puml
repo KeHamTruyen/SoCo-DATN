@@ -1,0 +1,32 @@
+@startuml
+!theme plain
+title SD-M1-Profile-EditPrivacy - Chỉnh sửa hồ sơ & Quyền riêng tư
+caption Controllers: user.controller.js, notificationSettings.controller.js, storage upload
+
+actor User
+participant Frontend
+participant "UserController" as UserCtl
+database "Users DB" as DB
+participant "Storage (images)" as Storage
+
+== Chỉnh sửa hồ sơ (UC1.6) ==
+User -> Frontend: Mở trang hồ sơ
+User -> Frontend: Cập nhật bio/ảnh
+Frontend -> UserCtl: PUT /api/users/me {bio,... + files}
+UserCtl -> Storage: Upload avatar/cover (nếu có)
+Storage --> UserCtl: URL ảnh
+UserCtl -> DB: Cập nhật hồ sơ + ảnh
+DB --> UserCtl: OK
+UserCtl --> Frontend: 200 + hồ sơ mới
+Frontend -> User: Hiển thị hồ sơ cập nhật
+
+== Quyền riêng tư (UC1.7) ==
+User -> Frontend: Chọn cài đặt quyền riêng tư
+Frontend -> UserCtl: PUT /api/users/privacy {visibility, messaging,...}
+UserCtl -> DB: Lưu cấu hình
+DB --> UserCtl: OK
+UserCtl --> Frontend: 200
+Frontend -> User: Thông báo lưu thành công
+
+@enduml
+

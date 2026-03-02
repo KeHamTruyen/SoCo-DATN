@@ -1,0 +1,99 @@
+@startuml AD-M2-SocialConnections
+!theme plain
+title Activity Diagram - Module 2: Kết nối Xã hội
+caption Bao gồm: UC2.5 Theo dõi, UC2.6 Nhắn tin, UC2.7 Tham gia nhóm, UC2.8 Báo cáo
+
+|Người dùng A|
+|Người dùng B|
+|Hệ thống|
+
+start
+
+|Người dùng A|
+:Đăng nhập thành công;
+
+switch (Chọn tương tác xã hội?)
+case (Theo dõi người khác)
+  |Người dùng A|
+  :Truy cập trang cá nhân của B;
+  :Nhấn nút "Theo dõi";
+  
+  |Hệ thống|
+  :Tạo mối quan hệ Follow;
+  :Cập nhật số người theo dõi của B;
+  :Đổi nút thành "Đang theo dõi";
+  :Gửi thông báo đến B;
+  
+  note right
+    Bài đăng của B sẽ xuất hiện
+    trên Feed của A
+  end note
+
+case (Nhắn tin 1-1)
+  |Người dùng A|
+  :Mở cửa sổ chat với B;
+  :Nhập nội dung tin nhắn;
+  :Nhấn "Gửi";
+  
+  |Hệ thống|
+  if (B đã chặn A?) then (Có)
+    :Báo lỗi không thể gửi;
+    stop
+  else (Không)
+    :Gửi tin nhắn qua Socket.io;
+    :Lưu tin nhắn vào database;
+  endif
+  
+  |Người dùng B|
+  :Nhận tin nhắn real-time;
+  :Xem và trả lời;
+
+case (Tham gia Nhóm)
+  |Người dùng A|
+  :Tìm kiếm hoặc khám phá Nhóm;
+  :Chọn nhóm quan tâm;
+  :Nhấn "Tham gia";
+  
+  |Hệ thống|
+  if (Nhóm công khai?) then (Có)
+    :Thêm A vào danh sách thành viên;
+    :Hiển thị nội dung nhóm;
+  else (Nhóm riêng tư)
+    :Gửi yêu cầu đến Admin nhóm;
+    :Chờ phê duyệt;
+    
+    if (Được phê duyệt?) then (Có)
+      :Thêm A vào nhóm;
+    else (Không)
+      :Thông báo từ chối;
+      stop
+    endif
+  endif
+  
+  |Người dùng A|
+  :Xem và tạo bài đăng trong nhóm;
+
+case (Báo cáo vi phạm)
+  |Người dùng A|
+  :Chọn đối tượng cần báo cáo\n(Bài đăng/Bình luận/Người dùng);
+  :Nhấn "Báo cáo";
+  
+  |Hệ thống|
+  :Hiển thị form chọn lý do;
+  
+  |Người dùng A|
+  :Chọn lý do vi phạm;
+  :Thêm mô tả chi tiết (tùy chọn);
+  :Nhấn "Gửi báo cáo";
+  
+  |Hệ thống|
+  :Lưu báo cáo vào hệ thống;
+  :Thông báo cho Admin xử lý;
+  :Hiển thị "Báo cáo đã được ghi nhận";
+
+endswitch
+
+stop
+
+@enduml
+

@@ -1,0 +1,50 @@
+@startuml
+!theme plain
+title SD-M6-PostScheduling - Lên lịch & Điều phối bài đăng (UC6.1, UC6.2)
+caption Controllers: post.controller.js, cronScheduler.js
+
+actor User
+participant Frontend
+participant "PostController" as PostCtl
+participant "CronScheduler" as Cron
+database "DB (ScheduledPosts/Posts)" as DB
+
+== Lên lịch bài đăng (UC6.1) ==
+User -> Frontend: Soạn bài, chọn thời gian tương lai
+Frontend -> PostCtl: POST /api/posts/schedule {content, publishAt}
+PostCtl -> DB: Lưu bài với status=scheduled
+DB --> PostCtl: OK
+PostCtl --> Frontend: 201 Scheduled
+
+== Quản lý bài đã lên lịch (UC6.2) ==
+User -> Frontend: Mở danh sách đã lên lịch
+Frontend -> PostCtl: GET /api/posts/schedule
+PostCtl -> DB: Lấy scheduled posts
+DB --> PostCtl: List
+PostCtl --> Frontend: Data
+
+alt Chỉnh sửa / Đổi lịch
+  User -> Frontend: Update nội dung/thời gian
+  Frontend -> PostCtl: PUT /api/posts/schedule/:id
+  PostCtl -> DB: Cập nhật
+  DB --> PostCtl: OK
+else Đăng ngay
+  User -> Frontend: Nhấn "Đăng ngay"
+  Frontend -> PostCtl: POST /api/posts/schedule/:id/publish
+  PostCtl -> DB: Chuyển status=published, tạo Post
+  DB --> PostCtl: OK
+else Xóa
+  Frontend -> PostCtl: DELETE /api/posts/schedule/:id
+  PostCtl -> DB: Xóa bản ghi
+end
+PostCtl --> Frontend: Kết quả
+
+== Tác vụ tự động ==
+Cron -> DB: Quét bài đến hạn publish
+DB --> Cron: Danh sách due
+Cron -> PostCtl: Publish từng bài (service nội bộ)
+PostCtl -> DB: Cập nhật status=published
+DB --> PostCtl: OK
+
+@enduml
+

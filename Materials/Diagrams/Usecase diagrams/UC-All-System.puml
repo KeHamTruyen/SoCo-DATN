@@ -1,0 +1,45 @@
+@startuml UC-All-System
+!theme plain
+left to right direction
+title Use Case Diagram - Toàn bộ hệ thống
+
+actor "Người dùng" as User
+actor "Người mua" as Buyer
+actor "Người bán" as Seller
+actor "Quản trị viên" as Admin
+
+Buyer --|> User
+Seller --|> User
+
+rectangle "Nền tảng Social-Commerce" {
+  usecase "Xác thực & Hồ sơ\n(Đăng ký, đăng nhập, 2FA,\nquên mật khẩu, quản lý\nhồ sơ, riêng tư)" as UCAuth
+  usecase "Tương tác xã hội\n(Feed, bài đăng, theo dõi,\nnhắn tin, nhóm, báo cáo)" as UCSocial
+  usecase "Mua sắm\n(Tìm kiếm, giỏ hàng,\ncheckout, theo dõi đơn,\nđánh giá)" as UCCommerceBuyer
+  usecase "Bán hàng\n(Quản lý sản phẩm,\nđơn hàng, hoàn tiền,\nphản hồi đánh giá,\ndashboards)" as UCCommerceSeller
+  usecase "Quản trị hệ thống\n(Tài khoản, nội dung,\nbáo cáo, phân tích)" as UCAdmin
+  usecase "AI hỗ trợ\n(Generate Text, Generate\nImage+Text, Generate\nVideo+Images+Text)" as UCAI
+  usecase "Lên lịch bài đăng\n(Lên lịch, quản lý lịch)" as UCSchedule
+  usecase "Thông báo\n(Tương tác, mua bán,\ntrang danh sách, cài đặt)" as UCNotify
+}
+
+User --> UCAuth
+User --> UCSocial
+User --> UCAI
+User --> UCSchedule
+User --> UCNotify
+
+Buyer --> UCCommerceBuyer
+
+Seller --> UCCommerceSeller
+
+Admin --> UCAdmin
+UCAdmin ..> UCNotify : <<include>>
+
+UCCommerceBuyer ..> UCNotify : <<include>>
+UCCommerceSeller ..> UCNotify : <<include>>
+UCSocial ..> UCNotify : <<include>>
+
+UCAuth ..> UCCommerceSeller : <<extend>>
+
+@enduml
+

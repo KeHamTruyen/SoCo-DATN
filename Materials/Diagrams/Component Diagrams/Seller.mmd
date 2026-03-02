@@ -1,0 +1,80 @@
+%%{init: {"theme": "base", "themeVariables": { "primaryColor": "#ffffff", "primaryBorderColor": "#000000", "primaryTextColor": "#000000", "secondaryColor": "#ffffff", "secondaryBorderColor": "#000000", "secondaryTextColor": "#000000", "tertiaryColor": "#ffffff", "tertiaryBorderColor": "#000000", "tertiaryTextColor": "#000000", "lineColor": "#000000", "textColor": "#000000" }}}%%
+graph TB
+    subgraph "VIEW LAYER"
+        DashboardPage["DashboardPage<br/>Analytics & Orders"]
+        ProductPage["ProductPage<br/>Manage Products"]
+    end
+
+    subgraph "CONTROLLER LAYER"
+        ProductCtrl["ProductController"]
+        OrderCtrl["OrderController"]
+        ReviewCtrl["ReviewController"]
+        PostCtrl["PostController"]
+        AICtrl["AIController"]
+    end
+
+    subgraph "SERVICE LAYER"
+        ProductSvc["ProductService<br/>- CRUD<br/>- Inventory"]
+        OrderSvc["OrderService<br/>- Processing<br/>- Refunds"]
+        ReviewSvc["ReviewService<br/>- Reviews"]
+        PostSvc["PostService<br/>- Product Posts"]
+        AISvc["AIService<br/>- Generate Text<br/>- Generate Image+Text<br/>- Generate Video+Images+Text"]
+    end
+
+    subgraph "MODEL LAYER"
+        Models["Data Models"]
+    end
+
+    subgraph "DATA"
+        PostgreSQL["PostgreSQL"]
+        Redis["Redis"]
+    end
+
+    subgraph "EXTERNAL"
+        Cloudinary["Cloudinary<br/>Images"]
+        GeminiAPI["Gemini API & Veo 2<br/>AI Content Generation"]
+    end
+
+    %% View to Controller
+    DashboardPage -->|"API"| ProductCtrl
+    DashboardPage -->|"API"| OrderCtrl
+    ProductPage -->|"API"| ProductCtrl
+
+    %% Controller to Service
+    ProductCtrl --> ProductSvc
+    OrderCtrl --> OrderSvc
+    ReviewCtrl --> ReviewSvc
+    PostCtrl --> PostSvc
+    AICtrl --> AISvc
+
+    %% Service to Model
+    ProductSvc --> Models
+    OrderSvc --> Models
+    ReviewSvc --> Models
+    PostSvc --> Models
+    AISvc --> Models
+
+    %% Model to Database
+    Models --> PostgreSQL
+    ProductSvc --> Redis
+    OrderSvc --> Redis
+
+    %% External Services
+    ProductSvc --> Cloudinary
+    PostSvc --> Cloudinary
+    AISvc --> GeminiAPI
+
+    %% Styling (monochrome for printing)
+    classDef view fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef controller fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef service fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef model fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef data fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef external fill:#ffffff,stroke:#000000,stroke-width:2px
+    
+    class DashboardPage,ProductPage view
+    class ProductCtrl,OrderCtrl,ReviewCtrl,PostCtrl,AICtrl controller
+    class ProductSvc,OrderSvc,ReviewSvc,PostSvc,AISvc service
+    class Models model
+    class PostgreSQL,Redis data
+    class Cloudinary,GeminiAPI external

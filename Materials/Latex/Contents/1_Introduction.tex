@@ -1,0 +1,81 @@
+\chapter{Giới thiệu}
+Mục tiêu của Chương 1 là giới thiệu đề tài nghiên cứu "Xây dựng Nền tảng Social Commerce tích hợp AI". Chương cũng trình bày động lực phát triển đề tài, phạm vi và mục tiêu dự án, đồng thời giới thiệu cấu trúc tổng thể của báo cáo.
+
+\section{Động lực phát triển}
+Trong bối cảnh nội dung dạng ngắn bùng nổ, TikTok đã gặt hái thành công lớn với mô hình video ngắn hấp dẫn và tiếp tục mở rộng sang thương mại điện tử thông qua TikTok Shop. Tuy nhiên, việc sử dụng TikTok hiện nay chủ yếu diễn ra trên thiết bị di động. Khi truy cập bằng trình duyệt web hoặc trên PC/laptop, người dùng vẫn thường xuyên lựa chọn các mạng xã hội truyền thống như Facebook hay Instagram. Điều này tạo ra một khoảng trống về trải nghiệm nội dung ngắn đi kèm khả năng mua sắm tức thì trên nền tảng web/desktop.
+
+Từ thực tế đó, nhóm chúng tôi mong muốn xây dựng một nền tảng đóng vai trò như “TikTok cho người dùng trình duyệt/PC”. Cụ thể, nền tảng vừa hoạt động như một mạng xã hội tương tự Facebook với tương tác cộng đồng mạnh mẽ, vừa tích hợp luồng mua sắm liền mạch như TikTok Shop ngay trong trải nghiệm web. Sự kết hợp này không chỉ khai thác ưu thế của nội dung ngắn và mua sắm tức thì, mà còn duy trì được chiều sâu tương tác xã hội và mức độ gắn kết cộng đồng mà các nền tảng truyền thống đã xây dựng.
+
+Hiện nay, các mạng xã hội nổi bật về khả năng tạo nội dung và xây dựng cộng đồng nhưng lại hạn chế về thương mại. Ngược lại, các nền tảng thương mại điện tử rất mạnh trong khâu giao dịch nhưng thiếu yếu tố tương tác xã hội và niềm tin cộng đồng. Dự án của chúng tôi hướng đến việc lấp đầy khoảng trống này bằng cách xây dựng một nền tảng thống nhất, kết hợp:
+
+\begin{itemize}
+\item \textbf{Thương mại theo định hướng cộng đồng:} Chuyển đổi tương tác xã hội (like, comment, share) thành động lực thúc đẩy hành vi mua hàng, ngay trong bối cảnh của từng bài đăng.
+\item \textbf{Mô hình buyer-to-seller minh bạch:} Mọi người dùng đều bắt đầu với vai trò người mua và có thể nâng cấp thành người bán thông qua quy trình phê duyệt rõ ràng. Cách tiếp cận này vừa mở rộng nguồn cung, vừa kiểm soát tốt chất lượng.
+\item \textbf{Trải nghiệm thời gian thực:} Các tính năng như chat, thông báo đơn hàng, lịch đăng bài và phản hồi đánh giá được cập nhật theo thời gian thực thông qua Socket.io, đáp ứng kỳ vọng “luôn trực tuyến” của người dùng.
+    \item \textbf{Năng suất nội dung được hỗ trợ bởi AI:} Hệ thống tích hợp Google Gemini API và Google Veo 2 để hỗ trợ tạo nội dung đa phương thức, bao gồm: tạo bài viết từ mô tả, ý tưởng và hình ảnh sản phẩm; tạo đồng thời bài viết và hình ảnh; tạo video ngắn kèm hình ảnh và bài viết. Tính năng này giúp người bán và nhà sáng tạo tiết kiệm thời gian và tạo ra nội dung chất lượng cao.
+\item \textbf{An toàn và đáng tin cậy:} Nền tảng cung cấp cơ chế báo cáo, kiểm duyệt nội dung và phân quyền rõ ràng dựa trên vai trò nhằm giảm thiểu rủi ro gian lận và vi phạm nội dung.
+\end{itemize}
+
+Nền tảng tích hợp bộ công cụ AI phục vụ cả người dùng (gợi ý sản phẩm, cửa hàng, nội dung phù hợp) và người bán (Google Gemini API và Google Veo 2 hỗ trợ sáng tạo nội dung đa phương thức, tối ưu thông điệp, đề xuất khung giờ đăng bài).
+
+\section{Phạm vi và Mục tiêu Dự án}
+Mục tiêu tổng quát của dự án là cung cấp cho người dùng một trải nghiệm liền mạch trong việc khám phá sản phẩm thông qua tương tác xã hội. Để đạt được điều này, nhóm quyết định phát triển một hệ thống phần mềm đóng vai trò là nền tảng social commerce với giao diện thân thiện và khả năng truy cập thuận tiện trên trình duyệt.
+
+Sản phẩm hướng đến trải nghiệm khác biệt, tối ưu các chức năng còn hạn chế và tích hợp những tính năng hữu ích chưa được sử dụng rộng rãi trên thị trường.
+
+Đối với người dùng cuối, ứng dụng web cho phép họ duyệt nội dung, xem sản phẩm, tương tác với bài đăng, mua hàng hoặc tra cứu thông tin mà không bắt buộc phải đăng nhập. Nếu tạo tài khoản và đăng nhập, người dùng có thể lưu lịch sử giao dịch, theo dõi creator yêu thích và đưa ra phản hồi, đánh giá cho các sản phẩm đã mua.
+
+Đối với người bán, hệ thống hỗ trợ nâng cấp tài khoản thông qua quy trình phê duyệt rõ ràng. Sau khi được chấp thuận, người bán có thể tạo danh sách sản phẩm, gắn sản phẩm vào bài đăng, quản lý đơn hàng, phản hồi đánh giá và theo dõi hiệu suất kinh doanh thông qua dashboard chuyên biệt.
+
+Đối với quản trị viên, chỉ các nhân sự được ủy quyền mới có thể truy cập giao diện quản lý. Quản trị viên chịu trách nhiệm quản lý tài khoản người dùng, kiểm duyệt nội dung, xử lý báo cáo, phê duyệt yêu cầu trở thành người bán và phân tích hoạt động hệ thống.
+
+Cách tổ chức trên giúp phân định rõ quyền hạn và trách nhiệm của từng vai trò, đồng thời quản lý dữ liệu người dùng và dữ liệu kinh doanh một cách chặt chẽ, có hệ thống. Nhóm cam kết vận dụng tối đa kiến thức đã học và nỗ lực hoàn thiện hệ thống để mang đến trải nghiệm tốt cho người dùng.
+
+\section{Cấu trúc dự án}
+Phần này trình bày tóm lược nội dung của toàn bộ báo cáo. Cấu trúc từng chương được mô tả như sau:
+
+Chương 1: Giới thiệu
+\begin{itemize}
+\item Phần 1: Trình bày lý do lựa chọn đề tài "Nền tảng Social Commerce tích hợp AI".
+\item Phần 2: Tóm tắt phạm vi và mục tiêu dự án, bao gồm: vấn đề cần giải quyết, đối tượng hướng đến, các chức năng chính của hệ thống và cách người dùng tương tác với hệ thống.
+\end{itemize}
+
+Chương 2: Thu thập và Phân tích Yêu cầu
+\begin{itemize}
+\item Phần 1: Trình bày một số nền tảng social commerce cũng như một số phần mềm quản lý thương mại điện tử hiện tại, cùng với ưu điểm và nhược điểm của chúng.
+\item Phần 2: Liệt kê và mô tả các bên liên quan trong dự án.
+\item Phần 3: Trình bày yêu cầu chức năng cho từng loại người dùng cụ thể và yêu cầu phi chức năng cho toàn bộ hệ thống.
+\end{itemize}
+
+Chương 3: Thiết kế Hệ thống
+\begin{itemize}
+\item Phần 1: Trình bày Use Case Diagram và mô tả chi tiết cho từng use case.
+\item Phần 2: Trình bày Activity Diagram và phần giải thích tương ứng.
+\item Phần 3: Trình bày Sequence Diagram và phần giải thích tương ứng.
+\item Phần 4: Trình bày thiết kế cơ sở dữ liệu cho toàn bộ hệ thống, bao gồm ERD và mô hình ánh xạ quan hệ.
+\item Phần 5: Trình bày Architecture Diagram của dự án cùng phần giải thích.
+\item Phần 6: Trình bày Component Diagram cho toàn bộ hệ thống cùng phần giải thích.
+\item Phần 7: Trình bày Deployment Diagram và giải thích cho từng lớp (layer) triển khai.
+\end{itemize}
+
+Chương 4: Nghiên cứu Công nghệ
+\begin{itemize}
+\item Phần 1: Trình bày và so sánh một số framework front-end, đồng thời nêu rõ framework được lựa chọn.
+\item Phần 2: Trình bày và so sánh một số công nghệ back-end, đồng thời nêu rõ công nghệ được lựa chọn.
+\item Phần 3: Trình bày và so sánh một số hệ quản trị cơ sở dữ liệu, đồng thời nêu rõ phần mềm được lựa chọn.
+\item Phần 4: Trình bày và so sánh một số công cụ kiểm thử API và hiệu năng (performance), đồng thời nêu rõ công cụ được lựa chọn.
+\end{itemize}
+
+Chương 5: Triển khai Hệ thống
+\begin{itemize}
+\item Phần 1: Trình bày sơ đồ UI Flow, thiết kế UI chi tiết và giải thích các bước hoạt động chính.
+\item Phần 2: Minh họa một số giao diện người dùng đã được triển khai trong hệ thống.
+\end{itemize}
+
+Chương 6: Tóm tắt và Kế hoạch Tương lai
+\begin{itemize}
+\item Phần 1: Tóm tắt các kết quả đã đạt được trong quá trình thực hiện dự án.
+\item Phần 2: Đề xuất kế hoạch phát triển và mở rộng dự án trong giai đoạn tiếp theo.
+\end{itemize}
+
+Phụ lục: Trình bày đóng góp của từng thành viên và kế hoạch triển khai công việc chi tiết trong suốt quá trình thực hiện dự án.

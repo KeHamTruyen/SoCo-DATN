@@ -1,0 +1,63 @@
+@startuml AD-M4-Admin-AccountsContent
+!theme plain
+title Activity Diagram - Module 4 (Admin): Tài khoản & Nội dung
+caption Bao gồm: UC4.1 Quản lý tài khoản, UC4.2 Quản lý nội dung
+
+|Quản trị viên|
+|Hệ thống|
+
+start
+
+|Quản trị viên|
+:Đăng nhập Admin & mở Dashboard;
+
+if (Chọn nhánh?) then (Quản lý Tài khoản)
+  |Hệ thống|
+  :Hiển thị danh sách người dùng;
+
+  |Quản trị viên|
+  :Tìm kiếm/Lọc (tên, email, vai trò, trạng thái);
+  :Chọn tài khoản;
+
+  if (Cần hành động?) then (Có)
+    switch (Hành động?)
+    case (Vô hiệu hóa)
+      :Nhấn "Vô hiệu hóa";
+      |Hệ thống|
+      :Cập nhật trạng thái Disabled;
+      :Gửi thông báo email;
+    case (Kích hoạt lại)
+      :Nhấn "Kích hoạt lại";
+      |Hệ thống|
+      :Đặt trạng thái Active;
+    case (Đổi vai trò)
+      :Chọn vai trò mới;
+      |Hệ thống|
+      :Cập nhật role;
+    endswitch
+  else (Không)
+    :Đóng chi tiết tài khoản;
+  endif
+else (Quản lý Nội dung)
+  |Hệ thống|
+  :Hiển thị danh sách nội dung\n(Bài đăng / Sản phẩm);
+
+  |Quản trị viên|
+  :Lọc hoặc tìm kiếm nội dung;
+  :Mở xem chi tiết;
+
+  if (Vi phạm?) then (Có)
+    :Nhấn "Xóa nội dung";
+
+    |Hệ thống|
+    :Xác nhận & xóa khỏi DB;
+    :Thông báo chủ sở hữu;
+  else (Không)
+    :Đóng chi tiết nội dung;
+  endif
+endif
+
+stop
+
+@enduml
+

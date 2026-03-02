@@ -1,0 +1,34 @@
+@startuml UC-M7-Notification
+!theme plain
+left to right direction
+title Use Case Diagram - Module 7: Hệ thống Thông báo
+
+actor "Người dùng" as User
+actor "Người mua" as Buyer
+actor "Người bán" as Seller
+
+Buyer --|> User
+Seller --|> User
+
+rectangle "Module 7 - Notification" {
+  usecase "Nhận thông báo tương tác bài viết\n(Like, Comment, Follow, Mention)" as UC71
+  usecase "Nhận thông báo hoạt động mua bán\n(Đơn mới, trạng thái, hoàn tiền, đánh giá)" as UC72
+  usecase "Xem & quản lý thông báo\n(Danh sách, đánh dấu đọc, xóa)" as UC73
+  usecase "Tùy chỉnh cài đặt thông báo\n(Bật/tắt, email, phân loại)" as UC74
+}
+
+User --> UC71
+User --> UC73
+User --> UC74
+
+Buyer --> UC72
+Seller --> UC72
+
+UC73 ..> UC71 : <<include>>
+UC73 ..> UC72 : <<include>>
+UC74 ..> UC73 : <<extend>>
+UC74 ..> UC71 : <<extend>>
+UC74 ..> UC72 : <<extend>>
+
+@enduml
+

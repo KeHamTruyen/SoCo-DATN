@@ -1,0 +1,355 @@
+%%{init: {"theme": "base", "themeVariables": { "primaryColor": "#ffffff", "primaryBorderColor": "#000000", "primaryTextColor": "#000000", "secondaryColor": "#ffffff", "secondaryBorderColor": "#000000", "secondaryTextColor": "#000000", "tertiaryColor": "#ffffff", "tertiaryBorderColor": "#000000", "tertiaryTextColor": "#000000", "lineColor": "#000000", "textColor": "#000000" }}}%%
+erDiagram
+    %% Core User Management
+    USER ||--|| PROFILE : "has"
+    USER ||--|| AUTHENTICATION : "uses"
+    USER ||--|| NOTIFICATION_SETTINGS : "has"
+    USER ||--o{ SELLER_APPLICATION : "submits"
+    
+    %% Notifications
+    USER ||--o{ NOTIFICATION : "receives"
+    
+    %% Social Features
+    USER ||--o{ POST : "creates"
+    USER ||--o{ COMMENT : "writes"
+    USER }o--o{ USER : "follows"
+    USER }o--o{ GROUP : "member_of"
+    USER }o--o{ MESSAGE : "sends_receives"
+    
+    %% Commerce Features
+    USER ||--o{ PRODUCT : "sells"
+    USER ||--o{ CART : "owns"
+    USER ||--o{ ORDER : "places"
+    USER ||--o{ REVIEW : "writes"
+    
+    %% Post Interactions
+    POST ||--o{ COMMENT : "has"
+    POST }o--o{ PRODUCT : "tags"
+    POST }o--o{ USER : "liked_by"
+    POST }o--o{ GROUP : "posted_in"
+    
+    %% Cart & Orders
+    CART }o--o{ PRODUCT : "contains : quantity, variant, price"
+    ORDER }o--o{ PRODUCT : "contains : quantity, variant, price"
+    ORDER ||--o{ REFUND_REQUEST : "has"
+    
+    %% Product & Reviews
+    PRODUCT ||--o{ REVIEW : "has"
+    
+    %% AI Content
+    USER ||--o{ CONTENT_REQUEST : "creates"
+    
+    %% Scheduling
+    USER }o--o{ POST : "schedules : scheduledDate, status"
+    
+    %% Reports & Admin
+    USER ||--o{ REPORT : "submits"
+    ADMIN }o--o{ USER : "manages"
+    ADMIN }o--o{ REPORT : "processes"
+    
+    %% Entity Definitions
+    USER {
+        string userId PK
+        string email UK
+        string password
+        string username
+        string fullName
+        string phoneNumber
+        string role "buyer, seller"
+        boolean isVerified
+        boolean isActive
+        date lastLoginAt
+        number sellerRating
+        number sellerReviewCount
+        number aiUsageCount
+        number aiUsageLimit
+        number followersCount
+        number followingCount
+        number postsCount
+        date createdAt
+        date updatedAt
+    }
+
+    PROFILE {
+        string profileId PK
+        string userId FK
+        string avatar
+        string coverPhoto
+        string bio
+        string location
+        date dateOfBirth
+        string gender
+        enum profileVisibility "public, followers, private"
+        boolean showEmail
+        boolean showPhone
+        enum allowMessages "all, followees"
+        date createdAt
+        date updatedAt
+    }
+
+    AUTHENTICATION {
+        string authId PK
+        string userId FK
+        string refreshToken
+        string otpCode
+        date otpExpiresAt
+        boolean is2FAEnabled
+        number loginAttempts
+        date lockUntil
+        date lastPasswordChange
+        string verificationToken
+        date verificationExpires
+        string passwordResetToken
+        date passwordResetExpires
+        date createdAt
+        date updatedAt
+    }
+
+    NOTIFICATION {
+        string notificationId PK
+        string fromUserId FK
+        string toUserId FK
+        string type
+        string title
+        string content
+        string relatedId
+        string relatedType
+        string link
+        string actorUsername
+        string actorAvatar
+        boolean read
+        date readAt
+        boolean isSent
+        string[] sentVia
+        enum priority "low, normal, high, urgent"
+        date createdAt
+    }
+
+    NOTIFICATION_SETTINGS {
+        string settingsId PK
+        string userId FK
+        boolean postInteractions
+        boolean comments
+        boolean follows
+        boolean mentions
+        boolean orderUpdates
+        boolean reviews
+        boolean messages
+        boolean systemNotifications
+        boolean emailNotifications
+        enum emailDigest "never, daily, weekly"
+        boolean pushNotifications
+        boolean quietHoursEnabled
+        string quietHoursStartTime
+        string quietHoursEndTime
+        date updatedAt
+    }
+
+    POST {
+        string postId PK
+        string userId FK
+        string text
+        string[] images
+        string[] hashtags
+        string[] taggedProducts
+        number likesCount
+        number commentsCount
+        number savesCount
+        number repostsCount
+        number viewsCount
+        string visibility "public, followers, private"
+        boolean isPublic
+        boolean isAIGenerated
+        enum aiGenerationType "generate_text, generate_image_text, generate_video_images_text"
+        enum status "draft, scheduled, published, archived"
+        date scheduledDate
+        date publishedAt
+        string groupId
+        boolean isHidden
+        string hiddenReason
+        string hiddenBy
+        number reportCount
+        date createdAt
+        date updatedAt
+    }
+
+    COMMENT {
+        string commentId PK
+        string postId FK
+        string userId FK
+        string text
+        boolean isEdited
+        date editedAt
+        date createdAt
+        date updatedAt
+    }
+
+    PRODUCT {
+        string productId PK
+        string sellerId FK
+        string name
+        string description
+        string[] images
+        number price
+        string category
+        string[] tags
+        number compareAtPrice
+        number inventory
+        number rating
+        number reviewsCount
+        number soldCount
+        number viewsCount
+        boolean isActive
+        boolean isHidden
+        date createdAt
+        date updatedAt
+    }
+
+    REVIEW {
+        string reviewId PK
+        string productId FK
+        string orderId FK
+        string userId FK
+        number rating
+        string comment
+        boolean isVerifiedPurchase
+        number helpfulCount
+        string sellerResponseContent
+        date sellerResponseRespondedAt
+        string sellerResponseRespondedBy
+        date createdAt
+        date updatedAt
+    }
+
+    GROUP {
+        string groupId PK
+        string name
+        string description
+        string[] adminIds
+        boolean isPrivate
+        date createdAt
+        date updatedAt
+    }
+
+    MESSAGE {
+        string messageId PK
+        string conversationId
+        string senderId FK
+        string receiverId FK
+        string content
+        enum type "text, image, product_link"
+        string linkedProductId
+        boolean isRead
+        date readAt
+        boolean isDeleted
+        string[] deletedBy
+        date createdAt
+    }
+
+    CART {
+        string cartId PK
+        string userId FK
+        number totalPrice
+        number totalItems
+        date createdAt
+        date updatedAt
+    }
+
+    ORDER {
+        string orderId PK
+        string buyerId FK
+        string sellerId FK
+        string orderNumber UK
+        number subtotal
+        number totalPrice
+        number shippingFee
+        number tax
+        string shippingFullName
+        string shippingPhoneNumber
+        string shippingAddress
+        string shippingCity
+        string shippingDistrict
+        string shippingWard
+        string shippingNotes
+        string paymentMethod
+        string paymentStatus "pending, paid, failed, refunded"
+        string status "pending, confirmed, processing, shipped, delivered, cancelled, refunded"
+        string trackingNumber
+        string carrier
+        string cancelReason
+        string cancelledBy
+        date cancelledAt
+        date confirmedAt
+        date shippedAt
+        date deliveredAt
+        date createdAt
+        date updatedAt
+    }
+
+    REFUND_REQUEST {
+        string requestId PK
+        string orderId FK
+        string buyerId FK
+        string reason
+        string status "pending, approved, rejected"
+        date createdAt
+        date updatedAt
+    }
+
+    CONTENT_REQUEST {
+        string requestId PK
+        string userId FK
+        string type "text_to_text, image_to_text, product_to_text, multi_modal"
+        json input
+        json output
+        string status "pending, processing, completed, failed"
+        string error
+        date createdAt
+        date completedAt
+    }
+
+    REPORT {
+        string reportId PK
+        string reporterId FK
+        string reportedId "userId or contentId"
+        string type "post, comment, product, user, review"
+        enum reason "spam, harassment, hate_speech, violence, nudity, false_information, scam, copyright, other"
+        enum status "pending, under_review, resolved, dismissed"
+        string description
+        string reviewedBy
+        date reviewedAt
+        string adminNote
+        enum actionTaken "none, warning_sent, content_removed, account_suspended, account_banned"
+        date createdAt
+        date updatedAt
+    }
+
+    SELLER_APPLICATION {
+        string applicationId PK
+        string userId FK
+        string shopName
+        string description
+        string businessType
+        string taxId
+        json documents
+        enum status "pending, under_review, approved, rejected"
+        string reviewedBy FK "adminId"
+        string rejectionReason
+        date submittedAt
+        date reviewedAt
+    }
+
+    ADMIN {
+        string adminId PK "UUID"
+        string email UK
+        string password
+        string fullName
+        string avatar
+        enum[] permissions "manage_users, manage_content, manage_reports, manage_orders, view_analytics, manage_admins, system_config, manage_seller_apps"
+        enum adminLevel "super_admin, admin, moderator"
+        boolean isActive
+        boolean isVerified
+        date lastLoginAt
+        date createdAt
+        date updatedAt
+    }

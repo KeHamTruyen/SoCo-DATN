@@ -1,0 +1,75 @@
+@startuml AD-M5-UC5.2-GenerateImageText
+!theme plain
+title Activity Diagram - UC5.2: Tạo bài viết và hình ảnh từ mô tả, ý tưởng và hình ảnh đầu vào
+caption Tạo bài viết và hình ảnh qua Google Gemini API
+
+|Người dùng|
+|Hệ thống|
+|AI Service (Gemini API)|
+
+start
+
+|Người dùng|
+:Đăng nhập và mở trình soạn bài đăng;
+:Nhập mô tả/ý tưởng;
+note right: Có thể tải lên hình ảnh đầu vào để tham khảo
+:Nhấn "Tạo bài viết và hình ảnh với AI";
+
+|Hệ thống|
+:Gửi mô tả, ý tưởng và hình ảnh đầu vào (nếu có) đến AI;
+
+|AI Service (Gemini API)|
+:Gemini API phân tích đầu vào;
+:Tạo đồng thời bài viết và hình ảnh phù hợp;
+
+|Hệ thống|
+if (AI xử lý thành công?) then (Có)
+  :Hiển thị bài viết và hình ảnh trong trình soạn thảo;
+  
+  |Người dùng|
+  if (Hài lòng?) then (Có)
+    :Chỉnh sửa nhẹ (nếu cần);
+    :Nhấn "Đăng bài";
+    
+    |Hệ thống|
+    :Lưu và xuất bản bài đăng kèm hình ảnh;
+  else (Không)
+    switch (Hành động?)
+    case (Tạo lại)
+      :Nhấn "Tạo lại";
+      
+      |AI Service (Gemini API)|
+      :Tạo phương án mới;
+      
+    case (Chỉnh sửa thủ công)
+      |Người dùng|
+      :Chỉnh sửa nội dung hoặc thay thế hình ảnh;
+      
+    case (Chỉ sử dụng một phần)
+      |Người dùng|
+      :Chọn chỉ bài viết hoặc chỉ hình ảnh;
+      
+    case (Hủy bỏ)
+      |Người dùng|
+      :Xóa nội dung AI;
+      :Tạo nội dung thủ công;
+    endswitch
+  endif
+else (Không)
+  if (Không thể tạo hình ảnh?) then (Có)
+    :Hiển thị chỉ bài viết và thông báo;
+    
+    |Người dùng|
+    :Quyết định sử dụng hoặc tạo lại;
+  else (Lỗi khác)
+    :Hiển thị lỗi "Không thể tạo nội dung lúc này";
+    
+    |Người dùng|
+    :Thử lại hoặc tạo nội dung thủ công;
+  endif
+endif
+
+stop
+
+@enduml
+

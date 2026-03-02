@@ -1,0 +1,94 @@
+%%{init: {"theme": "base", "themeVariables": { "primaryColor": "#ffffff", "primaryBorderColor": "#000000", "primaryTextColor": "#000000", "secondaryColor": "#ffffff", "secondaryBorderColor": "#000000", "secondaryTextColor": "#000000", "tertiaryColor": "#ffffff", "tertiaryBorderColor": "#000000", "tertiaryTextColor": "#000000", "lineColor": "#000000", "textColor": "#000000" }}}%%
+graph TB
+    subgraph "VIEW LAYER"
+        HomePage["HomePage<br/>Feed & Posts"]
+        ProductPage["ProductPage<br/>Browse Products"]
+        ChatPage["ChatPage<br/>Messages"]
+        ProfilePage["ProfilePage<br/>User Profile"]
+    end
+
+    subgraph "CONTROLLER LAYER"
+        AuthCtrl["AuthController"]
+        UserCtrl["UserController"]
+        PostCtrl["PostController"]
+        ProductCtrl["ProductController"]
+        CartCtrl["CartController"]
+        OrderCtrl["OrderController"]
+        MessageCtrl["MessageController"]
+        AICtrl["AIController"]
+    end
+
+    subgraph "SERVICE LAYER"
+        AuthSvc["AuthService"]
+        UserSvc["UserService"]
+        PostSvc["PostService"]
+        ProductSvc["ProductService"]
+        CartSvc["CartService"]
+        OrderSvc["OrderService"]
+        MessageSvc["MessageService"]
+        AISvc["AIService<br/>- Generate Text<br/>- Generate Image+Text<br/>- Generate Video+Images+Text"]
+    end
+
+    subgraph "MODEL LAYER"
+        Models["Data Models"]
+    end
+
+    subgraph "DATA"
+        PostgreSQL["PostgreSQL"]
+        Redis["Redis"]
+    end
+
+    subgraph "EXTERNAL"
+        GeminiAPI["Gemini API & Veo 2<br/>AI Content Generation"]
+    end
+
+    %% View to Controller
+    HomePage -->|"API"| AuthCtrl
+    HomePage -->|"API"| PostCtrl
+    ProductPage -->|"API"| ProductCtrl
+    ProductPage -->|"API"| CartCtrl
+    ProductPage -->|"API"| OrderCtrl
+    ChatPage -->|"API"| MessageCtrl
+    ProfilePage -->|"API"| UserCtrl
+
+    %% Controller to Service
+    AuthCtrl --> AuthSvc
+    UserCtrl --> UserSvc
+    PostCtrl --> PostSvc
+    ProductCtrl --> ProductSvc
+    CartCtrl --> CartSvc
+    OrderCtrl --> OrderSvc
+    MessageCtrl --> MessageSvc
+    AICtrl --> AISvc
+
+    %% Service to Model
+    AuthSvc --> Models
+    UserSvc --> Models
+    PostSvc --> Models
+    ProductSvc --> Models
+    CartSvc --> Models
+    OrderSvc --> Models
+    MessageSvc --> Models
+    AISvc --> Models
+
+    %% Model to Database
+    Models --> PostgreSQL
+    AuthSvc --> Redis
+    UserSvc --> Redis
+
+    %% External Services
+    AISvc --> GeminiAPI
+
+    %% Styling (monochrome for printing)
+    classDef view fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef controller fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef service fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef model fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef data fill:#ffffff,stroke:#000000,stroke-width:2px
+    
+    class HomePage,ProductPage,ChatPage,ProfilePage view
+    class AuthCtrl,UserCtrl,PostCtrl,ProductCtrl,CartCtrl,OrderCtrl,MessageCtrl,AICtrl controller
+    class AuthSvc,UserSvc,PostSvc,ProductSvc,CartSvc,OrderSvc,MessageSvc,AISvc service
+    class Models model
+    class PostgreSQL,Redis data
+    class GeminiAPI external

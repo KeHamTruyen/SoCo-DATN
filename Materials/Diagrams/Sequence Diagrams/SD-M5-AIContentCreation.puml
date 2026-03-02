@@ -1,0 +1,45 @@
+@startuml
+!theme plain
+title SD-M5-AIContentCreation - AI Tạo nội dung (UC5.1-5.3)
+caption Controller: ai.controller.js, aiService (Google Gemini API)
+
+actor User
+participant Frontend
+participant "AIController" as AICtl
+participant "AI Service (Gemini API)" as AIS
+database "DB (ContentRequest)" as DB
+
+== Generate Text (UC5.1) ==
+User -> Frontend: Nhập mô tả/ý tưởng (+ hình ảnh sản phẩm nếu có)
+Frontend -> AICtl: POST /api/ai/generate-text {description, idea, productImage?}
+AICtl -> DB: Tạo ContentRequest record
+AICtl -> AIS: Generate bài viết (Gemini API)
+note right: Gemini API phân tích đa phương thức
+AIS --> AICtl: Content (text)
+AICtl -> DB: Cập nhật ContentRequest (completed)
+AICtl --> Frontend: Đề xuất nội dung bài viết
+User -> Frontend: Chỉnh sửa/Đăng
+
+== Generate Image + Text (UC5.2) ==
+User -> Frontend: Nhập mô tả/ý tưởng (+ hình ảnh đầu vào nếu có)
+Frontend -> AICtl: POST /api/ai/generate-image-text {description, idea, inputImage?}
+AICtl -> DB: Tạo ContentRequest record
+AICtl -> AIS: Generate bài viết và hình ảnh (Gemini API)
+note right: Gemini API tạo đồng thời text và image
+AIS --> AICtl: Content (text + images)
+AICtl -> DB: Cập nhật ContentRequest (completed)
+AICtl --> Frontend: Đề xuất bài viết và hình ảnh
+User -> Frontend: Chỉnh sửa/Đăng
+
+== Generate Video + Images + Text (UC5.3) ==
+User -> Frontend: Nhập mô tả/ý tưởng (+ hình ảnh đầu vào nếu có)
+Frontend -> AICtl: POST /api/ai/generate-video-images-text {description, idea, inputImage?}
+AICtl -> DB: Tạo ContentRequest record
+AICtl -> AIS: Generate video + images + text (Gemini API + Veo 2)
+note right: Gemini API + Veo 2 tạo:\n- 1 video ngắn\n- Tối đa 3 hình ảnh\n- 1 bài viết
+AIS --> AICtl: Content (video + images + text)
+AICtl -> DB: Cập nhật ContentRequest (completed)
+AICtl --> Frontend: Đề xuất video, hình ảnh và bài viết
+User -> Frontend: Chỉnh sửa/Đăng
+
+@enduml

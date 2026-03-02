@@ -1,0 +1,47 @@
+@startuml UC-M5-AI
+!theme plain
+left to right direction
+title Use Case Diagram - Module 5: AI hỗ trợ sáng tạo nội dung
+caption Sử dụng Google Gemini API và Google Veo 2
+
+actor "Người dùng" as User
+actor "Người bán" as Seller
+Seller --|> User
+
+rectangle "Module 5 - AI Content" {
+  usecase "UC5.1: Tạo bài viết từ mô tả,\ný tưởng và hình ảnh sản phẩm\n(Generate Text)" as UC51
+  usecase "UC5.2: Tạo bài viết và hình ảnh\n từ mô tả, ý tưởng và hình ảnh đầu vào\n(Generate Image + Text)" as UC52
+  usecase "UC5.3: Tạo video ngắn, hình ảnh\n và bài viết từ mô tả, ý tưởng\n và hình ảnh đầu vào\n(Generate Video + Images + Text)" as UC53
+}
+
+User --> UC51
+User --> UC52
+User --> UC53
+
+Seller --> UC51
+Seller --> UC52
+Seller --> UC53
+
+note right of UC51
+  Sử dụng Google Gemini API
+  Đầu vào: mô tả, ý tưởng, 
+  hình ảnh sản phẩm (tùy chọn)
+  Đầu ra: bài viết hoàn chỉnh
+end note
+
+note right of UC52
+  Sử dụng Google Gemini API
+  Đầu vào: mô tả, ý tưởng,
+  hình ảnh đầu vào (tùy chọn)
+  Đầu ra: bài viết + hình ảnh
+end note
+
+note right of UC53
+  Sử dụng Google Gemini API + Veo 2
+  Đầu vào: mô tả, ý tưởng,
+  hình ảnh đầu vào (tùy chọn)
+  Đầu ra: 1 video ngắn + 
+  tối đa 3 hình ảnh + bài viết
+end note
+
+@enduml

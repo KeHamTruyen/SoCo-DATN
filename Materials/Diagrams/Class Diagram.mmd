@@ -1,0 +1,430 @@
+%%{init: {"theme": "base", "themeVariables": { "primaryColor": "#ffffff", "primaryBorderColor": "#000000", "primaryTextColor": "#000000", "secondaryColor": "#ffffff", "secondaryBorderColor": "#000000", "secondaryTextColor": "#000000", "tertiaryColor": "#ffffff", "tertiaryBorderColor": "#000000", "tertiaryTextColor": "#000000", "lineColor": "#000000", "textColor": "#000000" }}}%%
+classDiagram
+    %% ===== CORE USER MANAGEMENT =====
+    class User {
+        -String userId PK
+        -String email UK
+        -String password
+        -String username
+        -String fullName
+        -String phoneNumber
+        -String role
+        -Boolean isVerified
+        -Boolean isActive
+        -Date lastLoginAt
+        -Number sellerRating
+        -Number sellerReviewCount
+        -Number aiUsageCount
+        -Number aiUsageLimit
+        -Number followersCount
+        -Number followingCount
+        -Number postsCount
+        -Date createdAt
+        -Date updatedAt
+        +register()* Boolean
+        +login()* Boolean
+        +logout()* Void
+        +updateProfile()* Boolean
+        +changePassword()* Boolean
+        +comparePassword()* Boolean
+        +isAccountLocked()* Boolean
+        +incrementLoginAttempts()* Void
+        +resetLoginAttempts()* Void
+        +findByCredential()* User
+        +canUpgradeToSeller()* Boolean
+    }
+
+    class Profile {
+        -String profileId PK
+        -String userId FK
+        -String avatar
+        -String coverPhoto
+        -String bio
+        -String location
+        -Date dateOfBirth
+        -String gender
+        -String profileVisibility
+        -Boolean showEmail
+        -Boolean showPhone
+        -String allowMessages "all, followees"
+        -Date createdAt
+        -Date updatedAt
+        +updateProfile()* Boolean
+        +setPrivacy()* Boolean
+    }
+
+    class Authentication {
+        -String authId PK
+        -String userId FK
+        -String refreshToken
+        -String otpCode
+        -Date otpExpiresAt
+        -Boolean is2FAEnabled
+        -Number loginAttempts
+        -Date lockUntil
+        -Date lastPasswordChange
+        -String verificationToken
+        -Date verificationExpires
+        -String passwordResetToken
+        -Date passwordResetExpires
+        -Date createdAt
+        -Date updatedAt
+        +enable2FA()* Boolean
+        +verify2FA()* Boolean
+        +generateOTP()* String
+    }
+
+    class Admin {
+        -String adminId PK
+        -String email UK
+        -String password
+        -String fullName
+        -String avatar
+        -String[] permissions
+        -String adminLevel
+        -Boolean isActive
+        -Boolean isVerified
+        -Date lastLoginAt
+        -Date createdAt
+        -Date updatedAt
+        +comparePassword()* Boolean
+        +hasPermission()* Boolean
+        +findByCredentials()* Admin
+        +findByPermission()* Admin[]
+        +processReport()* Boolean
+        +viewAnalytics()* Map
+    }
+
+    %% ===== SOCIAL FEATURES =====
+    class Post {
+        -String postId PK
+        -String userId FK
+        -String text
+        -String[] images
+        -String[] hashtags
+        -String[] taggedProducts
+        -Number likesCount
+        -Number commentsCount
+        -Number savesCount
+        -Number repostsCount
+        -Number viewsCount
+        -String visibility
+        -Boolean isPublic
+        -Boolean isAIGenerated
+        -String aiGenerationType
+        -String status
+        -Date scheduledDate
+        -Date publishedAt
+        -String groupId
+        -Boolean isHidden
+        -String hiddenReason
+        -String hiddenBy
+        -Number reportCount
+        -Date createdAt
+        -Date updatedAt
+        +createPost()* Boolean
+        +updatePost()* Boolean
+        +deletePost()* Boolean
+        +getComments()* Comment[]
+        +isLikedBy()* Boolean
+        +toggleLike()* Boolean
+        +incrementViews()* Void
+        +getReadyToPublish()* Post[]
+        +searchPosts()* Map
+    }
+
+    class Comment {
+        -String commentId PK
+        -String postId FK
+        -String userId FK
+        -String text
+        -Boolean isEdited
+        -Date editedAt
+        -Date createdAt
+        -Date updatedAt
+        +createComment()* Boolean
+        +updateComment()* Boolean
+        +deleteComment()* Boolean
+    }
+
+    class Group {
+        -String groupId PK
+        -String name
+        -String description
+        -String[] adminIds
+        -Boolean isPrivate
+        -Date createdAt
+        -Date updatedAt
+        +createGroup()* Boolean
+        +joinGroup()* Boolean
+        +leaveGroup()* Boolean
+        +addMember()* Boolean
+        +removeMember()* Boolean
+    }
+
+    class Message {
+        -String messageId PK
+        -String conversationId
+        -String senderId FK
+        -String receiverId FK
+        -String content
+        -String type
+        -String linkedProductId
+        -Boolean isRead
+        -Date readAt
+        -Boolean isDeleted
+        -String[] deletedBy
+        -Date createdAt
+        +sendMessage()* Boolean
+        +markAsRead()* Boolean
+        +getConversationId()* String
+    }
+
+    %% ===== NOTIFICATION SYSTEM =====
+    class Notification {
+        -String notificationId PK
+        -String fromUserId FK
+        -String toUserId FK
+        -String type
+        -String title
+        -String content
+        -String relatedId
+        -String relatedType
+        -String link
+        -String actorUsername
+        -String actorAvatar
+        -Boolean read
+        -Date readAt
+        -Boolean isSent
+        -String[] sentVia
+        -String priority
+        -Date createdAt
+        +sendNotification()* Boolean
+        +markAsRead()* Boolean
+        +markAllAsRead()* Number
+        +getUnreadCount()* Number
+        +createNotification()* Notification
+    }
+
+    class NotificationSettings {
+        -String settingsId PK
+        -String userId FK
+        -Boolean postInteractions
+        -Boolean comments
+        -Boolean follows
+        -Boolean mentions
+        -Boolean orderUpdates
+        -Boolean reviews
+        -Boolean messages
+        -Boolean systemNotifications
+        -Boolean emailNotifications
+        -String emailDigest
+        -Boolean pushNotifications
+        -Boolean quietHoursEnabled
+        -String quietHoursStartTime
+        -String quietHoursEndTime
+        -Date updatedAt
+        +updateSettings()* Boolean
+    }
+
+    %% ===== E-COMMERCE FEATURES =====
+    class Product {
+        -String productId PK
+        -String sellerId FK
+        -String name
+        -String description
+        -String[] images
+        -String category
+        -String[] tags
+        -Number price
+        -Number compareAtPrice
+        -Number inventory
+        -Number rating
+        -Number reviewsCount
+        -Number soldCount
+        -Number viewsCount
+        -Boolean isActive
+        -Boolean isHidden
+        -Date createdAt
+        -Date updatedAt
+        +addProduct()* Boolean
+        +updateProduct()* Boolean
+        +deleteProduct()* Boolean
+        +updateInventory()* Boolean
+    }
+
+    class Review {
+        -String reviewId PK
+        -String productId FK
+        -String orderId FK
+        -String userId FK
+        -Number rating
+        -String comment
+        -Boolean isVerifiedPurchase
+        -Number helpfulCount
+        -String sellerResponseContent
+        -Date sellerResponseRespondedAt
+        -String sellerResponseRespondedBy
+        -Date createdAt
+        -Date updatedAt
+        +submitReview()* Boolean
+        +respondToReview()* Boolean
+    }
+
+    class Cart {
+        -String cartId PK
+        -String userId FK
+        -Number totalPrice
+        -Number totalItems
+        -Date createdAt
+        -Date updatedAt
+        +addToCart()* Boolean
+        +removeFromCart()* Boolean
+        +updateQuantity()* Boolean
+        +clearCart()* Boolean
+        +calculateTotal()* Number
+    }
+
+    class Order {
+        -String orderId PK
+        -String buyerId FK
+        -String sellerId FK
+        -String orderNumber UK
+        -Number subtotal
+        -Number totalPrice
+        -Number shippingFee
+        -Number tax
+        -String shippingFullName
+        -String shippingPhoneNumber
+        -String shippingAddress
+        -String shippingCity
+        -String shippingDistrict
+        -String shippingWard
+        -String shippingNotes
+        -String paymentMethod
+        -String paymentStatus
+        -String status
+        -String trackingNumber
+        -String carrier
+        -String cancelReason
+        -String cancelledBy
+        -Date cancelledAt
+        -Date confirmedAt
+        -Date shippedAt
+        -Date deliveredAt
+        -Date createdAt
+        -Date updatedAt
+        +placeOrder()* Boolean
+        +updateOrderStatus()* Boolean
+        +cancelOrder()* Boolean
+        +updateStatus()* Order
+    }
+
+    class RefundRequest {
+        -String requestId PK
+        -String orderId FK
+        -String buyerId FK
+        -String reason
+        -String status
+        -Date createdAt
+        -Date updatedAt
+        +submitRefundRequest()* Boolean
+        +processRefundRequest()* Boolean
+    }
+
+    %% ===== AI & CONTENT GENERATION =====
+    class ContentRequest {
+        -String requestId PK
+        -String userId FK
+        -String type "generate_text, generate_image_text, generate_video_images_text"
+        -Map input
+        -Map output
+        -String status
+        -String error
+        -Date createdAt
+        -Date completedAt
+        +requestContent()* Boolean
+        +getRequestDetails()* Map
+    }
+
+
+    %% ===== SYSTEM & REPORTING =====
+    class Report {
+        -String reportId PK
+        -String reporterId FK
+        -String reportedId
+        -String type
+        -String reason
+        -String status
+        -String description
+        -String reviewedBy
+        -Date reviewedAt
+        -String adminNote
+        -String actionTaken
+        -Date createdAt
+        -Date updatedAt
+        +submitReport()* Boolean
+        +processReport()* Boolean
+    }
+
+    class SellerApplication {
+        -String applicationId PK
+        -String userId FK
+        -String shopName
+        -String description
+        -String businessType
+        -String taxId
+        -Map documents
+        -String status
+        -String reviewedBy
+        -String rejectionReason
+        -Date submittedAt
+        -Date reviewedAt
+        +submitApplication()* Boolean
+        +approveApplication()* Boolean
+        +rejectApplication()* Boolean
+    }
+
+    %% ===== RELATIONSHIPS =====
+    
+    %% User Core
+    User *-- "1" Profile : owns
+    User *-- "1" Authentication : uses
+    User *-- "1" Cart : owns
+    User *-- "1" NotificationSettings : has
+    User "1" -- "0..*" SellerApplication : submits
+    User -- "1" Admin : promotes_to
+    
+    %% Notifications
+    User -- "0..*" Notification : receives
+    
+    %% Social
+    User -- "0..*" Post : creates
+    User -- "0..*" Comment : writes
+    User -- "0..*" Group : member_of
+    User -- "0..*" Message : sends_receives
+    User -- "0..*" ContentRequest : requests
+    User -- "0..*" Report : submits
+    Post -- "0..*" Comment : contains
+    Post -- "0..*" User : liked_by
+    Post -- "0..*" Product : tags
+    Post -- "0..*" Group : posted_in
+    Comment -- "0..*" User : liked_by
+    
+    %% Commerce
+    User -- "0..*" Product : sells
+    User -- "0..*" Order : places
+    User -- "0..*" Review : writes
+    Product -- "0..*" Review : has
+    Cart -- "0..*" Product : contains_(quantity,variant,price)
+    Order -- "0..*" Product : contains_(quantity,variant,price)
+    Order -- "0..*" RefundRequest : has
+    
+    %% AI & Content
+    
+    %% Scheduling
+    User -- "0..*" Post : schedules_(scheduledDate,status)
+    
+    %% Admin
+    Admin -- "0..*" User : manages
+    Admin -- "0..*" Report : processes

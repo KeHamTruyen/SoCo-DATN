@@ -1,0 +1,153 @@
+\documentclass[a4paper,12pt]{report}
+% ================= GÓI CƠ BẢN & TIẾNG VIỆT =================
+\usepackage{vntex}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage{mathptmx} % Font
+\usepackage[a4paper,
+            left=25mm,right=20mm,top=20mm,bottom=20mm,
+            headheight=40pt,footskip=12mm]{geometry}
+\usepackage{indentfirst} % Thụt đầu dòng đoạn văn đầu tiên
+% ================= GÓI TOÁN HỌC & KÝ HIỆU =================
+\usepackage{amsmath, amssymb, amsfonts, latexsym}
+\usepackage{gensymb} % Các ký hiệu như độ C, độ...
+% ================= GÓI HÌNH ẢNH & ĐỒ HỌA =================
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usepackage{float} % Để cố định hình ảnh bằng [H]
+\usepackage{subcaption} % Hỗ trợ chèn nhiều hình nhỏ (a, b) trong 1 hình lớn
+% ================= GÓI BẢNG BIỂU (TABLES) =================
+\usepackage{array}
+\usepackage{booktabs} % Kẻ bảng đẹp hơn (toprule, midrule...)
+\usepackage{multirow} % Gộp dòng
+\usepackage{multicol} % Gộp cột
+\usepackage{longtable} % Bảng dài qua trang
+\usepackage{pgfgantt}
+\usepackage{tabularx} % Bảng tự co giãn độ rộng
+% ================= GÓI MÃ NGUỒN (CODE LISTING) =================
+\usepackage{listings}
+\usepackage{xcolor}
+% Định nghĩa màu cho code
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+% Cấu hình hiển thị code
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize, % Font monospace nhỏ
+    breakatwhitespace=false,
+    breaklines=true, % Tự động xuống dòng nếu quá dài
+    captionpos=b, % Caption nằm dưới
+    keepspaces=true,
+    numbers=left, % Đánh số dòng bên trái
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single % Khung viền quanh code
+}
+\lstset{style=mystyle}
+% ================= GÓI THUẬT TOÁN (PSEUDOCODE) =================
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+% Việt hóa tiêu đề thuật toán
+\floatname{algorithm}{Thuật toán}
+\renewcommand{\listalgorithmname}{Danh sách thuật toán}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+% ================= HEADER - FOOTER & HYPERLINK =================
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage[unicode, colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black]{hyperref}
+% Cấu hình Header - Footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{%
+  \raisebox{-0.3cm}{\includegraphics[width=8mm,height=8mm]{Images/hcmut.png}}\hspace{4mm}
+  \begin{tabular}{l}
+    \footnotesize\textbf{Trường ĐH Bách Khoa - ĐHQG TP.HCM} \\[-1.5mm]
+    \footnotesize\textbf{Khoa KH \& KT Máy Tính}
+  \end{tabular}%
+}
+\fancyfoot[L]{\scriptsize Báo cáo Đồ án chuyên ngành - HK1 2025-2026}
+\fancyfoot[R]{\scriptsize Trang \thepage/\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.3pt}
+\renewcommand{\footrulewidth}{0.3pt}
+\begin{document}
+\thispagestyle{empty}
+%========================= TRANG BÌA ========================
+\begin{titlepage}
+\begin{tikzpicture}[remember picture,overlay]
+  \draw[line width=4pt] ($(current page.north west)+(1cm,-1.3cm)$) rectangle ($(current page.south east)+(-1cm,1.3cm)$);
+  \draw[line width=1.5pt] ($(current page.north west)+(1.15cm,-1.45cm)$) rectangle ($(current page.south east)+(-1.15cm,1.45cm)$);
+\end{tikzpicture}
+\vspace*{0.3cm}
+\begin{center}
+% Trường
+{\fontsize{12}{14}\selectfont\bfseries ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH}\\[2mm]
+{\fontsize{12}{14}\selectfont\bfseries TRƯỜNG ĐẠI HỌC BÁCH KHOA}\\[2mm]
+{\fontsize{12}{14}\selectfont\bfseries KHOA KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH}\\[8mm]
+% Logo
+\includegraphics[width=3.6cm]{Images/hcmut.png}\\[8mm]
+% Tiêu đề đồ án
+{\fontsize{24}{28}\selectfont\bfseries BÁO CÁO}\\[4mm]
+{\fontsize{16}{19}\selectfont\bfseries ĐỒ ÁN CHUYÊN NGÀNH}\\[12mm]
+% Tên đề tài
+\begin{minipage}{0.92\textwidth}
+\centering\fontsize{14}{17}\selectfont\bfseries
+XÂY DỰNG HỆ THỐNG SOCIAL COMMERCE TÍCH HỢP AI \\[2mm]
+CHO TẠO NỘI DUNG, BÁN HÀNG VÀ CHĂM SÓC KHÁCH
+\end{minipage}\\[10mm]
+{\fontsize{13}{16}\selectfont\bfseries NGÀNH: KHOA HỌC MÁY TÍNH}\\[14mm]
+% Thông tin hội đồng & sinh viên
+\begin{tabular}{>{\raggedleft\bfseries}p{4.2cm} p{8cm}}
+\fontsize{12}{14}\selectfont HỘI ĐỒNG: & \fontsize{12}{14}\selectfont Hội đồng 7L Đồ án chuyên ngành \\[5mm]
+\fontsize{12}{14}\selectfont GVHD: & \fontsize{12}{14}\selectfont Mr. Mai Duc Trung, MSc \\[5mm]
+                          & \fontsize{12}{14}\selectfont CN. Nguyễn Minh Tâm \\
+                          & \fontsize{13}{15}\selectfont ---o0o--- \\[6mm]
+\fontsize{12}{14}\selectfont SVTH: & \fontsize{12}{14}\selectfont Nguyễn Nhật Tân (2213059) \\[4mm]
+                          & \fontsize{12}{14}\selectfont Phạm Lê Thanh (2112273) \\[4mm]
+                          & \fontsize{12}{14}\selectfont Trần Hoàng Sơn (2114672) \\
+\end{tabular}\\[12mm]
+% Năm
+{\fontsize{12}{14}\selectfont TP. HỒ CHÍ MINH, THÁNG 12 NĂM 2025}
+\end{center}
+\end{titlepage}
+%===================================================================================
+\clearpage
+\input{Intro/Declaration}
+\clearpage
+\input{Intro/Acknowledgement}
+\clearpage
+\input{Intro/Abstract}
+\clearpage
+\tableofcontents
+\clearpage
+\listoffigures
+\clearpage
+\listoftables
+\clearpage
+\setcounter{page}{1}
+\input{Contents/1_Introduction}
+\clearpage
+\input{Contents/2_RequirementElicitation}
+\clearpage
+\input{Contents/3_SystemDesign}
+\clearpage
+\input{Contents/4_TechnologyResearch}
+\clearpage
+\input{Contents/5_SystemImplementation}
+\clearpage
+\input{Contents/6_SummaryAndFuturePlan}
+\clearpage
+\input{Outro/References}
+\clearpage
+\input{Outro/Appendix}
+\end{document}

@@ -1,0 +1,166 @@
+Component diagram mô tả cấu trúc và mối quan hệ giữa các thành phần trong hệ thống theo mô hình \textbf{MVCS}. Để dễ hiểu và quản lý, chúng tôi chia component diagram thành hai loại: \textbf{tổng quan} và \textbf{theo từng vai trò người dùng}.
+
+\subsubsection{Component diagram tổng quan}
+
+\ref{fig:component-overview} minh họa kiến trúc tổng quan của hệ thống theo mô hình \textbf{MVCS}, bao gồm bốn layers chính và các thành phần hỗ trợ.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Images/Component Diagrams/Component Diagram Overview.png}
+    \caption{Component Diagram - Tổng quan hệ thống theo MVCS}
+    \label{fig:component-overview}
+\end{figure}
+
+\paragraph{View Layer (Frontend)} \textbf{View Layer} được xây dựng bằng \textbf{React.js}, bao gồm:
+\begin{itemize}
+    \item \textbf{Pages \& Components}: Các trang và component giao diện người dùng
+    \item \textbf{State Management}: Quản lý state của ứng dụng
+    \item \textbf{API Services}: Các service giao tiếp với backend qua HTTP và WebSocket
+\end{itemize}
+
+\paragraph{Controller Layer (Backend)} \textbf{Controller Layer} được xây dựng bằng \textbf{Express.js}, chịu trách nhiệm:
+\begin{itemize}
+    \item \textbf{Request Handling}: Nhận và xử lý các HTTP request từ frontend
+    \item \textbf{Response Formatting}: Định dạng và trả về response
+    \item \textbf{Middleware Chain}: Chuỗi middleware xử lý validation, authentication, rate limiting
+\end{itemize}
+
+\paragraph{Service Layer (Backend)} \textbf{Service Layer} chứa business logic của hệ thống:
+\begin{itemize}
+    \item \textbf{Business Logic}: Xử lý các logic nghiệp vụ phức tạp
+    \item \textbf{Data Processing}: Xử lý và chuyển đổi dữ liệu
+    \item \textbf{External Integrations}: Tích hợp với các dịch vụ bên ngoài (AI, Storage, Email)
+\end{itemize}
+
+\paragraph{Model Layer (Backend)} \textbf{Model Layer} sử dụng \textbf{Sequelize ORM} để:
+\begin{itemize}
+    \item \textbf{Data Models}: Định nghĩa cấu trúc dữ liệu
+    \item \textbf{Database Schema}: Quản lý schema của database
+    \item \textbf{Relationships}: Định nghĩa các mối quan hệ giữa các entities
+\end{itemize}
+
+\paragraph{Data Storage \& External Services} Hệ thống sử dụng:
+\begin{itemize}
+    \item \textbf{PostgreSQL}: Database chính lưu trữ tất cả dữ liệu
+    \item \textbf{Redis}: Cache và quản lý sessions
+    \item \textbf{Google Gemini API \& Google Veo 2}: Dịch vụ AI để tạo nội dung đa phương thức (văn bản, hình ảnh, video ngắn)
+    \item \textbf{Cloudinary}: Lưu trữ và quản lý file (hình ảnh, video)
+    \item \textbf{Gmail SMTP}: Dịch vụ email để gửi thông báo
+    \item \textbf{Socket.IO}: Giao tiếp real-time giữa frontend và backend
+\end{itemize}
+
+\paragraph{MVCS Flow} Luồng xử lý trong hệ thống tuân theo mô hình MVCS:
+\begin{enumerate}
+    \item \textbf{View Layer} gửi request đến \textbf{Controller Layer} qua HTTP hoặc WebSocket
+    \item \textbf{Controller Layer} xử lý request và gọi \textbf{Service Layer}
+    \item \textbf{Service Layer} thực hiện business logic và tương tác với \textbf{Model Layer}
+    \item \textbf{Model Layer} truy vấn hoặc cập nhật \textbf{PostgreSQL}
+    \item \textbf{Service Layer} có thể sử dụng \textbf{Redis} để cache hoặc tích hợp với các \textbf{External Services}
+    \item Kết quả được trả về ngược lại qua các layers đến \textbf{View Layer}
+\end{enumerate}
+
+\subsubsection{Component diagram theo vai trò người dùng}
+
+Để dễ hiểu và phát triển các tính năng cụ thể, chúng tôi chia component diagram thành các diagram theo từng vai trò người dùng trong hệ thống.
+
+\paragraph{Component diagram cho User/Buyer} \ref{fig:component-user-buyer} mô tả các components và flow dành cho người dùng thông thường (User/Buyer).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Images/Component Diagrams/UserBuyer Component Diagram.png}
+    \caption{Component Diagram - User/Buyer Role}
+    \label{fig:component-user-buyer}
+\end{figure}
+
+\textbf{View Layer} bao gồm các trang:
+\begin{itemize}
+    \item \textbf{HomePage}: Trang chủ hiển thị feed và bài viết
+    \item \textbf{ProductPage}: Trang sản phẩm để duyệt và mua sắm
+    \item \textbf{ChatPage}: Trang nhắn tin với người dùng khác
+    \item \textbf{ProfilePage}: Trang hồ sơ cá nhân
+\end{itemize}
+
+\textbf{Controller Layer} xử lý các request từ frontend:
+\begin{itemize}
+    \item \textbf{AuthController}: Xử lý đăng ký, đăng nhập, xác thực
+    \item \textbf{UserController}: Quản lý thông tin người dùng và profile
+    \item \textbf{PostController}: Quản lý bài viết, feed, tương tác
+    \item \textbf{ProductController}: Xem và tìm kiếm sản phẩm
+    \item \textbf{CartController}: Quản lý giỏ hàng
+    \item \textbf{OrderController}: Đặt hàng và theo dõi đơn hàng
+    \item \textbf{MessageController}: Gửi và nhận tin nhắn
+\end{itemize}
+
+\textbf{Service Layer} thực hiện business logic tương ứng với từng controller, và \textbf{Model Layer} quản lý dữ liệu thông qua \textbf{PostgreSQL} và \textbf{Redis}.
+
+\paragraph{Component diagram cho Seller} \ref{fig:component-seller} mô tả các components và flow dành cho người bán (Seller).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Images/Component Diagrams/Seller Component Diagram.png}
+    \caption{Component Diagram - Seller Role}
+    \label{fig:component-seller}
+\end{figure}
+
+\textbf{View Layer} cho Seller bao gồm:
+\begin{itemize}
+    \item \textbf{DashboardPage}: Trang dashboard hiển thị analytics và quản lý đơn hàng
+    \item \textbf{ProductPage}: Trang quản lý sản phẩm (thêm, sửa, xóa, quản lý inventory)
+\end{itemize}
+
+\textbf{Controller Layer} xử lý các chức năng của Seller:
+\begin{itemize}
+    \item \textbf{ProductController}: Quản lý sản phẩm (CRUD, inventory, variants)
+    \item \textbf{OrderController}: Xem và cập nhật trạng thái đơn hàng, xử lý hoàn tiền
+    \item \textbf{ReviewController}: Xem và phản hồi đánh giá từ người mua
+    \item \textbf{PostController}: Tạo bài viết quảng cáo sản phẩm
+\end{itemize}
+
+\textbf{Service Layer} cung cấp các chức năng:
+\begin{itemize}
+    \item \textbf{ProductService}: Quản lý sản phẩm, inventory, variants
+    \item \textbf{OrderService}: Xử lý đơn hàng, cập nhật trạng thái, hoàn tiền
+    \item \textbf{ReviewService}: Quản lý đánh giá và phản hồi
+    \item \textbf{PostService}: Tạo và quản lý bài viết quảng cáo sản phẩm
+\end{itemize}
+
+Seller cũng sử dụng \textbf{Cloudinary} để upload và quản lý hình ảnh sản phẩm.
+
+\paragraph{Component diagram cho Admin} \ref{fig:component-admin} mô tả các components và flow dành cho quản trị viên (Admin).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Images/Component Diagrams/Admin Component Diagram.png}
+    \caption{Component Diagram - Admin Role}
+    \label{fig:component-admin}
+\end{figure}
+
+\textbf{View Layer} cho Admin chỉ bao gồm:
+\begin{itemize}
+    \item \textbf{AdminPage}: Trang quản trị với các chức năng quản lý hệ thống
+\end{itemize}
+
+\textbf{Controller Layer} xử lý các chức năng quản trị:
+\begin{itemize}
+    \item \textbf{AdminAuthController}: Xác thực và quản lý session cho admin
+    \item \textbf{AdminController}: Quản lý người dùng, nội dung, analytics, cấu hình hệ thống
+    \item \textbf{ReportController}: Xem và xử lý các báo cáo vi phạm
+    \item \textbf{SellerApplicationController}: Xem xét và phê duyệt đơn đăng ký trở thành seller
+\end{itemize}
+
+\textbf{Service Layer} cung cấp các chức năng quản trị:
+\begin{itemize}
+    \item \textbf{AuthService}: Xác thực admin
+    \item \textbf{AdminService}: Quản lý người dùng, kiểm duyệt nội dung, analytics, cấu hình hệ thống
+    \item \textbf{ReportService}: Xử lý báo cáo vi phạm và kiểm duyệt nội dung
+    \item \textbf{SellerApplicationService}: Xử lý đơn đăng ký seller, workflow phê duyệt
+\end{itemize}
+
+\paragraph{Lợi ích của việc chia nhỏ component diagram} Việc chia component diagram thành tổng quan và theo từng vai trò mang lại các lợi ích:
+\begin{itemize}
+    \item \textbf{Dễ hiểu}: Mỗi diagram tập trung vào một mục đích cụ thể, giảm độ phức tạp
+    \item \textbf{Dễ maintain}: Cập nhật và chỉnh sửa dễ dàng hơn khi hệ thống phát triển
+    \item \textbf{Dễ phát triển}: Developers có thể tập trung vào diagram liên quan đến tính năng đang phát triển
+    \item \textbf{Dễ tài liệu hóa}: Tài liệu rõ ràng hơn cho từng user type và tính năng
+\end{itemize}
+

@@ -1,0 +1,186 @@
+%%{init: {"theme": "base", "themeVariables": { "primaryColor": "#ffffff", "primaryBorderColor": "#000000", "primaryTextColor": "#000000", "secondaryColor": "#ffffff", "secondaryBorderColor": "#000000", "secondaryTextColor": "#000000", "tertiaryColor": "#ffffff", "tertiaryBorderColor": "#000000", "tertiaryTextColor": "#000000", "lineColor": "#000000", "textColor": "#000000" }}}%%
+graph TB
+    subgraph "Users & Devices"
+        Users[Users]
+        Devices[Devices<br/>Web & Mobile]
+        Users --> Devices
+    end
+
+    subgraph "Frontend - React.js"
+        subgraph "Routers"
+            AuthRoute[Authentication]
+            HomeRoute[Home/Feed]
+            ProfileRoute[Profile]
+            ChatRoute[Chat]
+            AdminRoute[Admin]
+        end
+        
+        subgraph "Components"
+            AuthComp[Authentication & Profile]
+            PostComp[Post Management]
+            ProductComp[Product Management]
+            CartComp[Cart & Order]
+            ChatComp[Chat & Messages]
+            AdminComp[Admin Dashboard]
+        end
+        
+        subgraph "Services"
+            APIService[API Client<br/>Axios]
+            SocketService[Socket.io Client]
+        end
+    end
+
+    subgraph "Backend - Node.js"
+        subgraph "API Routes"
+            RouteHandler[API Routes]
+        end
+        
+        subgraph "Controllers"
+            AuthCtrl[Auth Controller]
+            UserCtrl[User Controller]
+            PostCtrl[Post Controller]
+            ProductCtrl[Product Controller]
+            OrderCtrl[Order Controller]
+            MessageCtrl[Message Controller]
+            AdminCtrl[Admin Controller]
+        end
+        
+        subgraph "Models"
+            UserModel[User]
+            PostModel[Post]
+            ProductModel[Product]
+            OrderModel[Order]
+            MessageModel[Message]
+            NotificationModel[Notification]
+        end
+        
+        subgraph "Middleware"
+            AuthMW[Auth Middleware]
+            ValidatorMW[Validator]
+            RateLimitMW[Rate Limiter]
+        end
+    end
+
+    subgraph "Storage"
+        PostgreSQL[(PostgreSQL<br/>Database)]
+    end
+
+    subgraph "Code & Version Control"
+        GitHub[GitHub]
+    end
+
+    subgraph "Cloud Deployment"
+        Cloud[Cloud Platform]
+    end
+
+    subgraph "External Services"
+        AI[AI API<br/>Gemini & Veo 2]
+        Storage[File Storage<br/>Cloudinary]
+        Email[Email Service<br/>Gmail SMTP]
+    end
+
+    subgraph "Testing"
+        Postman[API Testing<br/>Postman]
+    end
+
+    subgraph "Development Tools"
+        Figma[UI Design<br/>Figma]
+        Jira[Project Management<br/>Jira]
+    end
+
+    %% User Flow
+    Devices --> AuthRoute
+    Devices --> HomeRoute
+    Devices --> ProfileRoute
+    Devices --> ChatRoute
+    Devices --> AdminRoute
+
+    %% Router to Components
+    AuthRoute --> AuthComp
+    HomeRoute --> PostComp
+    HomeRoute --> ProductComp
+    ProfileRoute --> AuthComp
+    ProfileRoute --> PostComp
+    ChatRoute --> ChatComp
+    AdminRoute --> AdminComp
+
+    %% Components to Services
+    AuthComp --> APIService
+    PostComp --> APIService
+    ProductComp --> APIService
+    CartComp --> APIService
+    ChatComp --> APIService
+    ChatComp --> SocketService
+    AdminComp --> APIService
+
+    %% Frontend to Backend
+    APIService -->|HTTP Request| RouteHandler
+    SocketService -->|WebSocket| RouteHandler
+
+    %% Backend Flow
+    RouteHandler --> AuthMW
+    AuthMW --> ValidatorMW
+    ValidatorMW --> RateLimitMW
+    RateLimitMW --> AuthCtrl
+    RateLimitMW --> UserCtrl
+    RateLimitMW --> PostCtrl
+    RateLimitMW --> ProductCtrl
+    RateLimitMW --> OrderCtrl
+    RateLimitMW --> MessageCtrl
+    RateLimitMW --> AdminCtrl
+
+    %% Controllers to Models
+    AuthCtrl --> UserModel
+    UserCtrl --> UserModel
+    PostCtrl --> PostModel
+    ProductCtrl --> ProductModel
+    OrderCtrl --> OrderModel
+    MessageCtrl --> MessageModel
+    AdminCtrl --> UserModel
+    AdminCtrl --> PostModel
+    AdminCtrl --> ProductModel
+
+    %% Models to Database
+    UserModel --> PostgreSQL
+    PostModel --> PostgreSQL
+    ProductModel --> PostgreSQL
+    OrderModel --> PostgreSQL
+    MessageModel --> PostgreSQL
+    NotificationModel --> PostgreSQL
+
+    %% Backend to External Services
+    PostCtrl --> AI
+    ProductCtrl --> Storage
+    UserCtrl --> Storage
+    AuthCtrl --> Email
+    OrderCtrl --> Email
+
+    %% Code Control
+    APIService -.->|Push| GitHub
+    RouteHandler -.->|Push| GitHub
+    GitHub -.->|Deploy| Cloud
+
+    %% Testing
+    APIService -.-> Postman
+    RouteHandler -.-> Postman
+
+    %% Development Tools
+    AuthComp -.-> Figma
+    PostComp -.-> Figma
+    APIService -.-> Jira
+    RouteHandler -.-> Jira
+
+    %% Styling (monochrome for printing)
+    classDef userLayer fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef frontendLayer fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef backendLayer fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef dataLayer fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef externalLayer fill:#ffffff,stroke:#000000,stroke-width:2px
+    classDef toolLayer fill:#ffffff,stroke:#000000,stroke-width:2px
+
+    class Users,Devices userLayer
+    class AuthRoute,HomeRoute,ProfileRoute,ChatRoute,AdminRoute,AuthComp,PostComp,ProductComp,CartComp,ChatComp,AdminComp,APIService,SocketService frontendLayer
+    class RouteHandler,AuthCtrl,UserCtrl,PostCtrl,ProductCtrl,OrderCtrl,MessageCtrl,AdminCtrl,UserModel,PostModel,ProductModel,OrderModel,MessageModel,NotificationModel,AuthMW,ValidatorMW,RateLimitMW backendLayer
+    class PostgreSQL dataLayer
+    class AI,Storage,Email,Cloud externalLayer
+    class GitHub,Postman,Figma,Jira toolLayer

@@ -1,0 +1,60 @@
+@startuml AD-M4-Admin-ReportsAnalytics
+!theme plain
+title Activity Diagram - Module 4 (Admin): Báo cáo vi phạm & Thống kê
+caption Bao gồm: UC4.3 Xử lý báo cáo, UC4.4 Thống kê & phân tích
+
+|Quản trị viên|
+|Hệ thống|
+
+start
+
+|Quản trị viên|
+:Đăng nhập Admin;
+:Mở mục \"Báo cáo & Thống kê\";
+
+if (Chọn nhánh?) then (Xử lý báo cáo vi phạm)
+  |Hệ thống|
+  :Hiển thị danh sách báo cáo (ưu tiên);
+
+  |Quản trị viên|
+  :Chọn báo cáo để xem chi tiết;
+
+  |Hệ thống|
+  :Hiển thị nội dung liên quan
+  (Người báo cáo, Đối tượng, Lý do);
+
+  |Quản trị viên|
+  if (Báo cáo hợp lệ?) then (Có)
+    switch (Hành động?)
+    case (Xóa nội dung)
+      :Xóa bài đăng/bình luận vi phạm;
+    case (Khóa tài khoản)
+      :Vô hiệu hóa tài khoản vi phạm;
+    case (Cảnh cáo)
+      :Gửi cảnh cáo qua email;
+    endswitch
+
+    |Hệ thống|
+    :Thực thi hành động;
+    :Đánh dấu \"Đã xử lý\";
+  else (Không)
+    :Đánh dấu \"Từ chối\";
+    |Hệ thống|
+    :Cập nhật trạng thái báo cáo;
+  endif
+else (Xem Thống kê & Phân tích)
+  |Quản trị viên|
+  :Chọn khoảng thời gian;
+
+  |Hệ thống|
+  :Truy vấn & tổng hợp dữ liệu;
+  :Hiển thị Dashboard:\n  - Người dùng mới / tổng\n  - Tỷ lệ Buyer/Seller\n  - Bài đăng & sản phẩm mới\n  - Hoạt động giao dịch;
+
+  |Quản trị viên|
+  :Xem biểu đồ, quyết định hành động;
+endif
+
+stop
+
+@enduml
+

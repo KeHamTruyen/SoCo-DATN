@@ -1,0 +1,48 @@
+@startuml AD-M1-Auth-Recovery-Logout
+!theme plain
+title Activity Diagram - Module 1 (Auth): Khôi phục mật khẩu & Đăng xuất
+caption Bao gồm: UC1.4 Khôi phục mật khẩu, UC1.5 Đăng xuất
+
+|Người dùng|
+|Hệ thống|
+
+start
+
+|Người dùng|
+:Nhấn "Quên mật khẩu?";
+
+|Hệ thống|
+
+title Khôi phục mật khẩu;
+
+
+|Người dùng|
+:Nhập email đã đăng ký;
+
+|Hệ thống|
+:Kiểm tra email tồn tại;
+if (Email hợp lệ?) then (Có)
+  :Gửi link/OTP khôi phục;
+
+  |Người dùng|
+  :Mở link hoặc nhập OTP;
+  :Đặt mật khẩu mới;
+
+  |Hệ thống|
+  :Cập nhật mật khẩu;
+  :Thông báo thành công;
+else (Không)
+  :Hiển thị lỗi chung (bảo mật);
+endif
+
+|Người dùng|
+:Nhấn "Đăng xuất";
+
+|Hệ thống|
+:Hủy phiên & xóa JWT;
+:Chuyển hướng Trang chủ;
+
+stop
+
+@enduml
+

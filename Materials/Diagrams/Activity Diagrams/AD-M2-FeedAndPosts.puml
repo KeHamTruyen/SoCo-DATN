@@ -1,0 +1,85 @@
+@startuml AD-M2-FeedAndPosts
+!theme plain
+title Activity Diagram - Module 2: Bảng tin & Bài đăng
+caption Bao gồm: UC2.1 Xem Feed, UC2.2 Tạo bài đăng, UC2.3 Gắn thẻ sản phẩm, UC2.4 Tương tác
+
+|Người dùng|
+|Người bán|
+|Hệ thống|
+
+start
+
+|Người dùng|
+:Đăng nhập và vào Trang chủ;
+
+|Hệ thống|
+:Truy vấn bài đăng từ\nngười đang theo dõi;
+:Sắp xếp theo thuật toán\n(Mới nhất, Tương tác cao);
+:Hiển thị Feed cá nhân hóa;
+
+|Người dùng|
+switch (Hành động trên Feed?)
+case (Cuộn xem thêm)
+  |Hệ thống|
+  :Tải thêm bài đăng (Infinite scroll);
+
+case (Tạo bài đăng mới)
+  |Người dùng|
+  :Nhấn "Tạo bài đăng";
+  :Nhập nội dung văn bản;
+  :Tải lên hình ảnh (tùy chọn);
+  
+  if (Người dùng là Seller?) then (Có)
+    |Người bán|
+    :Gắn thẻ sản phẩm (tùy chọn);
+    
+    if (Muốn gắn thẻ?) then (Có)
+      |Hệ thống|
+      :Hiển thị danh sách sản phẩm của shop;
+      
+      |Người bán|
+      :Chọn sản phẩm để gắn thẻ;
+    else (Không)
+    endif
+  else (Không)
+  endif
+  
+  |Người dùng|
+  :Nhấn "Đăng";
+  
+  |Hệ thống|
+  :Kiểm tra nội dung;
+  :Lưu bài đăng vào database;
+  :Hiển thị bài đăng trên Feed;
+
+case (Tương tác với bài đăng)
+  fork
+    |Người dùng|
+    :Nhấn nút "Thích";
+    
+    |Hệ thống|
+    :Cập nhật số lượt thích;
+    :Lưu trạng thái "đã thích";
+  fork again
+    |Người dùng|
+    :Viết bình luận;
+    :Nhấn "Gửi";
+    
+    |Hệ thống|
+    :Lưu bình luận;
+    :Hiển thị bình luận dưới bài;
+  end fork
+
+case (Xem sản phẩm gắn thẻ)
+  |Người dùng|
+  :Nhấn vào thẻ sản phẩm;
+  
+  |Hệ thống|
+  :Chuyển đến trang chi tiết sản phẩm;
+
+endswitch
+
+stop
+
+@enduml
+

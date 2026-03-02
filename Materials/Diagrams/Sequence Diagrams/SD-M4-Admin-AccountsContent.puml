@@ -1,0 +1,53 @@
+@startuml
+!theme plain
+title SD-M4-Admin-AccountsContent - Admin - Tài khoản & Nội dung (UC4.1, UC4.2)
+caption Controllers: admin/users.controller.js, admin/posts.controller.js, admin/products.controller.js
+
+actor Admin
+participant Frontend
+participant "Admin UsersController" as AU
+participant "Admin Posts/Products Controller" as AC
+database "DB (Users/Posts/Products)" as DB
+
+== Quản lý tài khoản (UC4.1) ==
+Admin -> Frontend: Tìm kiếm/Lọc user
+Frontend -> AU: GET /api/admin/users?filters
+AU -> DB: Query users
+DB --> AU: List
+AU --> Frontend: Data
+
+Admin -> Frontend: Chọn user > hành động
+alt Vô hiệu hóa
+  Frontend -> AU: PATCH /api/admin/users/:id {disabled:true}
+  AU -> DB: Cập nhật trạng thái
+  DB --> AU: OK
+else Kích hoạt lại
+  Frontend -> AU: PATCH ... {disabled:false}
+  AU -> DB: Update
+  DB --> AU: OK
+else Đổi vai trò
+  Frontend -> AU: PATCH ... {role:newRole}
+  AU -> DB: Update role
+  DB --> AU: OK
+end
+AU --> Frontend: 200
+
+== Quản lý nội dung (UC4.2) ==
+Admin -> Frontend: Mở danh sách bài đăng / sản phẩm
+Frontend -> AC: GET /api/admin/posts or /products
+AC -> DB: Query nội dung
+DB --> AC: List
+AC --> Frontend: Data
+
+Admin -> Frontend: Xem chi tiết & quyết định
+alt Vi phạm
+  Frontend -> AC: DELETE /api/admin/posts/:id (hoặc products)
+  AC -> DB: Xóa/ẩn nội dung
+  DB --> AC: OK
+else Không vi phạm
+  Frontend -> AC: Đóng
+end
+AC --> Frontend: 200
+
+@enduml
+

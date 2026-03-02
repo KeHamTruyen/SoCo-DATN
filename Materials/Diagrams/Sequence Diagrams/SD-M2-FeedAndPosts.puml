@@ -1,0 +1,46 @@
+@startuml
+!theme plain
+title SD-M2-FeedAndPosts - Feed & Bài đăng (UC2.1-2.4)
+caption Controllers: post.controller.js, product.controller.js (tag), feedService, notification
+
+actor User
+participant Frontend
+participant "FeedService" as Feed
+participant "PostController" as PostCtl
+participant "ProductController" as ProdCtl
+database "DB (Posts/Products)" as DB
+participant "NotificationService" as Noti
+
+== Xem Feed (UC2.1) ==
+User -> Frontend: Mở trang chủ
+Frontend -> Feed: GET /api/feed
+Feed -> DB: Lấy bài từ follow + gợi ý
+DB --> Feed: Danh sách bài
+Feed --> Frontend: Posts
+Frontend -> User: Hiển thị feed (infinite scroll)
+
+== Tạo bài đăng & gắn thẻ sản phẩm (UC2.2, UC2.3) ==
+User -> Frontend: Nhập nội dung + ảnh
+User -> Frontend: Chọn sản phẩm (nếu seller)
+Frontend -> ProdCtl: GET /api/products/mine (list)
+ProdCtl -> DB: Query sản phẩm của seller
+DB --> ProdCtl: Danh sách
+ProdCtl --> Frontend: Products
+Frontend -> PostCtl: POST /api/posts {text, images, taggedProducts}
+PostCtl -> DB: Lưu post + media + tags
+DB --> PostCtl: OK
+PostCtl -> Noti: Broadcast post mới tới follower
+Noti --> Followers: Thông báo bài mới
+PostCtl --> Frontend: 201 Created
+
+== Tương tác (UC2.4) ==
+User -> Frontend: Like / Comment
+Frontend -> PostCtl: POST /api/posts/:id/like or /comment
+PostCtl -> DB: Ghi lượt thích / bình luận
+DB --> PostCtl: OK + count
+PostCtl -> Noti: Gửi notify chủ bài
+Noti --> PostOwner: Thông báo tương tác
+PostCtl --> Frontend: Trả về trạng thái mới
+
+@enduml
+

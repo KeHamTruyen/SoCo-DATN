@@ -1,0 +1,123 @@
+@startuml AD-M6-PostScheduling
+!theme plain
+title Activity Diagram - Module 6: Lên lịch & Điều phối Bài đăng
+caption Bao gồm: UC6.1 Lên lịch đăng bài, UC6.2 Quản lý bài viết đã lên lịch
+
+|Người dùng|
+|Hệ thống|
+|Cron Job|
+
+start
+
+|Người dùng|
+:Đăng nhập và soạn bài đăng;
+:Hoàn thành nội dung bài viết;
+
+|Người dùng|
+switch (Chọn cách đăng?)
+case (Đăng ngay)
+  :Nhấn "Đăng ngay";
+  
+  |Hệ thống|
+  :Xuất bản bài đăng;
+  :Hiển thị trên Feed;
+
+case (Lên lịch)
+  :Nhấn "Lên lịch";
+  
+  |Hệ thống|
+  :Hiển thị bộ chọn ngày giờ;
+  
+  |Người dùng|
+  :Chọn ngày và giờ xuất bản;
+  
+  if (Thời gian trong tương lai?) then (Có)
+    :Nhấn "Xác nhận lịch";
+    
+    |Hệ thống|
+    :Lưu bài đăng với trạng thái "Đã lên lịch";
+    :Lưu thời gian xuất bản dự kiến;
+    :Hiển thị "Bài viết đã được lên lịch";
+  else (Không)
+    |Hệ thống|
+    :Báo lỗi "Vui lòng chọn thời gian trong tương lai";
+  endif
+
+endswitch
+
+|Người dùng|
+:Vào "Quản lý bài viết đã lên lịch";
+
+|Hệ thống|
+:Hiển thị danh sách bài viết chờ xuất bản\n(Xem trước nội dung, Thời gian dự kiến);
+
+|Người dùng|
+:Chọn một bài viết;
+
+switch (Hành động?)
+case (Xem trước)
+  |Hệ thống|
+  :Hiển thị preview bài đăng;
+
+case (Chỉnh sửa nội dung)
+  |Người dùng|
+  :Nhấn "Chỉnh sửa";
+  :Cập nhật nội dung/hình ảnh;
+  :Nhấn "Lưu thay đổi";
+  
+  |Hệ thống|
+  :Cập nhật bài viết trong database;
+
+case (Thay đổi lịch)
+  |Người dùng|
+  :Nhấn "Thay đổi lịch";
+  :Chọn ngày giờ mới;
+  :Xác nhận;
+  
+  |Hệ thống|
+  :Cập nhật thời gian xuất bản;
+
+case (Đăng ngay)
+  |Người dùng|
+  :Nhấn "Đăng ngay";
+  
+  |Hệ thống|
+  :Xuất bản bài đăng;
+  :Xóa khỏi danh sách lên lịch;
+
+case (Xóa)
+  |Người dùng|
+  :Nhấn "Xóa";
+  
+  |Hệ thống|
+  :Xác nhận xóa;
+  :Xóa bài viết khỏi hàng chờ;
+
+endswitch
+
+|Cron Job|
+:Kiểm tra bài viết đến hạn;
+
+if (Có bài viết cần xuất bản?) then (Có)
+  :Lấy danh sách bài đến hạn;
+  
+  |Hệ thống|
+  :Thay đổi trạng thái = "Đã đăng";
+  :Xuất bản lên Feed;
+  :Gửi thông báo cho tác giả;
+else (Không)
+  |Cron Job|
+  :Chờ đến lần kiểm tra tiếp theo;
+endif
+
+stop
+
+note right
+  Cron Job chạy định kỳ
+  (ví dụ: mỗi phút)
+  để kiểm tra và xuất bản
+  các bài đăng đã đến hạn
+end note
+
+@enduml
+
