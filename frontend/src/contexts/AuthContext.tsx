@@ -124,7 +124,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Đăng nhập thất bại';
       setError(errorMessage);
-      throw new Error(errorMessage);
+      throw Object.assign(new Error(errorMessage), {
+        status: err.response?.status,
+      });
     } finally {
       setLoading(false);
     }

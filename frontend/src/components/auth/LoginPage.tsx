@@ -14,6 +14,21 @@ export function LoginPage() {
 
   const from = (location.state as any)?.from?.pathname || '/home';
 
+  const isUnverifiedAccountError = (err: any) => {
+    const status = err?.status;
+    const message = String(err?.message || '').toLowerCase();
+
+    return (
+      status === 403 &&
+      (
+        message.includes('verify your email') ||
+        message.includes('xác thực email') ||
+        message.includes('chưa xác nhận') ||
+        message.includes('chưa được xác nhận')
+      )
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
@@ -29,6 +44,10 @@ export function LoginPage() {
       }
       navigate(from, { replace: true });
     } catch (err) {
+      if (isUnverifiedAccountError(err)) {
+        navigate(`/verify-email?email=${encodeURIComponent(email)}`, { replace: true });
+        return;
+      }
       console.error('Login failed:', err);
     }
   };
