@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Package, Truck, CheckCircle, XCircle, Loader2, MapPin, CreditCard } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import orderService, { Order, OrderStatus } from '../services/order.service';
+import reviewService from '../services/review.service';
 import { formatDistanceToNow } from 'date-fns';
 
 export function OrderDetailPage() {
@@ -12,6 +13,15 @@ export function OrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const formatCancellationReason = (reason?: string) => {
+    if (!reason) return '';
+    return reason
+      .replace('REFUND_REQUEST::', '')
+      .replace('REFUND_ACCEPTED::', '')
+      .replace('REFUND_REJECTED::', '');
+  };
 
   useEffect(() => {
     if (orderId) {
@@ -65,6 +75,77 @@ export function OrderDetailPage() {
         return <XCircle className="w-5 h-5" />;
       default:
         return <Package className="w-5 h-5" />;
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!order) return;
+    const reason = prompt('Lý do hủy đơn (không bắt buộc):') || undefined;
+    try {
+      setActionLoading(true);
+      await orderService.cancelOrder(order.id, reason ? { reason } : undefined);
+      await loadOrder();
+      alert('Đã hủy đơn hàng.');
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Không thể hủy đơn.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleConfirmDelivered = async () => {
+    if (!order) return;
+    try {
+      setActionLoading(true);
+      await orderService.updateOrderStatus(order.id, { status: 'COMPLETED' });
+      await loadOrder();
+      alert('Đã xác nhận hoàn tất đơn hàng.');
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Không thể xác nhận hoàn tất.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRequestRefund = async () => {
+    if (!order) return;
+    const reason = prompt('Nhập lý do yêu cầu hoàn tiền:');
+    if (!reason?.trim()) return;
+    try {
+      setActionLoading(true);
+      await orderService.requestRefund(order.id, { reason: reason.trim() });
+      await loadOrder();
+      alert('Đã gửi yêu cầu hoàn tiền.');
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Không thể gửi yêu cầu hoàn tiền.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCreateReview = async (orderItemId: string) => {
+    const ratingInput = prompt('Chọn số sao (1-5):', '5');
+    if (!ratingInput) return;
+    const rating = Number(ratingInput);
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+      alert('Số sao không hợp lệ.');
+      return;
+    }
+    const content = prompt('Nội dung đánh giá (không bắt buộc):') || '';
+
+    try {
+      setActionLoading(true);
+      await reviewService.createReview({
+        orderItemId,
+        rating,
+        content,
+      });
+      await loadOrder();
+      alert('Đánh giá thành công.');
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Không thể gửi đánh giá.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -122,6 +203,37 @@ export function OrderDetailPage() {
         </div>
 
         <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow-sm p-4 flex flex-wrap gap-3">
+            {['PENDING', 'CONFIRMED'].includes(order.status) && (
+              <button
+                onClick={handleCancelOrder}
+                disabled={actionLoading}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                Hủy đơn
+              </button>
+            )}
+            {order.status === 'DELIVERED' && (
+              <button
+                onClick={handleConfirmDelivered}
+                disabled={actionLoading}
+                className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
+              >
+                Xác nhận đã nhận hàng
+              </button>
+            )}
+            {['DELIVERED', 'COMPLETED'].includes(order.status) &&
+              !String(order.cancellationReason || '').startsWith('REFUND_REQUEST::') && (
+                <button
+                  onClick={handleRequestRefund}
+                  disabled={actionLoading}
+                  className="px-4 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-60"
+                >
+                  Yêu cầu hoàn tiền
+                </button>
+              )}
+          </div>
+
           {/* Order Items */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-lg font-semibold mb-4">Order Items</h2>
@@ -154,6 +266,20 @@ export function OrderDetailPage() {
                     <p className="text-sm font-semibold mt-1">
                       {Number(item.totalPrice).toLocaleString('vi-VN')}đ
                     </p>
+                    {['DELIVERED', 'COMPLETED'].includes(order.status) && !item.review && (
+                      <button
+                        onClick={() => handleCreateReview(item.id)}
+                        disabled={actionLoading}
+                        className="mt-2 px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+                      >
+                        Đánh giá
+                      </button>
+                    )}
+                    {item.review && (
+                      <p className="mt-2 text-xs text-green-700">
+                        Đã đánh giá {item.review.rating} sao
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -304,7 +430,7 @@ export function OrderDetailPage() {
                     </p>
                     {order.cancellationReason && (
                       <p className="text-sm text-gray-600 mt-1">
-                        Reason: {order.cancellationReason}
+                        Reason: {formatCancellationReason(order.cancellationReason)}
                       </p>
                     )}
                   </div>

@@ -3,7 +3,9 @@ import { Heart, ShoppingCart, Star, Plus, Minus, Check, Truck, Shield, RotateCcw
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
+import cartService from '../services/cart.service';
 import productService, { Product as ProductType } from '../services/product.service';
+import reviewService from '../services/review.service';
 import { PageLayout } from './Layout/PageLayout';
 
 interface Review {
@@ -17,13 +19,14 @@ interface Review {
   images?: string[];
   likes: number;
   isLiked: boolean;
+  sellerResponse?: string;
 }
 
 export function ProductDetailPage() {
   const { id: productId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { addToCart } = useCart();
+  const { refreshCartCount } = useCart();
   
   const [product, setProduct] = useState<ProductType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,8 +37,7 @@ export function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedVariants, setSelectedVariants] = useState<{ [key: string]: string }>({});
   const [activeTab, setActiveTab] = useState<'description' | 'reviews' | 'shipping'>('description');
-  const [reviewText, setReviewText] = useState('');
-  const [reviewRating, setReviewRating] = useState(5);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   // Fetch product data
   useEffect(() => {
@@ -64,44 +66,39 @@ export function ProductDetailPage() {
     ? product.images.map(img => img.imageUrl)
     : ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800'];
 
-  // Mock reviews
-  const [reviews, setReviews] = useState<Review[]>([
-    {
-      id: '1',
-      userId: '2',
-      userName: 'Trần Thị B',
-      userAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-      rating: 5,
-      content: 'Sản phẩm rất đẹp và chất lượng! Giao hàng nhanh, đóng gói cẩn thận. Mình rất hài lòng và sẽ ủng hộ shop tiếp.',
-      timestamp: '2 ngày trước',
-      images: ['https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400'],
-      likes: 24,
-      isLiked: false
-    },
-    {
-      id: '2',
-      userId: '3',
-      userName: 'Lê Văn C',
-      userAvatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400',
-      rating: 4,
-      content: 'Chất lượng tốt, giá cả hợp lý. Có điều màu sắc hơi khác so với hình một chút nhưng vẫn đẹp.',
-      timestamp: '5 ngày trước',
-      likes: 12,
-      isLiked: false
-    },
-    {
-      id: '3',
-      userId: '4',
-      userName: 'Phạm Thị D',
-      userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
-      rating: 5,
-      content: 'Chất vải mềm mại, form dáng vừa vặn. Mình cao 1m6 nặng 50kg mặc size M vừa đẹp!',
-      timestamp: '1 tuần trước',
-      images: ['https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400', 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400'],
-      likes: 18,
-      isLiked: true
-    }
-  ]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!product?.id) return;
+      try {
+        const response = await reviewService.getProductReviews(product.id, {
+          page: 1,
+          limit: 20,
+        });
+        const mapped: Review[] = (response.data || []).map((review) => ({
+          id: review.id,
+          userId: review.userId,
+          userName: review.user?.fullName || review.user?.username || 'Người dùng',
+          userAvatar:
+            review.user?.avatarUrl ||
+            'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+          rating: review.rating,
+          content: review.content || '',
+          timestamp: new Date(review.createdAt).toLocaleDateString('vi-VN'),
+          images: review.images || [],
+          likes: 0,
+          isLiked: false,
+          sellerResponse: review.sellerResponse,
+        }));
+        setReviews(mapped);
+      } catch (err) {
+        console.error('Error fetching reviews:', err);
+      }
+    };
+
+    fetchReviews();
+  }, [product?.id]);
 
   if (loading) {
     return (
@@ -147,58 +144,35 @@ export function ProductDetailPage() {
     }));
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return;
-    
-    // Convert API Product to App Product type for CartContext
-    const cartProduct = {
-      id: product.id,
-      sellerId: product.sellerId,
-      sellerName: product.seller?.fullName || 'Unknown',
-      sellerAvatar: product.seller?.avatarUrl || '',
-      sellerUsername: product.seller?.username || '',
-      title: product.title,
-      price: Number(product.price),
-      image: product.images?.[0]?.imageUrl || '',
-      description: product.description || '',
-      likes: product.likesCount,
-      comments: product.commentsCount,
-      isLiked: isLiked,
-      createdAt: product.createdAt,
-      category: product.category?.name || '',
-      stock: product.stockQuantity,
-      variants: product.variants?.map(v => ({
-        id: v.id,
-        name: v.variantName,
-        options: Object.values(v.options as Record<string, string>)
-      }))
-    };
-    
-    for (let i = 0; i < quantity; i++) {
-      addToCart(cartProduct, selectedVariants);
-    }
-    
-    alert(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`);
-  };
 
-  const handleAddReview = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !reviewText.trim()) return;
-    
-    const newReview: Review = {
-      id: Date.now().toString(),
-      userId: user.id,
-      userName: user.fullName,
-      userAvatar: user.avatarUrl || '',
-      rating: reviewRating,
-      content: reviewText,
-      timestamp: 'Vừa xong',
-      likes: 0,
-      isLiked: false
-    };
-    setReviews([newReview, ...reviews]);
-    setReviewText('');
-    setReviewRating(5);
+    const selectedValues = Object.values(selectedVariants);
+    const matchedVariant = product.variants?.find((variant) => {
+      const optionValues = Object.values((variant.options || {}) as Record<string, string>);
+      return selectedValues.every((value) => optionValues.includes(value));
+    });
+
+    if (product.variants?.length && !matchedVariant) {
+      alert('Vui lòng chọn đầy đủ biến thể trước khi thêm vào giỏ hàng.');
+      return;
+    }
+
+    try {
+      setAddingToCart(true);
+      await cartService.addToCart({
+        productId: product.id,
+        quantity,
+        variantId: matchedVariant?.id,
+        selectedVariant: Object.keys(selectedVariants).length ? selectedVariants : undefined,
+      });
+      await refreshCartCount();
+      alert(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Không thể thêm sản phẩm vào giỏ.');
+    } finally {
+      setAddingToCart(false);
+    }
   };
 
   const averageRating = reviews.length > 0 
@@ -404,10 +378,11 @@ export function ProductDetailPage() {
               <div className="flex gap-3 mb-6">
                 <button
                   onClick={handleAddToCart}
+                  disabled={addingToCart}
                   className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                 >
                   <ShoppingCart className="w-5 h-5" />
-                  Thêm vào giỏ hàng
+                  {addingToCart ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}
                 </button>
                 <button
                   onClick={handleLike}
@@ -566,7 +541,7 @@ export function ProductDetailPage() {
                   <div className="flex-1">
                     {[5, 4, 3, 2, 1].map((star) => {
                       const count = reviews.filter(r => r.rating === star).length;
-                      const percentage = (count / reviews.length) * 100;
+                      const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
                       return (
                         <div key={star} className="flex items-center gap-3 mb-2">
                           <span className="text-sm w-8">{star} ⭐</span>
@@ -583,48 +558,18 @@ export function ProductDetailPage() {
                   </div>
                 </div>
 
-                {/* Add Review Form */}
-                <form onSubmit={handleAddReview} className="mb-8 pb-8 border-b border-gray-200">
-                  <h3 className="text-lg mb-4">Viết đánh giá của bạn</h3>
-                  <div className="mb-4">
-                    <label className="block text-sm text-gray-700 mb-2">Đánh giá của bạn</label>
-                    <div className="flex gap-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setReviewRating(star)}
-                          className="text-2xl"
-                        >
-                          <Star
-                            className={`w-8 h-8 ${
-                              star <= reviewRating
-                                ? 'text-yellow-500 fill-current'
-                                : 'text-gray-300'
-                            }`}
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-sm text-gray-700 mb-2">Nội dung đánh giá</label>
-                    <textarea
-                      value={reviewText}
-                      onChange={(e) => setReviewText(e.target.value)}
-                      placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent resize-none"
-                      rows={4}
-                    />
-                  </div>
+                <div className="mb-8 pb-8 border-b border-gray-200 bg-blue-50 rounded-lg p-4">
+                  <h3 className="text-lg mb-2">Đánh giá sản phẩm</h3>
+                  <p className="text-sm text-gray-700 mb-3">
+                    Theo quy trình thực tế, bạn chỉ có thể đánh giá sau khi đơn hàng đã giao hoặc hoàn thành.
+                  </p>
                   <button
-                    type="submit"
-                    disabled={!reviewText.trim()}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => navigate('/orders')}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    Gửi đánh giá
+                    Đi tới đơn hàng của tôi
                   </button>
-                </form>
+                </div>
 
                 {/* Reviews List */}
                 <div className="space-y-6">
@@ -676,6 +621,12 @@ export function ProductDetailPage() {
                               <span>Hữu ích ({review.likes})</span>
                             </button>
                           </div>
+                          {review.sellerResponse && (
+                            <div className="mt-3 bg-gray-50 border-l-4 border-blue-500 p-3 rounded-r-lg">
+                              <p className="text-xs text-gray-500 mb-1">Phản hồi từ người bán</p>
+                              <p className="text-sm text-gray-700">{review.sellerResponse}</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

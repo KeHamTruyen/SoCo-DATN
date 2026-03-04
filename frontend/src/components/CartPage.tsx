@@ -2,11 +2,13 @@ import { Trash2, Plus, Minus, ShoppingBag, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 import cartService, { Cart as CartType } from '../services/cart.service';
 
 export function CartPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { refreshCartCount } = useCart();
   const [cart, setCart] = useState<CartType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +25,7 @@ export function CartPage() {
       setError(null);
       const response = await cartService.getCart();
       setCart(response.data);
+      await refreshCartCount();
     } catch (err: any) {
       console.error('Load cart error:', err);
       setError(err.response?.data?.message || 'Failed to load cart');
@@ -42,6 +45,7 @@ export function CartPage() {
       setUpdating(itemId);
       const response = await cartService.updateCartItem(itemId, { quantity: newQuantity });
       setCart(response.data);
+      await refreshCartCount();
     } catch (err: any) {
       console.error('Update quantity error:', err);
       alert(err.response?.data?.message || 'Failed to update quantity');
@@ -55,6 +59,7 @@ export function CartPage() {
       setUpdating(itemId);
       const response = await cartService.removeFromCart(itemId);
       setCart(response.data);
+      await refreshCartCount();
     } catch (err: any) {
       console.error('Remove item error:', err);
       alert(err.response?.data?.message || 'Failed to remove item');
@@ -72,6 +77,7 @@ export function CartPage() {
       setLoading(true);
       const response = await cartService.clearCart();
       setCart(response.data);
+      await refreshCartCount();
     } catch (err: any) {
       console.error('Clear cart error:', err);
       alert(err.response?.data?.message || 'Failed to clear cart');

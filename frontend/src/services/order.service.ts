@@ -66,6 +66,10 @@ export interface OrderItem {
   totalPrice: number;
   status: string;
   createdAt: string;
+  review?: {
+    id: string;
+    rating: number;
+  };
   product?: {
     id: string;
     name: string;
@@ -212,6 +216,46 @@ const orderService = {
   confirmPayment: async (orderId: string): Promise<ApiResponse<Order>> => {
     const response = await api.post<ApiResponse<Order>>(
       `/orders/${orderId}/payment/confirm`
+    );
+    return response.data;
+  },
+
+  requestRefund: async (
+    orderId: string,
+    data?: { reason?: string }
+  ): Promise<ApiResponse<Order>> => {
+    const response = await api.post<ApiResponse<Order>>(
+      `/orders/${orderId}/refund-request`,
+      data || {}
+    );
+    return response.data;
+  },
+
+  getMyRefundRequests: async (filters?: { page?: number; limit?: number }) => {
+    const params = new URLSearchParams();
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    const response = await api.get(
+      `/orders/my/refund-requests?${params.toString()}`
+    );
+    return response.data;
+  },
+
+  getSellerRefundRequests: async (filters?: { page?: number; limit?: number }) => {
+    const params = new URLSearchParams();
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    const response = await api.get(`/orders/seller/refunds?${params.toString()}`);
+    return response.data;
+  },
+
+  processRefund: async (
+    orderId: string,
+    data: { accept: boolean; reason?: string }
+  ): Promise<ApiResponse<Order>> => {
+    const response = await api.post<ApiResponse<Order>>(
+      `/orders/${orderId}/refund`,
+      data
     );
     return response.data;
   },

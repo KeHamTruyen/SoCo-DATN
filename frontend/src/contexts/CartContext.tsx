@@ -1,60 +1,109 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { Product, CartItem } from '../App';
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+  useCallback,
+} from 'react';
+import cartService from '../services/cart.service';
+import { useAuth } from './AuthContext';
 
 interface CartContextType {
-  cart: CartItem[];
-  addToCart: (product: Product, variant?: { [key: string]: string }) => void;
+  cart: any[];
+  addToCart: (product: any, variant?: { [key: string]: string }) => void;
   updateCartQuantity: (productId: string, quantity: number, variant?: { [key: string]: string }) => void;
   clearCart: () => void;
   cartItemCount: number;
+  refreshCartCount: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const { user } = useAuth();
+  const [cart, setCart] = useState<any[]>([]);
+  const [cartItemCount, setCartItemCount] = useState(0);
 
-  const addToCart = (product: Product, variant?: { [key: string]: string }) => {
-    setCart(prev => {
-      const existing = prev.find(item => 
-        item.product.id === product.id && 
-        JSON.stringify(item.selectedVariant) === JSON.stringify(variant)
-      );
-      if (existing) {
-        return prev.map(item =>
-          item.product.id === product.id && 
-          JSON.stringify(item.selectedVariant) === JSON.stringify(variant)
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prev, { product, quantity: 1, selectedVariant: variant }];
+  const refreshCartCount = useCallback(async () => {
+    if (!user) {
+      setCartItemCount(0);
+      return;
+    }
+
+    try {
+      const response = await cartService.getCartCount();
+      setCartItemCount(response.data.count || 0);
+    } catch {
+      setCartItemCount(0);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    refreshCartCount();
+  }, [refreshCartCount]);
+
+  const addToCart = (product: any, variant?: { [key: string]: string }) => {
+    if (!user) return;
+
+    const payload: {
+      productId: string;
+      quantity: number;
+      variantId?: string;
+      selectedVariant?: { [key: string]: string };
+    } = {
+      productId: product.id,
+      quantity: 1,
+    };
+
+    if (variant && Object.keys(variant).length > 0) {
+      payload.selectedVariant = variant;
+    }
+
+    if (product.variantId) {
+      payload.variantId = product.variantId;
+    }
+
+    cartService
+      .addToCart(payload)
+      .then((response) => {
+        setCart(response.data.items || []);
+        setCartItemCount(response.data.totalItems || 0);
+      })
+      .catch((error) => {
+        console.error('Add to cart failed:', error);
+      });
+  };
+
+  const updateCartQuantity = (productId: string, quantity: number) => {
+    const currentItem = cart.find((item) => item.product?.id === productId);
+    if (!currentItem) return;
+
+    if (quantity <= 0) {
+      cartService.removeFromCart(currentItem.id).then((response) => {
+        setCart(response.data.items || []);
+        setCartItemCount(response.data.totalItems || 0);
+      });
+      return;
+    }
+
+    cartService.updateCartItem(currentItem.id, { quantity }).then((response) => {
+      setCart(response.data.items || []);
+      setCartItemCount(response.data.totalItems || 0);
     });
   };
 
-  const updateCartQuantity = (productId: string, quantity: number, variant?: { [key: string]: string }) => {
-    if (quantity === 0) {
-      setCart(prev => prev.filter(item => 
-        !(item.product.id === productId && 
-          JSON.stringify(item.selectedVariant) === JSON.stringify(variant))
-      ));
-    } else {
-      setCart(prev =>
-        prev.map(item =>
-          item.product.id === productId && 
-          JSON.stringify(item.selectedVariant) === JSON.stringify(variant)
-            ? { ...item, quantity }
-            : item
-        )
-      );
-    }
-  };
-
   const clearCart = () => {
-    setCart([]);
+    cartService
+      .clearCart()
+      .then(() => {
+        setCart([]);
+        setCartItemCount(0);
+      })
+      .catch((error) => {
+        console.error('Clear cart failed:', error);
+      });
   };
-
-  const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <CartContext.Provider
@@ -64,6 +113,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateCartQuantity,
         clearCart,
         cartItemCount,
+        refreshCartCount,
       }}
     >
       {children}

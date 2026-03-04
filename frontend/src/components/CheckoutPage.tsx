@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, CreditCard, Banknote, Loader2, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 import cartService, { Cart } from '../services/cart.service';
 import orderService, { CreateOrderRequest } from '../services/order.service';
 
 export function CheckoutPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { refreshCartCount } = useCart();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -76,6 +78,8 @@ export function CheckoutPage() {
       if (paymentMethod === 'COD') {
         await orderService.confirmPayment(response.data.id);
       }
+
+      await refreshCartCount();
 
       setOrderSuccess(true);
 

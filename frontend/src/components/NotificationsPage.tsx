@@ -1,18 +1,14 @@
 import { Heart, MessageCircle, UserPlus, ShoppingBag, Star, Check } from 'lucide-react';
-import { User, Notification } from '../App';
+import { Notification } from '../App';
 import { PageLayout } from './Layout/PageLayout';
+import { useAuth } from '../contexts/AuthContext';
 
-interface NotificationsPageProps {
-  currentUser: User;
-  onNavigate: (page: any) => void;
-  onLogout: () => void;
-}
-
-export function NotificationsPage({ currentUser, onNavigate, onLogout }: NotificationsPageProps) {
+export function NotificationsPage() {
+  const { user } = useAuth();
   const notifications: Notification[] = [
     {
       id: '1',
-      userId: currentUser.id,
+      userId: user?.id || '',
       type: 'like',
       content: 'Trần Thị Mai và 15 người khác đã thích bài viết của bạn',
       timestamp: '5 phút trước',
@@ -20,7 +16,7 @@ export function NotificationsPage({ currentUser, onNavigate, onLogout }: Notific
     },
     {
       id: '2',
-      userId: currentUser.id,
+      userId: user?.id || '',
       type: 'comment',
       content: 'Lê Văn Hoàng đã bình luận: "Sản phẩm rất đẹp!"',
       timestamp: '30 phút trước',
@@ -28,7 +24,7 @@ export function NotificationsPage({ currentUser, onNavigate, onLogout }: Notific
     },
     {
       id: '3',
-      userId: currentUser.id,
+      userId: user?.id || '',
       type: 'follow',
       content: 'Phạm Thị Lan đã bắt đầu theo dõi bạn',
       timestamp: '1 giờ trước',
@@ -36,7 +32,7 @@ export function NotificationsPage({ currentUser, onNavigate, onLogout }: Notific
     },
     {
       id: '4',
-      userId: currentUser.id,
+      userId: user?.id || '',
       type: 'order',
       content: 'Bạn có đơn hàng mới từ Hoàng Văn Nam',
       timestamp: '2 giờ trước',
@@ -44,7 +40,7 @@ export function NotificationsPage({ currentUser, onNavigate, onLogout }: Notific
     },
     {
       id: '5',
-      userId: currentUser.id,
+      userId: user?.id || '',
       type: 'review',
       content: 'Nguyễn Thị Hương đã đánh giá 5 sao cho sản phẩm của bạn',
       timestamp: '3 giờ trước',
@@ -52,7 +48,7 @@ export function NotificationsPage({ currentUser, onNavigate, onLogout }: Notific
     },
     {
       id: '6',
-      userId: currentUser.id,
+      userId: user?.id || '',
       type: 'message',
       content: 'Bạn có tin nhắn mới từ Trần Văn Đức',
       timestamp: '5 giờ trước',
@@ -60,7 +56,7 @@ export function NotificationsPage({ currentUser, onNavigate, onLogout }: Notific
     },
     {
       id: '7',
-      userId: currentUser.id,
+      userId: user?.id || '',
       type: 'order',
       content: 'Đơn hàng #1234 đã được giao thành công',
       timestamp: '1 ngày trước',
@@ -68,7 +64,7 @@ export function NotificationsPage({ currentUser, onNavigate, onLogout }: Notific
     },
     {
       id: '8',
-      userId: currentUser.id,
+      userId: user?.id || '',
       type: 'like',
       content: 'Bài viết của bạn đã đạt 100 lượt thích',
       timestamp: '2 ngày trước',
@@ -99,9 +95,6 @@ export function NotificationsPage({ currentUser, onNavigate, onLogout }: Notific
 
   return (
     <PageLayout 
-      currentUser={currentUser}
-      onNavigate={onNavigate}
-      onLogout={onLogout}
       activePage="notifications"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

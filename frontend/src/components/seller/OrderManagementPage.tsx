@@ -1,23 +1,39 @@
-import { useState } from 'react';
-import { Search, Filter, Download, Eye } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Search, Download, Eye, Loader2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { PageLayout } from '../Layout/PageLayout';
+import orderService, { Order } from '../../services/order.service';
 
 export function OrderManagementPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'shipping' | 'completed' | 'refund'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [refundOrders, setRefundOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   if (!user) return null;
 
-  const orders = [
-    { id: '#1234', customer: 'Trần Thị Mai', product: 'Áo sơ mi cao cấp', quantity: 2, amount: '900,000đ', status: 'shipping', date: '15/12/2024', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400' },
-    { id: '#1233', customer: 'Lê Văn Hoàng', product: 'Giày thể thao', quantity: 1, amount: '890,000đ', status: 'completed', date: '14/12/2024', avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400' },
-    { id: '#1232', customer: 'Phạm Thị Lan', product: 'Đồng hồ nam', quantity: 1, amount: '2,450,000đ', status: 'pending', date: '14/12/2024', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400' },
-    { id: '#1231', customer: 'Hoàng Văn Nam', product: 'Laptop Gaming', quantity: 1, amount: '18,900,000đ', status: 'completed', date: '13/12/2024', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400' },
-    { id: '#1230', customer: 'Nguyễn Thị Hương', product: 'Balo du lịch', quantity: 3, amount: '1,950,000đ', status: 'shipping', date: '13/12/2024', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400' },
-    { id: '#1229', customer: 'Trần Văn Đức', product: 'Áo sơ mi cao cấp', quantity: 1, amount: '450,000đ', status: 'refund', date: '12/12/2024', avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400' }
-  ];
+  const loadOrders = async () => {
+    try {
+      setLoading(true);
+      const [salesRes, refundsRes] = await Promise.all([
+        orderService.getMySales({ page: 1, limit: 100 }),
+        orderService.getSellerRefundRequests({ page: 1, limit: 100 }),
+      ]);
+      setOrders(salesRes.data || []);
+      setRefundOrders(refundsRes.data || []);
+    } catch (error) {
+      console.error('Load seller orders error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadOrders();
+  }, []);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -29,16 +45,104 @@ export function OrderManagementPage() {
     return statusMap[status as keyof typeof statusMap] || statusMap.pending;
   };
 
-  const filteredOrders = activeTab === 'all' 
-    ? orders 
-    : orders.filter(order => order.status === activeTab);
+  const normalizedOrders = useMemo(() => {
+    const mappedSales = orders.map((order) => ({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      customer: order.buyer?.fullName || order.buyer?.username || 'Khách hàng',
+      product: order.items[0]?.productName || '-',
+      quantity: order.items.reduce((sum, item) => sum + item.quantity, 0),
+      amount: `${Number(order.total).toLocaleString('vi-VN')}đ`,
+      status:
+        order.status === 'PENDING' || order.status === 'CONFIRMED' || order.status === 'PROCESSING'
+          ? 'pending'
+          : order.status === 'SHIPPING'
+            ? 'shipping'
+            : order.status === 'DELIVERED' || order.status === 'COMPLETED'
+              ? 'completed'
+              : order.status === 'REFUNDED'
+                ? 'refund'
+                : 'pending',
+      date: new Date(order.createdAt).toLocaleDateString('vi-VN'),
+      avatar:
+        order.buyer?.avatarUrl ||
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+      raw: order,
+    }));
+
+    const mappedRefunds = refundOrders.map((order) => ({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      customer: order.buyer?.fullName || order.buyer?.username || 'Khách hàng',
+      product: order.items[0]?.productName || '-',
+      quantity: order.items.reduce((sum, item) => sum + item.quantity, 0),
+      amount: `${Number(order.total).toLocaleString('vi-VN')}đ`,
+      status: 'refund',
+      date: new Date(order.updatedAt).toLocaleDateString('vi-VN'),
+      avatar:
+        order.buyer?.avatarUrl ||
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+      raw: order,
+    }));
+
+    const merged = [...mappedSales, ...mappedRefunds];
+    return merged.filter((item, idx) => merged.findIndex((m) => m.id === item.id) === idx);
+  }, [orders, refundOrders]);
+
+  const filteredOrders = normalizedOrders
+    .filter((order) => (activeTab === 'all' ? true : order.status === activeTab))
+    .filter((order) => {
+      if (!searchQuery.trim()) return true;
+      const keyword = searchQuery.toLowerCase();
+      return (
+        order.orderNumber.toLowerCase().includes(keyword) ||
+        order.customer.toLowerCase().includes(keyword)
+      );
+    });
 
   const tabCounts = {
-    all: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    shipping: orders.filter(o => o.status === 'shipping').length,
-    completed: orders.filter(o => o.status === 'completed').length,
-    refund: orders.filter(o => o.status === 'refund').length
+    all: normalizedOrders.length,
+    pending: normalizedOrders.filter(o => o.status === 'pending').length,
+    shipping: normalizedOrders.filter(o => o.status === 'shipping').length,
+    completed: normalizedOrders.filter(o => o.status === 'completed').length,
+    refund: normalizedOrders.filter(o => o.status === 'refund').length
+  };
+
+  const getNextStatus = (status: Order['status']) => {
+    if (status === 'PENDING') return 'CONFIRMED';
+    if (status === 'CONFIRMED') return 'PROCESSING';
+    if (status === 'PROCESSING') return 'SHIPPING';
+    if (status === 'SHIPPING') return 'DELIVERED';
+    return null;
+  };
+
+  const handleAdvanceStatus = async (order: Order) => {
+    const nextStatus = getNextStatus(order.status);
+    if (!nextStatus) return;
+    try {
+      setProcessingId(order.id);
+      await orderService.updateOrderStatus(order.id, { status: nextStatus });
+      await loadOrders();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Không thể cập nhật trạng thái.');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleProcessRefund = async (orderId: string, accept: boolean) => {
+    const reason = prompt(
+      accept ? 'Ghi chú chấp nhận hoàn tiền (không bắt buộc):' : 'Lý do từ chối hoàn tiền:'
+    ) || undefined;
+    try {
+      setProcessingId(orderId);
+      await orderService.processRefund(orderId, { accept, reason });
+      await loadOrders();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Không thể xử lý hoàn tiền.');
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   return (
@@ -126,15 +230,22 @@ export function OrderManagementPage() {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
               />
             </div>
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <Filter className="w-5 h-5" />
-              <span className="hidden md:inline">Lọc</span>
+            <button
+              onClick={loadOrders}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+            >
+              Tải lại
             </button>
           </div>
         </div>
 
         {/* Orders List */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          {loading ? (
+            <div className="p-10 flex justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
@@ -154,7 +265,7 @@ export function OrderManagementPage() {
                   const status = getStatusBadge(order.status);
                   return (
                     <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="p-4 text-sm">{order.id}</td>
+                      <td className="p-4 text-sm">#{order.orderNumber}</td>
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <img src={order.avatar} alt={order.customer} className="w-8 h-8 rounded-full" />
@@ -171,9 +282,39 @@ export function OrderManagementPage() {
                         </span>
                       </td>
                       <td className="p-4">
-                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <button
+                          onClick={() => window.location.assign(`/orders/${order.id}`)}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
                           <Eye className="w-5 h-5 text-gray-600" />
                         </button>
+                        {order.status !== 'refund' && order.raw && getNextStatus(order.raw.status) && (
+                          <button
+                            onClick={() => handleAdvanceStatus(order.raw)}
+                            disabled={processingId === order.id}
+                            className="ml-2 px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+                          >
+                            {processingId === order.id ? '...' : 'Cập nhật'}
+                          </button>
+                        )}
+                        {order.status === 'refund' && (
+                          <>
+                            <button
+                              onClick={() => handleProcessRefund(order.id, true)}
+                              disabled={processingId === order.id}
+                              className="ml-2 px-3 py-1 text-xs rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
+                            >
+                              Duyệt
+                            </button>
+                            <button
+                              onClick={() => handleProcessRefund(order.id, false)}
+                              disabled={processingId === order.id}
+                              className="ml-2 px-3 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+                            >
+                              Từ chối
+                            </button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   );
@@ -181,6 +322,7 @@ export function OrderManagementPage() {
               </tbody>
             </table>
           </div>
+          )}
         </div>
 
         {/* Pagination */}

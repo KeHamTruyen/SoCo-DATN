@@ -1,19 +1,36 @@
 import { useState } from 'react';
 import { Search, Filter, ShoppingCart, Heart, Star, ChevronDown, Grid, List, Store, TrendingUp, Award, Zap } from 'lucide-react';
-import { User, Product } from '../App';
+import { Product } from '../App';
 import { mockProducts } from '../data/mockData';
 import { MessengerWidget } from './MessengerWidget';
 import { PageLayout } from './Layout/PageLayout';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '../contexts/CartContext';
 
-interface MarketplacePageProps {
-  currentUser: User;
-  onNavigate: (page: any, productId?: string) => void;
-  onAddToCart: (product: Product) => void;
-  cartItemCount: number;
-  onLogout: () => void;
-}
-
-export function MarketplacePage({ currentUser, onNavigate, onAddToCart, cartItemCount, onLogout }: MarketplacePageProps) {
+export function MarketplacePage() {
+  const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
+  const onAddToCart = (product: Product) => addToCart(product as any);
+  const onNavigate = (page: string, productId?: string) => {
+    if (page === 'product-detail' && productId) {
+      navigate(`/product/${productId}`);
+      return;
+    }
+    if (page === 'store' && productId) {
+      navigate(`/store/${productId}`);
+      return;
+    }
+    if (page === 'groups') {
+      navigate('/groups');
+      return;
+    }
+    if (page === 'home') {
+      navigate('/home');
+      return;
+    }
+  };
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState<'newest' | 'price-low' | 'price-high' | 'popular'>('newest');
@@ -56,10 +73,6 @@ export function MarketplacePage({ currentUser, onNavigate, onAddToCart, cartItem
 
   return (
     <PageLayout 
-      currentUser={currentUser}
-      onNavigate={onNavigate}
-      onLogout={onLogout}
-      cartItemCount={cartItemCount}
       activePage="marketplace"
     >
       {/* Hero Banners */}
@@ -372,7 +385,7 @@ export function MarketplacePage({ currentUser, onNavigate, onAddToCart, cartItem
       </div>
 
       {/* Messenger Widget */}
-      <MessengerWidget currentUser={currentUser} />
+      <MessengerWidget />
     </PageLayout>
   );
 }

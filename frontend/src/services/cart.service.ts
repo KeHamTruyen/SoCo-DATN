@@ -8,7 +8,9 @@ export interface CartItem {
   id: string;
   cartId: string;
   productId: string;
+  variantId?: string;
   quantity: number;
+  price?: number;
   selectedVariant?: any;
   createdAt: string;
   product: {
@@ -46,6 +48,7 @@ export interface Cart {
 export interface AddToCartRequest {
   productId: string;
   quantity?: number;
+  variantId?: string;
   selectedVariant?: any;
 }
 

@@ -4,14 +4,15 @@ import {
   Package, UserCheck, Flag, Search, MoreVertical, Check, X, Eye, 
   Ban, Shield, MessageSquare, Star, ChevronDown, Filter
 } from 'lucide-react';
-import { User } from '../../App';
+import { useNavigate } from 'react-router-dom';
 
-interface AdminDashboardProps {
-  currentUser: User;
-  onNavigate: (page: any) => void;
-}
-
-export function AdminDashboard({ currentUser, onNavigate }: AdminDashboardProps) {
+export function AdminDashboard() {
+  const navigate = useNavigate();
+  const onNavigate = (page: string) => {
+    if (page === 'home') {
+      navigate('/home');
+    }
+  };
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'sellers' | 'products' | 'reports'>('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'banned' | 'pending'>('all');

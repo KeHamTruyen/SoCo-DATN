@@ -28,6 +28,8 @@ import { StorePage } from './components/StorePage';
 import { MarketplacePage } from './components/MarketplacePage';
 import { SearchResultsPage } from './components/SearchResultsPage';
 import { CheckoutPage } from './components/CheckoutPage';
+import { OrdersPage } from './components/OrdersPage';
+import { OrderDetailPage } from './components/OrderDetailPage';
 
 export type UserRole = 'buyer' | 'seller' | 'admin';
 
@@ -142,6 +144,8 @@ export default function App() {
           <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/orders/:orderId" element={<OrderDetailPage />} />
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/marketplace" element={<MarketplacePage />} />
