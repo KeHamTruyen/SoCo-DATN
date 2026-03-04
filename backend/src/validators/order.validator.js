@@ -146,3 +146,42 @@ export const validateCancelOrder = [
     .withMessage('Cancellation reason too long'),
   validate,
 ];
+
+/**
+ * Validate request refund request
+ */
+export const validateRequestRefund = [
+  param('orderId')
+    .notEmpty()
+    .withMessage('Order ID is required')
+    .isUUID()
+    .withMessage('Invalid order ID format'),
+  body('reason')
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Refund reason too long'),
+  validate,
+];
+
+/**
+ * Validate process refund request
+ */
+export const validateProcessRefund = [
+  param('orderId')
+    .notEmpty()
+    .withMessage('Order ID is required')
+    .isUUID()
+    .withMessage('Invalid order ID format'),
+  body('accept')
+    .notEmpty()
+    .withMessage('accept is required')
+    .isBoolean()
+    .withMessage('accept must be boolean'),
+  body('reason')
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Reason too long'),
+  validate,
+];

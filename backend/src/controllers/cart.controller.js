@@ -30,13 +30,14 @@ export const getCart = async (req, res) => {
  */
 export const addToCart = async (req, res) => {
   try {
-    const { productId, quantity, selectedVariant } = req.body;
+    const { productId, quantity, selectedVariant, variantId } = req.body;
 
     const cart = await cartService.addToCart(
       req.user.id,
       productId,
       quantity,
-      selectedVariant
+      selectedVariant,
+      variantId
     );
 
     res.status(201).json({
@@ -49,9 +50,10 @@ export const addToCart = async (req, res) => {
 
     if (
       error.message === 'Product not found' ||
-      error.message === 'Product is not available'
+      error.message === 'Product is not available' ||
+      error.message === 'Product variant not found'
     ) {
-      return res.status(404).json({
+      return res.status(400).json({
         success: false,
         message: error.message,
       });

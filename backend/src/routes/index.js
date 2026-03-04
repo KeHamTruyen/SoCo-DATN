@@ -15,6 +15,7 @@ import sellerRoutes from './seller.routes.js';
 import messageRoutes from './message.routes.js';
 import groupRoutes from './group.routes.js';
 import reportRoutes from './report.routes.js';
+import reviewRoutes from './review.routes.js';
 
 const router = express.Router();
 
@@ -27,6 +28,7 @@ router.use('/upload', uploadRoutes);
 router.use('/posts', postRoutes);
 router.use('/cart', cartRoutes);
 router.use('/orders', orderRoutes);
+router.use('/reviews', reviewRoutes);
 
 // Infrastructure routes
 router.use('/notifications', notificationRoutes);
@@ -49,6 +51,7 @@ router.get('/', (req, res) => {
       users: '/api/users',
       products: '/api/products',
       orders: '/api/orders',
+      reviews: '/api/reviews',
       cart: '/api/cart',
       posts: '/api/posts',
       notifications: '/api/notifications',

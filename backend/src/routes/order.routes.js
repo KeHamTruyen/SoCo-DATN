@@ -159,6 +159,20 @@ router.get(
   orderController.getMySales
 );
 
+router.get(
+  '/my/refund-requests',
+  protect,
+  orderValidator.validateGetOrders,
+  orderController.getMyRefundRequests
+);
+
+router.get(
+  '/seller/refunds',
+  protect,
+  orderValidator.validateGetOrders,
+  orderController.getSellerRefundRequests
+);
+
 /**
  * @swagger
  * /api/orders/{orderId}:
@@ -318,6 +332,20 @@ router.post(
   protect,
   orderValidator.validateOrderId,
   orderController.confirmPayment
+);
+
+router.post(
+  '/:orderId/refund-request',
+  protect,
+  orderValidator.validateRequestRefund,
+  orderController.requestRefund
+);
+
+router.post(
+  '/:orderId/refund',
+  protect,
+  orderValidator.validateProcessRefund,
+  orderController.processRefund
 );
 
 export default router;

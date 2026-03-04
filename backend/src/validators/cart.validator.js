@@ -28,6 +28,10 @@ export const validateAddToCart = [
     .optional()
     .isInt({ min: 1 })
     .withMessage('Quantity must be at least 1'),
+  body('variantId')
+    .optional()
+    .isUUID()
+    .withMessage('Invalid variant ID format'),
   body('selectedVariant')
     .optional()
     .isObject()

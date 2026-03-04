@@ -282,24 +282,24 @@ Module này bao gồm các chức năng cốt lõi liên quan đến việc tạ
 \end{itemize} \\ \hline
 \textbf{Điều kiện sau} & 
 \begin{itemize}
-    \item Vai trò của người dùng được cập nhật thành Seller.
-    \item Người dùng có quyền truy cập các chức năng dành cho người bán.
+    \item Hồ sơ đăng ký Seller được lưu và chuyển sang trạng thái chờ duyệt (\textit{REVIEWING}) sau khi hoàn thành các bước bắt buộc.
+    \item Khi Admin phê duyệt, vai trò người dùng được cập nhật thành Seller.
 \end{itemize} \\ \hline
 \textbf{Luồng sự kiện chính} & 
 \begin{enumerate}
-    \item Người dùng truy cập trang ``Đăng ký Bán hàng''.
-    \item Người dùng điền các thông tin bổ sung.
-    \item Người dùng nhấn ``Đăng ký''.
-    \item Hệ thống yêu cầu xác minh bổ sung qua email/số điện thoại.
-    \item Người dùng hoàn thành xác minh.
-    \item Hệ thống cập nhật vai trò của người dùng thành Seller.
-    \item Hệ thống hiển thị thông báo chúc mừng và chuyển hướng đến Bảng điều khiển bán hàng.
+    \item Người dùng truy cập trang ``Đăng ký Bán hàng'' và bắt đầu hồ sơ.
+    \item Người dùng hoàn thành bước 1 (thông tin cá nhân/định danh).
+    \item Người dùng hoàn thành bước 2 (thông tin kinh doanh).
+    \item Người dùng hoàn thành bước 3 (thông tin ngân hàng) và nộp hồ sơ.
+    \item Hệ thống chuyển hồ sơ sang trạng thái ``Đang xem xét''.
+    \item Admin xét duyệt hồ sơ.
+    \item Nếu được duyệt, hệ thống cập nhật vai trò thành Seller và gửi thông báo kết quả.
 \end{enumerate} \\ \hline
 \textbf{Luồng thay thế} & A1: Người dùng hủy bỏ quá trình đăng ký. \\ \hline
 \textbf{Ngoại lệ} & 
 \begin{itemize}
-    \item E1: Thông tin cung cấp không hợp lệ $\rightarrow$ Báo lỗi.
-    \item E2: Quá trình xác minh thất bại $\rightarrow$ Báo lỗi và yêu cầu thử lại.
+    \item E1: Thông tin ở bất kỳ bước nào không hợp lệ $\rightarrow$ Báo lỗi và yêu cầu sửa.
+    \item E2: Hồ sơ bị từ chối $\rightarrow$ Hiển thị lý do từ chối để người dùng bổ sung.
 \end{itemize} \\ \hline
 \textbf{Ghi chú} & Đây là use case cốt lõi thể hiện mô hình ``buyer-to-seller'' của dự án. \\ \hline
 \end{tabularx}

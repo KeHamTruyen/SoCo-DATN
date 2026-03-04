@@ -96,11 +96,11 @@ Module này tập trung vào các tính năng kết nối cộng đồng, chia s
 \textbf{Luồng sự kiện chính} & 
 \begin{enumerate}
     \item Khi đang soạn bài đăng, người bán chọn chức năng ``Gắn thẻ sản phẩm''.
-    \item Hệ thống hiển thị giao diện tìm kiếm và danh sách sản phẩm của người bán.
-    \item Người bán chọn một hoặc nhiều sản phẩm để gắn thẻ.
+    \item Hệ thống hiển thị danh sách sản phẩm của người bán.
+    \item Người bán chọn một sản phẩm để gắn thẻ.
     \item Người bán hoàn tất việc tạo bài đăng và nhấn ``Đăng''.
-    \item Hệ thống lưu bài đăng cùng với thông tin sản phẩm được gắn thẻ.
-    \item Khi hiển thị, bài đăng sẽ có các sản phẩm được gắn thẻ kèm thông tin cơ bản.
+    \item Hệ thống lưu bài đăng cùng \texttt{productId} đã chọn.
+    \item Khi hiển thị, bài đăng có thẻ sản phẩm để điều hướng sang trang chi tiết.
 \end{enumerate} \\ \hline
 \textbf{Ngoại lệ} & E1: Người bán cố gắng gắn thẻ một sản phẩm đã bị xóa hoặc ẩn $\rightarrow$ Hệ thống báo lỗi. \\ \hline
 \textbf{Ghi chú} & Đây là tính năng kết nối trực tiếp giữa hoạt động xã hội và thương mại. \\ \hline
@@ -193,15 +193,15 @@ Module này tập trung vào các tính năng kết nối cộng đồng, chia s
 \end{itemize} \\ \hline
 \textbf{Luồng sự kiện chính} & 
 \begin{enumerate}
-    \item Người dùng A mở cửa sổ chat với người dùng B.
+    \item Người dùng A mở cuộc hội thoại với người dùng B (tạo mới nếu chưa có).
     \item Người dùng A nhập tin nhắn và nhấn gửi.
-    \item Hệ thống (sử dụng Socket.io) gửi tin nhắn đến người dùng B ngay lập tức.
-    \item Tin nhắn hiển thị trên giao diện của cả hai người.
     \item Hệ thống lưu tin nhắn vào cơ sở dữ liệu.
+    \item Hệ thống phát sự kiện Socket.io theo room hội thoại để cập nhật real-time cho các client đang tham gia.
+    \item Nếu người nhận đang offline, hệ thống tạo thông báo để hiển thị khi người nhận quay lại.
 \end{enumerate} \\ \hline
 \textbf{Ngoại lệ} & 
 \begin{itemize}
-    \item E1: Người nhận đã chặn người gửi $\rightarrow$ Hệ thống báo lỗi không thể gửi tin nhắn.
+    \item E1: Người gửi không thuộc cuộc hội thoại $\rightarrow$ Hệ thống từ chối gửi tin nhắn.
     \item E2: Mất kết nối mạng $\rightarrow$ Hệ thống báo lỗi gửi không thành công và cho phép thử lại.
 \end{itemize} \\ \hline
 \end{tabularx}

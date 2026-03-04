@@ -52,7 +52,7 @@ Diagram này mô tả quy trình chỉnh sửa hồ sơ cá nhân và cài đặ
 
 Diagram này mô tả quy trình đăng ký trở thành người bán (Seller).
 
-\textbf{UC1.8 – Đăng ký Người bán:} Buyer điền form đăng ký với thông tin shop (tên shop, địa chỉ, số điện thoại, giấy tờ pháp lý). Hệ thống lưu với trạng thái \textit{pending} và gửi email xác minh. Sau khi xác minh thành công, hệ thống cập nhật trạng thái thành \textit{approved}, thay đổi vai trò từ \textit{buyer} sang \textit{seller}, và chuyển hướng đến Seller Dashboard.
+\textbf{UC1.8 – Đăng ký Người bán:} Buyer bắt đầu hồ sơ Seller và hoàn thành tuần tự 3 bước (thông tin cá nhân, thông tin kinh doanh, thông tin ngân hàng). Sau bước 3, hệ thống chuyển hồ sơ sang trạng thái \textit{reviewing} để Admin duyệt. Nếu được duyệt, hệ thống cập nhật vai trò từ \textit{buyer} sang \textit{seller} và gửi email thông báo; nếu bị từ chối, hệ thống lưu lý do để người dùng bổ sung hồ sơ.
 
 \begin{figure}[H]
   \centering
@@ -72,7 +72,7 @@ Diagram này mô tả quy trình xem feed, tạo bài đăng và tương tác v�
 
 \textbf{UC2.2 – Tạo bài đăng:} Người dùng nhập nội dung văn bản và tải hình ảnh (nếu có). Seller có thể gắn thẻ sản phẩm (UC2.3). Hệ thống kiểm tra nội dung, lưu bài đăng vào database, và hiển thị trên feed.
 
-\textbf{UC2.3 – Gắn thẻ sản phẩm:} Seller chọn một hoặc nhiều sản phẩm từ shop để gắn thẻ vào bài đăng. Người dùng xem bài đăng có thể nhấn vào thẻ sản phẩm để chuyển đến trang chi tiết.
+\textbf{UC2.3 – Gắn thẻ sản phẩm:} Seller chọn một sản phẩm từ shop để gắn vào bài đăng. Người dùng xem bài đăng có thể nhấn vào thẻ sản phẩm để chuyển đến trang chi tiết.
 
 \textbf{UC2.4 – Tương tác với bài đăng:} Người dùng có thể thích hoặc bình luận bài đăng. Hệ thống cập nhật số lượt thích/bình luận, lưu vào database và gửi thông báo đến chủ sở hữu bài đăng (UC7.1).
 
@@ -88,11 +88,11 @@ Diagram này mô tả các kết nối xã hội giữa người dùng, bao gồ
 
 \textbf{UC2.5 – Theo dõi người dùng:} Người dùng A nhấn "Theo dõi" trên trang cá nhân của B. Hệ thống tạo mối quan hệ follow, cập nhật số người theo dõi, gửi thông báo đến B, và bài đăng của B sẽ xuất hiện trên Feed của A.
 
-\textbf{UC2.6 – Nhắn tin 1-1:} Người dùng A gửi tin nhắn cho B. Hệ thống kiểm tra B có chặn A hay không. Nếu không bị chặn, hệ thống lưu tin nhắn vào database và gửi real-time đến B qua WebSocket (Socket.io).
+\textbf{UC2.6 – Nhắn tin 1-1:} Người dùng A mở hoặc tạo cuộc hội thoại trực tiếp với B, sau đó gửi tin nhắn. Hệ thống lưu tin nhắn vào database, phát sự kiện real-time theo phòng hội thoại qua WebSocket (Socket.io), và tạo thông báo cho người nhận khi đang offline.
 
 \textbf{UC2.7 – Tham gia nhóm:} Người dùng A chọn nhóm và nhấn "Tham gia". Nếu là nhóm công khai, hệ thống thêm A vào nhóm ngay lập tức. Nếu là nhóm riêng tư, hệ thống gửi yêu cầu và chờ Admin phê duyệt.
 
-\textbf{UC2.8 – Báo cáo vi phạm:} Người dùng A chọn đối tượng báo cáo (bài đăng, bình luận hoặc người dùng), chọn lý do vi phạm và thêm mô tả (nếu có). Hệ thống lưu báo cáo với trạng thái \textit{pending}, thông báo Admin và hiển thị "Báo cáo đã được ghi nhận".
+\textbf{UC2.8 – Báo cáo vi phạm:} Người dùng A chọn đối tượng báo cáo (bài đăng, bình luận, người dùng hoặc sản phẩm), chọn lý do vi phạm và thêm mô tả (nếu có). Hệ thống lưu báo cáo với trạng thái \textit{pending} và hiển thị "Báo cáo đã được ghi nhận" để Admin xử lý trong màn hình quản trị.
 
 \begin{figure}[H]
   \centering
@@ -112,15 +112,15 @@ Diagram này mô tả toàn bộ quy trình mua hàng từ góc nhìn của ngư
 
 \textbf{UC3.2 – Xem chi tiết sản phẩm và chọn biến thể:} Buyer chọn sản phẩm, hệ thống hiển thị chi tiết (hình ảnh, mô tả, giá, tồn kho, đánh giá). Buyer chọn biến thể (size, màu) và số lượng.
 
-\textbf{UC3.3 – Thêm vào giỏ hàng:} Buyer nhấn "Thêm vào giỏ hàng". Hệ thống kiểm tra tồn kho, nếu còn hàng thì lưu vào giỏ hàng và cập nhật số lượng. Nếu hết hàng, hệ thống trả về lỗi và đề xuất sản phẩm tương tự.
+\textbf{UC3.3 – Thêm vào giỏ hàng:} Buyer nhấn "Thêm vào giỏ hàng". Hệ thống xác định biến thể theo \textit{variantId} (hoặc map từ lựa chọn cũ), kiểm tra trạng thái sản phẩm \textit{ACTIVE} và tồn kho của biến thể/sản phẩm. Nếu hợp lệ, hệ thống upsert cart item và cập nhật số lượng.
 
 \textbf{UC3.4 – Quản lý giỏ hàng:} Buyer truy cập giỏ hàng, hệ thống hiển thị danh sách sản phẩm và tổng tiền. Buyer có thể cập nhật số lượng hoặc xóa sản phẩm, hệ thống tự động tính lại tổng tiền.
 
-\textbf{UC3.5 – Thanh toán:} Buyer nhấn "Thanh toán". Hệ thống kiểm tra tồn kho lần cuối. Nếu đủ hàng, Buyer nhập địa chỉ giao hàng và chọn phương thức thanh toán. Hệ thống tạo đơn hàng với trạng thái \textit{Processing}, làm rỗng giỏ hàng, gửi thông báo cho Seller và hiển thị "Đặt hàng thành công".
+\textbf{UC3.5 – Thanh toán:} Buyer nhấn "Thanh toán". Hệ thống kiểm tra tồn kho lần cuối theo từng cart item, chốt đơn giá tại thời điểm đặt hàng, tạo Order với trạng thái \textit{PENDING} và \textit{paymentStatus=PENDING}, sau đó trừ tồn kho, làm rỗng giỏ hàng và gửi thông báo "đơn mới" cho Seller.
 
-\textbf{UC3.6 – Theo dõi đơn hàng:} Buyer xem "Đơn hàng của tôi", hệ thống hiển thị danh sách đơn hàng với mã, trạng thái và ngày đặt. Buyer có thể xem chi tiết và theo dõi trạng thái real-time.
+\textbf{UC3.6 – Theo dõi đơn hàng:} Buyer xem "Đơn hàng của tôi", hệ thống trả danh sách theo bộ lọc/pagination (\textit{/my/purchases}) và chi tiết đơn hàng theo \textit{orderId}. Buyer theo dõi trạng thái qua danh sách và thông báo giao dịch.
 
-\textbf{UC3.7 – Đánh giá sản phẩm:} Khi đơn hàng đã giao (\textit{Delivered}), Buyer có thể đánh giá sản phẩm (chọn số sao, viết nhận xét, tải ảnh). Hệ thống lưu đánh giá và hiển thị trên trang chi tiết sản phẩm.
+\textbf{UC3.7 – Đánh giá sản phẩm:} Khi \textit{order item} thuộc đơn hàng \textit{DELIVERED/COMPLETED}, Buyer gửi đánh giá theo \textit{orderItemId}. Hệ thống đảm bảo mỗi order item chỉ được đánh giá một lần, lưu review và hiển thị trên trang sản phẩm.
 
 \begin{figure}[H]
   \centering
@@ -134,7 +134,7 @@ Diagram này mô tả các tác vụ quản lý sản phẩm và đơn hàng c�
 
 \textbf{UC3.8 – Quản lý sản phẩm:} Seller truy cập Dashboard Bán hàng, chọn "Quản lý Sản phẩm". Seller có thể thêm (tên, mô tả, giá, tồn kho, hình ảnh, biến thể), sửa hoặc xóa sản phẩm (soft delete). Hệ thống xác thực và lưu vào database.
 
-\textbf{UC3.10 – Quản lý đơn hàng:} Seller chọn "Quản lý Đơn hàng", hệ thống hiển thị danh sách đơn hàng. Seller xem chi tiết và cập nhật trạng thái: "Đang xử lý", "Đang giao", "Đã giao", hoặc "Đã hủy". Hệ thống lưu thay đổi, ghi lịch sử và gửi thông báo đến Buyer.
+\textbf{UC3.10 – Quản lý đơn hàng:} Seller lấy danh sách đơn thuộc shop (\textit{/my/sales}), xem chi tiết và cập nhật trạng thái theo luồng hợp lệ \textit{PENDING $\rightarrow$ CONFIRMED $\rightarrow$ PROCESSING $\rightarrow$ SHIPPING $\rightarrow$ DELIVERED}. Buyer chỉ xác nhận hoàn tất (\textit{DELIVERED $\rightarrow$ COMPLETED}).
 
 \begin{figure}[H]
   \centering
@@ -146,7 +146,7 @@ Diagram này mô tả các tác vụ quản lý sản phẩm và đơn hàng c�
 
 Diagram này mô tả quy trình xử lý hoàn tiền và phản hồi đánh giá của Seller.
 
-\textbf{UC3.11 – Xử lý hoàn tiền:} Seller chọn "Xử lý hoàn tiền", hệ thống hiển thị danh sách yêu cầu hoàn tiền. Seller xem chi tiết và quyết định chấp nhận hoặc từ chối. Nếu chấp nhận, hệ thống cập nhật trạng thái \textit{Refunded}, xử lý hoàn tiền và gửi thông báo. Nếu từ chối, hệ thống lưu lý do và gửi thông báo đến Buyer.
+\textbf{UC3.11 – Xử lý hoàn tiền:} Buyer gửi yêu cầu hoàn tiền qua \textit{/refund-request} cho đơn hàng \textit{DELIVERED/COMPLETED}. Seller xem danh sách yêu cầu ở \textit{/seller/refunds}, quyết định chấp nhận/từ chối qua \textit{/refund}. Hệ thống lưu quyết định, cập nhật trạng thái \textit{REFUNDED} khi chấp nhận và gửi thông báo cho Buyer.
 
 \textbf{UC3.12 – Phản hồi đánh giá:} Seller chọn "Đánh giá", hệ thống hiển thị danh sách đánh giá từ Buyer. Seller chọn đánh giá cần phản hồi, nhập nội dung và gửi. Hệ thống lưu phản hồi và hiển thị dưới đánh giá gốc trên trang sản phẩm.
 

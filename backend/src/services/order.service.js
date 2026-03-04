@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../config/database.js';
+import notificationService from './notification.service.js';
 
 /**
  * Generate unique order number
@@ -11,6 +10,94 @@ const generateOrderNumber = () => {
     .toString()
     .padStart(3, '0');
   return `ORD${timestamp}${random}`;
+};
+
+const orderInclude = {
+  buyer: {
+    select: {
+      id: true,
+      username: true,
+      fullName: true,
+      avatarUrl: true,
+    },
+  },
+  items: {
+    include: {
+      product: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          price: true,
+          status: true,
+        },
+      },
+      variant: {
+        select: {
+          id: true,
+          variantName: true,
+          options: true,
+        },
+      },
+      seller: {
+        select: {
+          id: true,
+          username: true,
+          fullName: true,
+          avatarUrl: true,
+        },
+      },
+      review: {
+        select: {
+          id: true,
+          rating: true,
+        },
+      },
+    },
+  },
+};
+
+const formatOrder = (order) => ({
+  ...order,
+  items: order.items.map((item) => ({
+    ...item,
+    product: item.product
+      ? {
+          ...item.product,
+          // Backward compatibility for old frontend contracts.
+          name: item.product.title,
+        }
+      : null,
+  })),
+});
+
+const parseRefundMetadata = (cancellationReason) => {
+  if (!cancellationReason) {
+    return { state: null, reason: null };
+  }
+
+  if (cancellationReason.startsWith('REFUND_REQUEST::')) {
+    return {
+      state: 'REQUESTED',
+      reason: cancellationReason.replace('REFUND_REQUEST::', ''),
+    };
+  }
+
+  if (cancellationReason.startsWith('REFUND_ACCEPTED::')) {
+    return {
+      state: 'ACCEPTED',
+      reason: cancellationReason.replace('REFUND_ACCEPTED::', ''),
+    };
+  }
+
+  if (cancellationReason.startsWith('REFUND_REJECTED::')) {
+    return {
+      state: 'REJECTED',
+      reason: cancellationReason.replace('REFUND_REJECTED::', ''),
+    };
+  }
+
+  return { state: null, reason: null };
 };
 
 /**
@@ -29,7 +116,7 @@ export const createOrder = async (userId, orderData) => {
   } = orderData;
 
   // Get user's cart
-  const cart = await prisma.cart.findUnique({
+  const cart = await prisma.cart.findFirst({
     where: { userId },
     include: {
       items: {
@@ -42,6 +129,7 @@ export const createOrder = async (userId, orderData) => {
               },
             },
           },
+          variant: true,
         },
       },
     },
@@ -55,19 +143,19 @@ export const createOrder = async (userId, orderData) => {
   for (const item of cart.items) {
     if (
       item.product.trackInventory &&
-      item.product.stockQuantity < item.quantity
+      (item.variant?.stockQuantity ?? item.product.stockQuantity) < item.quantity
     ) {
-      throw new Error(`Insufficient stock for ${item.product.name}`);
+      throw new Error(`Insufficient stock for ${item.product.title}`);
     }
 
     if (item.product.status !== 'ACTIVE') {
-      throw new Error(`Product ${item.product.name} is not available`);
+      throw new Error(`Product ${item.product.title} is not available`);
     }
   }
 
   // Calculate totals
   const subtotal = cart.items.reduce(
-    (sum, item) => sum + Number(item.product.price) * item.quantity,
+    (sum, item) => sum + Number(item.price) * item.quantity,
     0
   );
 
@@ -104,18 +192,21 @@ export const createOrder = async (userId, orderData) => {
 
     // Create order items
     for (const item of cart.items) {
-      const totalPrice = Number(item.product.price) * item.quantity;
+      const unitPrice = item.variant?.price ?? item.price ?? item.product.price;
+      const totalPrice = Number(unitPrice) * item.quantity;
+      const variantInfo = item.variant?.options ?? null;
 
       await tx.orderItem.create({
         data: {
           orderId: newOrder.id,
           productId: item.product.id,
+          variantId: item.variantId || null,
           sellerId: item.product.sellerId,
-          productName: item.product.name,
+          productName: item.product.title,
           productImageUrl: item.product.images[0]?.imageUrl || null,
-          variantInfo: item.selectedVariant,
+          variantInfo,
           quantity: item.quantity,
-          unitPrice: item.product.price,
+          unitPrice,
           totalPrice,
           status: 'pending',
         },
@@ -123,14 +214,25 @@ export const createOrder = async (userId, orderData) => {
 
       // Update product stock if tracking
       if (item.product.trackInventory) {
-        await tx.product.update({
-          where: { id: item.product.id },
-          data: {
-            stockQuantity: {
-              decrement: item.quantity,
+        if (item.variantId) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: {
+              stockQuantity: {
+                decrement: item.quantity,
+              },
             },
-          },
-        });
+          });
+        } else {
+          await tx.product.update({
+            where: { id: item.product.id },
+            data: {
+              stockQuantity: {
+                decrement: item.quantity,
+              },
+            },
+          });
+        }
       }
     }
 
@@ -142,8 +244,24 @@ export const createOrder = async (userId, orderData) => {
     return newOrder;
   });
 
-  // Return order with items
-  return await getOrder(order.id, userId);
+  const createdOrder = await getOrder(order.id, userId);
+
+  // Notify each seller once for this order.
+  const sellerIds = [
+    ...new Set(
+      createdOrder.items
+        .map((item) => item.sellerId)
+        .filter(Boolean)
+    ),
+  ];
+
+  await Promise.allSettled(
+    sellerIds.map((sellerId) =>
+      notificationService.notifyNewOrder(createdOrder, sellerId)
+    )
+  );
+
+  return createdOrder;
 };
 
 /**
@@ -152,37 +270,7 @@ export const createOrder = async (userId, orderData) => {
 export const getOrder = async (orderId, userId = null) => {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: {
-      buyer: {
-        select: {
-          id: true,
-          username: true,
-          fullName: true,
-          avatarUrl: true,
-        },
-      },
-      items: {
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              price: true,
-              status: true,
-            },
-          },
-          seller: {
-            select: {
-              id: true,
-              username: true,
-              fullName: true,
-              avatarUrl: true,
-            },
-          },
-        },
-      },
-    },
+    include: orderInclude,
   });
 
   if (!order) {
@@ -199,7 +287,7 @@ export const getOrder = async (orderId, userId = null) => {
     }
   }
 
-  return order;
+  return formatOrder(order);
 };
 
 /**
@@ -216,19 +304,7 @@ export const getUserOrders = async (userId, filters = {}) => {
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
       where,
-      include: {
-        items: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
-          },
-        },
-      },
+      include: orderInclude,
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
@@ -237,7 +313,7 @@ export const getUserOrders = async (userId, filters = {}) => {
   ]);
 
   return {
-    orders,
+    orders: orders.map(formatOrder),
     pagination: {
       page,
       limit,
@@ -254,10 +330,10 @@ export const getSellerOrders = async (sellerId, filters = {}) => {
   const { status, page = 1, limit = 10 } = filters;
 
   const where = {
+    ...(status && { status }),
     items: {
       some: {
         sellerId,
-        ...(status && { status }),
       },
     },
   };
@@ -266,24 +342,20 @@ export const getSellerOrders = async (sellerId, filters = {}) => {
     prisma.order.findMany({
       where,
       include: {
-        buyer: {
-          select: {
-            id: true,
-            username: true,
-            fullName: true,
-            avatarUrl: true,
-          },
-        },
+        buyer: orderInclude.buyer,
         items: {
           where: { sellerId },
           include: {
             product: {
               select: {
                 id: true,
-                name: true,
+                title: true,
                 slug: true,
               },
             },
+            variant: orderInclude.items.include.variant,
+            seller: orderInclude.items.include.seller,
+            review: orderInclude.items.include.review,
           },
         },
       },
@@ -295,7 +367,7 @@ export const getSellerOrders = async (sellerId, filters = {}) => {
   ]);
 
   return {
-    orders,
+    orders: orders.map(formatOrder),
     pagination: {
       page,
       limit,
@@ -328,20 +400,25 @@ export const updateOrderStatus = async (orderId, userId, newStatus) => {
     throw new Error('Unauthorized');
   }
 
-  // Validate status transitions
-  const validTransitions = {
+  const sellerTransitions = {
     PENDING: ['CONFIRMED', 'CANCELLED'],
     CONFIRMED: ['PROCESSING', 'CANCELLED'],
     PROCESSING: ['SHIPPING'],
     SHIPPING: ['DELIVERED'],
-    DELIVERED: ['COMPLETED'],
+    DELIVERED: [],
     COMPLETED: [],
     CANCELLED: [],
     REFUNDED: [],
   };
+  const buyerTransitions = {
+    DELIVERED: ['COMPLETED'],
+  };
 
-  if (!validTransitions[order.status]?.includes(newStatus)) {
-    throw new Error(`Cannot transition from ${order.status} to ${newStatus}`);
+  const transitions = isSeller ? sellerTransitions : buyerTransitions;
+  if (!transitions[order.status]?.includes(newStatus)) {
+    throw new Error(
+      `Cannot transition from ${order.status} to ${newStatus} for this role`
+    );
   }
 
   // Update order
@@ -353,33 +430,42 @@ export const updateOrderStatus = async (orderId, userId, newStatus) => {
     ...(newStatus === 'CANCELLED' && { cancelledAt: new Date() }),
   };
 
-  const updatedOrder = await prisma.order.update({
-    where: { id: orderId },
-    data: updateData,
-    include: {
-      buyer: {
-        select: {
-          id: true,
-          username: true,
-          fullName: true,
-          avatarUrl: true,
-        },
-      },
-      items: {
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-        },
-      },
-    },
+  const updatedOrder = await prisma.$transaction(async (tx) => {
+    const nextOrder = await tx.order.update({
+      where: { id: orderId },
+      data: updateData,
+      include: orderInclude,
+    });
+
+    // Restore stock if seller cancels before shipping.
+    if (newStatus === 'CANCELLED') {
+      for (const item of order.items) {
+        if (item.variantId) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stockQuantity: { increment: item.quantity } },
+          });
+        } else if (item.productId) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stockQuantity: { increment: item.quantity } },
+          });
+        }
+      }
+    }
+
+    return nextOrder;
   });
 
-  return updatedOrder;
+  if (updatedOrder.buyerId) {
+    await notificationService.notifyOrderStatusChange(
+      updatedOrder,
+      updatedOrder.buyerId,
+      newStatus
+    );
+  }
+
+  return formatOrder(updatedOrder);
 };
 
 /**
@@ -445,13 +531,17 @@ export const cancelOrder = async (orderId, userId, reason = null) => {
  * Mock payment confirmation
  * In real app, this would be called by payment gateway webhook
  */
-export const confirmPayment = async (orderId) => {
+export const confirmPayment = async (orderId, userId) => {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
   });
 
   if (!order) {
     throw new Error('Order not found');
+  }
+
+  if (order.buyerId !== userId) {
+    throw new Error('Unauthorized');
   }
 
   if (order.paymentStatus === 'PAID') {
@@ -467,28 +557,189 @@ export const confirmPayment = async (orderId) => {
       status: order.status === 'PENDING' ? 'CONFIRMED' : order.status,
       ...(order.status === 'PENDING' && { confirmedAt: new Date() }),
     },
-    include: {
-      buyer: {
-        select: {
-          id: true,
-          username: true,
-          fullName: true,
-          avatarUrl: true,
-        },
-      },
-      items: {
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-        },
-      },
+    include: orderInclude,
+  });
+
+  return formatOrder(updatedOrder);
+};
+
+/**
+ * Buyer requests refund for delivered/completed order.
+ */
+export const requestRefund = async (orderId, userId, reason) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+  });
+
+  if (!order) {
+    throw new Error('Order not found');
+  }
+  if (order.buyerId !== userId) {
+    throw new Error('Unauthorized');
+  }
+  if (!['DELIVERED', 'COMPLETED'].includes(order.status)) {
+    throw new Error('Order is not eligible for refund');
+  }
+  if (parseRefundMetadata(order.cancellationReason).state === 'REQUESTED') {
+    throw new Error('Refund already requested');
+  }
+
+  await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      cancellationReason: `REFUND_REQUEST::${reason || 'Customer requested refund'}`,
     },
   });
 
-  return updatedOrder;
+  const updated = await getOrder(orderId, userId);
+  const sellerIds = [
+    ...new Set(updated.items.map((item) => item.sellerId).filter(Boolean)),
+  ];
+
+  await Promise.allSettled(
+    sellerIds.map((sellerId) =>
+      notificationService.create({
+        userId: sellerId,
+        type: 'refund_request',
+        title: 'Yeu cau hoan tien moi',
+        message: `Don hang #${updated.orderNumber} co yeu cau hoan tien`,
+        relatedOrderId: updated.id,
+        actionUrl: '/seller/refunds',
+      })
+    )
+  );
+
+  return updated;
+};
+
+/**
+ * List buyer's refund requests.
+ */
+export const getMyRefundRequests = async (userId, filters = {}) => {
+  const { page = 1, limit = 10 } = filters;
+  const skip = (page - 1) * limit;
+  const where = {
+    buyerId: userId,
+    cancellationReason: { contains: 'REFUND_' },
+  };
+
+  const [orders, total] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      include: orderInclude,
+      orderBy: { updatedAt: 'desc' },
+      skip,
+      take: limit,
+    }),
+    prisma.order.count({ where }),
+  ]);
+
+  return {
+    requests: orders.map((order) => ({
+      ...formatOrder(order),
+      refund: parseRefundMetadata(order.cancellationReason),
+    })),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
+
+/**
+ * List seller-side refund requests.
+ */
+export const getSellerRefundRequests = async (sellerId, filters = {}) => {
+  const { page = 1, limit = 10 } = filters;
+  const skip = (page - 1) * limit;
+  const where = {
+    items: { some: { sellerId } },
+    cancellationReason: { startsWith: 'REFUND_REQUEST::' },
+  };
+
+  const [orders, total] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      include: orderInclude,
+      orderBy: { updatedAt: 'desc' },
+      skip,
+      take: limit,
+    }),
+    prisma.order.count({ where }),
+  ]);
+
+  return {
+    requests: orders.map((order) => ({
+      ...formatOrder(order),
+      refund: parseRefundMetadata(order.cancellationReason),
+    })),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
+
+/**
+ * Seller processes refund request.
+ */
+export const processRefund = async (orderId, sellerId, { accept, reason }) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: true },
+  });
+
+  if (!order) {
+    throw new Error('Order not found');
+  }
+
+  const isSeller = order.items.some((item) => item.sellerId === sellerId);
+  if (!isSeller) {
+    throw new Error('Unauthorized');
+  }
+
+  const metadata = parseRefundMetadata(order.cancellationReason);
+  if (metadata.state !== 'REQUESTED') {
+    throw new Error('No pending refund request');
+  }
+
+  let updatedOrder;
+  if (accept) {
+    updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: 'REFUNDED',
+        paymentStatus:
+          order.paymentStatus === 'PAID' ? 'REFUNDED' : order.paymentStatus,
+        cancellationReason: `REFUND_ACCEPTED::${reason || metadata.reason || ''}`,
+      },
+      include: orderInclude,
+    });
+  } else {
+    updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        cancellationReason: `REFUND_REJECTED::${reason || 'Request rejected by seller'}`,
+      },
+      include: orderInclude,
+    });
+  }
+
+  await notificationService.create({
+    userId: updatedOrder.buyerId,
+    type: accept ? 'refund_approved' : 'refund_rejected',
+    title: accept ? 'Yeu cau hoan tien duoc chap nhan' : 'Yeu cau hoan tien bi tu choi',
+    message: `Don hang #${updatedOrder.orderNumber}: ${accept ? 'da hoan tien' : 'bi tu choi hoan tien'}`,
+    relatedOrderId: updatedOrder.id,
+    actionUrl: `/orders/${updatedOrder.id}`,
+  });
+
+  return {
+    ...formatOrder(updatedOrder),
+    refund: parseRefundMetadata(updatedOrder.cancellationReason),
+  };
 };
