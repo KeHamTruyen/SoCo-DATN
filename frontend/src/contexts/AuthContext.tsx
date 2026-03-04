@@ -27,8 +27,9 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  login: (data: LoginData) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  login: (data: LoginData) => Promise<{ requires2FA?: boolean; tempToken?: string }>;
+  verify2FA: (data: { tempToken: string; otpCode: string }) => Promise<void>;
+  register: (data: RegisterData) => Promise<{ requiresVerification?: boolean }>;
   logout: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
   clearError: () => void;
@@ -110,7 +111,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       const response = await authService.login(data);
-      setUser(response.data.user);
+      if (response.data.requires2FA) {
+        return {
+          requires2FA: true,
+          tempToken: response.data.tempToken,
+        };
+      }
+      if (response.data.user) {
+        setUser(response.data.user);
+      }
+      return {};
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Đăng nhập thất bại';
       setError(errorMessage);
@@ -124,12 +134,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       setError(null);
-      const response = await authService.register(data);
-      setUser(response.data.user);
+      await authService.register(data);
+      return { requiresVerification: true };
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.errors?.[0]?.message ||
                           err.response?.data?.errors?.[0]?.msg || 
                           'Đăng ký thất bại';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verify2FA = async (data: { tempToken: string; otpCode: string }) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await authService.verify2FA(data);
+      if (response.data.user) {
+        setUser(response.data.user);
+      }
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Xác thực 2FA thất bại';
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -173,6 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         error,
         login,
+        verify2FA,
         register,
         logout,
         updateProfile,

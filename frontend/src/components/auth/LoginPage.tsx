@@ -19,7 +19,14 @@ export function LoginPage() {
     clearError();
     
     try {
-      await login({ email, password });
+      const result = await login({ email, password });
+      if (result.requires2FA && result.tempToken) {
+        navigate('/login/2fa', {
+          replace: true,
+          state: { tempToken: result.tempToken, from },
+        });
+        return;
+      }
       navigate(from, { replace: true });
     } catch (err) {
       console.error('Login failed:', err);

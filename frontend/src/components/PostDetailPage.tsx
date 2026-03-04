@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import * as postService from '../services/post.service';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import { ReportModal } from './ReportModal';
 
 export function PostDetailPage() {
   const { id: postId } = useParams<{ id: string }>();
@@ -23,6 +24,7 @@ export function PostDetailPage() {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMoreComments, setHasMoreComments] = useState(true);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   if (!user || !postId) return null;
 
@@ -212,7 +214,11 @@ export function PostDetailPage() {
                   </div>
                 </div>
               </div>
-              <button className="text-gray-400 hover:text-gray-600">
+              <button
+                className="text-gray-400 hover:text-gray-600"
+                onClick={() => setShowReportModal(true)}
+                title="Báo cáo bài viết"
+              >
                 <MoreVertical className="w-5 h-5" />
               </button>
             </div>
@@ -482,6 +488,13 @@ export function PostDetailPage() {
           )}
         </div>
       </div>
+      {showReportModal && (
+        <ReportModal
+          targetType="post"
+          targetId={post.id}
+          onClose={() => setShowReportModal(false)}
+        />
+      )}
     </PageLayout>
   );
 }

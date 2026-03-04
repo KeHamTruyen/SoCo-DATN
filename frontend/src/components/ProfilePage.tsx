@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { PageLayout } from './Layout';
 import { useState, useEffect } from 'react';
 import userService, { UserProfile } from '../services/user.service';
+import followService from '../services/follow.service';
 
 export function ProfilePage() {
   const { username } = useParams<{ username: string }>();
@@ -13,6 +14,8 @@ export function ProfilePage() {
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   // Determine if viewing own profile
   const isOwnProfile = !username || username === currentUser?.username;
@@ -34,6 +37,7 @@ export function ProfilePage() {
         
         if (response?.data) {
           setProfileData(response.data);
+          setIsFollowing(Boolean(response.data.isFollowing));
         }
       } catch (err: any) {
         console.error('Error fetching profile:', err);
@@ -93,6 +97,46 @@ export function ProfilePage() {
   const followingCount = profileData._count?.following || 0;
   const orderCount = profileData._count?.orders || 0;
   const reviewCount = profileData._count?.reviews || 0;
+
+  const handleToggleFollow = async () => {
+    if (!profileData || followLoading) return;
+
+    try {
+      setFollowLoading(true);
+      const previous = isFollowing;
+      setIsFollowing(!previous);
+      setProfileData((prev) => {
+        if (!prev) return prev;
+        const currentFollowers = prev._count?.followers || 0;
+        return {
+          ...prev,
+          _count: {
+            ...prev._count,
+            followers: previous ? Math.max(0, currentFollowers - 1) : currentFollowers + 1,
+          },
+        };
+      });
+
+      const response = await followService.toggleFollow(profileData.id);
+      setIsFollowing(response.data.followed);
+    } catch (err) {
+      console.error('Error toggling follow:', err);
+      setIsFollowing((prev) => !prev);
+      setProfileData((prev) => {
+        if (!prev) return prev;
+        const currentFollowers = prev._count?.followers || 0;
+        return {
+          ...prev,
+          _count: {
+            ...prev._count,
+            followers: isFollowing ? currentFollowers + 1 : Math.max(0, currentFollowers - 1),
+          },
+        };
+      });
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   return (
     <PageLayout
@@ -167,10 +211,15 @@ export function ProfilePage() {
                   </>
                 ) : (
                   <button
-                    onClick={() => {/* TODO: Implement follow/unfollow */}}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    onClick={handleToggleFollow}
+                    disabled={followLoading}
+                    className={`px-6 py-2 rounded-lg transition-colors ${
+                      isFollowing
+                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    } disabled:opacity-60 disabled:cursor-not-allowed`}
                   >
-                    Theo dõi
+                    {followLoading ? 'Đang xử lý...' : isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
                   </button>
                 )}
               </div>

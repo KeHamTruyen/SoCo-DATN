@@ -356,7 +356,7 @@ export function NotificationCenter() {
                 <button
                   onClick={() => {
                     setShowDropdown(false);
-                    // Navigate to full notifications page
+                    navigate('/notifications');
                   }}
                   className="w-full text-sm text-blue-600 hover:text-blue-700 py-2"
                 >

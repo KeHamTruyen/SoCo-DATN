@@ -169,6 +169,19 @@ export const getPosts = async (filters: PostFilters = {}): Promise<PostsResponse
 };
 
 /**
+ * Get personalized feed for authenticated user
+ */
+export const getPersonalizedFeed = async (
+  page: number = 1,
+  limit: number = 20
+): Promise<PostsResponse> => {
+  const response = await axios.get(`${API_URL}/posts/feed?page=${page}&limit=${limit}`, {
+    headers: getAuthHeader(),
+  });
+  return response.data;
+};
+
+/**
  * Get single post by ID
  */
 export const getPost = async (postId: string): Promise<PostResponse> => {

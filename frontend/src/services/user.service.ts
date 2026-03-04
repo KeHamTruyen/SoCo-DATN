@@ -19,6 +19,7 @@ export interface User {
 }
 
 export interface UserProfile extends User {
+  isFollowing?: boolean;
   _count?: {
     products?: number;
     followers?: number;

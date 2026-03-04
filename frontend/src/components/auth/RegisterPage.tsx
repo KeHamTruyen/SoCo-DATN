@@ -49,8 +49,7 @@ export function RegisterPage() {
         role: formData.role
       });
 
-      // Success! AuthContext will update user state
-      navigate('/home', { replace: true });
+      navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`, { replace: true });
     } catch (err) {
       console.error('Registration failed:', err);
     }

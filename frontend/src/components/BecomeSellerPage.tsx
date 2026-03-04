@@ -1,64 +1,219 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, CheckCircle, ShieldCheck, Store, TrendingUp } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import sellerService from '../services/seller.service';
+import uploadService from '../services/upload.service';
 
-type Step = 'intro' | 'form' | 'verification' | 'success';
+type Step = 1 | 2 | 3;
 
 export function BecomeSellerPage() {
   const navigate = useNavigate();
-  const { user, updateProfile } = useAuth();
-  const [currentStep, setCurrentStep] = useState<Step>('intro');
-  const [formData, setFormData] = useState({
-    shopName: '',
-    description: '',
-    phoneNumber: '',
-    address: '',
-    idCardFront: null as File | null,
-    idCardBack: null as File | null,
-  });
+  const { user } = useAuth();
+  const [started, setStarted] = useState(false);
+  const [currentStep, setCurrentStep] = useState<Step>(1);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'submitted' | 'approved' | 'rejected'>('idle');
+  const [statusMessage, setStatusMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    idCardNumber: '',
+    dateOfBirth: '',
+    address: '',
+    businessName: '',
+    businessType: '',
+    businessLicenseNumber: '',
+    taxCode: '',
+    bankName: '',
+    bankAccountNumber: '',
+    bankAccountName: '',
+    bankBranch: '',
+    idCardFront: null as File | null,
+    idCardBack: null as File | null,
+    businessLicense: null as File | null,
+  });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'idCardFront' | 'idCardBack') => {
+  const canSubmitStep1 = useMemo(() => {
+    return Boolean(formData.idCardNumber && formData.dateOfBirth && formData.address);
+  }, [formData.idCardNumber, formData.dateOfBirth, formData.address]);
+
+  useEffect(() => {
+    const loadStatus = async () => {
+      try {
+        const res = await sellerService.getStatus();
+        const s = res.data.status;
+        if (s === 'not_started') return;
+
+        setStarted(true);
+        if (s === 'APPROVED') {
+          setStatus('approved');
+          setStatusMessage('Hồ sơ đã được duyệt. Tài khoản của bạn đã là người bán.');
+          return;
+        }
+        if (s === 'REVIEWING') {
+          setStatus('submitted');
+          setStatusMessage('Hồ sơ đang được xét duyệt.');
+          return;
+        }
+        if (s === 'REJECTED') {
+          setStatus('rejected');
+          setStatusMessage(res.data.rejectionReason || 'Hồ sơ bị từ chối. Bạn có thể chỉnh sửa và gửi lại.');
+        }
+
+        if (res.data.step2Completed) setCurrentStep(3);
+        else if (res.data.step1Completed) setCurrentStep(2);
+        else setCurrentStep(1);
+      } catch (err: any) {
+        console.error('Failed to load seller status', err);
+      }
+    };
+
+    loadStatus();
+  }, []);
+
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: 'idCardFront' | 'idCardBack' | 'businessLicense'
+  ) => {
     if (e.target.files && e.target.files[0]) {
       setFormData(prev => ({ ...prev, [field]: e.target.files![0] }));
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
-    setCurrentStep('verification');
-
+  const startApplication = async () => {
     try {
-      // TODO: Upload ID card images to server (Cloudinary)
-      // TODO: Submit seller verification request to backend
-      
-      // Simulate verification process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Auto-approve: Update user role to SELLER
-      // NOTE: In production, this should be done after admin approval
-      // This is a temporary implementation for development
-      await updateProfile({ role: 'SELLER' });
-
-      setCurrentStep('success');
+      setIsSubmitting(true);
+      setError(null);
+      await sellerService.startApplication();
+      setStarted(true);
     } catch (err: any) {
-      console.error('Become seller error:', err);
       setError(err.response?.data?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
-      setCurrentStep('form');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleComplete = () => {
-    navigate('/profile');
+  const submitStep1 = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      let idCardFrontUrl: string | undefined;
+      let idCardBackUrl: string | undefined;
+      if (formData.idCardFront) {
+        const uploaded = await uploadService.uploadProductImage(formData.idCardFront);
+        idCardFrontUrl = uploaded.data.url;
+      }
+      if (formData.idCardBack) {
+        const uploaded = await uploadService.uploadProductImage(formData.idCardBack);
+        idCardBackUrl = uploaded.data.url;
+      }
+
+      await sellerService.submitStep1({
+        idCardNumber: formData.idCardNumber,
+        dateOfBirth: formData.dateOfBirth,
+        address: formData.address,
+        idCardFrontUrl,
+        idCardBackUrl,
+      });
+      setCurrentStep(2);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Không thể gửi bước 1.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  if (currentStep === 'intro') {
+  const submitStep2 = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      let businessLicenseUrl: string | undefined;
+      if (formData.businessLicense) {
+        const uploaded = await uploadService.uploadProductImage(formData.businessLicense);
+        businessLicenseUrl = uploaded.data.url;
+      }
+      await sellerService.submitStep2({
+        businessName: formData.businessName,
+        businessType: formData.businessType || undefined,
+        businessLicenseNumber: formData.businessLicenseNumber || undefined,
+        businessLicenseUrl,
+        taxCode: formData.taxCode || undefined,
+      });
+      setCurrentStep(3);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Không thể gửi bước 2.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const submitStep3 = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await sellerService.submitStep3({
+        bankName: formData.bankName,
+        bankAccountNumber: formData.bankAccountNumber,
+        bankAccountName: formData.bankAccountName || undefined,
+        bankBranch: formData.bankBranch || undefined,
+      });
+      setStatus('submitted');
+      setStatusMessage('Hồ sơ đã được gửi thành công và đang chờ xét duyệt.');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Không thể gửi bước 3.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (status === 'approved') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto px-4 text-center">
+          <div className="bg-white rounded-2xl p-12 shadow-lg">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-green-600" />
+            </div>
+            <h2 className="text-3xl mb-4">Bạn đã là người bán</h2>
+            <p className="text-gray-600 mb-8">{statusMessage}</p>
+            <button
+              onClick={() => navigate('/seller/dashboard')}
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
+            >
+              Đi đến trang người bán
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'submitted') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto px-4 text-center">
+          <div className="bg-white rounded-2xl p-12 shadow-sm">
+            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <ShieldCheck className="w-10 h-10 text-blue-600" />
+            </div>
+            <h2 className="text-2xl mb-4">Đang chờ xét duyệt</h2>
+            <p className="text-gray-600 mb-6">{statusMessage}</p>
+            <button
+              onClick={() => navigate('/profile')}
+              className="w-full py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Về trang cá nhân
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!started) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <header className="bg-white border-b border-gray-200">
@@ -138,10 +293,11 @@ export function BecomeSellerPage() {
 
           <div className="text-center">
             <button
-              onClick={() => setCurrentStep('form')}
+              onClick={startApplication}
+              disabled={isSubmitting}
               className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all text-lg shadow-lg"
             >
-              Bắt đầu đăng ký
+              {isSubmitting ? 'Đang tạo hồ sơ...' : 'Bắt đầu đăng ký'}
             </button>
           </div>
         </div>
@@ -149,81 +305,76 @@ export function BecomeSellerPage() {
     );
   }
 
-  if (currentStep === 'form') {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center h-16">
-              <button
-                onClick={() => setCurrentStep('intro')}
-                className="flex items-center gap-2 text-gray-700"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span>Quay lại</span>
-              </button>
-            </div>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center h-16">
+            <button
+              onClick={() => navigate('/profile')}
+              className="flex items-center gap-2 text-gray-700"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Quay lại</span>
+            </button>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="mb-8">
-            <h1 className="text-3xl mb-2">Thông tin đăng ký</h1>
-            <p className="text-gray-600">Vui lòng điền đầy đủ thông tin để xác thực tài khoản người bán</p>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Bước 2/3</span>
-              <span className="text-sm text-gray-600">67%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full" style={{ width: '67%' }}></div>
-            </div>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-              {error}
-            </div>
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-8">
+          <h1 className="text-3xl mb-2">Đăng ký người bán</h1>
+          <p className="text-gray-600">Hoàn thành 3 bước để gửi hồ sơ xét duyệt.</p>
+          {user?.role === 'SELLER' && (
+            <p className="text-green-700 text-sm mt-2">Tài khoản hiện tại đã có quyền người bán.</p>
           )}
+          {status === 'rejected' && (
+            <p className="text-red-600 text-sm mt-2">{statusMessage}</p>
+          )}
+        </div>
 
-          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-600">Bước {currentStep}/3</span>
+            <span className="text-sm text-gray-600">{Math.round((currentStep / 3) * 100)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all"
+              style={{ width: `${(currentStep / 3) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
+
+        {currentStep === 1 && (
+          <form onSubmit={submitStep1} className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+            <h3 className="text-lg">Bước 1: Thông tin cá nhân</h3>
+
             <div>
-              <label className="block text-sm mb-2">Tên cửa hàng *</label>
+              <label className="block text-sm mb-2">Số CMND/CCCD *</label>
               <input
                 type="text"
                 required
-                value={formData.shopName}
-                onChange={(e) => setFormData(prev => ({ ...prev, shopName: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                placeholder="VD: Thời trang ABC"
+                value={formData.idCardNumber}
+                onChange={(e) => setFormData((p) => ({ ...p, idCardNumber: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               />
             </div>
 
             <div>
-              <label className="block text-sm mb-2">Mô tả cửa hàng *</label>
-              <textarea
-                required
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                placeholder="Giới thiệu về cửa hàng của bạn..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm mb-2">Số điện thoại *</label>
+              <label className="block text-sm mb-2">Ngày sinh *</label>
               <input
-                type="tel"
+                type="date"
                 required
-                value={formData.phoneNumber}
-                onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                placeholder="0123456789"
+                value={formData.dateOfBirth}
+                onChange={(e) => setFormData((p) => ({ ...p, dateOfBirth: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               />
             </div>
 
@@ -233,132 +384,207 @@ export function BecomeSellerPage() {
                 type="text"
                 required
                 value={formData.address}
-                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                placeholder="Số nhà, đường, phường, quận, thành phố"
+                onChange={(e) => setFormData((p) => ({ ...p, address: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               />
             </div>
 
-            <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-lg mb-4">Xác thực danh tính</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm mb-2">CMND/CCCD mặt trước *</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-600 transition-colors">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      required
-                      onChange={(e) => handleFileChange(e, 'idCardFront')}
-                      className="hidden"
-                      id="id-front"
-                    />
-                    <label htmlFor="id-front" className="cursor-pointer">
-                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">
-                        {formData.idCardFront ? formData.idCardFront.name : 'Nhấn để tải ảnh lên'}
-                      </p>
-                    </label>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm mb-2">CMND/CCCD mặt sau *</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-600 transition-colors">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      required
-                      onChange={(e) => handleFileChange(e, 'idCardBack')}
-                      className="hidden"
-                      id="id-back"
-                    />
-                    <label htmlFor="id-back" className="cursor-pointer">
-                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">
-                        {formData.idCardBack ? formData.idCardBack.name : 'Nhấn để tải ảnh lên'}
-                      </p>
-                    </label>
-                  </div>
-                </div>
+            <div>
+              <label className="block text-sm mb-2">Ảnh CCCD mặt trước</label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, 'idCardFront')}
+                  className="hidden"
+                  id="id-front"
+                />
+                <label htmlFor="id-front" className="cursor-pointer">
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">
+                    {formData.idCardFront ? formData.idCardFront.name : 'Nhấn để tải ảnh lên'}
+                  </p>
+                </label>
               </div>
             </div>
 
-            <div className="bg-blue-50 rounded-lg p-4 text-sm text-gray-700">
-              <p className="mb-2">📌 Lưu ý:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Thông tin phải chính xác và trung thực</li>
-                <li>Ảnh CMND/CCCD cần rõ nét, đầy đủ thông tin</li>
-                <li>Quá trình xác thực tự động (tạm thời cho phát triển)</li>
-              </ul>
+            <div>
+              <label className="block text-sm mb-2">Ảnh CCCD mặt sau</label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, 'idCardBack')}
+                  className="hidden"
+                  id="id-back"
+                />
+                <label htmlFor="id-back" className="cursor-pointer">
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">
+                    {formData.idCardBack ? formData.idCardBack.name : 'Nhấn để tải ảnh lên'}
+                  </p>
+                </label>
+              </div>
             </div>
 
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting || !canSubmitStep1}
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg disabled:opacity-50"
             >
-              {isSubmitting ? 'Đang xử lý...' : 'Gửi yêu cầu xác thực'}
+              {isSubmitting ? 'Đang xử lý...' : 'Lưu và tiếp tục bước 2'}
             </button>
           </form>
-        </div>
-      </div>
-    );
-  }
+        )}
 
-  if (currentStep === 'verification') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto px-4 text-center">
-          <div className="bg-white rounded-2xl p-12 shadow-sm">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-              <ShieldCheck className="w-10 h-10 text-blue-600" />
-            </div>
-            <h2 className="text-2xl mb-4">Đang xác thực...</h2>
-            <p className="text-gray-600 mb-6">
-              Hệ thống đang kiểm tra thông tin của bạn. Vui lòng đợi trong giây lát.
-            </p>
-            <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+        {currentStep === 2 && (
+          <form onSubmit={submitStep2} className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+            <h3 className="text-lg">Bước 2: Thông tin kinh doanh</h3>
 
-  if (currentStep === 'success') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto px-4 text-center">
-          <div className="bg-white rounded-2xl p-12 shadow-lg">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-green-600" />
+            <div>
+              <label className="block text-sm mb-2">Tên doanh nghiệp/cửa hàng *</label>
+              <input
+                type="text"
+                required
+                value={formData.businessName}
+                onChange={(e) => setFormData((p) => ({ ...p, businessName: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
             </div>
-            <h2 className="text-3xl mb-4">Chúc mừng! 🎉</h2>
-            <p className="text-gray-600 mb-8">
-              Tài khoản của bạn đã được xác thực thành công. Giờ đây bạn có thể bắt đầu bán hàng trên Social Commerce.
-            </p>
-            <div className="space-y-3">
+
+            <div>
+              <label className="block text-sm mb-2">Loại hình kinh doanh</label>
+              <input
+                type="text"
+                value={formData.businessType}
+                onChange={(e) => setFormData((p) => ({ ...p, businessType: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm mb-2">Số giấy phép kinh doanh</label>
+              <input
+                type="text"
+                value={formData.businessLicenseNumber}
+                onChange={(e) => setFormData((p) => ({ ...p, businessLicenseNumber: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm mb-2">Mã số thuế</label>
+              <input
+                type="text"
+                value={formData.taxCode}
+                onChange={(e) => setFormData((p) => ({ ...p, taxCode: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm mb-2">Giấy phép kinh doanh (ảnh)</label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, 'businessLicense')}
+                  className="hidden"
+                  id="business-license"
+                />
+                <label htmlFor="business-license" className="cursor-pointer">
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">
+                    {formData.businessLicense ? formData.businessLicense.name : 'Nhấn để tải ảnh lên'}
+                  </p>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
               <button
-                onClick={handleComplete}
-                className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
+                type="button"
+                onClick={() => setCurrentStep(1)}
+                className="w-1/2 py-3 border border-gray-300 text-gray-700 rounded-lg"
               >
-                Đến trang cá nhân
+                Quay lại
               </button>
               <button
-                onClick={() => navigate('/')}
-                className="w-full py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                type="submit"
+                disabled={isSubmitting || !formData.businessName}
+                className="w-1/2 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg disabled:opacity-50"
               >
-                Khám phá trang chủ
+                {isSubmitting ? 'Đang xử lý...' : 'Lưu và tiếp tục bước 3'}
               </button>
             </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+          </form>
+        )}
 
-  return null;
+        {currentStep === 3 && (
+          <form onSubmit={submitStep3} className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+            <h3 className="text-lg">Bước 3: Thông tin ngân hàng</h3>
+
+            <div>
+              <label className="block text-sm mb-2">Tên ngân hàng *</label>
+              <input
+                type="text"
+                required
+                value={formData.bankName}
+                onChange={(e) => setFormData((p) => ({ ...p, bankName: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm mb-2">Số tài khoản *</label>
+              <input
+                type="text"
+                required
+                value={formData.bankAccountNumber}
+                onChange={(e) => setFormData((p) => ({ ...p, bankAccountNumber: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm mb-2">Tên chủ tài khoản</label>
+              <input
+                type="text"
+                value={formData.bankAccountName}
+                onChange={(e) => setFormData((p) => ({ ...p, bankAccountName: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm mb-2">Chi nhánh</label>
+              <input
+                type="text"
+                value={formData.bankBranch}
+                onChange={(e) => setFormData((p) => ({ ...p, bankBranch: e.target.value }))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setCurrentStep(2)}
+                className="w-1/2 py-3 border border-gray-300 text-gray-700 rounded-lg"
+              >
+                Quay lại
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || !formData.bankName || !formData.bankAccountNumber}
+                className="w-1/2 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg disabled:opacity-50"
+              >
+                {isSubmitting ? 'Đang gửi...' : 'Gửi hồ sơ xét duyệt'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
 }

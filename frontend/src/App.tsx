@@ -4,6 +4,9 @@ import { ProtectedRoute, RoleRoute } from './components/routes/ProtectedRoute';
 import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
 import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
+import { VerifyEmailPage } from './components/auth/VerifyEmailPage';
+import { TwoFAPage } from './components/auth/TwoFAPage';
 import { HomePage } from './components/HomePage';
 import { ProfilePage } from './components/ProfilePage';
 import { BecomeSellerPage } from './components/BecomeSellerPage';
@@ -113,6 +116,21 @@ export default function App() {
         <Route path="/forgot-password" element={
           <PublicRoute>
             <ForgotPasswordPage />
+          </PublicRoute>
+        } />
+        <Route path="/reset-password" element={
+          <PublicRoute>
+            <ResetPasswordPage />
+          </PublicRoute>
+        } />
+        <Route path="/verify-email" element={
+          <PublicRoute>
+            <VerifyEmailPage />
+          </PublicRoute>
+        } />
+        <Route path="/login/2fa" element={
+          <PublicRoute>
+            <TwoFAPage />
           </PublicRoute>
         } />
 

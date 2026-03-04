@@ -25,7 +25,7 @@ export function HomePage() {
     const loadPosts = async () => {
       try {
         setLoading(true);
-        const response = await postService.getPosts({ page: 1, limit: 20, status: 'PUBLISHED' });
+        const response = await postService.getPersonalizedFeed(1, 20);
         setPosts(response.data);
         setHasMore(response.pagination.currentPage < response.pagination.totalPages);
       } catch (error) {
@@ -45,7 +45,7 @@ export function HomePage() {
     try {
       setLoadingMore(true);
       const nextPage = page + 1;
-      const response = await postService.getPosts({ page: nextPage, limit: 20, status: 'PUBLISHED' });
+      const response = await postService.getPersonalizedFeed(nextPage, 20);
       setPosts([...posts, ...response.data]);
       setPage(nextPage);
       setHasMore(response.pagination.currentPage < response.pagination.totalPages);
@@ -156,7 +156,7 @@ export function HomePage() {
               ].map((group) => (
                 <button
                   key={group.id}
-                  onClick={() => navigate(`/groups/${group.id}`)}
+                  onClick={() => navigate(`/group/${group.id}`)}
                   className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors text-left"
                 >
                   <img
@@ -239,7 +239,7 @@ export function HomePage() {
               <div
                 key={post.id}
                 className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => navigate(`/posts/${post.id}`)}
+                onClick={() => navigate(`/post/${post.id}`)}
               >
                 {/* Author Info */}
                 <div className="flex items-center justify-between p-4">
@@ -326,7 +326,10 @@ export function HomePage() {
                     <span className="text-sm">{post.likesCount}</span>
                   </button>
                   <button
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/post/${post.id}`);
+                    }}
                     className="flex items-center gap-2 text-gray-600"
                   >
                     <MessageCircle className="w-5 h-5" />
