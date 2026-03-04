@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Search, Send } from 'lucide-react';
 import { PageLayout } from './Layout';
 import { useAuth } from '../contexts/AuthContext';
 import messageService, { Conversation, MessageItem } from '../services/message.service';
+import socketService from '../services/socket.service';
 
 export function MessagesPage() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageItem[]>([]);
@@ -13,6 +16,8 @@ export function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [isPeerTyping, setIsPeerTyping] = useState(false);
+  const typingTimeoutRef = useRef<number | null>(null);
 
   const selectedConversation = conversations.find((c) => c.id === selectedConversationId) || null;
 
@@ -23,11 +28,81 @@ export function MessagesPage() {
   }, [selectedConversation, user]);
 
   useEffect(() => {
+    if (!user) return;
+    socketService.connect(user.id);
+
+    const handleMessageNew = (newMessage: MessageItem) => {
+      setConversations((prev) =>
+        prev.map((item) =>
+          item.id === newMessage.conversationId ? { ...item, lastMessage: newMessage } : item
+        )
+      );
+
+      if (newMessage.conversationId === selectedConversationId) {
+        setMessages((prev) => {
+          if (prev.some((msg) => msg.id === newMessage.id)) return prev;
+          return [...prev, newMessage];
+        });
+        if (newMessage.senderId !== user.id) {
+          messageService.markRead(newMessage.conversationId).catch(() => {});
+        }
+      }
+    };
+
+    const handleTyping = ({ userId }: { userId: string }) => {
+      if (selectedPeer && userId === selectedPeer.id) {
+        setIsPeerTyping(true);
+      }
+    };
+
+    const handleStopTyping = ({ userId }: { userId: string }) => {
+      if (selectedPeer && userId === selectedPeer.id) {
+        setIsPeerTyping(false);
+      }
+    };
+
+    socketService.onMessageNew(handleMessageNew);
+    socketService.onTyping(handleTyping);
+    socketService.onStopTyping(handleStopTyping);
+
+    return () => {
+      socketService.offMessageNew(handleMessageNew);
+      socketService.offTyping(handleTyping);
+      socketService.offStopTyping(handleStopTyping);
+    };
+  }, [selectedConversationId, selectedPeer, user]);
+
+  useEffect(() => {
+    if (!selectedConversationId) return;
+    socketService.joinConversation(selectedConversationId);
+    setIsPeerTyping(false);
+
+    return () => {
+      socketService.leaveConversation(selectedConversationId);
+    };
+  }, [selectedConversationId]);
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        window.clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const fetchConversations = async () => {
       try {
         setLoadingConversations(true);
         const response = await messageService.getConversations();
         setConversations(response.data);
+        const preselectConversationId = searchParams.get('conversationId');
+        if (preselectConversationId) {
+          const exists = response.data.some((item) => item.id === preselectConversationId);
+          if (exists) {
+            setSelectedConversationId(preselectConversationId);
+          }
+        }
       } catch (err) {
         console.error('Error loading conversations:', err);
       } finally {
@@ -36,7 +111,7 @@ export function MessagesPage() {
     };
 
     fetchConversations();
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!selectedConversationId) return;
@@ -79,12 +154,19 @@ export function MessagesPage() {
 
     try {
       const response = await messageService.sendMessage(selectedConversationId, content);
-      setMessages((prev) => [...prev, response.data]);
+      setMessages((prev) => {
+        if (prev.some((msg) => msg.id === response.data.id)) return prev;
+        return [...prev, response.data];
+      });
       setConversations((prev) =>
         prev.map((item) =>
           item.id === selectedConversationId ? { ...item, lastMessage: response.data } : item
         )
       );
+      if (user) {
+        socketService.emitStopTyping(selectedConversationId, user.id);
+      }
+      setIsPeerTyping(false);
     } catch (err) {
       console.error('Error sending message:', err);
       setMessageText(content);
@@ -213,7 +295,23 @@ export function MessagesPage() {
                 <input
                   type="text"
                   value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setMessageText(value);
+                    if (!user || !selectedConversationId) return;
+
+                    if (value.trim()) {
+                      socketService.emitTyping(selectedConversationId, user.id);
+                      if (typingTimeoutRef.current) {
+                        window.clearTimeout(typingTimeoutRef.current);
+                      }
+                      typingTimeoutRef.current = window.setTimeout(() => {
+                        socketService.emitStopTyping(selectedConversationId, user.id);
+                      }, 1200);
+                    } else {
+                      socketService.emitStopTyping(selectedConversationId, user.id);
+                    }
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -232,6 +330,9 @@ export function MessagesPage() {
                 </button>
               </div>
             </div>
+            {isPeerTyping && (
+              <p className="px-4 pb-3 text-xs text-gray-500">Đối phương đang nhập...</p>
+            )}
           </div>
         ) : (
           <div className="hidden lg:flex flex-1 items-center justify-center bg-gray-50">

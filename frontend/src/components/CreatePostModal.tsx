@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, Image, Tag, Sparkles, Calendar, Search, Check, Upload, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import * as postService from '../services/post.service';
-import * as productService from '../services/product.service';
+import productService from '../services/product.service';
 import uploadService from '../services/upload.service';
 
 interface CreatePostModalProps {
@@ -35,8 +35,13 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
       if (user?.role === 'SELLER') {
         try {
           setLoadingProducts(true);
-          const response = await productService.getSellerProducts();
-          setMyProducts(response.data || []);
+          const response = await productService.getMyProducts();
+          const rawProducts = Array.isArray(response.data)
+            ? response.data
+            : Array.isArray(response.data?.products)
+              ? response.data.products
+              : [];
+          setMyProducts(rawProducts);
         } catch (err) {
           console.error('Error loading products:', err);
         } finally {
@@ -51,7 +56,7 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
   if (!user) return null;
 
   const filteredProducts = myProducts.filter(p => 
-    p.name.toLowerCase().includes(productSearch.toLowerCase())
+    (p.title || p.name || '').toLowerCase().includes(productSearch.toLowerCase())
   );
 
   const handleProductToggle = (productId: string) => {
@@ -170,7 +175,7 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
           {/* User Info */}
           <div className="flex items-center gap-3">
             <img 
-              src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}`} 
+              src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}`} 
               alt={user.fullName || user.username} 
               className="w-12 h-12 rounded-full object-cover" 
             />
@@ -287,13 +292,13 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
                   <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
                     <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                       <img 
-                        src={product.images[0]?.url || 'https://via.placeholder.com/64'} 
-                        alt={product.name} 
+                        src={product.images?.[0]?.url || product.images?.[0]?.imageUrl || 'https://via.placeholder.com/64'} 
+                        alt={product.title || product.name} 
                         className="w-full h-full object-cover" 
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium line-clamp-1">{product.name}</h4>
+                      <h4 className="text-sm font-medium line-clamp-1">{product.title || product.name}</h4>
                       <span className="text-base font-semibold text-blue-600">
                         {product.price.toLocaleString('vi-VN')}đ
                       </span>
@@ -387,13 +392,13 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
                     >
                       <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                         <img 
-                          src={product.images[0]?.url || 'https://via.placeholder.com/48'} 
-                          alt={product.name} 
+                          src={product.images?.[0]?.url || product.images?.[0]?.imageUrl || 'https://via.placeholder.com/48'} 
+                          alt={product.title || product.name} 
                           className="w-full h-full object-cover" 
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm line-clamp-1 font-medium">{product.name}</p>
+                        <p className="text-sm line-clamp-1 font-medium">{product.title || product.name}</p>
                         <span className="text-sm text-blue-600 font-semibold">
                           {product.price.toLocaleString('vi-VN')}đ
                         </span>

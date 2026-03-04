@@ -5,6 +5,9 @@ import { PageLayout } from './Layout';
 import { useState, useEffect } from 'react';
 import userService, { UserProfile } from '../services/user.service';
 import followService from '../services/follow.service';
+import messageService from '../services/message.service';
+import { FollowListModal } from './FollowListModal';
+import { ReportModal } from './ReportModal';
 
 export function ProfilePage() {
   const { username } = useParams<{ username: string }>();
@@ -16,6 +19,10 @@ export function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [startingConversation, setStartingConversation] = useState(false);
+  const [showFollowModal, setShowFollowModal] = useState(false);
+  const [followModalTab, setFollowModalTab] = useState<'followers' | 'following'>('followers');
+  const [showUserReportModal, setShowUserReportModal] = useState(false);
 
   // Determine if viewing own profile
   const isOwnProfile = !username || username === currentUser?.username;
@@ -138,6 +145,19 @@ export function ProfilePage() {
     }
   };
 
+  const handleStartConversation = async () => {
+    if (!profileData || startingConversation) return;
+    try {
+      setStartingConversation(true);
+      const response = await messageService.getOrCreateConversation(profileData.id);
+      navigate(`/messages?conversationId=${response.data.id}`);
+    } catch (err) {
+      console.error('Error starting conversation:', err);
+    } finally {
+      setStartingConversation(false);
+    }
+  };
+
   return (
     <PageLayout
       activePage="profile"
@@ -181,14 +201,24 @@ export function ProfilePage() {
               </div>
 
               <div className="flex gap-6 mb-4">
-                <div>
+                <button
+                  onClick={() => {
+                    setFollowModalTab('followers');
+                    setShowFollowModal(true);
+                  }}
+                >
                   <span className="text-lg">{followerCount}</span>
                   <span className="text-gray-500 ml-1">Người theo dõi</span>
-                </div>
-                <div>
+                </button>
+                <button
+                  onClick={() => {
+                    setFollowModalTab('following');
+                    setShowFollowModal(true);
+                  }}
+                >
                   <span className="text-lg">{followingCount}</span>
                   <span className="text-gray-500 ml-1">Đang theo dõi</span>
-                </div>
+                </button>
               </div>
 
               <div className="flex gap-3">
@@ -210,17 +240,32 @@ export function ProfilePage() {
                     )}
                   </>
                 ) : (
-                  <button
-                    onClick={handleToggleFollow}
-                    disabled={followLoading}
-                    className={`px-6 py-2 rounded-lg transition-colors ${
-                      isFollowing
-                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                    } disabled:opacity-60 disabled:cursor-not-allowed`}
-                  >
-                    {followLoading ? 'Đang xử lý...' : isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
-                  </button>
+                  <>
+                    <button
+                      onClick={handleToggleFollow}
+                      disabled={followLoading}
+                      className={`px-6 py-2 rounded-lg transition-colors ${
+                        isFollowing
+                          ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                      } disabled:opacity-60 disabled:cursor-not-allowed`}
+                    >
+                      {followLoading ? 'Đang xử lý...' : isFollowing ? 'Đang theo dõi' : 'Theo dõi'}
+                    </button>
+                    <button
+                      onClick={handleStartConversation}
+                      disabled={startingConversation}
+                      className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {startingConversation ? 'Đang mở chat...' : 'Nhắn tin'}
+                    </button>
+                    <button
+                      onClick={() => setShowUserReportModal(true)}
+                      className="px-6 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                      Báo cáo
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -401,6 +446,20 @@ export function ProfilePage() {
           </div>
         )}
       </div>
+      {showFollowModal && (
+        <FollowListModal
+          userId={profileData.id}
+          initialTab={followModalTab}
+          onClose={() => setShowFollowModal(false)}
+        />
+      )}
+      {showUserReportModal && (
+        <ReportModal
+          targetType="user"
+          targetId={profileData.id}
+          onClose={() => setShowUserReportModal(false)}
+        />
+      )}
     </PageLayout>
   );
 }

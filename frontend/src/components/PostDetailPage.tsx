@@ -25,6 +25,7 @@ export function PostDetailPage() {
   const [page, setPage] = useState(1);
   const [hasMoreComments, setHasMoreComments] = useState(true);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [reportCommentId, setReportCommentId] = useState<string | null>(null);
 
   if (!user || !postId) return null;
 
@@ -441,6 +442,12 @@ export function PostDetailPage() {
                         >
                           Trả lời
                         </button>
+                        <button
+                          onClick={() => setReportCommentId(comment.id)}
+                          className="hover:underline text-red-600"
+                        >
+                          Báo cáo
+                        </button>
                         <span>{formatTime(comment.createdAt)}</span>
                       </div>
 
@@ -460,6 +467,12 @@ export function PostDetailPage() {
                                   <p className="text-sm text-gray-700 break-words">{reply.content}</p>
                                 </div>
                                 <div className="flex items-center gap-4 mt-2 ml-4 text-xs text-gray-500">
+                                  <button
+                                    onClick={() => setReportCommentId(reply.id)}
+                                    className="hover:underline text-red-600"
+                                  >
+                                    Báo cáo
+                                  </button>
                                   <span>{formatTime(reply.createdAt)}</span>
                                 </div>
                               </div>
@@ -493,6 +506,13 @@ export function PostDetailPage() {
           targetType="post"
           targetId={post.id}
           onClose={() => setShowReportModal(false)}
+        />
+      )}
+      {reportCommentId && (
+        <ReportModal
+          targetType="comment"
+          targetId={reportCommentId}
+          onClose={() => setReportCommentId(null)}
         />
       )}
     </PageLayout>
