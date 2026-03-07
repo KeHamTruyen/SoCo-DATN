@@ -9,6 +9,8 @@ import orderRoutes from './order.routes.js';
 import userRoutes from './user.routes.js';
 import messageRoutes from './message.routes.js';
 import notificationRoutes from './notification.routes.js';
+import sellerRoutes from './seller.routes.js';
+import reviewRoutes from './review.routes.js';
 
 const router = express.Router();
 
@@ -23,6 +25,8 @@ router.use('/cart', cartRoutes);
 router.use('/orders', orderRoutes);
 router.use('/messages', messageRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/seller', sellerRoutes);
+router.use('/reviews', reviewRoutes);
 
 // Temporary welcome route
 router.get('/', (req, res) => {
@@ -38,7 +42,8 @@ router.get('/', (req, res) => {
       posts: '/api/posts',
       groups: '/api/groups',
       messages: '/api/messages',
-      notifications: '/api/notifications'
+      notifications: '/api/notifications',
+      seller: '/api/seller'
     }
   });
 });

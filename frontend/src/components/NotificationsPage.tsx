@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Heart, MessageCircle, UserPlus, ShoppingBag, Star, Check, Package, Tag } from 'lucide-react';
+import { Heart, MessageCircle, UserPlus, ShoppingBag, Star, Package, Tag } from 'lucide-react';
 import { PageLayout } from './Layout/PageLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
@@ -19,8 +19,8 @@ export function NotificationsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [unreadCount, setUnreadCount] = useState(0);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  // const [page, setPage] = useState(1);
+  // const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -70,8 +70,8 @@ export function NotificationsPage() {
       
       setNotifications(filteredNotifications);
       setUnreadCount(response.data.unreadCount);
-      setHasMore(response.data.pagination.page < response.data.pagination.totalPages);
-      setPage(1);
+      // setHasMore(response.data.pagination.page < response.data.pagination.totalPages);
+      // setPage(1);
     } catch (error) {
       console.error('Failed to load notifications:', error);
     } finally {

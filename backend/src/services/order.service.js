@@ -335,7 +335,7 @@ export const updateOrderStatus = async (orderId, userId, newStatus) => {
     PROCESSING: ['SHIPPING'],
     SHIPPING: ['DELIVERED'],
     DELIVERED: ['COMPLETED'],
-    COMPLETED: [],
+    COMPLETED: ['REFUNDED'], // Allow refund from completed orders
     CANCELLED: [],
     REFUNDED: [],
   };

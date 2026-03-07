@@ -15,6 +15,7 @@ import { NotificationsPage } from './components/NotificationsPage';
 import { SellerDashboard } from './components/seller/SellerDashboard';
 import { ProductManagementPage } from './components/seller/ProductManagementPage';
 import { OrderManagementPage } from './components/seller/OrderManagementPage';
+import { ReviewManagementPage } from './components/seller/ReviewManagementPage';
 import { AddProductPage } from './components/seller/AddProductPage';
 import { SchedulePostsPage } from './components/SchedulePostsPage';
 import { GroupsPage } from './components/GroupsPage';
@@ -145,6 +146,7 @@ export default function App() {
             <Route path="/seller/products" element={<ProductManagementPage />} />
             <Route path="/seller/products/add" element={<AddProductPage />} />
             <Route path="/seller/orders" element={<OrderManagementPage />} />
+            <Route path="/seller/reviews" element={<ReviewManagementPage />} />
           </Route>
 
           {/* Admin Routes - Require ADMIN role */}
