@@ -6,6 +6,46 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /api/reviews/product/{productId}:
+ *   get:
+ *     summary: Get published reviews for a product
+ *     tags: [Reviews]
+ *     parameters:
+ *       - in: path
+ *         name: productId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Product reviews retrieved successfully
+ */
+router.get('/product/:productId', reviewController.getProductReviews);
+
+/**
+ * @swagger
+ * /api/reviews:
+ *   post:
+ *     summary: Create review for product
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Review created successfully
+ */
+router.post('/', protect, reviewController.createReview);
+
+/**
+ * @swagger
  * /api/reviews/seller/me:
  *   get:
  *     summary: Get seller's product reviews

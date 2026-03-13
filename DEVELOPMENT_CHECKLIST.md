@@ -2,6 +2,21 @@
 
 ## 🎯 Tổng quan tiến độ
 
+### 🧾 Module 3 (Buyer/Seller) - Trạng thái theo UC (cập nhật theo code hiện tại)
+
+- [~] UC3.1 Tìm kiếm sản phẩm: Đã có API filter ở `/api/products` + MarketplacePage tích hợp thật; `SearchResultsPage` vẫn dùng mock.
+- [x] UC3.2 Xem chi tiết sản phẩm: Đã có API + ProductDetailPage và đã nối đọc/ghi review qua API.
+- [~] UC3.3 Thêm sản phẩm vào giỏ hàng: Đã có API `/api/cart/items` và luồng thêm từ Marketplace/ProductDetail; biến thể chưa đồng nhất hoàn toàn giữa các màn.
+- [x] UC3.4 Quản lý giỏ hàng: Đầy đủ xem/cập nhật số lượng/xóa/xóa toàn bộ.
+- [x] UC3.5 Thực hiện thanh toán: Đã có checkout + tạo đơn + mock confirm payment (COD).
+- [x] UC3.6 Theo dõi trạng thái đơn hàng: Đã có route `/orders`, `/orders/:orderId` + API + timeline trạng thái.
+- [~] UC3.7 Đánh giá và xếp hạng sản phẩm/người bán: Đã có API buyer tạo review và API đọc review sản phẩm; chưa có module xếp hạng seller độc lập.
+- [~] UC3.8 Quản lý sản phẩm Seller: Đã nối API list/delete thật cho `ProductManagementPage`; luồng sửa sản phẩm vẫn cần hoàn thiện UI riêng.
+- [x] UC3.9 Dashboard hiệu suất Seller: Đã sửa backend stats theo schema hiện tại và FE đọc API thật.
+- [x] UC3.10 Quản lý đơn hàng Seller: Đã có API `/api/orders/my/sales` + cập nhật trạng thái + FE tích hợp.
+- [x] UC3.11 Xử lý hoàn tiền (giả lập): Đã cho phép transition `COMPLETED -> REFUNDED`.
+- [x] UC3.12 Phản hồi đánh giá Buyer: Đã có route/controller/service + FE và đã đồng bộ field `avatarUrl`.
+
 ### ✅ Đã hoàn thành (Phase 1, 2, 3 & 4)
 
 - Backend Auth API
@@ -139,11 +154,12 @@
 ### Frontend
 
 - [x] order.service.ts - TypeScript API client
-- [x] OrderManagementPage - migrated to hooks (chưa có API)
+- [x] OrderManagementPage - đã tích hợp API `/orders/my/sales` và update status
 - [x] OrdersPage - Order history with filters
 - [x] OrderDetailPage - Full order detail view
 - [x] Order status badges & filters
 - [x] Order tracking timeline
+- [x] Route `/orders` và `/orders/:orderId` trong `App.tsx`
 
 ---
 
@@ -311,33 +327,36 @@
 
 ---
 
-## ⭐ 10. REVIEWS & RATINGS (❌ Chưa làm - Phase 3)
+## ⭐ 10. REVIEWS & RATINGS (⏳ Đang làm - partial)
 
 ### Backend
 
 - [x] Review model (Prisma schema)
-- [ ] **TODO: Review service**
-- [ ] **TODO: Review controller**
-- [ ] **TODO: Review routes (`/api/reviews/*`)**
+- [x] Review service (seller response flow)
+- [x] Review controller (seller response flow)
+- [x] Review routes (`/api/reviews/*`) cho seller response
+- [x] Buyer review APIs (`POST /api/reviews`, `GET /api/reviews/product/:productId`)
 - [ ] **TODO: Review validators**
+- [ ] **TODO: Buyer review update/delete endpoint**
 - [ ] **TODO: Review moderation**
 
 ### Frontend
 
-- [ ] **TODO: Review form component**
-- [ ] **TODO: Review list component**
+- [x] Review UI trong ProductDetailPage đã nối API thật
+- [x] ReviewManagementPage (seller response)
 - [ ] **TODO: Star rating component**
 - [ ] **TODO: Review filters & sorting**
-- [ ] **TODO: Seller response to reviews**
+- [x] Seller response to reviews
 
 ---
 
-## 🔍 11. SEARCH & MARKETPLACE (❌ Chưa làm - Phase 4)
+## 🔍 11. SEARCH & MARKETPLACE (⏳ Đang làm - partial)
 
 ### Backend
 
-- [ ] **TODO: Search service**
-  - [ ] Product search (full-text search)
+- [x] Product search/filter qua `/api/products` (query params)
+- [ ] **TODO: Search service riêng**
+  - [ ] Product search (full-text search nâng cao)
   - [ ] User search
   - [ ] Post search
 - [ ] **TODO: Search routes (`/api/search/*`)**
@@ -346,32 +365,34 @@
 
 ### Frontend
 
-- [ ] **TODO: SearchResultsPage - migrate to hooks + API**
-- [ ] **TODO: MarketplacePage - migrate to hooks + API**
+- [ ] **TODO: SearchResultsPage - migrate to hooks + API (đang mock)**
+- [x] MarketplacePage - migrated to hooks + API
 - [ ] **TODO: Search autocomplete**
 - [ ] **TODO: Filter sidebar**
 - [ ] **TODO: Sort options**
 
 ---
 
-## 🏪 12. SELLER FEATURES (⏳ Đã migrate UI, chưa có API)
+## 🏪 12. SELLER FEATURES (⏳ Đã có API, còn điểm cần fix)
 
 ### Backend
 
 - [x] SellerVerification model (Prisma schema)
 - [x] SellerStats model (Prisma schema)
 - [x] User role update endpoint (cho phép BUYER → SELLER)
+- [x] Seller stats route/controller (`/api/seller/stats`)
+- [x] Review response route/controller/service (`/api/reviews/seller/me`, `/:id/response`)
 - [ ] **TODO: Seller verification service (3-step form)**
 - [ ] **TODO: Admin approval system cho seller verification**
-- [ ] **TODO: Seller stats aggregation**
-- [ ] **TODO: Seller dashboard analytics API**
+- [ ] **TODO: Fix seller stats query mapping theo schema hiện tại (buyer/avatarUrl, order-item based aggregation)**
 
 ### Frontend
 
-- [x] SellerDashboard - migrated to hooks (cleaned up unused imports)
-- [x] ProductManagementPage - migrated to hooks (chưa có API thật)
-- [x] OrderManagementPage - migrated to hooks (chưa có API thật)
+- [x] SellerDashboard - integrated API `sellerService.getStats()`
+- [x] ProductManagementPage - integrated API list + delete
+- [x] OrderManagementPage - integrated API + update status
 - [x] AddProductPage - migrated to hooks + API
+- [x] ReviewManagementPage - seller response UI + API
 - [x] **BecomeSellerPage - migrated to hooks + API**
   - ⚠️ **TEMPORARY**: Auto-approve seller registration (không cần admin duyệt)
   - ⚠️ **TODO FOR PRODUCTION**: Implement admin approval workflow
@@ -628,11 +649,12 @@
 | Posts         | ✅ 100% | ✅ 100%  | ✅ Done    |
 | Messages      | ✅ 90%  | ✅ 75%   | ⏳ Phase 4 |
 | Notifications | ✅ 100% | ✅ 100%  | ✅ Done    |
-| Reviews       | ❌ 0%   | ❌ 0%    | ❌ Todo    |
-| Search        | ❌ 0%   | ❌ 0%    | ❌ Todo    |
+| Reviews       | ⏳ 70%  | ⏳ 70%   | ⏳ Partial |
+| Search        | ⏳ 60%  | ⏳ 60%   | ⏳ Partial |
+| Seller        | ⏳ 80%  | ⏳ 85%   | ⏳ Partial |
 | Admin         | ❌ 0%   | ❌ 0%    | ❌ Todo    |
 
-**Tổng tiến độ: ~75%** 🚀
+**Tổng tiến độ: ~84%** 🚀
 
 ---
 
@@ -648,4 +670,4 @@
 
 ---
 
-_Last updated: March 3, 2026_
+_Last updated: March 14, 2026_

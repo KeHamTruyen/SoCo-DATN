@@ -13,7 +13,7 @@ import { CartPage } from './components/CartPage';
 import { MessagesPage } from './components/MessagesPage';
 import { NotificationsPage } from './components/NotificationsPage';
 import { SellerDashboard } from './components/seller/SellerDashboard';
-import { ProductManagementPage } from './components/seller/ProductManagementPage';
+import { ProductManagementPage } from './components/seller/ProductManagementPage.tsx';
 import { OrderManagementPage } from './components/seller/OrderManagementPage';
 import { ReviewManagementPage } from './components/seller/ReviewManagementPage';
 import { AddProductPage } from './components/seller/AddProductPage';
@@ -27,6 +27,8 @@ import { StorePage } from './components/StorePage';
 import { MarketplacePage } from './components/MarketplacePage';
 import { SearchResultsPage } from './components/SearchResultsPage';
 import { CheckoutPage } from './components/CheckoutPage';
+import { OrdersPage } from './components/OrdersPage';
+import { OrderDetailPage } from './components/OrderDetailPage';
 
 export type UserRole = 'buyer' | 'seller' | 'admin';
 
@@ -127,6 +129,8 @@ export default function App() {
             <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/orders/:orderId" element={<OrderDetailPage />} />
             <Route path="/messages" element={<MessagesPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/marketplace" element={<MarketplacePage />} />

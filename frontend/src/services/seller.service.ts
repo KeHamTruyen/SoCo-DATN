@@ -29,11 +29,11 @@ export interface SellerStats {
 
 export interface TopProduct {
   product: {
-    id: number;
+    id: string;
     name: string;
     price: number;
     images: string[];
-  };
+  } | null;
   totalSold: number;
   orderCount: number;
 }

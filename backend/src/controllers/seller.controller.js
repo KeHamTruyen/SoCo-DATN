@@ -9,22 +9,28 @@ export const getStats = async (req, res, next) => {
   try {
     const sellerId = req.user.id;
 
-    // Get total revenue from completed orders
-    const revenueData = await prisma.order.aggregate({
+    // Revenue is calculated from seller-owned order items in completed orders.
+    const revenueData = await prisma.orderItem.aggregate({
       where: {
         sellerId,
-        status: 'COMPLETED'
+        order: {
+          status: 'COMPLETED'
+        }
       },
       _sum: {
-        total: true
+        totalPrice: true
       }
     });
 
-    // Get total orders count by status
+    // Get total orders count by status for orders containing seller's items.
     const ordersCount = await prisma.order.groupBy({
       by: ['status'],
       where: {
-        sellerId
+        items: {
+          some: {
+            sellerId
+          }
+        }
       },
       _count: {
         status: true
@@ -35,7 +41,16 @@ export const getStats = async (req, res, next) => {
     const totalProducts = await prisma.product.count({
       where: {
         sellerId,
-        deletedAt: null
+        status: {
+          not: 'ARCHIVED'
+        }
+      }
+    });
+
+    const activeProducts = await prisma.product.count({
+      where: {
+        sellerId,
+        status: 'ACTIVE'
       }
     });
 
@@ -54,27 +69,34 @@ export const getStats = async (req, res, next) => {
       }
     });
 
-    // Get recent orders (last 5)
+    // Get recent seller orders (last 5)
     const recentOrders = await prisma.order.findMany({
       where: {
-        sellerId
+        items: {
+          some: {
+            sellerId
+          }
+        }
       },
       include: {
-        customer: {
+        buyer: {
           select: {
             id: true,
             username: true,
             fullName: true,
-            avatar: true
+            avatarUrl: true
           }
         },
         items: {
+          where: {
+            sellerId
+          },
           include: {
             product: {
               select: {
                 id: true,
                 name: true,
-                images: true
+                slug: true
               }
             }
           }
@@ -86,12 +108,12 @@ export const getStats = async (req, res, next) => {
       take: 5
     });
 
-    // Get top selling products
+    // Get top selling products by quantity.
     const topProducts = await prisma.orderItem.groupBy({
       by: ['productId'],
       where: {
+        sellerId,
         order: {
-          sellerId,
           status: {
             in: ['COMPLETED', 'DELIVERED']
           }
@@ -112,7 +134,10 @@ export const getStats = async (req, res, next) => {
     });
 
     // Get product details for top products
-    const productIds = topProducts.map(item => item.productId);
+    const productIds = topProducts
+      .map((item) => item.productId)
+      .filter(Boolean);
+
     const products = await prisma.product.findMany({
       where: {
         id: {
@@ -121,9 +146,16 @@ export const getStats = async (req, res, next) => {
       },
       select: {
         id: true,
-        name: true,
+        title: true,
         price: true,
-        images: true
+        images: {
+          orderBy: {
+            displayOrder: 'asc'
+          },
+          select: {
+            imageUrl: true
+          }
+        }
       }
     });
 
@@ -131,7 +163,14 @@ export const getStats = async (req, res, next) => {
     const topProductsWithDetails = topProducts.map(item => {
       const product = products.find(p => p.id === item.productId);
       return {
-        product,
+        product: product
+          ? {
+              id: product.id,
+              name: product.title,
+              price: Number(product.price),
+              images: product.images.map((img) => img.imageUrl)
+            }
+          : null,
         totalSold: item._sum.quantity || 0,
         orderCount: item._count.productId
       };
@@ -170,13 +209,13 @@ export const getStats = async (req, res, next) => {
       success: true,
       data: {
         revenue: {
-          total: revenueData._sum.total || 0,
+          total: Number(revenueData._sum.totalPrice || 0),
           currency: 'VND'
         },
         orders: statusStats,
         products: {
           total: totalProducts,
-          active: totalProducts // Can add inactive count if needed
+          active: activeProducts
         },
         rating: {
           average: ratingData._avg.rating || 0,

@@ -210,7 +210,7 @@ export function ReviewManagementPage() {
                 {/* Review Header */}
                 <div className="flex items-start gap-4 mb-4">
                   <img
-                    src={review.user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${review.user?.username}`}
+                    src={review.user?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${review.user?.username}`}
                     alt={review.user?.fullName || review.user?.username || 'User'}
                     className="w-12 h-12 rounded-full"
                   />

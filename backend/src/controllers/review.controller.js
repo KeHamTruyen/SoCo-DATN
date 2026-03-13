@@ -1,6 +1,50 @@
 import * as reviewService from '../services/review.service.js';
 
 /**
+ * Get product reviews for buyers
+ * @route GET /api/reviews/product/:productId
+ * @access Public
+ */
+export const getProductReviews = async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+    const { page, limit } = req.query;
+
+    const result = await reviewService.getProductReviews(productId, {
+      page: parseInt(page) || 1,
+      limit: parseInt(limit) || 10
+    });
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Create review by buyer
+ * @route POST /api/reviews
+ * @access Private
+ */
+export const createReview = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const review = await reviewService.createReview(userId, req.body);
+
+    res.status(201).json({
+      success: true,
+      data: review,
+      message: 'Review created successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Get seller's product reviews
  * @route GET /api/reviews/seller/me
  * @access Private (Seller only)

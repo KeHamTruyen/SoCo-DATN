@@ -105,7 +105,7 @@ export function MarketplacePage() {
       await cartService.addToCart({
         productId: product.id,
         quantity: 1,
-        variantId: product.variants?.[0]?.id
+        selectedVariant: product.variants?.[0]?.options || undefined
       });
       alert('Đã thêm vào giỏ hàng!');
     } catch (error) {

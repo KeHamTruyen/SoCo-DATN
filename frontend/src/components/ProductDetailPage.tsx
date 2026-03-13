@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { Heart, ShoppingCart, Star, Plus, Minus, Check, Truck, Shield, RotateCcw, MapPin } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useCart } from '../contexts/CartContext';
 import productService, { Product as ProductType } from '../services/product.service';
+import cartService from '../services/cart.service';
+import { reviewService } from '../services/review.service';
 import { PageLayout } from './Layout/PageLayout';
 
 interface Review {
@@ -23,7 +24,6 @@ export function ProductDetailPage() {
   const { id: productId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { addToCart } = useCart();
   
   const [product, setProduct] = useState<ProductType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,6 +36,7 @@ export function ProductDetailPage() {
   const [activeTab, setActiveTab] = useState<'description' | 'reviews' | 'shipping'>('description');
   const [reviewText, setReviewText] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   // Fetch product data
   useEffect(() => {
@@ -64,44 +65,45 @@ export function ProductDetailPage() {
     ? product.images.map(img => img.imageUrl)
     : ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800'];
 
-  // Mock reviews
-  const [reviews, setReviews] = useState<Review[]>([
-    {
-      id: '1',
-      userId: '2',
-      userName: 'Trần Thị B',
-      userAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-      rating: 5,
-      content: 'Sản phẩm rất đẹp và chất lượng! Giao hàng nhanh, đóng gói cẩn thận. Mình rất hài lòng và sẽ ủng hộ shop tiếp.',
-      timestamp: '2 ngày trước',
-      images: ['https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400'],
-      likes: 24,
-      isLiked: false
-    },
-    {
-      id: '2',
-      userId: '3',
-      userName: 'Lê Văn C',
-      userAvatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400',
-      rating: 4,
-      content: 'Chất lượng tốt, giá cả hợp lý. Có điều màu sắc hơi khác so với hình một chút nhưng vẫn đẹp.',
-      timestamp: '5 ngày trước',
-      likes: 12,
-      isLiked: false
-    },
-    {
-      id: '3',
-      userId: '4',
-      userName: 'Phạm Thị D',
-      userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
-      rating: 5,
-      content: 'Chất vải mềm mại, form dáng vừa vặn. Mình cao 1m6 nặng 50kg mặc size M vừa đẹp!',
-      timestamp: '1 tuần trước',
-      images: ['https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400', 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400'],
-      likes: 18,
-      isLiked: true
-    }
-  ]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!product?.id) return;
+
+      try {
+        setReviewsLoading(true);
+        const response = await reviewService.getProductReviews(product.id, {
+          page: 1,
+          limit: 20
+        });
+
+        if (response.success && response.data) {
+          const mapped = (response.data.reviews || []).map((r) => ({
+            id: r.id,
+            userId: r.userId,
+            userName: r.user?.fullName || r.user?.username || 'Người dùng',
+            userAvatar:
+              r.user?.avatarUrl ||
+              `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.user?.username || 'user'}`,
+            rating: r.rating,
+            content: r.content || r.title || '',
+            timestamp: new Date(r.createdAt).toLocaleDateString('vi-VN'),
+            images: r.images,
+            likes: r.helpfulCount,
+            isLiked: false
+          }));
+          setReviews(mapped);
+        }
+      } catch (err) {
+        console.error('Error fetching reviews:', err);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    fetchReviews();
+  }, [product?.id]);
 
   if (loading) {
     return (
@@ -147,58 +149,61 @@ export function ProductDetailPage() {
     }));
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return;
-    
-    // Convert API Product to App Product type for CartContext
-    const cartProduct = {
-      id: product.id,
-      sellerId: product.sellerId,
-      sellerName: product.seller?.fullName || 'Unknown',
-      sellerAvatar: product.seller?.avatarUrl || '',
-      sellerUsername: product.seller?.username || '',
-      title: product.title,
-      price: Number(product.price),
-      image: product.images?.[0]?.imageUrl || '',
-      description: product.description || '',
-      likes: product.likesCount,
-      comments: product.commentsCount,
-      isLiked: isLiked,
-      createdAt: product.createdAt,
-      category: product.category?.name || '',
-      stock: product.stockQuantity,
-      variants: product.variants?.map(v => ({
-        id: v.id,
-        name: v.variantName,
-        options: Object.values(v.options as Record<string, string>)
-      }))
-    };
-    
-    for (let i = 0; i < quantity; i++) {
-      addToCart(cartProduct, selectedVariants);
+
+    try {
+      await cartService.addToCart({
+        productId: product.id,
+        quantity,
+        selectedVariant: selectedVariants
+      });
+
+      alert(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`);
+    } catch (err: any) {
+      console.error('Add to cart error:', err);
+      alert(err.response?.data?.message || 'Không thể thêm sản phẩm vào giỏ hàng');
     }
-    
-    alert(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`);
   };
 
-  const handleAddReview = (e: React.FormEvent) => {
+  const handleAddReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !reviewText.trim()) return;
-    
-    const newReview: Review = {
-      id: Date.now().toString(),
-      userId: user.id,
-      userName: user.fullName,
-      userAvatar: user.avatarUrl || '',
-      rating: reviewRating,
-      content: reviewText,
-      timestamp: 'Vừa xong',
-      likes: 0,
-      isLiked: false
-    };
-    setReviews([newReview, ...reviews]);
-    setReviewText('');
-    setReviewRating(5);
+
+    if (!product) return;
+
+    try {
+      const response = await reviewService.createReview({
+        productId: product.id,
+        rating: reviewRating,
+        content: reviewText.trim()
+      });
+
+      if (response.success && response.data) {
+        const r = response.data;
+        const newReview: Review = {
+          id: r.id,
+          userId: r.userId,
+          userName: r.user?.fullName || r.user?.username || user.fullName || user.username,
+          userAvatar:
+            r.user?.avatarUrl ||
+            user.avatarUrl ||
+            `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`,
+          rating: r.rating,
+          content: r.content || r.title || '',
+          timestamp: 'Vừa xong',
+          images: r.images || [],
+          likes: r.helpfulCount || 0,
+          isLiked: false
+        };
+        setReviews((prev) => [newReview, ...prev]);
+        setReviewText('');
+        setReviewRating(5);
+      }
+    } catch (err: any) {
+      console.error('Create review error:', err);
+      alert(err.response?.data?.message || 'Không thể gửi đánh giá');
+    }
   };
 
   const averageRating = reviews.length > 0 
@@ -566,7 +571,7 @@ export function ProductDetailPage() {
                   <div className="flex-1">
                     {[5, 4, 3, 2, 1].map((star) => {
                       const count = reviews.filter(r => r.rating === star).length;
-                      const percentage = (count / reviews.length) * 100;
+                      const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
                       return (
                         <div key={star} className="flex items-center gap-3 mb-2">
                           <span className="text-sm w-8">{star} ⭐</span>
@@ -628,6 +633,9 @@ export function ProductDetailPage() {
 
                 {/* Reviews List */}
                 <div className="space-y-6">
+                  {reviewsLoading && (
+                    <p className="text-sm text-gray-500">Đang tải đánh giá...</p>
+                  )}
                   {reviews.map((review) => (
                     <div key={review.id} className="pb-6 border-b border-gray-100 last:border-0">
                       <div className="flex items-start gap-4">

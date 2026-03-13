@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { ArrowLeft, Search, Filter, Users, Package, FileText, User as UserIcon, Heart, MessageCircle, ShoppingCart, MapPin, UserPlus, Check } from 'lucide-react';
-import { Product } from '../App';
 import { mockProducts } from '../data/mockData';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export function SearchResultsPage() {
   const { user } = useAuth();
   const { addToCart } = useCart();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
   
@@ -128,6 +128,26 @@ export function SearchResultsPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Searching for:', query);
+  };
+
+  const onNavigate = (target: string, id?: string) => {
+    if (target === 'home') {
+      navigate('/home');
+      return;
+    }
+
+    if (target === 'product-detail' && id) {
+      navigate(`/product/${id}`);
+      return;
+    }
+
+    if (target === 'groups') {
+      navigate('/groups');
+    }
+  };
+
+  const onAddToCart = (product: any) => {
+    addToCart(product);
   };
 
   const categories = ['Tất cả', 'Thời trang', 'Điện tử', 'Nội thất', 'Mỹ phẩm', 'Thể thao', 'Sách', 'Đồ ăn'];

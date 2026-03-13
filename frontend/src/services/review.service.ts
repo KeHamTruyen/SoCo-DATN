@@ -26,7 +26,7 @@ export interface Review {
     id: string;
     username: string;
     fullName?: string;
-    avatar?: string;
+    avatarUrl?: string;
   };
   orderItem?: {
     id: string;
@@ -40,8 +40,22 @@ export interface ReviewFilters {
   limit?: number;
 }
 
+export interface ProductReviewFilters {
+  page?: number;
+  limit?: number;
+}
+
 export interface RespondToReviewRequest {
   response: string;
+}
+
+export interface CreateReviewRequest {
+  productId: string;
+  orderItemId?: string;
+  rating: number;
+  title?: string;
+  content?: string;
+  images?: string[];
 }
 
 export interface ReviewListResponse {
@@ -52,7 +66,38 @@ export interface ReviewListResponse {
   totalPages: number;
 }
 
+export interface ProductReviewListResponse extends ReviewListResponse {
+  averageRating: number;
+  ratingCount: number;
+}
+
 class ReviewService {
+  /**
+   * Get product reviews
+   */
+  async getProductReviews(
+    productId: string,
+    filters?: ProductReviewFilters
+  ): Promise<ApiResponse<ProductReviewListResponse>> {
+    const params = new URLSearchParams();
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+
+    const query = params.toString();
+    const response = await api.get(
+      `/reviews/product/${productId}${query ? `?${query}` : ''}`
+    );
+    return response.data;
+  }
+
+  /**
+   * Buyer creates a review
+   */
+  async createReview(data: CreateReviewRequest): Promise<ApiResponse<Review>> {
+    const response = await api.post('/reviews', data);
+    return response.data;
+  }
+
   /**
    * Get seller's product reviews
    */

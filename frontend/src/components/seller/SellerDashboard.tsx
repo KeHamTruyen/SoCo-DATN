@@ -235,7 +235,7 @@ export function SellerDashboard() {
                             <p className="text-sm truncate">{item.product?.name}</p>
                             <p className="text-xs text-gray-500">{item.totalSold} đã bán</p>
                           </div>
-                          <p className="text-sm text-blue-600">{formatCurrency(item.product?.price * item.totalSold)}</p>
+                          <p className="text-sm text-blue-600">{formatCurrency((item.product?.price || 0) * item.totalSold)}</p>
                         </div>
                       );
                     })}
