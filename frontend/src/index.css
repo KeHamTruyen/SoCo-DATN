@@ -2733,6 +2733,25 @@ html {
   font-size: var(--font-size);
 }
 
+/*
+ * Force icon+label buttons to stay on one line.
+ * This protects against external/global CSS that may set button flex-direction: column.
+ */
+.btn-inline-icon {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center;
+  gap: 0.5rem !important;
+  white-space: nowrap !important;
+  line-height: 1.25 !important;
+}
+
+.btn-inline-icon > svg,
+.btn-inline-icon > .icon {
+  flex: 0 0 auto !important;
+}
+
 @property --tw-translate-x {
   syntax: "*";
   inherits: false;

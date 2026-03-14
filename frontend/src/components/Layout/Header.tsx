@@ -37,6 +37,10 @@ export function Header({
 
   if (!user) return null;
 
+  const userAvatar =
+    user.avatarUrl ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}&background=DBEAFE&color=1D4ED8`;
+
   // Simple header with back button
   if (variant === 'simple') {
     return (
@@ -145,11 +149,14 @@ export function Header({
 
             {/* User Menu */}
             <div className="relative">
-              <button onClick={() => setShowUserMenu(!showUserMenu)}>
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gray-100 hover:ring-2 hover:ring-blue-100 transition-all"
+              >
                 <img
-                  src={user.avatar}
+                  src={userAvatar}
                   alt={user.fullName}
-                  className="w-8 h-8 rounded-full object-cover"
+                  className="w-full h-full object-cover block"
                 />
               </button>
 
@@ -167,9 +174,9 @@ export function Header({
                     <div className="px-4 py-3 border-b border-gray-100">
                       <div className="flex items-center gap-3">
                         <img
-                          src={user.avatar}
+                          src={userAvatar}
                           alt={user.fullName}
-                          className="w-10 h-10 rounded-full"
+                          className="w-10 h-10 rounded-full object-cover"
                         />
                         <div>
                           <p className="font-medium text-gray-900">{user.fullName}</p>

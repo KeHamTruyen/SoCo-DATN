@@ -308,24 +308,26 @@
 
 ---
 
-## 👥 9. GROUPS (❌ Chưa làm - Phase 6)
+## 👥 9. GROUPS (⏳ Đang làm - core features done)
 
 ### Backend
 
 - [x] Group model (Prisma schema)
 - [x] GroupMember model (Prisma schema)
-- [ ] **TODO: Group service**
-- [ ] **TODO: Group controller**
-- [ ] **TODO: Group routes (`/api/groups/*`)**
-- [ ] **TODO: Group permissions logic**
+- [x] Group service
+- [x] Group controller
+- [x] Group routes (`/api/groups/*`)
+- [x] Core membership logic (create/join/leave/list/detail/members)
+- [ ] **TODO: Nâng cao phân quyền (moderator actions, approve posts, invite flow)**
 
 ### Frontend
 
-- [ ] **TODO: GroupsPage - migrate to hooks + API**
-- [ ] **TODO: GroupDetailPage - migrate to hooks + API**
-- [ ] **TODO: Create group modal**
-- [ ] **TODO: Group member management**
-- [ ] **TODO: Group posts feed**
+- [x] GroupsPage - migrated to hooks + API
+- [x] GroupDetailPage - migrated to hooks + API
+- [x] Create group modal
+- [x] Group member list + search
+- [ ] **TODO: Group posts feed (API riêng cho post theo group)**
+- [ ] **TODO: Nâng cao member management (promote/demote/kick)**
 
 ---
 

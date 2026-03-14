@@ -18,6 +18,10 @@ export function HomePage() {
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
+  const isRenderablePost = (post: any): post is postService.Post => {
+    return Boolean(post && post.id && post.author);
+  };
+
   if (!user) return null;
 
   // Load posts
@@ -26,7 +30,7 @@ export function HomePage() {
       try {
         setLoading(true);
         const response = await postService.getPosts({ page: 1, limit: 20, status: 'PUBLISHED' });
-        setPosts(response.data);
+        setPosts((response.data || []).filter(isRenderablePost));
         setHasMore(response.pagination.currentPage < response.pagination.totalPages);
       } catch (error) {
         console.error('Error loading posts:', error);
@@ -46,7 +50,7 @@ export function HomePage() {
       setLoadingMore(true);
       const nextPage = page + 1;
       const response = await postService.getPosts({ page: nextPage, limit: 20, status: 'PUBLISHED' });
-      setPosts([...posts, ...response.data]);
+      setPosts(prev => [...prev, ...(response.data || [])].filter(isRenderablePost));
       setPage(nextPage);
       setHasMore(response.pagination.currentPage < response.pagination.totalPages);
     } catch (error) {
@@ -58,7 +62,7 @@ export function HomePage() {
 
   const handleLike = async (postId: string) => {
     // Save original values before optimistic update
-    const post = posts.find(p => p.id === postId);
+    const post = posts.find(p => p?.id === postId);
     if (!post) return;
     
     const wasLiked = post.isLiked;
@@ -96,9 +100,10 @@ export function HomePage() {
     }
   };
 
-  const handleCreatePost = (post: postService.Post) => {
-    // Add new post to the top of the feed
-    setPosts([post, ...posts]);
+  const handleCreatePost = (post: postService.Post | null) => {
+    // Scheduled posts return null from modal callback, so skip immediate feed insertion.
+    if (!isRenderablePost(post)) return;
+    setPosts(prev => [post, ...prev]);
   };
 
   const formatTime = (date: string) => {
@@ -242,7 +247,7 @@ export function HomePage() {
             )}
 
             {/* Real Posts from API */}
-            {posts.map((post) => (
+            {posts.filter(isRenderablePost).map((post) => (
               <div
                 key={post.id}
                 className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
@@ -294,19 +299,19 @@ export function HomePage() {
                     className="mx-4 mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/product/${post.product!.slug}`);
+                      navigate(`/product/${post.product!.slug || post.product!.id}`);
                     }}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                         <img 
-                          src={post.product.images[0]?.url || 'https://via.placeholder.com/64'} 
-                          alt={post.product.name}
+                          src={post.product.images?.[0]?.imageUrl || post.product.images?.[0]?.url || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.product.title || post.product.name || '')}&background=E5E7EB&color=374151`} 
+                          alt={post.product.title || post.product.name || ''}
                           className="w-full h-full object-cover"
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium line-clamp-1">{post.product.name}</p>
+                        <p className="text-sm font-medium line-clamp-1">{post.product.title || post.product.name}</p>
                         <p className="text-lg font-semibold text-blue-600">
                           {post.product.price.toLocaleString('vi-VN')}đ
                         </p>

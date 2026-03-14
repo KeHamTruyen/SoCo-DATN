@@ -11,6 +11,8 @@ import messageRoutes from './message.routes.js';
 import notificationRoutes from './notification.routes.js';
 import sellerRoutes from './seller.routes.js';
 import reviewRoutes from './review.routes.js';
+import groupRoutes from './group.routes.js';
+import scheduledPostRoutes from './scheduled-post.routes.js';
 
 const router = express.Router();
 
@@ -27,6 +29,8 @@ router.use('/messages', messageRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/seller', sellerRoutes);
 router.use('/reviews', reviewRoutes);
+router.use('/groups', groupRoutes);
+router.use('/scheduled-posts', scheduledPostRoutes);
 
 // Temporary welcome route
 router.get('/', (req, res) => {
@@ -40,6 +44,7 @@ router.get('/', (req, res) => {
       orders: '/api/orders',
       cart: '/api/cart',
       posts: '/api/posts',
+      scheduledPosts: '/api/scheduled-posts',
       groups: '/api/groups',
       messages: '/api/messages',
       notifications: '/api/notifications',

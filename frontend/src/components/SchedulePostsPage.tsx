@@ -1,460 +1,619 @@
-import { useState } from 'react';
-import { ArrowLeft, Calendar, Clock, Edit, Trash2, Eye, Filter, ChevronDown, SortAsc } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  AlertCircle,
+  Calendar,
+  CheckCircle2,
+  Clock3,
+  ExternalLink,
+  Eye,
+  Loader2,
+  RefreshCcw,
+  Search,
+  Send,
+  Trash2
+} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { PageLayout } from './Layout/PageLayout';
+import productService, { type Product } from '../services/product.service';
+import scheduledPostService, {
+  type ScheduledPost,
+  type ScheduledPostCounts,
+  type ScheduledPostStatus
+} from '../services/scheduled-post.service';
+
+const createDefaultScheduledTime = () => {
+  const date = new Date(Date.now() + 60 * 60 * 1000);
+  date.setMinutes(0, 0, 0);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+};
+
+const emptyCounts: ScheduledPostCounts = {
+  all: 0,
+  scheduled: 0,
+  published: 0,
+  failed: 0
+};
+
+const statusLabels: Record<'all' | ScheduledPostStatus, string> = {
+  all: 'Tất cả',
+  scheduled: 'Đã lên lịch',
+  published: 'Đã đăng',
+  failed: 'Lỗi đăng bài'
+};
+
+const statusClasses: Record<ScheduledPostStatus, string> = {
+  scheduled: 'bg-blue-100 text-blue-700',
+  published: 'bg-green-100 text-green-700',
+  failed: 'bg-red-100 text-red-700'
+};
+
+const parseMediaUrls = (value: string) => {
+  return value
+    .split(/\r?\n|,/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const toStartOfDayIso = (value: string) => {
+  return value ? new Date(`${value}T00:00:00`).toISOString() : undefined;
+};
+
+const toEndOfDayIso = (value: string) => {
+  return value ? new Date(`${value}T23:59:59.999`).toISOString() : undefined;
+};
 
 export function SchedulePostsPage() {
   const { user } = useAuth();
-  
-  if (!user) {
-    return <div>Loading...</div>;
-  }
-  const [filterStatus, setFilterStatus] = useState<'all' | 'scheduled' | 'published'>('all');
-  const [filterDateRange, setFilterDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>('all');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [customDateStart, setCustomDateStart] = useState('');
-  const [customDateEnd, setCustomDateEnd] = useState('');
-  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const navigate = useNavigate();
+  const canAttachProducts = user?.role === 'SELLER' || user?.role === 'ADMIN';
 
-  const allPosts = [
-    {
-      id: '1',
-      content: 'Khám phá bộ sưu tập mùa đông mới! 🌟 Giảm giá đến 30% cho tất cả sản phẩm.',
-      scheduledDate: '2024-12-25',
-      scheduledTime: '09:00',
-      status: 'scheduled' as const,
-      image: 'https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?w=400'
-    },
-    {
-      id: '2',
-      content: 'Flash Sale cuối tuần! Chỉ trong 24h. Nhanh tay đặt hàng ngay! ⚡',
-      scheduledDate: '2024-12-26',
-      scheduledTime: '10:00',
-      status: 'scheduled' as const,
-      image: 'https://images.unsplash.com/photo-1598538476953-eb5f34104298?w=400'
-    },
-    {
-      id: '3',
-      content: 'Cảm ơn quý khách đã ủng hộ. Chúc mọi người cuối tuần vui vẻ! 🎉',
-      scheduledDate: '2024-12-28',
-      scheduledTime: '18:00',
-      status: 'scheduled' as const,
-      image: null
-    },
-    {
-      id: '4',
-      content: 'Giới thiệu sản phẩm mới nhất trong tuần! Đặt hàng ngay để nhận ưu đãi.',
-      scheduledDate: '2024-12-20',
-      scheduledTime: '14:00',
-      status: 'published' as const,
-      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400'
-    },
-    {
-      id: '5',
-      content: 'Đánh giá từ khách hàng về sản phẩm bestseller của tháng.',
-      scheduledDate: '2024-12-19',
-      scheduledTime: '16:30',
-      status: 'published' as const,
-      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400'
-    },
-    {
-      id: '6',
-      content: 'Tips & Tricks chọn quần áo phù hợp với từng dáng người! 👗',
-      scheduledDate: '2024-12-18',
-      scheduledTime: '11:00',
-      status: 'published' as const,
-      image: null
+  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
+  const [counts, setCounts] = useState<ScheduledPostCounts>(emptyCounts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [actionPostId, setActionPostId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [previewPostId, setPreviewPostId] = useState<string | null>(null);
+
+  const [filters, setFilters] = useState({
+    status: 'all' as 'all' | ScheduledPostStatus,
+    sortOrder: 'asc' as 'asc' | 'desc',
+    search: '',
+    startDate: '',
+    endDate: ''
+  });
+
+  const [form, setForm] = useState({
+    content: '',
+    mediaUrlsText: '',
+    productId: '',
+    scheduledTime: createDefaultScheduledTime(),
+    timezone: 'Asia/Ho_Chi_Minh'
+  });
+
+  const activeFilterCount = useMemo(() => {
+    return [filters.status !== 'all', !!filters.search.trim(), !!filters.startDate, !!filters.endDate].filter(Boolean).length;
+  }, [filters]);
+
+  const loadScheduledPosts = async () => {
+    const response = await scheduledPostService.getMyScheduledPosts({
+      page: 1,
+      limit: 50,
+      status: filters.status,
+      sortOrder: filters.sortOrder,
+      search: filters.search.trim() || undefined,
+      startDate: toStartOfDayIso(filters.startDate),
+      endDate: toEndOfDayIso(filters.endDate)
+    });
+
+    setScheduledPosts(response.data || []);
+    setCounts(response.counts || emptyCounts);
+  };
+
+  useEffect(() => {
+    if (!user) {
+      return;
     }
-  ];
 
-  // Filter posts
-  const filterPostsByDate = (posts: typeof allPosts) => {
-    if (filterDateRange === 'all') return posts;
-
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    return posts.filter(post => {
-      const postDate = new Date(post.scheduledDate);
-
-      if (filterDateRange === 'today') {
-        return postDate.toDateString() === today.toDateString();
-      } else if (filterDateRange === 'week') {
-        const weekFromNow = new Date(today);
-        weekFromNow.setDate(weekFromNow.getDate() + 7);
-        return postDate >= today && postDate <= weekFromNow;
-      } else if (filterDateRange === 'month') {
-        const monthFromNow = new Date(today);
-        monthFromNow.setMonth(monthFromNow.getMonth() + 1);
-        return postDate >= today && postDate <= monthFromNow;
-      } else if (filterDateRange === 'custom' && customDateStart && customDateEnd) {
-        const startDate = new Date(customDateStart);
-        const endDate = new Date(customDateEnd);
-        return postDate >= startDate && postDate <= endDate;
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setErrorMessage('');
+        await loadScheduledPosts();
+      } catch (error: any) {
+        setErrorMessage(error?.response?.data?.message || 'Không thể tải danh sách bài viết đã lên lịch');
+      } finally {
+        setLoading(false);
       }
-      return true;
+    };
+
+    fetchData();
+  }, [user, filters]);
+
+  useEffect(() => {
+    if (!user || !canAttachProducts) {
+      return;
+    }
+
+    const loadProducts = async () => {
+      try {
+        setProductsLoading(true);
+        const response = await productService.getMyProducts({ page: 1, limit: 100, status: 'ACTIVE' });
+        if (response.success) {
+          setProducts(response.data || []);
+        }
+      } catch (error: any) {
+        setErrorMessage(error?.response?.data?.message || 'Không thể tải danh sách sản phẩm để gắn vào bài viết');
+      } finally {
+        setProductsLoading(false);
+      }
+    };
+
+    loadProducts();
+  }, [user, canAttachProducts]);
+
+  const resetForm = () => {
+    setForm({
+      content: '',
+      mediaUrlsText: '',
+      productId: '',
+      scheduledTime: createDefaultScheduledTime(),
+      timezone: 'Asia/Ho_Chi_Minh'
     });
   };
 
-  const filterPostsByStatus = (posts: typeof allPosts) => {
-    if (filterStatus === 'all') return posts;
-    return posts.filter(post => post.status === filterStatus);
+  const handleCreateScheduledPost = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const content = form.content.trim();
+    if (!content) {
+      setErrorMessage('Vui lòng nhập nội dung bài viết');
+      setSuccessMessage('');
+      return;
+    }
+
+    const scheduledTime = new Date(form.scheduledTime);
+    if (Number.isNaN(scheduledTime.getTime()) || scheduledTime.getTime() <= Date.now()) {
+      setErrorMessage('Thời gian đăng phải ở trong tương lai');
+      setSuccessMessage('');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setErrorMessage('');
+      setSuccessMessage('');
+
+      const mediaUrls = parseMediaUrls(form.mediaUrlsText);
+      const mediaType = mediaUrls.length > 0 ? 'IMAGE' : 'NONE';
+
+      await scheduledPostService.createScheduledPost({
+        content,
+        mediaUrls,
+        mediaType,
+        productId: form.productId || undefined,
+        scheduledTime: scheduledTime.toISOString(),
+        timezone: form.timezone.trim() || 'Asia/Ho_Chi_Minh'
+      });
+
+      resetForm();
+      setSuccessMessage('Đã tạo bài viết hẹn giờ thành công');
+      await loadScheduledPosts();
+    } catch (error: any) {
+      setErrorMessage(error?.response?.data?.message || 'Không thể tạo bài viết hẹn giờ');
+      setSuccessMessage('');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const sortPosts = (posts: typeof allPosts) => {
-    return [...posts].sort((a, b) => {
-      const dateA = new Date(`${a.scheduledDate}T${a.scheduledTime}`);
-      const dateB = new Date(`${b.scheduledDate}T${b.scheduledTime}`);
-      return sortOrder === 'asc' 
-        ? dateA.getTime() - dateB.getTime()
-        : dateB.getTime() - dateA.getTime();
-    });
+  const handlePublishNow = async (postId: string) => {
+    try {
+      setActionPostId(postId);
+      setErrorMessage('');
+      setSuccessMessage('');
+
+      await scheduledPostService.publishNow(postId);
+      setSuccessMessage('Bài viết đã được đăng ngay');
+      await loadScheduledPosts();
+    } catch (error: any) {
+      setErrorMessage(error?.response?.data?.message || 'Không thể đăng bài ngay lúc này');
+      setSuccessMessage('');
+    } finally {
+      setActionPostId(null);
+    }
   };
 
-  // Apply all filters
-  let filteredPosts = allPosts;
-  filteredPosts = filterPostsByStatus(filteredPosts);
-  filteredPosts = filterPostsByDate(filteredPosts);
-  filteredPosts = sortPosts(filteredPosts);
+  const handleDeleteScheduledPost = async (postId: string) => {
+    if (!window.confirm('Bạn có chắc muốn xóa lịch đăng bài này?')) {
+      return;
+    }
 
-  const scheduledCount = allPosts.filter(p => p.status === 'scheduled').length;
-  const publishedCount = allPosts.filter(p => p.status === 'published').length;
+    try {
+      setActionPostId(postId);
+      setErrorMessage('');
+      setSuccessMessage('');
+      const removedPost = scheduledPosts.find((post) => post.id === postId);
+
+      await scheduledPostService.deleteScheduledPost(postId);
+      setScheduledPosts((prev) => prev.filter((post) => post.id !== postId));
+      setCounts((prev) => ({
+        ...prev,
+        all: Math.max(prev.all - 1, 0),
+        scheduled: removedPost?.status === 'scheduled' ? Math.max(prev.scheduled - 1, 0) : prev.scheduled,
+        published: removedPost?.status === 'published' ? Math.max(prev.published - 1, 0) : prev.published,
+        failed: removedPost?.status === 'failed' ? Math.max(prev.failed - 1, 0) : prev.failed
+      }));
+      setSuccessMessage('Đã xóa lịch đăng bài');
+    } catch (error: any) {
+      setErrorMessage(error?.response?.data?.message || 'Không thể xóa lịch đăng bài');
+      setSuccessMessage('');
+    } finally {
+      setActionPostId(null);
+    }
+  };
+
+  if (!user) {
+    return (
+      <PageLayout activePage="home" headerTitle="Bài viết hẹn giờ">
+        <div className="py-16 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <button onClick={() => onNavigate('home')}>
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <h1 className="text-xl">Bài viết đã lên lịch</h1>
-            </div>
-            <div className="relative">
+    <PageLayout activePage="home" headerTitle="Bài viết hẹn giờ">
+      <div className="space-y-6">
+        <section className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-6">
+          <div className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h1 className="text-2xl">Hẹn giờ đăng bài</h1>
+                <p className="text-sm text-gray-500 mt-1">Tạo bài viết trước và để hệ thống tự đăng đúng thời điểm.</p>
+              </div>
               <button
-                className="px-4 py-2 text-sm bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
-                onClick={() => setShowFilterMenu(!showFilterMenu)}
+                onClick={() => navigate('/home')}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-50"
               >
-                <Filter className="w-4 h-4" />
-                Lọc
-                <ChevronDown className="w-4 h-4" />
+                Về trang chủ
               </button>
-              {showFilterMenu && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg z-10">
-                  <div className="p-4">
-                    <h3 className="text-sm font-bold mb-2">Trạng thái</h3>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        id="allStatus"
-                        name="status"
-                        value="all"
-                        checked={filterStatus === 'all'}
-                        onChange={() => setFilterStatus('all')}
-                      />
-                      <label htmlFor="allStatus">Tất cả</label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        id="scheduledStatus"
-                        name="status"
-                        value="scheduled"
-                        checked={filterStatus === 'scheduled'}
-                        onChange={() => setFilterStatus('scheduled')}
-                      />
-                      <label htmlFor="scheduledStatus">Đã lên lịch</label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        id="publishedStatus"
-                        name="status"
-                        value="published"
-                        checked={filterStatus === 'published'}
-                        onChange={() => setFilterStatus('published')}
-                      />
-                      <label htmlFor="publishedStatus">Đã đăng</label>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-sm font-bold mb-2">Khoảng thời gian</h3>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        id="allDate"
-                        name="dateRange"
-                        value="all"
-                        checked={filterDateRange === 'all'}
-                        onChange={() => setFilterDateRange('all')}
-                      />
-                      <label htmlFor="allDate">Tất cả</label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        id="todayDate"
-                        name="dateRange"
-                        value="today"
-                        checked={filterDateRange === 'today'}
-                        onChange={() => setFilterDateRange('today')}
-                      />
-                      <label htmlFor="todayDate">Hôm nay</label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        id="weekDate"
-                        name="dateRange"
-                        value="week"
-                        checked={filterDateRange === 'week'}
-                        onChange={() => setFilterDateRange('week')}
-                      />
-                      <label htmlFor="weekDate">Tuần này</label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        id="monthDate"
-                        name="dateRange"
-                        value="month"
-                        checked={filterDateRange === 'month'}
-                        onChange={() => setFilterDateRange('month')}
-                      />
-                      <label htmlFor="monthDate">Tháng này</label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        id="customDate"
-                        name="dateRange"
-                        value="custom"
-                        checked={filterDateRange === 'custom'}
-                        onChange={() => setFilterDateRange('custom')}
-                      />
-                      <label htmlFor="customDate">Tùy chỉnh</label>
-                    </div>
-                    {filterDateRange === 'custom' && (
-                      <div className="mt-2">
-                        <input
-                          type="date"
-                          value={customDateStart}
-                          onChange={(e) => setCustomDateStart(e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded-lg"
-                        />
-                        <input
-                          type="date"
-                          value={customDateEnd}
-                          onChange={(e) => setCustomDateEnd(e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded-lg mt-2"
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-sm font-bold mb-2">Sắp xếp</h3>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        id="ascSort"
-                        name="sortOrder"
-                        value="asc"
-                        checked={sortOrder === 'asc'}
-                        onChange={() => setSortOrder('asc')}
-                      />
-                      <label htmlFor="ascSort">Tăng dần</label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        id="descSort"
-                        name="sortOrder"
-                        value="desc"
-                        checked={sortOrder === 'desc'}
-                        onChange={() => setSortOrder('desc')}
-                      />
-                      <label htmlFor="descSort">Giảm dần</label>
-                    </div>
-                  </div>
+            </div>
+
+            {errorMessage ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            ) : null}
+
+            {successMessage ? (
+              <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" />
+                <span>{successMessage}</span>
+              </div>
+            ) : null}
+
+            <form onSubmit={handleCreateScheduledPost} className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-700 mb-2">Nội dung bài viết</label>
+                <textarea
+                  value={form.content}
+                  onChange={(event) => setForm((prev) => ({ ...prev, content: event.target.value }))}
+                  rows={5}
+                  placeholder="Bạn muốn đăng gì vào thời điểm này?"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-700 mb-2">Danh sách media URL</label>
+                <textarea
+                  value={form.mediaUrlsText}
+                  onChange={(event) => setForm((prev) => ({ ...prev, mediaUrlsText: event.target.value }))}
+                  rows={3}
+                  placeholder="Mỗi dòng một URL ảnh hoặc video"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-700 mb-2">Thời gian đăng</label>
+                  <input
+                    type="datetime-local"
+                    value={form.scheduledTime}
+                    onChange={(event) => setForm((prev) => ({ ...prev, scheduledTime: event.target.value }))}
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  />
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Filter & Sort Bar */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Status Filter */}
-            <div>
-              <label className="block text-sm text-gray-700 mb-2">Trạng thái</label>
-              <div className="relative">
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value as any)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent appearance-none bg-white"
-                >
-                  <option value="all">Tất cả ({allPosts.length})</option>
-                  <option value="scheduled">Đang chờ ({scheduledCount})</option>
-                  <option value="published">Đã đăng ({publishedCount})</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                <div>
+                  <label className="block text-sm text-gray-700 mb-2">Múi giờ</label>
+                  <input
+                    type="text"
+                    value={form.timezone}
+                    onChange={(event) => setForm((prev) => ({ ...prev, timezone: event.target.value }))}
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* Date Range Filter */}
-            <div>
-              <label className="block text-sm text-gray-700 mb-2">Khoảng thời gian</label>
-              <div className="relative">
-                <select
-                  value={filterDateRange}
-                  onChange={(e) => setFilterDateRange(e.target.value as any)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent appearance-none bg-white"
-                >
-                  <option value="all">Tất cả</option>
-                  <option value="today">Hôm nay</option>
-                  <option value="week">7 ngày tới</option>
-                  <option value="month">30 ngày tới</option>
-                  <option value="custom">Tùy chỉnh</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
+              {canAttachProducts ? (
+                <div>
+                  <label className="block text-sm text-gray-700 mb-2">Gắn sản phẩm</label>
+                  <select
+                    value={form.productId}
+                    onChange={(event) => setForm((prev) => ({ ...prev, productId: event.target.value }))}
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white"
+                    disabled={productsLoading}
+                  >
+                    <option value="">Không gắn sản phẩm</option>
+                    {products.map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
 
-            {/* Sort Order */}
-            <div>
-              <label className="block text-sm text-gray-700 mb-2">Sắp xếp theo thời gian</label>
-              <div className="relative">
-                <select
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as any)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent appearance-none bg-white"
+              <div className="flex items-center justify-between gap-3 pt-2">
+                <p className="text-xs text-gray-500">Nếu thời gian đã qua, hệ thống sẽ từ chối tạo lịch mới. Dùng nút đăng ngay để xuất bản thủ công.</p>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="btn-inline-icon inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-white hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <option value="asc">Cũ nhất trước</option>
-                  <option value="desc">Mới nhất trước</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  Tạo lịch đăng
+                </button>
               </div>
-            </div>
+            </form>
           </div>
 
-          {/* Custom Date Range */}
-          {filterDateRange === 'custom' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-200">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-2">
+            <div className="bg-white rounded-2xl shadow-sm p-5">
+              <p className="text-sm text-gray-500">Tổng lịch đăng</p>
+              <p className="text-3xl mt-3">{counts.all}</p>
+            </div>
+            <div className="bg-white rounded-2xl shadow-sm p-5">
+              <p className="text-sm text-gray-500">Đang chờ</p>
+              <p className="text-3xl mt-3 text-blue-600">{counts.scheduled}</p>
+            </div>
+            <div className="bg-white rounded-2xl shadow-sm p-5">
+              <p className="text-sm text-gray-500">Đã đăng</p>
+              <p className="text-3xl mt-3 text-green-600">{counts.published}</p>
+            </div>
+            <div className="bg-white rounded-2xl shadow-sm p-5">
+              <p className="text-sm text-gray-500">Thất bại</p>
+              <p className="text-3xl mt-3 text-red-600">{counts.failed}</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+          <div className="flex flex-col lg:flex-row gap-4 lg:items-end lg:justify-between">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 flex-1">
+              <div className="xl:col-span-2">
+                <label className="block text-sm text-gray-700 mb-2">Tìm kiếm</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={filters.search}
+                    onChange={(event) => setFilters((prev) => ({ ...prev, search: event.target.value }))}
+                    placeholder="Tìm theo nội dung bài viết"
+                    className="w-full rounded-xl border border-gray-300 pl-10 pr-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-2">Trạng thái</label>
+                <select
+                  value={filters.status}
+                  onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value as 'all' | ScheduledPostStatus }))}
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white"
+                >
+                  <option value="all">Tất cả ({counts.all})</option>
+                  <option value="scheduled">Đã lên lịch ({counts.scheduled})</option>
+                  <option value="published">Đã đăng ({counts.published})</option>
+                  <option value="failed">Lỗi đăng bài ({counts.failed})</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-2">Sắp xếp</label>
+                <select
+                  value={filters.sortOrder}
+                  onChange={(event) => setFilters((prev) => ({ ...prev, sortOrder: event.target.value as 'asc' | 'desc' }))}
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-white"
+                >
+                  <option value="asc">Sớm nhất trước</option>
+                  <option value="desc">Muộn nhất trước</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 lg:w-auto">
               <div>
                 <label className="block text-sm text-gray-700 mb-2">Từ ngày</label>
                 <input
                   type="date"
-                  value={customDateStart}
-                  onChange={(e) => setCustomDateStart(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  value={filters.startDate}
+                  onChange={(event) => setFilters((prev) => ({ ...prev, startDate: event.target.value }))}
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                 />
               </div>
               <div>
                 <label className="block text-sm text-gray-700 mb-2">Đến ngày</label>
                 <input
                   type="date"
-                  value={customDateEnd}
-                  onChange={(e) => setCustomDateEnd(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                  value={filters.endDate}
+                  onChange={(event) => setFilters((prev) => ({ ...prev, endDate: event.target.value }))}
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                 />
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Active Filters Summary */}
-          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
-            <span className="text-sm text-gray-600">Đang hiển thị:</span>
-            <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-              {filteredPosts.length} bài viết
+          <div className="flex items-center justify-between gap-3 border-t border-gray-100 pt-4 text-sm text-gray-500">
+            <span>
+              {loading ? 'Đang tải dữ liệu...' : `Hiển thị ${scheduledPosts.length} bài viết${activeFilterCount > 0 ? ` với ${activeFilterCount} bộ lọc` : ''}`}
             </span>
-            {(filterStatus !== 'all' || filterDateRange !== 'all') && (
+            {activeFilterCount > 0 ? (
               <button
-                onClick={() => {
-                  setFilterStatus('all');
-                  setFilterDateRange('all');
-                  setCustomDateStart('');
-                  setCustomDateEnd('');
-                }}
-                className="text-sm text-blue-600 hover:text-blue-700"
+                onClick={() => setFilters({ status: 'all', sortOrder: 'asc', search: '', startDate: '', endDate: '' })}
+                className="text-blue-600 hover:text-blue-700"
               >
                 Xóa bộ lọc
               </button>
-            )}
+            ) : null}
           </div>
-        </div>
+        </section>
 
-        {/* Scheduled Posts */}
-        <div className="space-y-4">
-          {filteredPosts.map((post) => (
-            <div key={post.id} className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex gap-4">
-                {post.image && (
-                  <div className="w-32 h-32 rounded-lg overflow-hidden flex-shrink-0">
-                    <img src={post.image} alt="" className="w-full h-full object-cover" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-700 mb-3 line-clamp-3">{post.content}</p>
-                  <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>{new Date(post.scheduledDate).toLocaleDateString('vi-VN')}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      <span>{post.scheduledTime}</span>
-                    </div>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      post.status === 'scheduled' 
-                        ? 'bg-blue-100 text-blue-700' 
-                        : 'bg-green-100 text-green-700'
-                    }`}>
-                      {post.status === 'scheduled' ? 'Đang chờ' : 'Đã đăng'}
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
-                      <Eye className="w-4 h-4" />
-                      Xem trước
-                    </button>
-                    <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-                      <Edit className="w-4 h-4" />
-                      Chỉnh sửa
-                    </button>
-                    <button className="px-4 py-2 text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors flex items-center gap-2">
-                      <Trash2 className="w-4 h-4" />
-                      Xóa
-                    </button>
-                  </div>
-                </div>
-              </div>
+        <section className="space-y-4">
+          {loading ? (
+            <div className="bg-white rounded-2xl shadow-sm p-16 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
             </div>
-          ))}
-        </div>
+          ) : scheduledPosts.length === 0 ? (
+            <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+              <Calendar className="w-10 h-10 text-gray-400 mx-auto mb-4" />
+              <h2 className="text-lg">Chưa có bài viết hẹn giờ phù hợp</h2>
+              <p className="text-sm text-gray-500 mt-2">Tạo lịch mới hoặc thay đổi bộ lọc để xem thêm kết quả.</p>
+            </div>
+          ) : (
+            scheduledPosts.map((post) => {
+              const coverImage = post.mediaUrls[0] || post.product?.images?.[0]?.imageUrl || null;
+              const isPreviewOpen = previewPostId === post.id;
+              const isBusy = actionPostId === post.id;
 
-        {/* Empty State */}
-        {filteredPosts.length === 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Calendar className="w-10 h-10 text-gray-400" />
-            </div>
-            <h3 className="text-lg mb-2">Chưa có bài viết nào được lên lịch</h3>
-            <p className="text-gray-600 mb-6">
-              Tạo bài viết và chọn lên lịch để tự động đăng vào thời gian mong muốn
-            </p>
-            <button
-              onClick={() => onNavigate('home')}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Tạo bài viết mới
-            </button>
-          </div>
-        )}
+              return (
+                <article key={post.id} className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                  <div className="p-6">
+                    <div className="flex flex-col lg:flex-row gap-5">
+                      {coverImage ? (
+                        <div className="w-full lg:w-48 h-40 rounded-2xl overflow-hidden bg-gray-100 shrink-0">
+                          <img src={coverImage} alt="Scheduled post media" className="w-full h-full object-cover" />
+                        </div>
+                      ) : null}
+
+                      <div className="flex-1 min-w-0 space-y-4">
+                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                          <div className="space-y-2 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`px-3 py-1 rounded-full text-xs ${statusClasses[post.status]}`}>
+                                {statusLabels[post.status]}
+                              </span>
+                              {post.product ? (
+                                <span className="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-700">
+                                  Sản phẩm: {post.product.title}
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="text-gray-800 whitespace-pre-wrap break-words line-clamp-3">{post.content || 'Bài viết không có nội dung'}</p>
+                          </div>
+
+                          <div className="flex gap-2 flex-wrap">
+                            <button
+                              onClick={() => setPreviewPostId((prev) => (prev === post.id ? null : post.id))}
+                              className="btn-inline-icon inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50"
+                            >
+                              <Eye className="w-4 h-4" />
+                              {isPreviewOpen ? 'Ẩn chi tiết' : 'Xem trước'}
+                            </button>
+
+                            {post.status !== 'published' ? (
+                              <button
+                                onClick={() => handlePublishNow(post.id)}
+                                disabled={isBusy}
+                                className="btn-inline-icon inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                              >
+                                {isBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                Đăng ngay
+                              </button>
+                            ) : post.publishedPostId ? (
+                              <button
+                                onClick={() => navigate(`/post/${post.publishedPostId}`)}
+                                className="btn-inline-icon inline-flex items-center gap-2 rounded-lg border border-green-300 px-4 py-2 text-sm text-green-700 hover:bg-green-50"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                                Xem bài đã đăng
+                              </button>
+                            ) : null}
+
+                            <button
+                              onClick={() => handleDeleteScheduledPost(post.id)}
+                              disabled={isBusy}
+                              className="btn-inline-icon inline-flex items-center gap-2 rounded-lg border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Xóa
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4" />
+                            <span>{new Date(post.scheduledTime).toLocaleDateString('vi-VN')}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock3 className="w-4 h-4" />
+                            <span>{new Date(post.scheduledTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <RefreshCcw className="w-4 h-4" />
+                            <span>{post.timezone}</span>
+                          </div>
+                        </div>
+
+                        {isPreviewOpen ? (
+                          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+                            <div>
+                              <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">Nội dung đầy đủ</p>
+                              <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">{post.content || 'Bài viết không có nội dung.'}</p>
+                            </div>
+
+                            {post.mediaUrls.length > 0 ? (
+                              <div>
+                                <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Media URL</p>
+                                <div className="space-y-2">
+                                  {post.mediaUrls.map((mediaUrl) => (
+                                    <a
+                                      key={mediaUrl}
+                                      href={mediaUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="block text-sm text-blue-600 break-all hover:text-blue-700"
+                                    >
+                                      {mediaUrl}
+                                    </a>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
+
+                            {post.errorMessage ? (
+                              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                {post.errorMessage}
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })
+          )}
+        </section>
       </div>
-    </div>
+    </PageLayout>
   );
 }

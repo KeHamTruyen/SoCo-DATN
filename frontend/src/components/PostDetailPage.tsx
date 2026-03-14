@@ -310,19 +310,19 @@ export function PostDetailPage() {
               <h3 className="text-lg font-semibold">Sản phẩm được gắn thẻ</h3>
             </div>
             <div
-              onClick={() => navigate(`/product/${post.product!.slug}`)}
+              onClick={() => navigate(`/product/${post.product!.slug || post.product!.id}`)}
               className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer"
             >
               <div className="flex gap-4 p-4">
                 <div className="w-32 h-32 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                   <img
-                    src={post.product.images[0]?.url || 'https://via.placeholder.com/128'}
-                    alt={post.product.name}
+                    src={post.product.images?.[0]?.imageUrl || post.product.images?.[0]?.url || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.product.title || post.product.name || '')}&background=E5E7EB&color=374151`}
+                    alt={post.product.title || post.product.name || ''}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-lg font-medium mb-2 line-clamp-2">{post.product.name}</h4>
+                  <h4 className="text-lg font-medium mb-2 line-clamp-2">{post.product.title || post.product.name}</h4>
                   <p className="text-2xl font-semibold text-blue-600 mb-3">
                     {post.product.price.toLocaleString('vi-VN')}đ
                   </p>

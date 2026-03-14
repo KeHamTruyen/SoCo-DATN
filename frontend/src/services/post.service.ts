@@ -14,10 +14,11 @@ export interface User {
 
 export interface ProductBasic {
   id: string;
-  name: string;
-  slug: string;
+  title?: string;
+  name?: string;
+  slug?: string;
   price: number;
-  images: Array<{ url: string; altText: string | null }>;
+  images: Array<{ imageUrl?: string; url?: string; altText?: string | null }>;
   category: {
     id: string;
     name: string;

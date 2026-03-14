@@ -346,10 +346,11 @@ export function MessagesPage() {
       showMobileNav={true}
       padding={false}
       maxWidth="full"
+      showMessenger={false}
     >
-      <div className="h-full min-h-0 flex overflow-hidden max-w-7xl mx-auto w-full">
+      <div className="h-[calc(100vh-64px)] min-h-0 flex overflow-hidden max-w-7xl mx-auto w-full">
         {/* Conversations List */}
-        <div className={`w-full lg:w-80 bg-white border-r border-gray-200 flex flex-col ${selectedConversation ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`w-full lg:w-80 bg-white border-r border-gray-200 flex flex-col min-h-0 ${selectedConversation ? 'hidden lg:flex' : 'flex'}`}>
           <div className="p-4 border-b border-gray-200">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -415,7 +416,7 @@ export function MessagesPage() {
 
         {/* Chat Area */}
         {selectedConv && otherParticipant ? (
-          <div className={`flex-1 flex flex-col bg-white ${!selectedConversation ? 'hidden lg:flex' : 'flex'}`}>
+          <div className={`flex-1 flex flex-col bg-white min-h-0 ${!selectedConversation ? 'hidden lg:flex' : 'flex'}`}>
             {/* Chat Header */}
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -453,7 +454,7 @@ export function MessagesPage() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 min-h-0 overflow-y-auto p-4">
               {isLoadingMessages ? (
                 <div className="text-center text-gray-500">Đang tải tin nhắn...</div>
               ) : messages.length === 0 ? (

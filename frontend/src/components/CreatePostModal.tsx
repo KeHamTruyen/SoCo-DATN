@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { X, Image, Tag, Sparkles, Calendar, Search, Check, Upload, Loader2 } from 'lucide-react';
+import { X, Image, Tag, Sparkles, Calendar, Clock, Search, Check, Upload, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import * as postService from '../services/post.service';
-import * as productService from '../services/product.service';
+import productService from '../services/product.service';
 import uploadService from '../services/upload.service';
+import scheduledPostService from '../services/scheduled-post.service';
 
 interface CreatePostModalProps {
   onClose: () => void;
@@ -20,7 +21,12 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
   const [status, setStatus] = useState<'DRAFT' | 'PUBLISHED'>('PUBLISHED');
   const [useAI, setUseAI] = useState(false);
   const [aiMode, setAIMode] = useState<'text' | 'image' | 'product' | 'multi'>('text');
-  const [schedulePost] = useState(false);
+  const [schedulePost, setSchedulePost] = useState(false);
+  const [scheduledTime, setScheduledTime] = useState<string>(() => {
+    const d = new Date(Date.now() + 60 * 60 * 1000);
+    d.setMinutes(0, 0, 0);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  });
   const [showProductSelector, setShowProductSelector] = useState(false);
   const [productSearch, setProductSearch] = useState('');
   const [myProducts, setMyProducts] = useState<any[]>([]);
@@ -35,7 +41,7 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
       if (user?.role === 'SELLER') {
         try {
           setLoadingProducts(true);
-          const response = await productService.getSellerProducts();
+          const response = await productService.getMyProducts({ limit: 100, status: 'ACTIVE' });
           setMyProducts(response.data || []);
         } catch (err) {
           console.error('Error loading products:', err);
@@ -51,7 +57,7 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
   if (!user) return null;
 
   const filteredProducts = myProducts.filter(p => 
-    p.name.toLowerCase().includes(productSearch.toLowerCase())
+    (p.title || p.name || '').toLowerCase().includes(productSearch.toLowerCase())
   );
 
   const handleProductToggle = (productId: string) => {
@@ -124,9 +130,30 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
       return;
     }
 
+    if (schedulePost) {
+      const scheduledDate = new Date(scheduledTime);
+      if (Number.isNaN(scheduledDate.getTime()) || scheduledDate.getTime() <= Date.now()) {
+        setError('Thời gian đăng phải ở trong tương lai');
+        return;
+      }
+    }
+
     try {
       setLoading(true);
       setError(null);
+
+      if (schedulePost) {
+        await scheduledPostService.createScheduledPost({
+          content: content.trim(),
+          ...(mediaUrls.length > 0 && { mediaUrls, mediaType }),
+          productId: selectedProduct,
+          scheduledTime: new Date(scheduledTime).toISOString(),
+          timezone: 'Asia/Ho_Chi_Minh',
+        });
+        onSubmit(null);
+        onClose();
+        return;
+      }
 
       const postData: postService.CreatePostData = {
         content: content.trim(),
@@ -170,7 +197,7 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
           {/* User Info */}
           <div className="flex items-center gap-3">
             <img 
-              src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}`} 
+              src={user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || user.username)}`} 
               alt={user.fullName || user.username} 
               className="w-12 h-12 rounded-full object-cover" 
             />
@@ -287,13 +314,13 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
                   <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
                     <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                       <img 
-                        src={product.images[0]?.url || 'https://via.placeholder.com/64'} 
-                        alt={product.name} 
+                        src={product.images?.[0]?.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(product.title || product.name || '')}&background=E5E7EB&color=374151`} 
+                        alt={product.title || product.name || ''} 
                         className="w-full h-full object-cover" 
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium line-clamp-1">{product.name}</h4>
+                      <h4 className="text-sm font-medium line-clamp-1">{product.title || product.name}</h4>
                       <span className="text-base font-semibold text-blue-600">
                         {product.price.toLocaleString('vi-VN')}đ
                       </span>
@@ -387,13 +414,13 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
                     >
                       <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                         <img 
-                          src={product.images[0]?.url || 'https://via.placeholder.com/48'} 
-                          alt={product.name} 
+                          src={product.images?.[0]?.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(product.title || product.name || '')}&background=E5E7EB&color=374151`} 
+                          alt={product.title || product.name || ''} 
                           className="w-full h-full object-cover" 
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm line-clamp-1 font-medium">{product.name}</p>
+                        <p className="text-sm line-clamp-1 font-medium">{product.title || product.name}</p>
                         <span className="text-sm text-blue-600 font-semibold">
                           {product.price.toLocaleString('vi-VN')}đ
                         </span>
@@ -418,31 +445,56 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
             </div>
           )}
 
-          {/* Status Selection */}
-          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-            <span className="text-sm font-medium">Trạng thái:</span>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="status"
-                value="PUBLISHED"
-                checked={status === 'PUBLISHED'}
-                onChange={(e) => setStatus(e.target.value as any)}
-                className="w-4 h-4 text-blue-600"
-              />
-              <span className="text-sm">Đăng ngay</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="status"
-                value="DRAFT"
-                checked={status === 'DRAFT'}
-                onChange={(e) => setStatus(e.target.value as any)}
-                className="w-4 h-4 text-blue-600"
-              />
-              <span className="text-sm">Lưu nháp</span>
-            </label>
+          {/* Publication Mode */}
+          <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+            <span className="text-sm font-medium block">Chế độ đăng:</span>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="publishMode"
+                  checked={!schedulePost && status === 'PUBLISHED'}
+                  onChange={() => { setSchedulePost(false); setStatus('PUBLISHED'); }}
+                  className="w-4 h-4 text-blue-600"
+                />
+                <span className="text-sm">Đăng ngay</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="publishMode"
+                  checked={!schedulePost && status === 'DRAFT'}
+                  onChange={() => { setSchedulePost(false); setStatus('DRAFT'); }}
+                  className="w-4 h-4 text-blue-600"
+                />
+                <span className="text-sm">Lưu nháp</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="publishMode"
+                  checked={schedulePost}
+                  onChange={() => { setSchedulePost(true); setStatus('PUBLISHED'); }}
+                  className="w-4 h-4 text-blue-600"
+                />
+                <span className="text-sm flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  Lên lịch đăng
+                </span>
+              </label>
+            </div>
+            {schedulePost && (
+              <div className="pt-1">
+                <label className="block text-xs text-gray-600 mb-1">Thời gian đăng bài</label>
+                <input
+                  type="datetime-local"
+                  value={scheduledTime}
+                  onChange={(e) => setScheduledTime(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">Bài viết sẽ được tự động đăng vào thời điểm bạn chọn.</p>
+              </div>
+            )}
           </div>
 
           {/* Submit */}

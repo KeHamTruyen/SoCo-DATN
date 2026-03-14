@@ -203,9 +203,14 @@ export function SettingsPage() {
               <button
                 type="submit"
                 disabled={saving || loading}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+                className="btn-inline-icon inline-flex flex-row items-center gap-2 px-4 py-2 min-w-[140px] rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 whitespace-nowrap"
+                style={{
+                  flexDirection: 'row',
+                  whiteSpace: 'nowrap',
+                  minWidth: '140px'
+                }}
               >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {saving ? <Loader2 className="w-4 h-4 animate-spin shrink-0" /> : <Save className="w-4 h-4 shrink-0" />}
                 Lưu thay đổi
               </button>
             </div>
