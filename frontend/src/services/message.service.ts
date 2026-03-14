@@ -13,9 +13,10 @@ export interface Message {
   conversationId: string;
   senderId: string;
   content: string;
-  attachmentUrl: string | null;
+  mediaUrl?: string | null;
+  attachmentUrl?: string | null;
   isRead: boolean;
-  readAt: string | null;
+  readAt?: string | null;
   createdAt: string;
   sender?: User;
 }
@@ -70,6 +71,7 @@ export interface MessagesResponse {
 
 export interface SendMessageData {
   content: string;
+  mediaUrl?: string;
   attachmentUrl?: string;
 }
 

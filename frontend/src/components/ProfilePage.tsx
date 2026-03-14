@@ -1,9 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, Users, Package, Star, LayoutDashboard, Store } from 'lucide-react';
+import { MapPin, Calendar, Package, MessageCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { PageLayout } from './Layout';
 import { useState, useEffect } from 'react';
 import userService, { UserProfile } from '../services/user.service';
+import * as postService from '../services/post.service';
 
 export function ProfilePage() {
   const { username } = useParams<{ username: string }>();
@@ -11,6 +12,8 @@ export function ProfilePage() {
   const { user: currentUser } = useAuth();
   
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
+  const [userPosts, setUserPosts] = useState<postService.Post[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,6 +50,35 @@ export function ProfilePage() {
       fetchProfile();
     }
   }, [username, currentUser, isOwnProfile]);
+
+  useEffect(() => {
+    const fetchUserPosts = async () => {
+      if (!profileData) return;
+
+      const isSellerLike = profileData.role === 'SELLER' || profileData.role === 'ADMIN';
+      if (isSellerLike) {
+        setUserPosts([]);
+        return;
+      }
+
+      try {
+        setLoadingPosts(true);
+        const response = await postService.getUserPosts(profileData.id, {
+          page: 1,
+          limit: 20,
+          status: 'PUBLISHED'
+        });
+        setUserPosts(response.data || []);
+      } catch (err) {
+        console.error('Error fetching user posts:', err);
+        setUserPosts([]);
+      } finally {
+        setLoadingPosts(false);
+      }
+    };
+
+    fetchUserPosts();
+  }, [profileData]);
 
   if (!currentUser) return null;
 
@@ -88,11 +120,8 @@ export function ProfilePage() {
   }
 
   const userProducts = profileData.products || [];
-  const productCount = profileData._count?.products || userProducts.length;
   const followerCount = profileData._count?.followers || 0;
   const followingCount = profileData._count?.following || 0;
-  const orderCount = profileData._count?.orders || 0;
-  const reviewCount = profileData._count?.reviews || 0;
 
   return (
     <PageLayout
@@ -166,130 +195,28 @@ export function ProfilePage() {
                     )}
                   </>
                 ) : (
-                  <button
-                    onClick={() => {/* TODO: Implement follow/unfollow */}}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Theo dõi
-                  </button>
+                  <>
+                    <button
+                      onClick={() => {/* TODO: Implement follow/unfollow */}}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Theo dõi
+                    </button>
+                    <button
+                      onClick={() => navigate(`/messages?recipientId=${profileData.id}`)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      title="Nhắn tin"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                    </button>
+                  </>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Role Badge */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6 border border-blue-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {(profileData.role === 'SELLER' || profileData.role === 'ADMIN') ? (
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-                  <Star className="w-6 h-6 text-white" />
-                </div>
-              ) : (
-                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                  <Users className="w-6 h-6 text-gray-600" />
-                </div>
-              )}
-              <div>
-                <h3 className="text-lg">
-                  {(profileData.role === 'SELLER' || profileData.role === 'ADMIN') ? 'Người bán đã xác thực' : 'Người mua'}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  {(profileData.role === 'SELLER' || profileData.role === 'ADMIN')
-                    ? (isOwnProfile ? 'Bạn có thể đăng bán sản phẩm và tiếp cận khách hàng' : 'Người dùng này có thể bán sản phẩm')
-                    : (isOwnProfile ? 'Nâng cấp lên người bán để bắt đầu kinh doanh' : 'Người dùng này là người mua')}
-                </p>
-              </div>
-            </div>
-            {(profileData.role === 'SELLER' || profileData.role === 'ADMIN') && profileData.isVerified && (
-              <div className="text-green-600 flex items-center gap-2">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span className="text-sm">Đã xác thực</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Stats for Sellers */}
-        {(profileData.role === 'SELLER' || profileData.role === 'ADMIN') && (
-          <>
-            {/* Quick Actions - Only show for own profile */}
-            {isOwnProfile && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <button
-                  onClick={() => navigate('/seller/dashboard')}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg p-6 hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm hover:shadow-md text-left"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                      <LayoutDashboard className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg mb-1">Bảng điều khiển</h3>
-                      <p className="text-sm text-blue-100">Quản lý kinh doanh của bạn</p>
-                    </div>
-                  </div>
-                </button>
-                
-                <button
-                  onClick={() => navigate(`/store/${profileData.id}`)}
-                  className="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg p-6 hover:from-purple-700 hover:to-purple-800 transition-all shadow-sm hover:shadow-md text-left"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                      <Store className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg mb-1">Cửa hàng của tôi</h3>
-                      <p className="text-sm text-purple-100">Xem cửa hàng công khai</p>
-                    </div>
-                  </div>
-                </button>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Package className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Sản phẩm</p>
-                    <p className="text-2xl">{productCount}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Đơn hàng</p>
-                    <p className="text-2xl">{orderCount}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <Star className="w-6 h-6 text-yellow-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Đánh giá</p>
-                    <p className="text-2xl">{reviewCount > 0 ? '4.8' : '0'}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+        {/* Role-specific badge/stats moved to store page */}
 
         {/* Products */}
         {(profileData.role === 'SELLER' || profileData.role === 'ADMIN') && userProducts.length > 0 && (
@@ -339,16 +266,46 @@ export function ProfilePage() {
           </div>
         )}
 
-        {/* Empty State for viewing Buyer's profile */}
-        {profileData.role === 'BUYER' && !isOwnProfile && (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Package className="w-10 h-10 text-gray-400" />
+        {/* Posts for non-seller users */}
+        {profileData.role === 'BUYER' && loadingPosts && (
+          <div className="bg-white rounded-lg shadow-sm p-8 text-center text-gray-600">
+            Đang tải bài đăng...
+          </div>
+        )}
+
+        {profileData.role === 'BUYER' && !loadingPosts && userPosts.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-lg mb-4">{isOwnProfile ? 'Bài đăng của tôi' : `Bài đăng của ${profileData.fullName}`}</h3>
+            <div className="space-y-4">
+              {userPosts.map((post) => (
+                <button
+                  key={post.id}
+                  onClick={() => navigate(`/post/${post.id}`)}
+                  className="w-full text-left border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <p className="text-sm text-gray-700 line-clamp-3 mb-3">{post.content}</p>
+                  {post.mediaUrls?.[0] && (
+                    <img
+                      src={post.mediaUrls[0]}
+                      alt="Post media"
+                      className="w-full max-h-64 object-cover rounded-lg mb-3"
+                    />
+                  )}
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>
+                      {new Date(post.createdAt).toLocaleDateString('vi-VN', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      })}
+                    </span>
+                    <span>
+                      {(post._count?.likes || 0)} lượt thích • {(post._count?.comments || 0)} bình luận
+                    </span>
+                  </div>
+                </button>
+              ))}
             </div>
-            <h3 className="text-lg mb-2">Người dùng này chưa có sản phẩm</h3>
-            <p className="text-gray-600">
-              {profileData.fullName} là người mua hàng trên nền tảng
-            </p>
           </div>
         )}
       </div>

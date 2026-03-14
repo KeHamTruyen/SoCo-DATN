@@ -249,10 +249,10 @@ class MessageService {
    * @param {string} conversationId - Conversation ID
    * @param {string} senderId - Sender user ID
    * @param {string} content - Message content
-   * @param {string} attachmentUrl - Optional attachment URL
+    * @param {string|null} mediaUrl - Optional media URL
    * @returns {Promise<Object>} Created message
    */
-  async sendMessage(conversationId, senderId, content, attachmentUrl = null) {
+    async sendMessage(conversationId, senderId, content, mediaUrl = null) {
     // Check if user is participant
     const isParticipant = await prisma.conversationParticipant.findFirst({
       where: {
@@ -271,7 +271,8 @@ class MessageService {
         conversationId,
         senderId,
         content,
-        attachmentUrl,
+        messageType: mediaUrl ? 'IMAGE' : 'TEXT',
+        mediaUrl,
         isRead: false
       },
       include: {
@@ -310,8 +311,7 @@ class MessageService {
         isRead: false
       },
       data: {
-        isRead: true,
-        readAt: new Date()
+        isRead: true
       }
     });
 
@@ -341,7 +341,8 @@ class MessageService {
       where: { id: messageId },
       data: {
         content: 'This message has been deleted',
-        attachmentUrl: null
+        mediaUrl: null,
+        isDeleted: true
       }
     });
 

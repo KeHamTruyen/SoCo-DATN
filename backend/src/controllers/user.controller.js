@@ -2,6 +2,24 @@ import userService from '../services/user.service.js';
 
 class UserController {
   /**
+   * Search users
+   * GET /api/users/search?q=...&role=SELLER&limit=20
+   */
+  async searchUsers(req, res, next) {
+    try {
+      const { q, role, limit } = req.query;
+      const users = await userService.searchUsers({ q, role, limit });
+
+      res.json({
+        success: true,
+        data: users
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Get user profile by username
    * GET /api/users/username/:username
    */

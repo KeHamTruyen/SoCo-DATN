@@ -26,6 +26,13 @@ router.get('/me', protect, userController.getMyProfile);
 router.put('/me', protect, userController.updateProfile);
 
 /**
+ * Search users
+ * GET /api/users/search?q=keyword&role=SELLER
+ * Public route
+ */
+router.get('/search', userController.searchUsers);
+
+/**
  * Get user profile by username
  * GET /api/users/username/:username
  * Public route

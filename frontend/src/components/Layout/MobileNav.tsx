@@ -36,7 +36,7 @@ export function MobileNav({ activePage = 'home' }: MobileNavProps) {
           id: 'store',
           label: 'Cửa hàng',
           icon: Store,
-          onClick: () => navigate(`/store/${user.id}`),
+          onClick: () => navigate(`/store/${user.username}`),
         }]
       : [{
           id: 'become-seller',

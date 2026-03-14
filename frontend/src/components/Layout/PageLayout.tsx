@@ -76,8 +76,8 @@ export function PageLayout({
       )}
 
       {/* Main Content */}
-      <main className={`flex-1 ${padding ? 'py-6' : ''}`}>
-        <div className={`${maxWidthClasses[maxWidth]} mx-auto ${padding ? 'px-4 sm:px-6 lg:px-8' : ''}`}>
+      <main className={`flex-1 min-h-0 ${padding ? 'py-6' : ''}`}>
+        <div className={`${maxWidthClasses[maxWidth]} mx-auto ${padding ? 'px-4 sm:px-6 lg:px-8' : ''} ${padding ? '' : 'h-full min-h-0'}`}>
           {children}
         </div>
       </main>

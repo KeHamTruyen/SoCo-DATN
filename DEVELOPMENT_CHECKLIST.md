@@ -4,14 +4,14 @@
 
 ### 🧾 Module 3 (Buyer/Seller) - Trạng thái theo UC (cập nhật theo code hiện tại)
 
-- [~] UC3.1 Tìm kiếm sản phẩm: Đã có API filter ở `/api/products` + MarketplacePage tích hợp thật; `SearchResultsPage` vẫn dùng mock.
+- [x] UC3.1 Tìm kiếm sản phẩm: Đã có API filter ở `/api/products`; `MarketplacePage` và `SearchResultsPage` đã tích hợp API thật (products/users/shops).
 - [x] UC3.2 Xem chi tiết sản phẩm: Đã có API + ProductDetailPage và đã nối đọc/ghi review qua API.
 - [~] UC3.3 Thêm sản phẩm vào giỏ hàng: Đã có API `/api/cart/items` và luồng thêm từ Marketplace/ProductDetail; biến thể chưa đồng nhất hoàn toàn giữa các màn.
 - [x] UC3.4 Quản lý giỏ hàng: Đầy đủ xem/cập nhật số lượng/xóa/xóa toàn bộ.
 - [x] UC3.5 Thực hiện thanh toán: Đã có checkout + tạo đơn + mock confirm payment (COD).
 - [x] UC3.6 Theo dõi trạng thái đơn hàng: Đã có route `/orders`, `/orders/:orderId` + API + timeline trạng thái.
-- [~] UC3.7 Đánh giá và xếp hạng sản phẩm/người bán: Đã có API buyer tạo review và API đọc review sản phẩm; chưa có module xếp hạng seller độc lập.
-- [~] UC3.8 Quản lý sản phẩm Seller: Đã nối API list/delete thật cho `ProductManagementPage`; luồng sửa sản phẩm vẫn cần hoàn thiện UI riêng.
+- [~] UC3.7 Đánh giá và xếp hạng sản phẩm/người bán: Đã có buyer review API + đọc review sản phẩm; StorePage đã hiển thị điểm trung bình seller (aggregate) nhưng chưa có module xếp hạng độc lập.
+- [~] UC3.8 Quản lý sản phẩm Seller: Đã nối API list/delete/edit + trạng thái publish/unpublish; còn thiếu một số tối ưu UI/UX nâng cao.
 - [x] UC3.9 Dashboard hiệu suất Seller: Đã sửa backend stats theo schema hiện tại và FE đọc API thật.
 - [x] UC3.10 Quản lý đơn hàng Seller: Đã có API `/api/orders/my/sales` + cập nhật trạng thái + FE tích hợp.
 - [x] UC3.11 Xử lý hoàn tiền (giả lập): Đã cho phép transition `COMPLETED -> REFUNDED`.
@@ -37,6 +37,7 @@
 
 - Backend Messaging optimization
 - Frontend Messaging improvements
+- Tinh chỉnh UI/UX và chuẩn hóa nội dung tiếng Việt có dấu
 
 ---
 
@@ -98,7 +99,7 @@
 - [x] ProductManagementPage - migrated to hooks
 - [x] CreateProductModal - migrated to hooks
 - [x] SellerDashboard - migrated to hooks
-- [ ] **TODO: Tích hợp API thật vào ProductManagementPage (hiện dùng mock)**
+- [x] ProductManagementPage đã tích hợp API thật (list/delete/edit cơ bản)
 - [ ] **TODO: Image upload component**
 - [ ] **TODO: Rich text editor cho product description**
 - [ ] **TODO: Product search & filters thực tế**
@@ -366,11 +367,12 @@
 
 ### Frontend
 
-- [ ] **TODO: SearchResultsPage - migrate to hooks + API (đang mock)**
+- [x] SearchResultsPage - migrated to hooks + API (products/users/shops)
 - [x] MarketplacePage - migrated to hooks + API
 - [ ] **TODO: Search autocomplete**
 - [ ] **TODO: Filter sidebar**
 - [ ] **TODO: Sort options**
+- [ ] **TODO: Kết quả nhóm hiện vẫn seed/mock, chưa có Group API thật**
 
 ---
 
@@ -383,9 +385,10 @@
 - [x] User role update endpoint (cho phép BUYER → SELLER)
 - [x] Seller stats route/controller (`/api/seller/stats`)
 - [x] Review response route/controller/service (`/api/reviews/seller/me`, `/:id/response`)
+- [x] Store profile payload có `sellerRating` aggregate (average/count) cho StorePage
 - [ ] **TODO: Seller verification service (3-step form)**
 - [ ] **TODO: Admin approval system cho seller verification**
-- [ ] **TODO: Fix seller stats query mapping theo schema hiện tại (buyer/avatarUrl, order-item based aggregation)**
+- [x] Seller stats query mapping theo schema hiện tại (buyer/avatarUrl, order-item based aggregation)
 
 ### Frontend
 
@@ -400,6 +403,8 @@
   - ⚠️ **TODO**: Upload ID card images to Cloudinary
   - ⚠️ **TODO**: Store verification data in SellerVerification table
 - [x] **StorePage - migrated to hooks**
+- [x] StorePage dùng header/layout chung (Social Commerce) thay vì header cục bộ
+- [x] StorePage hiển thị điểm đánh giá trung bình seller (không còn hardcode/mislabel)
 - [ ] **TODO: Seller verification flow (3 steps với admin approval)**
 - [ ] **TODO: Revenue charts**
 - [ ] **TODO: Sales analytics**
@@ -420,11 +425,11 @@
 
 - [x] ProfilePage - migrated to hooks + API integration
 - [x] StorePage - migrated to hooks
+- [x] SettingsPage - migrated to hooks + API (chỉnh sửa profile + lưu + điều hướng về profile)
 - [ ] **TODO: Fetch other user profiles by username (ProfilePage)**
 - [ ] **TODO: Follow/unfollow button**
 - [ ] **TODO: Followers/following lists**
 - [ ] **TODO: User posts grid**
-- [ ] **TODO: SettingsPage - migrate to hooks + API**
 
 ---
 

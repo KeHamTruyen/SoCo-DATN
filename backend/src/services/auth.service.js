@@ -7,12 +7,14 @@ class AuthService {
    * Register a new user
    */
   async register({ email, username, password, fullName, phone, role = 'BUYER' }) {
+    const normalizedUsername = String(username || '').trim().toLowerCase();
+
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
           { email },
-          { username }
+          { username: normalizedUsername }
         ]
       }
     });
@@ -33,7 +35,7 @@ class AuthService {
     const user = await prisma.user.create({
       data: {
         email,
-        username,
+        username: normalizedUsername,
         passwordHash,
         fullName,
         phone,
@@ -149,6 +151,7 @@ class AuthService {
    */
   async updateProfile(userId, data) {
     const { email, username, fullName, phone, bio, avatarUrl, coverImage, address, role } = data;
+    const normalizedUsername = username ? String(username).trim().toLowerCase() : undefined;
 
     // Check if email/username is taken by another user
     if (email || username) {
@@ -159,7 +162,7 @@ class AuthService {
             {
               OR: [
                 email ? { email } : {},
-                username ? { username } : {}
+                normalizedUsername ? { username: normalizedUsername } : {}
               ]
             }
           ]
@@ -179,7 +182,7 @@ class AuthService {
     // Build update data
     const updateData = {
       ...(email && { email }),
-      ...(username && { username }),
+      ...(normalizedUsername && { username: normalizedUsername }),
       ...(fullName && { fullName }),
       ...(phone && { phone }),
       ...(bio !== undefined && { bio }),

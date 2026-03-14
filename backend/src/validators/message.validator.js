@@ -26,7 +26,11 @@ export const sendMessageValidator = [
   body('attachmentUrl')
     .optional()
     .isURL()
-    .withMessage('Attachment URL must be a valid URL')
+    .withMessage('Attachment URL must be a valid URL'),
+  body('mediaUrl')
+    .optional()
+    .isURL()
+    .withMessage('Media URL must be a valid URL')
 ];
 
 export const conversationIdValidator = [

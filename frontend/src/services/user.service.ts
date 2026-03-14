@@ -19,6 +19,10 @@ export interface User {
 }
 
 export interface UserProfile extends User {
+  sellerRating?: {
+    average: number;
+    count: number;
+  };
   _count?: {
     products?: number;
     followers?: number;
@@ -53,6 +57,14 @@ interface ApiResponse<T> {
 // =====================================================
 
 const userService = {
+  /**
+   * Search users / shops by keyword
+   */
+  searchUsers: async (params: { q: string; role?: 'BUYER' | 'SELLER' | 'ADMIN'; limit?: number }): Promise<ApiResponse<UserProfile[]>> => {
+    const response = await api.get<ApiResponse<UserProfile[]>>('/users/search', { params });
+    return response.data;
+  },
+
   /**
    * Get user profile by username
    */

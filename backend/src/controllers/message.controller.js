@@ -95,8 +95,9 @@ class MessageController {
   async sendMessage(req, res, next) {
     try {
       const { conversationId } = req.params;
-      const { content, attachmentUrl } = req.body;
+      const { content, mediaUrl, attachmentUrl } = req.body;
       const userId = req.user.id;
+      const resolvedMediaUrl = mediaUrl ?? attachmentUrl ?? null;
 
       if (!content || content.trim().length === 0) {
         return res.status(400).json({
@@ -109,7 +110,7 @@ class MessageController {
         conversationId,
         userId,
         content.trim(),
-        attachmentUrl
+        resolvedMediaUrl
       );
 
       // Emit Socket.IO event for real-time delivery

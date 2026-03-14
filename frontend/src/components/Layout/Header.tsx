@@ -31,7 +31,7 @@ export function Header({
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate('/search-results');
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
@@ -231,7 +231,7 @@ export function Header({
                             className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
                             onClick={() => {
                               setShowUserMenu(false);
-                              navigate(`/store/${user.id}`);
+                              navigate(`/store/${user.username}`);
                             }}
                           >
                             <Store className="w-4 h-4" />

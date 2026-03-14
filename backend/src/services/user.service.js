@@ -1,6 +1,80 @@
 import prisma from '../config/database.js';
 
 class UserService {
+  async attachSellerRating(user) {
+    if (!user?.id) return user;
+
+    const ratingAgg = await prisma.review.aggregate({
+      where: {
+        isPublished: true,
+        product: {
+          sellerId: user.id
+        }
+      },
+      _avg: {
+        rating: true
+      },
+      _count: {
+        id: true
+      }
+    });
+
+    return {
+      ...user,
+      sellerRating: {
+        average: Number(ratingAgg._avg.rating || 0),
+        count: ratingAgg._count.id || 0
+      }
+    };
+  }
+
+  /**
+   * Search users by keyword
+   */
+  async searchUsers({ q = '', role, limit = 20 } = {}) {
+    const keyword = String(q || '').trim();
+    const take = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 50);
+
+    const where = {
+      ...(role && { role }),
+      ...(keyword && {
+        OR: [
+          { username: { contains: keyword, mode: 'insensitive' } },
+          { fullName: { contains: keyword, mode: 'insensitive' } },
+          { email: { contains: keyword, mode: 'insensitive' } },
+          { bio: { contains: keyword, mode: 'insensitive' } }
+        ]
+      })
+    };
+
+    const users = await prisma.user.findMany({
+      where,
+      take,
+      orderBy: [
+        { isVerified: 'desc' },
+        { createdAt: 'desc' }
+      ],
+      select: {
+        id: true,
+        username: true,
+        fullName: true,
+        avatarUrl: true,
+        bio: true,
+        role: true,
+        isVerified: true,
+        createdAt: true,
+        _count: {
+          select: {
+            followers: true,
+            products: true
+          }
+        }
+      }
+    });
+
+    return users;
+  }
+
   /**
    * Get user profile by username
    */
@@ -56,7 +130,7 @@ class UserService {
       throw new Error('User not found');
     }
 
-    return user;
+    return this.attachSellerRating(user);
   }
 
   /**
@@ -114,7 +188,7 @@ class UserService {
       throw new Error('User not found');
     }
 
-    return user;
+    return this.attachSellerRating(user);
   }
 
   /**
@@ -122,12 +196,13 @@ class UserService {
    */
   async updateProfile(userId, data) {
     const { fullName, phone, bio, avatarUrl, role } = data;
+    const normalizedUsername = data.username ? String(data.username).trim().toLowerCase() : undefined;
 
     // Check if username is being updated and if it's already taken
-    if (data.username) {
+    if (normalizedUsername) {
       const existingUser = await prisma.user.findFirst({
         where: {
-          username: data.username,
+          username: normalizedUsername,
           NOT: {
             id: userId
           }
@@ -145,7 +220,7 @@ class UserService {
       ...(phone !== undefined && { phone }),
       ...(bio !== undefined && { bio }),
       ...(avatarUrl !== undefined && { avatarUrl }),
-      ...(data.username && { username: data.username }),
+      ...(normalizedUsername && { username: normalizedUsername }),
     };
 
     // Allow role update for becoming a seller

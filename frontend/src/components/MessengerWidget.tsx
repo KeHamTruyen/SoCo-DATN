@@ -48,6 +48,7 @@ export function MessengerWidget() {
 
     // Listen for new messages
     const unsubscribeNewMessage = onNewMessage((data) => {
+      const isOwnMessage = data.message?.senderId === currentUser.id;
       // Update conversations list
       setConversations((prev) =>
         prev.map((conv) =>
@@ -56,7 +57,10 @@ export function MessengerWidget() {
                 ...conv,
                 lastMessage: data.message.content,
                 lastMessageAt: data.message.createdAt,
-                unreadCount: conv.id === selectedConversation ? (conv.unreadCount ?? 0) : (conv.unreadCount ?? 0) + 1,
+                unreadCount:
+                  conv.id === selectedConversation || isOwnMessage
+                    ? (conv.unreadCount ?? 0)
+                    : (conv.unreadCount ?? 0) + 1,
               }
             : conv
         ).sort((a, b) => new Date(b.lastMessageAt ?? b.updatedAt).getTime() - new Date(a.lastMessageAt ?? a.updatedAt).getTime())
@@ -64,7 +68,11 @@ export function MessengerWidget() {
 
       // If message is for current conversation, add to messages
       if (data.conversationId === selectedConversation) {
-        setMessages((prev) => [...prev, data.message]);
+        setMessages((prev) =>
+          prev.some((msg) => msg.id === data.message.id)
+            ? prev
+            : [...prev, data.message]
+        );
       }
     });
 
@@ -127,7 +135,21 @@ export function MessengerWidget() {
     try {
       setIsLoadingMessages(true);
       const response = await messageService.getConversationMessages(conversationId);
-      setMessages(response.data.messages);
+      const nextMessages = Array.isArray(response?.messages)
+        ? response.messages
+        : Array.isArray(response?.data?.messages)
+          ? response.data.messages
+          : [];
+      setMessages(nextMessages);
+
+      // Persist read status so unread badge stays cleared after reload
+      await messageService.markMessagesAsRead(conversationId);
+
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.id === conversationId ? { ...conv, unreadCount: 0 } : conv
+        )
+      );
     } catch (error) {
       console.error('Failed to load messages:', error);
     } finally {
@@ -142,7 +164,11 @@ export function MessengerWidget() {
       const message = await messageService.sendMessage(selectedConversation, { 
         content: messageText.trim() 
       });
-      setMessages((prev) => [...prev, message]);
+      setMessages((prev) =>
+        prev.some((msg) => msg.id === message.id)
+          ? prev
+          : [...prev, message]
+      );
       setMessageText('');
       
       // Update conversation list

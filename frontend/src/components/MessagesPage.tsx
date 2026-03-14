@@ -4,6 +4,7 @@ import { PageLayout } from './Layout';
 import messageService, { Conversation, Message as APIMessage } from '../services/message.service';
 import { useSocket } from '../contexts/SocketContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useSearchParams } from 'react-router-dom';
 
 interface TypingUser {
   userId: string;
@@ -13,6 +14,7 @@ interface TypingUser {
 
 export function MessagesPage() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<APIMessage[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -25,6 +27,7 @@ export function MessagesPage() {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const handledRecipientRef = useRef<string | null>(null);
 
   const {
     isConnected,
@@ -61,6 +64,7 @@ export function MessagesPage() {
     // Listen for new messages
     const unsubscribeNewMessage = onNewMessage((data) => {
       console.log('New message received:', data);
+      const isOwnMessage = data.message?.senderId === user.id;
       
       // Update conversation list (move to top + update last message)
       setConversations((prev) =>
@@ -70,7 +74,10 @@ export function MessagesPage() {
                 ...conv,
                 lastMessage: data.message.content,
                 lastMessageAt: data.message.createdAt,
-                unreadCount: conv.id === selectedConversation ? (conv.unreadCount ?? 0) : (conv.unreadCount ?? 0) + 1,
+                unreadCount:
+                  conv.id === selectedConversation || isOwnMessage
+                    ? (conv.unreadCount ?? 0)
+                    : (conv.unreadCount ?? 0) + 1,
               }
             : conv
         ).sort((a, b) => new Date(b.lastMessageAt ?? b.updatedAt).getTime() - new Date(a.lastMessageAt ?? a.updatedAt).getTime())
@@ -80,7 +87,8 @@ export function MessagesPage() {
       if (data.conversationId === selectedConversation) {
         const normalizedMessage: APIMessage = {
           ...data.message,
-          attachmentUrl: data.message.attachmentUrl ?? null,
+          mediaUrl: data.message.mediaUrl ?? data.message.attachmentUrl ?? null,
+          attachmentUrl: data.message.attachmentUrl ?? data.message.mediaUrl ?? null,
           readAt: data.message.readAt ?? null,
           sender: data.message.sender ? {
             id: data.message.sender.id,
@@ -90,7 +98,11 @@ export function MessagesPage() {
             isVerified: false // Default since Socket.IO doesn't send this
           } : undefined
         };
-        setMessages((prev) => [...prev, normalizedMessage]);
+        setMessages((prev) =>
+          prev.some((msg) => msg.id === normalizedMessage.id)
+            ? prev
+            : [...prev, normalizedMessage]
+        );
         // Mark as read if we're viewing the conversation
         markAsRead(data.conversationId);
         scrollToBottom();
@@ -176,16 +188,53 @@ export function MessagesPage() {
     }
   };
 
+  // Auto-open conversation when entering /messages?recipientId=...
+  useEffect(() => {
+    const recipientId = searchParams.get('recipientId');
+    if (!recipientId || !user) return;
+    if (handledRecipientRef.current === recipientId) return;
+
+    const openOrCreateConversation = async () => {
+      try {
+        handledRecipientRef.current = recipientId;
+
+        const existing = conversations.find((conv) =>
+          conv.participants.some((p) => p.user.id === recipientId || p.userId === recipientId)
+        );
+
+        let conversationId = existing?.id;
+
+        if (!conversationId) {
+          const response = await messageService.getOrCreateConversation(recipientId);
+          conversationId = response?.data?.conversation?.id;
+          await loadConversations();
+        }
+
+        if (conversationId) {
+          setSelectedConversation(conversationId);
+          await loadMessages(conversationId);
+        }
+
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.delete('recipientId');
+        setSearchParams(nextParams, { replace: true });
+      } catch (error) {
+        console.error('Failed to open conversation from recipientId:', error);
+      }
+    };
+
+    openOrCreateConversation();
+  }, [searchParams, conversations, user, setSearchParams]);
+
   const loadMessages = async (conversationId: string) => {
     try {
       setIsLoadingMessages(true);
       const response = await messageService.getConversationMessages(conversationId);
       setMessages(response.messages);
       
-      // Mark messages as read
-      if (isConnected) {
-        markAsRead(conversationId);
-      }
+      // Persist read status to backend + notify realtime channel
+      await messageService.markMessagesAsRead(conversationId);
+      if (isConnected) markAsRead(conversationId);
       
       // Update unread count in conversations
       setConversations((prev) =>
@@ -215,7 +264,11 @@ export function MessagesPage() {
       });
 
       // Add message to local state
-      setMessages((prev) => [...prev, newMessage]);
+      setMessages((prev) =>
+        prev.some((msg) => msg.id === newMessage.id)
+          ? prev
+          : [...prev, newMessage]
+      );
 
       // Update conversation last message
       setConversations((prev) =>
@@ -294,7 +347,7 @@ export function MessagesPage() {
       padding={false}
       maxWidth="full"
     >
-      <div className="h-[calc(100vh-64px)] flex overflow-hidden max-w-7xl mx-auto w-full">
+      <div className="h-full min-h-0 flex overflow-hidden max-w-7xl mx-auto w-full">
         {/* Conversations List */}
         <div className={`w-full lg:w-80 bg-white border-r border-gray-200 flex flex-col ${selectedConversation ? 'hidden lg:flex' : 'flex'}`}>
           <div className="p-4 border-b border-gray-200">
@@ -400,57 +453,61 @@ export function MessagesPage() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4">
               {isLoadingMessages ? (
                 <div className="text-center text-gray-500">Đang tải tin nhắn...</div>
               ) : messages.length === 0 ? (
                 <div className="text-center text-gray-500">Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!</div>
               ) : (
-                messages.map((message, index) => {
-                  const isCurrentUser = message.senderId === user.id;
-                  const showAvatar = index === 0 || messages[index - 1]?.senderId !== message.senderId;
-                  
-                  return (
-                    <div
-                      key={message.id}
-                      className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div className={`flex gap-2 items-end max-w-xs lg:max-w-md ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}>
-                        {!isCurrentUser && showAvatar && (
-                          <img
-                            src={otherParticipant.avatarUrl || `https://ui-avatars.com/api/?name=${otherParticipant.fullName}`}
-                            alt=""
-                            className="w-8 h-8 rounded-full"
-                          />
-                        )}
-                        {!isCurrentUser && !showAvatar && <div className="w-8" />}
-                        
-                        <div>
-                          <div
-                            className={`px-4 py-2 rounded-2xl ${
-                              isCurrentUser
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-900'
-                            }`}
-                          >
-                            <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
-                          </div>
-                          <div className={`flex items-center gap-1 mt-1 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
-                            <p className="text-xs text-gray-500">
-                              {new Date(message.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-                            </p>
-                            {isCurrentUser && message.isRead && (
-                              <span className="text-xs text-blue-600">✓✓</span>
+                <div className="min-h-full flex flex-col justify-end">
+                  <div className="space-y-4">
+                    {messages.map((message, index) => {
+                      const isCurrentUser = message.senderId === user.id;
+                      const showAvatar = index === 0 || messages[index - 1]?.senderId !== message.senderId;
+
+                      return (
+                        <div
+                          key={message.id}
+                          className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div className={`flex gap-2 items-end max-w-xs lg:max-w-md ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}>
+                            {!isCurrentUser && showAvatar && (
+                              <img
+                                src={otherParticipant.avatarUrl || `https://ui-avatars.com/api/?name=${otherParticipant.fullName}`}
+                                alt=""
+                                className="w-8 h-8 rounded-full"
+                              />
                             )}
-                            {isCurrentUser && !message.isRead && (
-                              <span className="text-xs text-gray-400">✓</span>
-                            )}
+                            {!isCurrentUser && !showAvatar && <div className="w-8" />}
+
+                            <div>
+                              <div
+                                className={`px-4 py-2 rounded-2xl ${
+                                  isCurrentUser
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-100 text-gray-900'
+                                }`}
+                              >
+                                <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                              </div>
+                              <div className={`flex items-center gap-1 mt-1 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
+                                <p className="text-xs text-gray-500">
+                                  {new Date(message.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                                {isCurrentUser && message.isRead && (
+                                  <span className="text-xs text-blue-600">✓✓</span>
+                                )}
+                                {isCurrentUser && !message.isRead && (
+                                  <span className="text-xs text-gray-400">✓</span>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })
+                      );
+                    })}
+                  </div>
+                </div>
               )}
               
               {/* Typing indicator */}
