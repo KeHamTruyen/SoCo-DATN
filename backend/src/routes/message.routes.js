@@ -1,6 +1,7 @@
 import express from 'express';
 import messageController from '../controllers/message.controller.js';
 import { protect } from '../middlewares/auth.middleware.js';
+import { uploadMessage } from '../config/cloudinary.js';
 import {
   createConversationValidator,
   sendMessageValidator,
@@ -186,6 +187,7 @@ router.get('/conversations/:conversationId', protect, conversationIdValidator, p
  *         description: Not a participant of this conversation
  */
 router.post('/conversations/:conversationId/messages', protect, sendMessageValidator, messageController.sendMessage);
+router.post('/conversations/:conversationId/attachments', protect, conversationIdValidator, uploadMessage.single('file'), messageController.uploadAttachment);
 
 /**
  * @swagger

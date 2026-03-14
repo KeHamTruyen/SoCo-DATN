@@ -59,8 +59,8 @@ const getOrCreateCart = async (userId) => {
                 },
               },
             },
+            variant: true,
           },
-          variant: true,
         },
       },
     });

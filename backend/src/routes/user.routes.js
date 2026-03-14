@@ -26,6 +26,14 @@ router.get('/me', protect, userController.getMyProfile);
 router.put('/me', protect, userController.updateProfile);
 
 /**
+ * Follow/unfollow and social graph
+ */
+router.post('/:userId/follow', protect, userController.followUser);
+router.delete('/:userId/follow', protect, userController.unfollowUser);
+router.get('/:userId/followers', userController.getFollowers);
+router.get('/:userId/following', userController.getFollowing);
+
+/**
  * Search users
  * GET /api/users/search?q=keyword&role=SELLER
  * Public route

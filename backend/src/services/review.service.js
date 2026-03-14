@@ -149,6 +149,95 @@ export const createReview = async (userId, payload) => {
 };
 
 /**
+ * Buyer updates own review.
+ */
+export const updateOwnReview = async (reviewId, userId, payload) => {
+  const review = await prisma.review.findUnique({
+    where: { id: reviewId },
+    select: {
+      id: true,
+      userId: true
+    }
+  });
+
+  if (!review) {
+    throw new Error('Review not found');
+  }
+
+  if (review.userId !== userId) {
+    throw new Error('Unauthorized to update this review');
+  }
+
+  const data = {};
+
+  if (Object.prototype.hasOwnProperty.call(payload, 'rating')) {
+    data.rating = payload.rating;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(payload, 'title')) {
+    data.title = payload.title;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(payload, 'content')) {
+    data.content = payload.content;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(payload, 'images')) {
+    data.images = payload.images || [];
+  }
+
+  const updatedReview = await prisma.review.update({
+    where: { id: reviewId },
+    data,
+    include: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          fullName: true,
+          avatarUrl: true
+        }
+      },
+      product: {
+        select: {
+          id: true,
+          title: true
+        }
+      }
+    }
+  });
+
+  return updatedReview;
+};
+
+/**
+ * Buyer deletes own review.
+ */
+export const deleteOwnReview = async (reviewId, userId) => {
+  const review = await prisma.review.findUnique({
+    where: { id: reviewId },
+    select: {
+      id: true,
+      userId: true
+    }
+  });
+
+  if (!review) {
+    throw new Error('Review not found');
+  }
+
+  if (review.userId !== userId) {
+    throw new Error('Unauthorized to delete this review');
+  }
+
+  await prisma.review.delete({
+    where: { id: reviewId }
+  });
+
+  return { id: reviewId, deleted: true };
+};
+
+/**
  * Get all reviews for seller's products
  */
 export const getSellerReviews = async (sellerId, filters = {}) => {
@@ -176,7 +265,7 @@ export const getSellerReviews = async (sellerId, filters = {}) => {
         product: {
           select: {
             id: true,
-            name: true,
+            title: true,
             images: true,
             price: true
           }
@@ -250,7 +339,7 @@ export const respondToReview = async (reviewId, sellerId, response) => {
       product: {
         select: {
           id: true,
-          name: true,
+          title: true,
           images: true
         }
       },
@@ -292,6 +381,119 @@ export const deleteSellerResponse = async (reviewId, sellerId) => {
     data: {
       sellerResponse: null,
       sellerResponseAt: null
+    }
+  });
+
+  return updatedReview;
+};
+
+/**
+ * Admin: list reviews for moderation.
+ */
+export const getReviewsForModeration = async (filters = {}) => {
+  const page = Math.max(parseInt(filters.page, 10) || 1, 1);
+  const limit = Math.min(Math.max(parseInt(filters.limit, 10) || 20, 1), 100);
+  const skip = (page - 1) * limit;
+
+  const keyword = String(filters.q || '').trim();
+  const where = {
+    ...(filters.isPublished !== undefined && filters.isPublished !== '' && {
+      isPublished: String(filters.isPublished) === 'true'
+    }),
+    ...(filters.productId && { productId: filters.productId }),
+    ...(filters.userId && { userId: filters.userId }),
+    ...(filters.hasResponse === 'true' && { sellerResponse: { not: null } }),
+    ...(filters.hasResponse === 'false' && { sellerResponse: null }),
+    ...(keyword && {
+      OR: [
+        { title: { contains: keyword, mode: 'insensitive' } },
+        { content: { contains: keyword, mode: 'insensitive' } },
+        { product: { title: { contains: keyword, mode: 'insensitive' } } },
+        { user: { username: { contains: keyword, mode: 'insensitive' } } },
+        { user: { fullName: { contains: keyword, mode: 'insensitive' } } }
+      ]
+    })
+  };
+
+  const [reviews, total] = await Promise.all([
+    prisma.review.findMany({
+      where,
+      include: {
+        product: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            sellerId: true,
+            seller: {
+              select: {
+                id: true,
+                username: true,
+                fullName: true,
+                avatarUrl: true
+              }
+            }
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            avatarUrl: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit
+    }),
+    prisma.review.count({ where })
+  ]);
+
+  return {
+    reviews,
+    total,
+    page,
+    limit,
+    totalPages: Math.max(Math.ceil(total / limit), 1)
+  };
+};
+
+/**
+ * Admin: set review visibility.
+ */
+export const setReviewPublishedStatus = async (reviewId, isPublished) => {
+  const existed = await prisma.review.findUnique({
+    where: { id: reviewId },
+    select: { id: true }
+  });
+
+  if (!existed) {
+    throw new Error('Review not found');
+  }
+
+  const updatedReview = await prisma.review.update({
+    where: { id: reviewId },
+    data: {
+      isPublished
+    },
+    include: {
+      product: {
+        select: {
+          id: true,
+          title: true,
+          slug: true
+        }
+      },
+      user: {
+        select: {
+          id: true,
+          username: true,
+          fullName: true,
+          avatarUrl: true
+        }
+      }
     }
   });
 

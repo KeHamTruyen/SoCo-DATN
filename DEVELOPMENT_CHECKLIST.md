@@ -205,16 +205,16 @@
 
 ---
 
-## 📅 6. SCHEDULED POSTS (❌ Chưa làm - Phase 4)
+## 📅 6. SCHEDULED POSTS (⏳ Đang làm - backend core done)
 
 ### Backend
 
 - [x] ScheduledPost model (Prisma schema)
-- [ ] **TODO: ScheduledPost service**
-- [ ] **TODO: ScheduledPost controller**
-- [ ] **TODO: ScheduledPost routes**
-- [ ] **TODO: Cron job để publish scheduled posts**
-- [ ] **TODO: Timezone handling**
+- [x] ScheduledPost service
+- [x] ScheduledPost controller
+- [x] ScheduledPost routes
+- [x] Cron job/background sync để publish scheduled posts
+- [~] Timezone handling (đã có timezone field + validation cơ bản, chưa có timezone conversion nâng cao)
 
 ### Frontend
 
@@ -245,7 +245,7 @@
 - [x] **Message routes** (`/api/messages/*`)
 - [x] **Message validators**
 - [x] **Socket.IO integration cho real-time chat** (cơ bản)
-- [ ] **TODO: File upload for message attachments**
+- [x] File upload for message attachments (`POST /api/messages/conversations/:conversationId/attachments`)
 
 ### Frontend
 
@@ -336,13 +336,13 @@
 ### Backend
 
 - [x] Review model (Prisma schema)
-- [x] Review service (seller response flow)
-- [x] Review controller (seller response flow)
-- [x] Review routes (`/api/reviews/*`) cho seller response
+- [x] Review service (buyer create/update/delete + seller response flow)
+- [x] Review controller (buyer create/update/delete + seller response flow)
+- [x] Review routes (`/api/reviews/*`) cho buyer + seller
 - [x] Buyer review APIs (`POST /api/reviews`, `GET /api/reviews/product/:productId`)
-- [ ] **TODO: Review validators**
-- [ ] **TODO: Buyer review update/delete endpoint**
-- [ ] **TODO: Review moderation**
+- [x] Review validators
+- [x] Buyer review update/delete endpoint (`PUT/DELETE /api/reviews/:id`)
+- [x] Review moderation (`GET /api/reviews/admin`, `PATCH /api/reviews/:id/moderation`)
 
 ### Frontend
 
@@ -359,12 +359,12 @@
 ### Backend
 
 - [x] Product search/filter qua `/api/products` (query params)
-- [ ] **TODO: Search service riêng**
-  - [ ] Product search (full-text search nâng cao)
-  - [ ] User search
-  - [ ] Post search
-- [ ] **TODO: Search routes (`/api/search/*`)**
-- [ ] **TODO: Advanced filters**
+- [x] Search service riêng (`search.service.js`)
+  - [x] Product search (text search cơ bản + filter/sort)
+  - [x] User search
+  - [x] Post search
+- [x] Search routes (`/api/search/*`)
+- [x] Advanced filters (price range, role, verified, date range, sort, pagination)
 - [ ] **TODO: Search indexing (Elasticsearch optional)**
 
 ### Frontend
@@ -420,8 +420,8 @@
 - [x] Follow model (Prisma schema)
 - [x] User profile endpoints (getUserByUsername, getUserById, getMyProfile)
 - [x] Fixed Product field mapping (title instead of name)
-- [ ] **TODO: Follow/unfollow endpoints**
-- [ ] **TODO: Get followers/following lists**
+- [x] Follow/unfollow endpoints (`POST/DELETE /api/users/:userId/follow`)
+- [x] Get followers/following lists (`GET /api/users/:userId/followers`, `GET /api/users/:userId/following`)
 
 ### Frontend
 
@@ -435,18 +435,18 @@
 
 ---
 
-## 👨‍💼 14. ADMIN FEATURES (❌ Chưa làm - Phase 7)
+## 👨‍💼 14. ADMIN FEATURES (⏳ Đang làm - backend core done)
 
 ### Backend
 
-- [ ] **TODO: Admin dashboard API**
-- [ ] **TODO: User management endpoints**
-  - [ ] List all users
-  - [ ] Ban/unban user
-  - [ ] Verify seller manually
-- [ ] **TODO: Product moderation**
-- [ ] **TODO: Order management (admin)**
-- [ ] **TODO: Analytics & reports**
+- [x] Admin dashboard API (`GET /api/admin/dashboard`)
+- [x] User management endpoints
+  - [x] List all users (`GET /api/admin/users`)
+  - [x] Ban/unban user (`PATCH /api/admin/users/:userId/status`)
+  - [x] Verify seller manually (`PATCH /api/admin/users/:userId/verify-seller`)
+- [x] Product moderation (`GET /api/admin/products`, `PATCH /api/admin/products/:productId/status`)
+- [x] Order management (admin) (`GET /api/admin/orders`, `PATCH /api/admin/orders/:orderId/status`)
+- [x] Analytics & reports (`GET /api/admin/reports/summary`)
 
 ### Frontend
 
@@ -479,17 +479,17 @@
 
 ---
 
-## 📊 16. ANALYTICS (❌ Chưa làm - Phase 7)
+## 📊 16. ANALYTICS (⏳ Đang làm - backend core done)
 
 ### Backend
 
 - [x] ProductView model (Prisma schema)
 - [x] SellerStats model (Prisma schema)
-- [ ] **TODO: Analytics service**
-- [ ] **TODO: Track product views**
-- [ ] **TODO: Aggregate seller stats daily**
-- [ ] **TODO: Generate reports**
-- [ ] **TODO: Analytics dashboard API**
+- [x] Analytics service (`analytics.service.js`)
+- [x] Track product views (Product detail -> ProductView + viewsCount)
+- [x] Aggregate seller stats daily (`POST /api/analytics/seller-stats/aggregate`)
+- [x] Generate reports (`GET /api/analytics/platform/overview`, `GET /api/admin/reports/summary`)
+- [x] Analytics dashboard API (`GET /api/analytics/seller/dashboard`, `GET /api/analytics/seller/stats/daily`)
 
 ### Frontend
 
@@ -508,8 +508,8 @@
 - [x] Password hashing (bcrypt)
 - [x] CORS configuration
 - [x] Input validation (express-validator)
-- [ ] **TODO: Rate limiting (express-rate-limit)**
-- [ ] **TODO: Helmet.js security headers**
+- [x] Rate limiting (express-rate-limit)
+- [x] Helmet.js security headers
 - [ ] **TODO: SQL injection prevention (Prisma handles)**
 - [ ] **TODO: XSS protection**
 - [ ] **TODO: CSRF tokens**
@@ -535,8 +535,8 @@
 ### Backend
 
 - [ ] **TODO: Unit tests (Jest)**
-- [ ] **TODO: Integration tests**
-- [ ] **TODO: API endpoint tests**
+- [x] Integration tests (khởi tạo với `node:test` + `supertest`)
+- [x] API endpoint tests (smoke-level `GET /health`)
 - [ ] **TODO: Test coverage >= 70%**
 
 ### Frontend
@@ -655,14 +655,14 @@
 | Cart          | ✅ 100% | ✅ 100%  | ✅ Done    |
 | Orders        | ✅ 100% | ✅ 100%  | ✅ Done    |
 | Posts         | ✅ 100% | ✅ 100%  | ✅ Done    |
-| Messages      | ✅ 90%  | ✅ 75%   | ⏳ Phase 4 |
+| Messages      | ✅ 95%  | ✅ 75%   | ⏳ Phase 4 |
 | Notifications | ✅ 100% | ✅ 100%  | ✅ Done    |
-| Reviews       | ⏳ 70%  | ⏳ 70%   | ⏳ Partial |
-| Search        | ⏳ 60%  | ⏳ 60%   | ⏳ Partial |
+| Reviews       | ⏳ 95%  | ⏳ 70%   | ⏳ Partial |
+| Search        | ⏳ 80%  | ⏳ 60%   | ⏳ Partial |
 | Seller        | ⏳ 80%  | ⏳ 85%   | ⏳ Partial |
-| Admin         | ❌ 0%   | ❌ 0%    | ❌ Todo    |
+| Admin         | ⏳ 80%  | ❌ 0%    | ⏳ Partial |
 
-**Tổng tiến độ: ~84%** 🚀
+**Tổng tiến độ: ~91%** 🚀
 
 ---
 
@@ -678,4 +678,4 @@
 
 ---
 
-_Last updated: March 14, 2026_
+_Last updated: March 15, 2026_

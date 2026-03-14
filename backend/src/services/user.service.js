@@ -1,4 +1,5 @@
 import prisma from '../config/database.js';
+import notificationService from './notification.service.js';
 
 class UserService {
   async attachSellerRating(user) {
@@ -248,6 +249,175 @@ class UserService {
     });
 
     return user;
+  }
+
+  /**
+   * Follow a user
+   */
+  async followUser(followerId, followingId) {
+    if (followerId === followingId) {
+      throw new Error('You cannot follow yourself');
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: { id: followingId },
+      select: { id: true, isActive: true }
+    });
+
+    if (!targetUser || !targetUser.isActive) {
+      throw new Error('User not found');
+    }
+
+    const existed = await prisma.follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId,
+          followingId
+        }
+      }
+    });
+
+    if (existed) {
+      throw new Error('Already following this user');
+    }
+
+    const follow = await prisma.follow.create({
+      data: {
+        followerId,
+        followingId
+      }
+    });
+
+    try {
+      await notificationService.notifyNewFollower(followingId, followerId);
+    } catch (error) {
+      console.error('Failed to notify new follower:', error);
+    }
+
+    return follow;
+  }
+
+  /**
+   * Unfollow a user
+   */
+  async unfollowUser(followerId, followingId) {
+    const existed = await prisma.follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId,
+          followingId
+        }
+      }
+    });
+
+    if (!existed) {
+      throw new Error('Follow relationship not found');
+    }
+
+    await prisma.follow.delete({
+      where: {
+        followerId_followingId: {
+          followerId,
+          followingId
+        }
+      }
+    });
+
+    return { unfollowed: true, followingId };
+  }
+
+  /**
+   * Get followers of a user
+   */
+  async getFollowers(userId, { page = 1, limit = 20 } = {}) {
+    const safePage = Math.max(parseInt(page, 10) || 1, 1);
+    const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+    const skip = (safePage - 1) * safeLimit;
+
+    const [rows, total] = await Promise.all([
+      prisma.follow.findMany({
+        where: { followingId: userId },
+        include: {
+          follower: {
+            select: {
+              id: true,
+              username: true,
+              fullName: true,
+              avatarUrl: true,
+              role: true,
+              isVerified: true,
+              bio: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: safeLimit
+      }),
+      prisma.follow.count({
+        where: { followingId: userId }
+      })
+    ]);
+
+    return {
+      data: rows.map((row) => ({
+        ...row.follower,
+        followedAt: row.createdAt
+      })),
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit)
+      }
+    };
+  }
+
+  /**
+   * Get following users of a user
+   */
+  async getFollowing(userId, { page = 1, limit = 20 } = {}) {
+    const safePage = Math.max(parseInt(page, 10) || 1, 1);
+    const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+    const skip = (safePage - 1) * safeLimit;
+
+    const [rows, total] = await Promise.all([
+      prisma.follow.findMany({
+        where: { followerId: userId },
+        include: {
+          following: {
+            select: {
+              id: true,
+              username: true,
+              fullName: true,
+              avatarUrl: true,
+              role: true,
+              isVerified: true,
+              bio: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: safeLimit
+      }),
+      prisma.follow.count({
+        where: { followerId: userId }
+      })
+    ]);
+
+    return {
+      data: rows.map((row) => ({
+        ...row.following,
+        followedAt: row.createdAt
+      })),
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit)
+      }
+    };
   }
 }
 

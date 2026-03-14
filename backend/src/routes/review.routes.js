@@ -1,6 +1,7 @@
 import express from 'express';
-import { protect } from '../middlewares/auth.middleware.js';
+import { protect, restrictTo } from '../middlewares/auth.middleware.js';
 import * as reviewController from '../controllers/review.controller.js';
+import * as reviewValidator from '../validators/review.validator.js';
 
 const router = express.Router();
 
@@ -28,7 +29,12 @@ const router = express.Router();
  *       200:
  *         description: Product reviews retrieved successfully
  */
-router.get('/product/:productId', reviewController.getProductReviews);
+router.get(
+	'/product/:productId',
+	reviewValidator.validateProductReviewsQuery,
+	reviewValidator.validate,
+	reviewController.getProductReviews
+);
 
 /**
  * @swagger
@@ -42,7 +48,67 @@ router.get('/product/:productId', reviewController.getProductReviews);
  *       201:
  *         description: Review created successfully
  */
-router.post('/', protect, reviewController.createReview);
+router.post(
+	'/',
+	protect,
+	reviewValidator.validateCreateReview,
+	reviewValidator.validate,
+	reviewController.createReview
+);
+
+/**
+ * @swagger
+ * /api/reviews/{id}:
+ *   put:
+ *     summary: Update own review
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Review updated successfully
+ */
+router.put(
+	'/:id',
+	protect,
+	reviewValidator.validateUpdateReview,
+	reviewValidator.validate,
+	reviewController.updateOwnReview
+);
+
+/**
+ * @swagger
+ * /api/reviews/{id}:
+ *   delete:
+ *     summary: Delete own review
+ *     tags: [Reviews]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Review deleted successfully
+ */
+router.delete(
+	'/:id',
+	protect,
+	reviewValidator.validateReviewId,
+	reviewValidator.validate,
+	reviewController.deleteOwnReview
+);
 
 /**
  * @swagger
@@ -75,7 +141,13 @@ router.post('/', protect, reviewController.createReview);
  *       401:
  *         description: Unauthorized
  */
-router.get('/seller/me', protect, reviewController.getMyReviews);
+router.get(
+	'/seller/me',
+	protect,
+	reviewValidator.validateSellerReviewsQuery,
+	reviewValidator.validate,
+	reviewController.getMyReviews
+);
 
 /**
  * @swagger
@@ -114,7 +186,13 @@ router.get('/seller/me', protect, reviewController.getMyReviews);
  *       404:
  *         description: Review not found
  */
-router.post('/:id/response', protect, reviewController.respondToReview);
+router.post(
+	'/:id/response',
+	protect,
+	reviewValidator.validateRespondToReview,
+	reviewValidator.validate,
+	reviewController.respondToReview
+);
 
 /**
  * @swagger
@@ -139,6 +217,30 @@ router.post('/:id/response', protect, reviewController.respondToReview);
  *       404:
  *         description: Review not found
  */
-router.delete('/:id/response', protect, reviewController.deleteResponse);
+router.delete(
+	'/:id/response',
+	protect,
+	reviewValidator.validateReviewId,
+	reviewValidator.validate,
+	reviewController.deleteResponse
+);
+
+router.get(
+	'/admin',
+	protect,
+	restrictTo('ADMIN'),
+	reviewValidator.validateModerationListQuery,
+	reviewValidator.validate,
+	reviewController.getReviewsForModeration
+);
+
+router.patch(
+	'/:id/moderation',
+	protect,
+	restrictTo('ADMIN'),
+	reviewValidator.validateModerateReview,
+	reviewValidator.validate,
+	reviewController.moderateReview
+);
 
 export default router;

@@ -45,6 +45,78 @@ export const createReview = async (req, res, next) => {
 };
 
 /**
+ * Update own review by buyer
+ * @route PUT /api/reviews/:id
+ * @access Private
+ */
+export const updateOwnReview = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    const updatedReview = await reviewService.updateOwnReview(id, userId, req.body);
+
+    res.json({
+      success: true,
+      data: updatedReview,
+      message: 'Review updated successfully'
+    });
+  } catch (error) {
+    if (error.message === 'Review not found') {
+      return res.status(404).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    if (error.message === 'Unauthorized to update this review') {
+      return res.status(403).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    next(error);
+  }
+};
+
+/**
+ * Delete own review by buyer
+ * @route DELETE /api/reviews/:id
+ * @access Private
+ */
+export const deleteOwnReview = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    const result = await reviewService.deleteOwnReview(id, userId);
+
+    res.json({
+      success: true,
+      data: result,
+      message: 'Review deleted successfully'
+    });
+  } catch (error) {
+    if (error.message === 'Review not found') {
+      return res.status(404).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    if (error.message === 'Unauthorized to delete this review') {
+      return res.status(403).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    next(error);
+  }
+};
+
+/**
  * Get seller's product reviews
  * @route GET /api/reviews/seller/me
  * @access Private (Seller only)
@@ -80,20 +152,6 @@ export const respondToReview = async (req, res, next) => {
     const { id } = req.params;
     const { response } = req.body;
 
-    if (!response || response.trim().length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Response is required'
-      });
-    }
-
-    if (response.length > 1000) {
-      return res.status(400).json({
-        success: false,
-        message: 'Response must be less than 1000 characters'
-      });
-    }
-
     const updatedReview = await reviewService.respondToReview(id, sellerId, response);
 
     res.json({
@@ -124,6 +182,53 @@ export const deleteResponse = async (req, res, next) => {
       message: 'Response deleted successfully'
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Admin: get reviews for moderation.
+ * @route GET /api/reviews/admin
+ * @access Private (Admin only)
+ */
+export const getReviewsForModeration = async (req, res, next) => {
+  try {
+    const result = await reviewService.getReviewsForModeration(req.query);
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Admin: publish/unpublish a review.
+ * @route PATCH /api/reviews/:id/moderation
+ * @access Private (Admin only)
+ */
+export const moderateReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { isPublished } = req.body;
+
+    const review = await reviewService.setReviewPublishedStatus(id, isPublished);
+
+    res.json({
+      success: true,
+      message: isPublished ? 'Review published successfully' : 'Review unpublished successfully',
+      data: review
+    });
+  } catch (error) {
+    if (error.message === 'Review not found') {
+      return res.status(404).json({
+        success: false,
+        message: error.message
+      });
+    }
+
     next(error);
   }
 };

@@ -92,6 +92,30 @@ enum GroupMemberRole {
   MEMBER
 }
 
+enum ReportTargetType {
+  POST
+  USER
+  PRODUCT
+  SHOP
+}
+
+enum ReportReason {
+  SPAM
+  FRAUD
+  FAKE_INFO
+  HARASSMENT
+  INAPPROPRIATE_CONTENT
+  COPYRIGHT
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  IN_REVIEW
+  RESOLVED
+  REJECTED
+}
+
 // =====================================================
 // USERS & AUTHENTICATION
 // =====================================================
@@ -140,6 +164,8 @@ model User {
   createdGroups       Group[]
   createdConversations Conversation[]
   verifiedSellers     SellerVerification[]     @relation("VerifiedBy")
+  submittedReports    Report[]                 @relation("ReportReporter")
+  handledReports      Report[]                 @relation("ReportResolver")
 
   @@map("users")
 }
@@ -215,6 +241,33 @@ model SellerVerification {
   verifier User? @relation("VerifiedBy", fields: [verifiedBy], references: [id])
 
   @@map("seller_verifications")
+}
+
+// =====================================================
+// REPORTS & MODERATION
+// =====================================================
+
+model Report {
+  id             String           @id @default(uuid())
+  reporterId     String           @map("reporter_id")
+  targetType     ReportTargetType @map("target_type")
+  targetId       String           @map("target_id")
+  reason         ReportReason
+  description    String?          @db.VarChar(2000)
+  status         ReportStatus     @default(PENDING)
+  resolutionNote String?          @map("resolution_note") @db.VarChar(2000)
+  resolvedBy     String?          @map("resolved_by")
+  resolvedAt     DateTime?        @map("resolved_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  reporter User  @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  resolver User? @relation("ReportResolver", fields: [resolvedBy], references: [id], onDelete: SetNull)
+
+  @@index([targetType, targetId])
+  @@index([status, createdAt])
+  @@index([reporterId, createdAt])
+  @@map("reports")
 }
 
 // =====================================================

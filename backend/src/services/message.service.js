@@ -1,6 +1,42 @@
 import prisma from '../config/database.js';
 
+const inferMessageType = (mediaUrl, explicitType) => {
+  if (explicitType && ['TEXT', 'IMAGE', 'VIDEO', 'FILE', 'PRODUCT', 'ORDER'].includes(explicitType)) {
+    return explicitType;
+  }
+
+  if (!mediaUrl) {
+    return 'TEXT';
+  }
+
+  const normalized = String(mediaUrl).toLowerCase();
+  if (normalized.match(/\.(jpg|jpeg|png|webp|gif)(\?|$)/)) {
+    return 'IMAGE';
+  }
+
+  if (normalized.match(/\.(mp4|mov|webm|avi|mkv)(\?|$)/)) {
+    return 'VIDEO';
+  }
+
+  return 'FILE';
+};
+
 class MessageService {
+  async ensureConversationParticipant(conversationId, userId) {
+    const isParticipant = await prisma.conversationParticipant.findFirst({
+      where: {
+        conversationId,
+        userId
+      }
+    });
+
+    if (!isParticipant) {
+      throw new Error('You are not a participant of this conversation');
+    }
+
+    return true;
+  }
+
   /**
    * Create a new conversation or get existing one between two users
    * @param {string} user1Id - First user ID (current user)
@@ -252,17 +288,13 @@ class MessageService {
     * @param {string|null} mediaUrl - Optional media URL
    * @returns {Promise<Object>} Created message
    */
-    async sendMessage(conversationId, senderId, content, mediaUrl = null) {
+    async sendMessage(conversationId, senderId, content, mediaUrl = null, messageType = null) {
     // Check if user is participant
-    const isParticipant = await prisma.conversationParticipant.findFirst({
-      where: {
-        conversationId,
-        userId: senderId
-      }
-    });
+    await this.ensureConversationParticipant(conversationId, senderId);
 
-    if (!isParticipant) {
-      throw new Error('You are not a participant of this conversation');
+    const normalizedContent = typeof content === 'string' ? content.trim() : '';
+    if (!normalizedContent && !mediaUrl) {
+      throw new Error('Message must include content or attachment');
     }
 
     // Create message
@@ -270,8 +302,8 @@ class MessageService {
       data: {
         conversationId,
         senderId,
-        content,
-        messageType: mediaUrl ? 'IMAGE' : 'TEXT',
+        content: normalizedContent || null,
+        messageType: inferMessageType(mediaUrl, messageType),
         mediaUrl,
         isRead: false
       },

@@ -11,8 +11,12 @@ import messageRoutes from './message.routes.js';
 import notificationRoutes from './notification.routes.js';
 import sellerRoutes from './seller.routes.js';
 import reviewRoutes from './review.routes.js';
+import reportRoutes from './report.routes.js';
 import groupRoutes from './group.routes.js';
 import scheduledPostRoutes from './scheduled-post.routes.js';
+import adminRoutes from './admin.routes.js';
+import analyticsRoutes from './analytics.routes.js';
+import searchRoutes from './search.routes.js';
 
 const router = express.Router();
 
@@ -29,8 +33,12 @@ router.use('/messages', messageRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/seller', sellerRoutes);
 router.use('/reviews', reviewRoutes);
+router.use('/reports', reportRoutes);
 router.use('/groups', groupRoutes);
 router.use('/scheduled-posts', scheduledPostRoutes);
+router.use('/admin', adminRoutes);
+router.use('/analytics', analyticsRoutes);
+router.use('/search', searchRoutes);
 
 // Temporary welcome route
 router.get('/', (req, res) => {
@@ -48,7 +56,11 @@ router.get('/', (req, res) => {
       groups: '/api/groups',
       messages: '/api/messages',
       notifications: '/api/notifications',
-      seller: '/api/seller'
+      seller: '/api/seller',
+      reports: '/api/reports',
+      admin: '/api/admin',
+      analytics: '/api/analytics',
+      search: '/api/search'
     }
   });
 });

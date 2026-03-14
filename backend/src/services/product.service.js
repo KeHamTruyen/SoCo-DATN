@@ -1,5 +1,6 @@
 import prisma from '../config/database.js';
 import slugify from 'slugify';
+import { trackProductView } from './analytics.service.js';
 
 class ProductService {
   /**
@@ -142,7 +143,7 @@ class ProductService {
   /**
    * Get single product by ID or slug
    */
-  async getProduct(identifier) {
+  async getProduct(identifier, viewContext = {}) {
     const product = await prisma.product.findFirst({
       where: {
         OR: [
@@ -196,6 +197,18 @@ class ProductService {
       where: { id: product.id },
       data: { viewsCount: { increment: 1 } }
     });
+
+    try {
+      await trackProductView({
+        productId: product.id,
+        userId: viewContext.userId,
+        sessionId: viewContext.sessionId,
+        ipAddress: viewContext.ipAddress,
+        userAgent: viewContext.userAgent
+      });
+    } catch (error) {
+      // Product response should not fail because of analytics tracking.
+    }
 
     return product;
   }

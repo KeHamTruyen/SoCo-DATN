@@ -95,22 +95,24 @@ class MessageController {
   async sendMessage(req, res, next) {
     try {
       const { conversationId } = req.params;
-      const { content, mediaUrl, attachmentUrl } = req.body;
+      const { content, mediaUrl, attachmentUrl, messageType } = req.body;
       const userId = req.user.id;
       const resolvedMediaUrl = mediaUrl ?? attachmentUrl ?? null;
+      const normalizedContent = typeof content === 'string' ? content.trim() : '';
 
-      if (!content || content.trim().length === 0) {
+      if (!normalizedContent && !resolvedMediaUrl) {
         return res.status(400).json({
           success: false,
-          message: 'Message content is required'
+          message: 'Message must include content or attachment'
         });
       }
 
       const message = await messageService.sendMessage(
         conversationId,
         userId,
-        content.trim(),
-        resolvedMediaUrl
+        normalizedContent || null,
+        resolvedMediaUrl,
+        messageType
       );
 
       // Emit Socket.IO event for real-time delivery
@@ -128,6 +130,41 @@ class MessageController {
         success: true,
         message: 'Message sent successfully',
         data: { message }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Upload message attachment
+   * POST /api/messages/conversations/:conversationId/attachments
+   * FormData: file
+   */
+  async uploadAttachment(req, res, next) {
+    try {
+      const { conversationId } = req.params;
+      const userId = req.user.id;
+
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'No file uploaded'
+        });
+      }
+
+      await messageService.ensureConversationParticipant(conversationId, userId);
+
+      res.json({
+        success: true,
+        message: 'Attachment uploaded successfully',
+        data: {
+          url: req.file.path,
+          publicId: req.file.filename,
+          resourceType: req.file.resource_type || 'auto',
+          originalFilename: req.file.originalname || null,
+          size: req.file.size || null
+        }
       });
     } catch (error) {
       next(error);

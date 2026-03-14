@@ -1,6 +1,6 @@
 import express from 'express';
 import productController from '../controllers/product.controller.js';
-import { protect, restrictTo } from '../middlewares/auth.middleware.js';
+import { protect, restrictTo, optionalAuth } from '../middlewares/auth.middleware.js';
 import {
   validate,
   createProductValidation,
@@ -103,7 +103,7 @@ router.get('/seller/me', protect, restrictTo('SELLER', 'ADMIN'), productControll
  *       404:
  *         description: Product not found
  */
-router.get('/:id', productIdValidation, validate, productController.getProduct);
+router.get('/:id', optionalAuth, productIdValidation, validate, productController.getProduct);
 
 /**
  * @swagger

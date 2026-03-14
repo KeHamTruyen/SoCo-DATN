@@ -125,6 +125,31 @@ export const syncDueScheduledPosts = async (userId) => {
   }
 };
 
+export const syncAllDueScheduledPosts = async () => {
+  const duePosts = await prisma.scheduledPost.findMany({
+    where: {
+      status: 'scheduled',
+      scheduledTime: {
+        lte: new Date()
+      }
+    },
+    select: {
+      id: true,
+      userId: true
+    }
+  });
+
+  for (const scheduledPost of duePosts) {
+    try {
+      await publishScheduledPostRecord(scheduledPost.id, scheduledPost.userId);
+    } catch (error) {
+      // Failed records are marked in publishScheduledPostRecord.
+    }
+  }
+
+  return duePosts.length;
+};
+
 export const createScheduledPost = async (userId, data) => {
   const payload = buildScheduledPostPayload(data);
 

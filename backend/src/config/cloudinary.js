@@ -51,6 +51,20 @@ const postStorage = new CloudinaryStorage({
   },
 });
 
+// Create storage for message attachments
+const messageStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'social-commerce/messages',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'mov', 'pdf', 'doc', 'docx', 'txt'],
+    resource_type: 'auto',
+    transformation: [
+      { width: 1280, height: 1280, crop: 'limit' },
+      { quality: 'auto' }
+    ],
+  },
+});
+
 // Multer upload middleware
 const uploadProduct = multer({ 
   storage: productStorage,
@@ -65,6 +79,11 @@ const uploadAvatar = multer({
 const uploadPost = multer({ 
   storage: postStorage,
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
+
+const uploadMessage = multer({
+  storage: messageStorage,
+  limits: { fileSize: 20 * 1024 * 1024 } // 20MB limit
 });
 
 // Helper function to delete image from Cloudinary
@@ -103,6 +122,7 @@ export {
   uploadProduct,
   uploadAvatar,
   uploadPost,
+  uploadMessage,
   deleteImage,
   getPublicIdFromUrl,
 };

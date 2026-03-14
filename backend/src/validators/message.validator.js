@@ -16,13 +16,12 @@ export const sendMessageValidator = [
     .isString()
     .withMessage('Conversation ID must be a string'),
   body('content')
-    .notEmpty()
-    .withMessage('Message content is required')
+    .optional({ nullable: true })
     .isString()
     .withMessage('Message content must be a string')
     .trim()
-    .isLength({ min: 1, max: 5000 })
-    .withMessage('Message content must be between 1 and 5000 characters'),
+    .isLength({ max: 5000 })
+    .withMessage('Message content must not exceed 5000 characters'),
   body('attachmentUrl')
     .optional()
     .isURL()
@@ -30,7 +29,23 @@ export const sendMessageValidator = [
   body('mediaUrl')
     .optional()
     .isURL()
-    .withMessage('Media URL must be a valid URL')
+    .withMessage('Media URL must be a valid URL'),
+  body('messageType')
+    .optional()
+    .isIn(['TEXT', 'IMAGE', 'VIDEO', 'FILE', 'PRODUCT', 'ORDER'])
+    .withMessage('Invalid message type'),
+  body()
+    .custom((payload) => {
+      const rawContent = payload?.content;
+      const content = typeof rawContent === 'string' ? rawContent.trim() : '';
+      const hasMedia = Boolean(payload?.mediaUrl || payload?.attachmentUrl);
+
+      if (!content && !hasMedia) {
+        throw new Error('Message must include content or attachment');
+      }
+
+      return true;
+    })
 ];
 
 export const conversationIdValidator = [

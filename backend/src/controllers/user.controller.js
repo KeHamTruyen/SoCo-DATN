@@ -102,6 +102,111 @@ class UserController {
       next(error);
     }
   }
+
+  /**
+   * Follow user
+   * POST /api/users/:userId/follow
+   */
+  async followUser(req, res, next) {
+    try {
+      const followerId = req.user.id;
+      const { userId } = req.params;
+
+      const follow = await userService.followUser(followerId, userId);
+
+      res.status(201).json({
+        success: true,
+        message: 'Followed user successfully',
+        data: follow
+      });
+    } catch (error) {
+      if (error.message === 'You cannot follow yourself' || error.message === 'Already following this user') {
+        return res.status(400).json({
+          success: false,
+          message: error.message
+        });
+      }
+
+      if (error.message === 'User not found') {
+        return res.status(404).json({
+          success: false,
+          message: error.message
+        });
+      }
+
+      next(error);
+    }
+  }
+
+  /**
+   * Unfollow user
+   * DELETE /api/users/:userId/follow
+   */
+  async unfollowUser(req, res, next) {
+    try {
+      const followerId = req.user.id;
+      const { userId } = req.params;
+
+      const result = await userService.unfollowUser(followerId, userId);
+
+      res.json({
+        success: true,
+        message: 'Unfollowed user successfully',
+        data: result
+      });
+    } catch (error) {
+      if (error.message === 'Follow relationship not found') {
+        return res.status(404).json({
+          success: false,
+          message: error.message
+        });
+      }
+
+      next(error);
+    }
+  }
+
+  /**
+   * Get followers list
+   * GET /api/users/:userId/followers
+   */
+  async getFollowers(req, res, next) {
+    try {
+      const { userId } = req.params;
+      const { page, limit } = req.query;
+
+      const result = await userService.getFollowers(userId, { page, limit });
+
+      res.json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get following list
+   * GET /api/users/:userId/following
+   */
+  async getFollowing(req, res, next) {
+    try {
+      const { userId } = req.params;
+      const { page, limit } = req.query;
+
+      const result = await userService.getFollowing(userId, { page, limit });
+
+      res.json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new UserController();

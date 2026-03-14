@@ -44,7 +44,17 @@ class ProductController {
    */
   async getProduct(req, res, next) {
     try {
-      const product = await productService.getProduct(req.params.id);
+      const forwardedFor = req.headers['x-forwarded-for'];
+      const ipAddress = Array.isArray(forwardedFor)
+        ? forwardedFor[0]
+        : (forwardedFor ? String(forwardedFor).split(',')[0].trim() : req.ip);
+
+      const product = await productService.getProduct(req.params.id, {
+        userId: req.user?.id,
+        sessionId: req.headers['x-session-id'] || req.cookies?.sid || null,
+        ipAddress,
+        userAgent: req.headers['user-agent'] || null
+      });
 
       res.json({
         success: true,

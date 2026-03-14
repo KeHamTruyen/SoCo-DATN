@@ -2,10 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import routes from './routes/index.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import swaggerSpec from './config/swagger.js';
+import { apiLimiter, authLimiter } from './middlewares/security.middleware.js';
 
 dotenv.config();
 
@@ -16,9 +18,12 @@ app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', process.env.FRONTEND_URL].filter(Boolean),
   credentials: true
 }));
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use('/api', apiLimiter);
+app.use('/api/auth', authLimiter);
 
 // Static files
 app.use('/uploads', express.static('src/uploads'));
