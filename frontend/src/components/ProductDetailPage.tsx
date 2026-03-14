@@ -312,7 +312,7 @@ export function ProductDetailPage() {
 
               {/* Price */}
               <div className="mb-6">
-                {product.compareAtPrice && (
+                {product.compareAtPrice && Number(product.compareAtPrice) > Number(product.price) && (
                   <span className="text-xl text-gray-500 line-through mr-3">
                     {Number(product.compareAtPrice).toLocaleString('vi-VN')}đ
                   </span>

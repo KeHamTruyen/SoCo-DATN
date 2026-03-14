@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, ShoppingCart, Heart, Star, ChevronDown, Grid, List, Store, TrendingUp, Award, Zap } from 'lucide-react';
+import { Search, Filter, ShoppingCart, Heart, Star, Grid, List, Store, TrendingUp, Award, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageLayout } from './Layout/PageLayout';
 import { useAuth } from '../contexts/AuthContext';
@@ -346,9 +346,9 @@ export function MarketplacePage() {
                         >
                           <Heart className="w-4 h-4 text-gray-600" />
                         </button>
-                        {product.compareAtPrice && product.compareAtPrice > product.price && (
+                        {product.compareAtPrice && Number(product.compareAtPrice) > Number(product.price) && (
                           <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">
-                            -{Math.round((1 - product.price / product.compareAtPrice) * 100)}%
+                            -{Math.round((1 - Number(product.price) / Number(product.compareAtPrice)) * 100)}%
                           </div>
                         )}
                       </div>
@@ -362,7 +362,7 @@ export function MarketplacePage() {
                         <div className="flex items-center justify-between">
                           <div>
                             <span className="text-base font-semibold text-blue-600">
-                              {product.price.toLocaleString('vi-VN')}đ
+                              {Number(product.price).toLocaleString('vi-VN')}đ
                             </span>
                           </div>
                           <button
@@ -418,9 +418,9 @@ export function MarketplacePage() {
                             alt={product.title}
                             className="w-full h-full object-cover rounded-lg"
                           />
-                          {product.compareAtPrice && product.compareAtPrice > product.price && (
+                          {product.compareAtPrice && Number(product.compareAtPrice) > Number(product.price) && (
                             <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">
-                              -{Math.round((1 - product.price / product.compareAtPrice) * 100)}%
+                              -{Math.round((1 - Number(product.price) / Number(product.compareAtPrice)) * 100)}%
                             </div>
                           )}
                         </div>
@@ -434,7 +434,7 @@ export function MarketplacePage() {
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-lg font-semibold text-blue-600">
-                              {product.price.toLocaleString('vi-VN')}đ
+                              {Number(product.price).toLocaleString('vi-VN')}đ
                             </span>
                             <div className="flex items-center gap-3">
                               {product.seller && (

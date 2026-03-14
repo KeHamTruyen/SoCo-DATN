@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Trash2, Eye, Loader2, Pencil } from 'lucide-react';
+import { Plus, Search, Trash2, Eye, Loader2, Pencil, Send, PauseCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import productService, { type Product } from '../../services/product.service';
@@ -31,6 +31,7 @@ export function ProductManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProductStatusFilter>('ALL');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -55,6 +56,41 @@ export function ProductManagementPage() {
       toast.error(error.response?.data?.message || 'Không thể tải danh sách sản phẩm');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePublish = async (id: string) => {
+    try {
+      setPublishingId(id);
+      const response = await productService.publishProduct(id);
+      if (response.success) {
+        toast.success('Đã đăng bán sản phẩm!');
+        setProducts((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, status: 'ACTIVE' } : p))
+        );
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Không thể đăng bán sản phẩm');
+    } finally {
+      setPublishingId(null);
+    }
+  };
+
+  const handleUnpublish = async (id: string) => {
+    if (!confirm('Ngưng bán sản phẩm này? Sản phẩm sẽ chuyển về trạng thái Nháp.')) return;
+    try {
+      setPublishingId(id);
+      const response = await productService.updateProduct(id, { status: 'DRAFT' } as any);
+      if (response.success) {
+        toast.success('Đã ngưng bán sản phẩm');
+        setProducts((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, status: 'DRAFT' } : p))
+        );
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Không thể ngưng bán sản phẩm');
+    } finally {
+      setPublishingId(null);
     }
   };
 
@@ -152,6 +188,7 @@ export function ProductManagementPage() {
             {filteredProducts.map((product) => {
               const image = product.images?.[0]?.imageUrl || 'https://via.placeholder.com/400x400?text=No+Image';
               const isDeleting = deletingId === product.id;
+              const normalizedStatus = String(product.status || '').toUpperCase();
 
               return (
                 <div key={product.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -159,10 +196,10 @@ export function ProductManagementPage() {
                     <img src={image} alt={product.title} className="w-full h-full object-cover" />
                     <span
                       className={`absolute top-2 left-2 px-2 py-1 text-xs rounded-full ${
-                        statusColor[product.status] || 'bg-gray-100 text-gray-700'
+                        statusColor[normalizedStatus] || 'bg-gray-100 text-gray-700'
                       }`}
                     >
-                      {statusLabel[product.status] || product.status}
+                      {statusLabel[normalizedStatus] || product.status}
                     </span>
                   </div>
 
@@ -178,6 +215,33 @@ export function ProductManagementPage() {
                     </div>
 
                     <div className="flex gap-2">
+                      {normalizedStatus === 'ACTIVE' ? (
+                        <button
+                          onClick={() => handleUnpublish(product.id)}
+                          disabled={publishingId === product.id}
+                          className="flex-1 px-3 py-2 text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+                          title="Ngưng bán"
+                        >
+                          {publishingId === product.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <><PauseCircle className="w-4 h-4" /> Ngưng bán</>
+                          )}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handlePublish(product.id)}
+                          disabled={publishingId === product.id || normalizedStatus === 'ARCHIVED'}
+                          className="flex-1 px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+                          title="Đăng bán ngay"
+                        >
+                          {publishingId === product.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <><Send className="w-4 h-4" /> Đăng bán</>
+                          )}
+                        </button>
+                      )}
                       <button
                         onClick={() => navigate(`/product/${product.slug}`)}
                         className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"

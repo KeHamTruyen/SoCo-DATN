@@ -549,7 +549,7 @@ export function AddProductPage() {
                       {productName || 'Tên sản phẩm'}
                     </h3>
                     <div className="flex items-center gap-2">
-                      {compareAtPrice && (
+                      {compareAtPrice && price && parseFloat(compareAtPrice) > parseFloat(price) && (
                         <span className="text-sm text-gray-500 line-through">
                           {parseFloat(compareAtPrice).toLocaleString('vi-VN')}đ
                         </span>
