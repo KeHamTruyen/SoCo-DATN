@@ -128,32 +128,48 @@ export function AddProductPage() {
   };
 
   const handleSubmit = async () => {
-    if (!productName || !price || !category || images.length === 0) {
+    if (!productName || !price || images.length === 0) {
       alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
 
     setIsSubmitting(true);
     try {
+      const isUuid = (value: string) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+          value
+        );
+
+      const normalizedVariants = variants
+        .map((v) => ({
+          name: v.name.trim(),
+          options: v.options
+            .map((opt) => opt.trim())
+            .filter(Boolean)
+            .reduce((acc, opt, idx) => ({
+              ...acc,
+              [`option${idx + 1}`]: opt,
+            }), {} as Record<string, string>),
+        }))
+        .filter((v) => v.name.length > 0);
+
       await productService.createProduct({
-        title: productName,
-        description,
+        title: productName.trim(),
+        description: description.trim() || undefined,
         price: parseFloat(price),
         compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
-        categoryId: category, // This should be a category UUID in real implementation
+        // Backend expects UUID. Current UI keeps category labels, so only send when valid UUID.
+        categoryId: category && isUuid(category) ? category : undefined,
         stockQuantity: stock ? parseInt(stock) : 0,
-        sku: sku || undefined,
+        sku: sku.trim() || undefined,
         images: images.map((url) => ({
           url,
-          altText: productName
+          altText: productName.trim()
         })),
-        variants: variants.map(v => ({
+        variants: normalizedVariants.map((v) => ({
           name: v.name,
-          options: v.options.reduce((acc, opt, idx) => ({
-            ...acc,
-            [`option${idx + 1}`]: opt
-          }), {}),
-          stockQuantity: 0
+          options: v.options,
+          stockQuantity: 0,
         })),
         metaKeywords: tags
       });
@@ -162,7 +178,12 @@ export function AddProductPage() {
       navigate('/seller/products');
     } catch (error: any) {
       console.error('Error creating product:', error);
-      alert(error.response?.data?.message || 'Không thể thêm sản phẩm. Vui lòng thử lại.');
+      const validationMessage = error.response?.data?.errors?.[0]?.msg;
+      alert(
+        validationMessage ||
+          error.response?.data?.message ||
+          'Không thể thêm sản phẩm. Vui lòng thử lại.'
+      );
     } finally {
       setIsSubmitting(false);
     }

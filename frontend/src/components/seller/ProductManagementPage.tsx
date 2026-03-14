@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Trash2, Eye, Loader2 } from 'lucide-react';
+import { Plus, Search, Trash2, Eye, Loader2, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import productService, { type Product } from '../../services/product.service';
@@ -184,6 +184,13 @@ export function ProductManagementPage() {
                       >
                         <Eye className="w-4 h-4" />
                         Xem
+                      </button>
+                      <button
+                        onClick={() => navigate(`/seller/products/${product.id}/edit`)}
+                        className="px-3 py-2 text-sm border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                        title="Sửa sản phẩm"
+                      >
+                        <Pencil className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(product.id)}

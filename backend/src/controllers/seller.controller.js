@@ -95,7 +95,7 @@ export const getStats = async (req, res, next) => {
             product: {
               select: {
                 id: true,
-                name: true,
+                title: true,
                 slug: true
               }
             }
