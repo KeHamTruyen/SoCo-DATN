@@ -2,6 +2,30 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Keep API response backward-compatible: expose product.name from product.title.
+const normalizeOrderForClient = (order) => {
+  if (!order?.items) {
+    return order;
+  }
+
+  return {
+    ...order,
+    items: order.items.map((item) => {
+      if (!item.product) {
+        return item;
+      }
+
+      return {
+        ...item,
+        product: {
+          ...item.product,
+          name: item.product.title,
+        },
+      };
+    }),
+  };
+};
+
 /**
  * Generate unique order number
  */
@@ -29,7 +53,7 @@ export const createOrder = async (userId, orderData) => {
   } = orderData;
 
   // Get user's cart
-  const cart = await prisma.cart.findUnique({
+  const cart = await prisma.cart.findFirst({
     where: { userId },
     include: {
       items: {
@@ -42,6 +66,7 @@ export const createOrder = async (userId, orderData) => {
               },
             },
           },
+          variant: true,
         },
       },
     },
@@ -57,11 +82,11 @@ export const createOrder = async (userId, orderData) => {
       item.product.trackInventory &&
       item.product.stockQuantity < item.quantity
     ) {
-      throw new Error(`Insufficient stock for ${item.product.name}`);
+      throw new Error(`Insufficient stock for ${item.product.title}`);
     }
 
     if (item.product.status !== 'ACTIVE') {
-      throw new Error(`Product ${item.product.name} is not available`);
+      throw new Error(`Product ${item.product.title} is not available`);
     }
   }
 
@@ -110,10 +135,17 @@ export const createOrder = async (userId, orderData) => {
         data: {
           orderId: newOrder.id,
           productId: item.product.id,
+          variantId: item.variantId || null,
           sellerId: item.product.sellerId,
-          productName: item.product.name,
+          productName: item.product.title,
           productImageUrl: item.product.images[0]?.imageUrl || null,
-          variantInfo: item.selectedVariant,
+          variantInfo: item.variant
+            ? {
+                id: item.variant.id,
+                variantName: item.variant.variantName,
+                options: item.variant.options,
+              }
+            : null,
           quantity: item.quantity,
           unitPrice: item.product.price,
           totalPrice,
@@ -143,7 +175,8 @@ export const createOrder = async (userId, orderData) => {
   });
 
   // Return order with items
-  return await getOrder(order.id, userId);
+  const fullOrder = await getOrder(order.id, userId);
+  return normalizeOrderForClient(fullOrder);
 };
 
 /**
@@ -166,7 +199,7 @@ export const getOrder = async (orderId, userId = null) => {
           product: {
             select: {
               id: true,
-              name: true,
+              title: true,
               slug: true,
               price: true,
               status: true,
@@ -199,7 +232,7 @@ export const getOrder = async (orderId, userId = null) => {
     }
   }
 
-  return order;
+  return normalizeOrderForClient(order);
 };
 
 /**
@@ -222,7 +255,7 @@ export const getUserOrders = async (userId, filters = {}) => {
             product: {
               select: {
                 id: true,
-                name: true,
+                title: true,
                 slug: true,
               },
             },
@@ -237,7 +270,7 @@ export const getUserOrders = async (userId, filters = {}) => {
   ]);
 
   return {
-    orders,
+    orders: orders.map(normalizeOrderForClient),
     pagination: {
       page,
       limit,
@@ -280,7 +313,7 @@ export const getSellerOrders = async (sellerId, filters = {}) => {
             product: {
               select: {
                 id: true,
-                name: true,
+                title: true,
                 slug: true,
               },
             },
@@ -295,7 +328,7 @@ export const getSellerOrders = async (sellerId, filters = {}) => {
   ]);
 
   return {
-    orders,
+    orders: orders.map(normalizeOrderForClient),
     pagination: {
       page,
       limit,
@@ -370,7 +403,7 @@ export const updateOrderStatus = async (orderId, userId, newStatus) => {
           product: {
             select: {
               id: true,
-              name: true,
+              title: true,
               slug: true,
             },
           },
@@ -379,7 +412,7 @@ export const updateOrderStatus = async (orderId, userId, newStatus) => {
     },
   });
 
-  return updatedOrder;
+  return normalizeOrderForClient(updatedOrder);
 };
 
 /**
@@ -481,7 +514,7 @@ export const confirmPayment = async (orderId) => {
           product: {
             select: {
               id: true,
-              name: true,
+              title: true,
               slug: true,
             },
           },
@@ -490,5 +523,5 @@ export const confirmPayment = async (orderId) => {
     },
   });
 
-  return updatedOrder;
+  return normalizeOrderForClient(updatedOrder);
 };

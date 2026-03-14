@@ -298,6 +298,7 @@
 - [ ] **TODO: Notification preferences page**
 
 ### Integration Notes
+
 - ✅ Like/Comment notifications trigger correctly when users interact with posts
 - ✅ No self-notification (users don't receive notifications for their own actions)
 - ✅ Real-time delivery via Socket.IO confirmed working

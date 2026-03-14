@@ -36,7 +36,10 @@ export function MarketplacePage() {
   const loadCategories = async () => {
     try {
       const response = await categoryService.getCategories();
-      setCategories(response.data.categories || []);
+      const categoryList = Array.isArray(response.data)
+        ? response.data
+        : response.data?.categories || [];
+      setCategories(categoryList);
     } catch (error) {
       console.error('Failed to load categories:', error);
     }
@@ -81,15 +84,28 @@ export function MarketplacePage() {
         status: 'ACTIVE'
       });
 
+      const productList = Array.isArray(response.data)
+        ? response.data
+        : response.data?.products || [];
+
+      const pagination = response.pagination || response.data?.pagination;
+
       if (page === 1) {
-        setProducts(response.data.products);
+        setProducts(productList);
       } else {
-        setProducts(prev => [...prev, ...response.data.products]);
+        setProducts((prev) => [...prev, ...productList]);
       }
       
-      setHasMore(response.data.pagination.page < response.data.pagination.totalPages);
+      if (pagination) {
+        setHasMore(pagination.page < pagination.totalPages);
+      } else {
+        setHasMore(productList.length >= 20);
+      }
     } catch (error) {
       console.error('Failed to load products:', error);
+      if (page === 1) {
+        setProducts([]);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -313,7 +329,7 @@ export function MarketplacePage() {
                   return (
                     <div
                       key={product.id}
-                      onClick={() => navigate(`/products/${product.id}`)}
+                      onClick={() => navigate(`/product/${product.id}`)}
                       className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
                     >
                       <div className="relative aspect-square overflow-hidden">
@@ -392,7 +408,7 @@ export function MarketplacePage() {
                   return (
                     <div
                       key={product.id}
-                      onClick={() => navigate(`/products/${product.id}`)}
+                      onClick={() => navigate(`/product/${product.id}`)}
                       className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
                     >
                       <div className="flex gap-4 p-4">

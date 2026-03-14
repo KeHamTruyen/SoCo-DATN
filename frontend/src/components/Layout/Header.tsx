@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, MessageCircle, Search, Bell, User, Store, LogOut, Settings, Calendar, Users, LayoutDashboard } from 'lucide-react';
+import { ShoppingCart, ShoppingBag, MessageCircle, Search, Bell, User, Store, LogOut, Settings, Calendar, Users, LayoutDashboard } from 'lucide-react';
 import { NotificationCenter } from '../NotificationCenter';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
@@ -82,6 +82,12 @@ export function Header({
                 className="text-gray-600 hover:text-blue-600 transition-colors"
               >
                 Marketplace
+              </button>
+              <button
+                onClick={() => navigate('/orders')}
+                className="text-gray-600 hover:text-blue-600 transition-colors"
+              >
+                Đơn hàng của tôi
               </button>
               <button 
                 onClick={() => navigate('/groups')}
@@ -194,6 +200,17 @@ export function Header({
                       >
                         <Settings className="w-4 h-4" />
                         Cài đặt
+                      </button>
+
+                      <button
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          navigate('/orders');
+                        }}
+                      >
+                        <ShoppingBag className="w-4 h-4" />
+                        Đơn hàng của tôi
                       </button>
 
                       {/* Seller Options */}

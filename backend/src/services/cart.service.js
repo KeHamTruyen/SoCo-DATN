@@ -27,6 +27,7 @@ const getOrCreateCart = async (userId) => {
               },
             },
           },
+          variant: true,
         },
       },
     },
@@ -59,6 +60,7 @@ const getOrCreateCart = async (userId) => {
               },
             },
           },
+          variant: true,
         },
       },
     });
@@ -111,16 +113,35 @@ export const addToCart = async (userId, productId, quantity = 1, selectedVariant
   // Get or create cart
   const cart = await getOrCreateCart(userId);
 
+  // selectedVariant is kept for API compatibility; map variantId when available.
+  const variantId = selectedVariant && typeof selectedVariant === 'object'
+    ? selectedVariant.variantId || null
+    : null;
+
+  if (variantId) {
+    const variant = await prisma.productVariant.findFirst({
+      where: {
+        id: variantId,
+        productId,
+        isActive: true,
+      },
+    });
+
+    if (!variant) {
+      throw new Error('Invalid product variant');
+    }
+
+    if (product.trackInventory && variant.stockQuantity < quantity) {
+      throw new Error('Insufficient stock');
+    }
+  }
+
   // Check if item already exists in cart with same variant
   const existingItem = await prisma.cartItem.findFirst({
     where: {
       cartId: cart.id,
       productId,
-      ...(selectedVariant && {
-        selectedVariant: {
-          equals: selectedVariant,
-        },
-      }),
+      variantId,
     },
   });
 
@@ -142,8 +163,9 @@ export const addToCart = async (userId, productId, quantity = 1, selectedVariant
       data: {
         cartId: cart.id,
         productId,
+        variantId,
         quantity,
-        selectedVariant,
+        price: Number(product.price),
       },
     });
   }
@@ -228,7 +250,7 @@ export const removeFromCart = async (userId, cartItemId) => {
  * Clear cart
  */
 export const clearCart = async (userId) => {
-  const cart = await prisma.cart.findUnique({
+  const cart = await prisma.cart.findFirst({
     where: { userId },
   });
 
@@ -249,7 +271,7 @@ export const clearCart = async (userId) => {
  * Get cart items count
  */
 export const getCartItemsCount = async (userId) => {
-  const cart = await prisma.cart.findUnique({
+  const cart = await prisma.cart.findFirst({
     where: { userId },
     include: {
       items: true,

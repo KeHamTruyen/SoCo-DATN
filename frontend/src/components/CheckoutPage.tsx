@@ -59,14 +59,37 @@ export function CheckoutPage() {
       setSubmitting(true);
       setError(null);
 
+      const normalizedPhone = shippingPhone
+        .trim()
+        .replace(/^\+84/, '0')
+        .replace(/\D/g, '');
+
+      const normalizedAddress = shippingAddress.trim();
+      const normalizedName = shippingName.trim();
+
+      if (normalizedName.length < 2) {
+        setError('Shipping name must be between 2-100 characters');
+        return;
+      }
+
+      if (!/^\d{10,11}$/.test(normalizedPhone)) {
+        setError('Invalid phone number format. Please enter 10-11 digits.');
+        return;
+      }
+
+      if (normalizedAddress.length < 10) {
+        setError('Shipping address must be between 10-500 characters');
+        return;
+      }
+
       const orderData: CreateOrderRequest = {
-        shippingName,
-        shippingPhone,
-        shippingAddress,
-        shippingCity,
-        shippingDistrict,
-        shippingWard,
-        shippingNote,
+        shippingName: normalizedName,
+        shippingPhone: normalizedPhone,
+        shippingAddress: normalizedAddress,
+        shippingCity: shippingCity.trim() || undefined,
+        shippingDistrict: shippingDistrict.trim() || undefined,
+        shippingWard: shippingWard.trim() || undefined,
+        shippingNote: shippingNote.trim() || undefined,
         paymentMethod,
       };
 
@@ -85,7 +108,9 @@ export function CheckoutPage() {
       }, 2000);
     } catch (err: any) {
       console.error('Create order error:', err);
-      setError(err.response?.data?.message || 'Failed to create order');
+      const apiMessage = err.response?.data?.message;
+      const validationError = err.response?.data?.errors?.[0]?.msg;
+      setError(validationError || apiMessage || 'Failed to create order');
     } finally {
       setSubmitting(false);
     }

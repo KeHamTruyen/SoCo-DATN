@@ -28,6 +28,12 @@ export const validateCreateOrder = [
   body('shippingPhone')
     .notEmpty()
     .withMessage('Shipping phone is required')
+    // Normalize common phone formats like "+84 912-345-678" before validation.
+    .customSanitizer((value) =>
+      String(value ?? '')
+        .replace(/\+84/g, '0')
+        .replace(/\D/g, '')
+    )
     .matches(/^[0-9]{10,11}$/)
     .withMessage('Invalid phone number format'),
   body('shippingAddress')
@@ -37,22 +43,22 @@ export const validateCreateOrder = [
     .isLength({ min: 10, max: 500 })
     .withMessage('Shipping address must be between 10-500 characters'),
   body('shippingCity')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isLength({ max: 100 })
     .withMessage('City name too long'),
   body('shippingDistrict')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isLength({ max: 100 })
     .withMessage('District name too long'),
   body('shippingWard')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isLength({ max: 100 })
     .withMessage('Ward name too long'),
   body('shippingNote')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isLength({ max: 500 })
     .withMessage('Shipping note too long'),
