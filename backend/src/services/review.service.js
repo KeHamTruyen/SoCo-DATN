@@ -125,6 +125,7 @@ export const createReview = async (userId, payload) => {
       title,
       content,
       images,
+      isPublished: true,
       isVerifiedPurchase: verifiedPurchase
     },
     include: {

@@ -117,3 +117,16 @@ export const getReportsSummary = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getAdvancedAnalyticsDashboard = async (req, res, next) => {
+  try {
+    const data = await adminService.getAdvancedAnalyticsDashboard(req.query);
+    res.json({ success: true, data });
+  } catch (error) {
+    if (error.message === 'Invalid startDate' || error.message === 'Invalid endDate' || error.message === 'startDate must be before or equal to endDate') {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+
+    next(error);
+  }
+};

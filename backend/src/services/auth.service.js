@@ -150,7 +150,7 @@ class AuthService {
    * Update user profile
    */
   async updateProfile(userId, data) {
-    const { email, username, fullName, phone, bio, avatarUrl, coverImage, address, role } = data;
+    const { email, username, fullName, phone, bio, avatarUrl, coverImage, address } = data;
     const normalizedUsername = username ? String(username).trim().toLowerCase() : undefined;
 
     // Check if email/username is taken by another user
@@ -190,12 +190,6 @@ class AuthService {
       ...(coverImage !== undefined && { coverImage }),
       ...(address !== undefined && { address })
     };
-
-    // Allow role update for becoming a seller
-    // TODO: In production, this should require admin approval
-    if (role && (role === 'SELLER' || role === 'BUYER')) {
-      updateData.role = role;
-    }
 
     // Update user
     const updatedUser = await prisma.user.update({

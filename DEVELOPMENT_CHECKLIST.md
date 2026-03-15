@@ -2,21 +2,6 @@
 
 ## 🎯 Tổng quan tiến độ
 
-### 🧾 Module 3 (Buyer/Seller) - Trạng thái theo UC (cập nhật theo code hiện tại)
-
-- [x] UC3.1 Tìm kiếm sản phẩm: Đã có API filter ở `/api/products`; `MarketplacePage` và `SearchResultsPage` đã tích hợp API thật (products/users/shops).
-- [x] UC3.2 Xem chi tiết sản phẩm: Đã có API + ProductDetailPage và đã nối đọc/ghi review qua API.
-- [~] UC3.3 Thêm sản phẩm vào giỏ hàng: Đã có API `/api/cart/items` và luồng thêm từ Marketplace/ProductDetail; biến thể chưa đồng nhất hoàn toàn giữa các màn.
-- [x] UC3.4 Quản lý giỏ hàng: Đầy đủ xem/cập nhật số lượng/xóa/xóa toàn bộ.
-- [x] UC3.5 Thực hiện thanh toán: Đã có checkout + tạo đơn + mock confirm payment (COD).
-- [x] UC3.6 Theo dõi trạng thái đơn hàng: Đã có route `/orders`, `/orders/:orderId` + API + timeline trạng thái.
-- [~] UC3.7 Đánh giá và xếp hạng sản phẩm/người bán: Đã có buyer review API + đọc review sản phẩm; StorePage đã hiển thị điểm trung bình seller (aggregate) nhưng chưa có module xếp hạng độc lập.
-- [~] UC3.8 Quản lý sản phẩm Seller: Đã nối API list/delete/edit + trạng thái publish/unpublish; còn thiếu một số tối ưu UI/UX nâng cao.
-- [x] UC3.9 Dashboard hiệu suất Seller: Đã sửa backend stats theo schema hiện tại và FE đọc API thật.
-- [x] UC3.10 Quản lý đơn hàng Seller: Đã có API `/api/orders/my/sales` + cập nhật trạng thái + FE tích hợp.
-- [x] UC3.11 Xử lý hoàn tiền (giả lập): Đã cho phép transition `COMPLETED -> REFUNDED`.
-- [x] UC3.12 Phản hồi đánh giá Buyer: Đã có route/controller/service + FE và đã đồng bộ field `avatarUrl`.
-
 ### ✅ Đã hoàn thành (Phase 1, 2, 3 & 4)
 
 - Backend Auth API
@@ -86,9 +71,10 @@
 - [x] Category controller
 - [x] Category routes (`/api/categories/*`)
 - [x] Slugify integration
-- [ ] **TODO: Upload middleware cho product images**
-- [ ] **TODO: Image optimization/resize**
-- [ ] **TODO: Cloud storage integration (AWS S3/Cloudinary)**
+- [x] Upload middleware cho product images (multipart)
+- [x] Image optimization/resize (Sharp + convert WebP)
+- [x] Cloud storage integration (Cloudinary)
+- [x] Trending products API (`GET /api/products/trending`)
 
 ### Frontend
 
@@ -303,8 +289,10 @@
 - ✅ Like/Comment notifications trigger correctly when users interact with posts
 - ✅ No self-notification (users don't receive notifications for their own actions)
 - ✅ Real-time delivery via Socket.IO confirmed working
-- ✅ Notification types use lowercase format: 'like', 'comment', 'follow', etc.
-- ✅ Action URLs properly formatted: `/post/:id` for post-related notifications
+- ✅ Đã có thêm notification cho order, message, product mention, report và một số luồng admin moderation
+- ✅ Notification types hiện đang dùng format uppercase theo service layer: `FOLLOW`, `ORDER`, `MESSAGE`, `PRODUCT`, `REPORT`, `SYSTEM`, `SELLER_VERIFICATION`
+- ✅ Unread count được emit lại real-time sau create/read/delete
+- ✅ Action URLs đã được chuẩn hóa theo từng ngữ cảnh chính
 
 ---
 
@@ -378,18 +366,24 @@
 
 ---
 
-## 🏪 12. SELLER FEATURES (⏳ Đã có API, còn điểm cần fix)
+## 🏪 12. SELLER FEATURES (⏳ Backend core gần hoàn chỉnh, còn frontend/admin flow)
 
 ### Backend
 
 - [x] SellerVerification model (Prisma schema)
 - [x] SellerStats model (Prisma schema)
-- [x] User role update endpoint (cho phép BUYER → SELLER)
 - [x] Seller stats route/controller (`/api/seller/stats`)
+- [x] Seller verification status API (`GET /api/seller/verification`)
+- [x] Seller verification upload API (`POST /api/seller/verification/upload`)
+- [x] Seller verification submit step 1/2/3 APIs (`PUT /api/seller/verification/step-1|2|3`)
+- [x] Seller verification submit for review API (`POST /api/seller/verification/submit`)
+- [x] Seller verification validators (step 1/2/3 + document type)
+- [x] Seller verification documents upload lên Cloudinary
 - [x] Review response route/controller/service (`/api/reviews/seller/me`, `/:id/response`)
 - [x] Store profile payload có `sellerRating` aggregate (average/count) cho StorePage
-- [ ] **TODO: Seller verification service (3-step form)**
-- [ ] **TODO: Admin approval system cho seller verification**
+- [x] Admin approval endpoint cho seller verification (`PATCH /api/admin/users/:userId/verify-seller`)
+- [x] Product creation hiện yêu cầu seller verification đã được approve
+- [x] Seller verification workflow backend 3-step + persisted review status
 - [x] Seller stats query mapping theo schema hiện tại (buyer/avatarUrl, order-item based aggregation)
 
 ### Frontend
@@ -401,13 +395,13 @@
 - [x] ReviewManagementPage - seller response UI + API
 - [x] **BecomeSellerPage - migrated to hooks + API**
   - ⚠️ **TEMPORARY**: Auto-approve seller registration (không cần admin duyệt)
-  - ⚠️ **TODO FOR PRODUCTION**: Implement admin approval workflow
-  - ⚠️ **TODO**: Upload ID card images to Cloudinary
-  - ⚠️ **TODO**: Store verification data in SellerVerification table
+  - ⚠️ **TODO FOR PRODUCTION**: Nối sang backend review flow thật thay vì auto-approve
+  - ⚠️ **TODO**: Nối upload giấy tờ lên Cloudinary qua API mới
+  - ⚠️ **TODO**: Nối save step 1/2/3 vào SellerVerification thật
 - [x] **StorePage - migrated to hooks**
 - [x] StorePage dùng header/layout chung (Social Commerce) thay vì header cục bộ
 - [x] StorePage hiển thị điểm đánh giá trung bình seller (không còn hardcode/mislabel)
-- [ ] **TODO: Seller verification flow (3 steps với admin approval)**
+- [ ] **TODO: Seller verification frontend flow (3 steps + upload + submit review)**
 - [ ] **TODO: Revenue charts**
 - [ ] **TODO: Sales analytics**
 
@@ -447,6 +441,7 @@
 - [x] Product moderation (`GET /api/admin/products`, `PATCH /api/admin/products/:productId/status`)
 - [x] Order management (admin) (`GET /api/admin/orders`, `PATCH /api/admin/orders/:orderId/status`)
 - [x] Analytics & reports (`GET /api/admin/reports/summary`)
+- [x] Advanced analytics dashboard API (`GET /api/admin/analytics/dashboard`)
 
 ### Frontend
 
@@ -530,13 +525,16 @@
 
 ---
 
-## 🧪 18. TESTING (❌ Chưa làm)
+## 🧪 18. TESTING (⏳ Đang làm - backend integration coverage đã mở rộng)
 
 ### Backend
 
 - [ ] **TODO: Unit tests (Jest)**
 - [x] Integration tests (khởi tạo với `node:test` + `supertest`)
 - [x] API endpoint tests (smoke-level `GET /health`)
+- [x] Service integration tests cho `auth`, `category`, `cart`, `order`, `product`, `user`, `message`, `notification`, `report`, `review`, `search`, `admin`, `group`, `post`, `scheduled-post`, `analytics`, `seller`
+- [x] Regression tests cho order flow, variant stock/price snapshot, verified seller gating, notification triggers
+- [~] Full-suite stability: còn một số test report/notification cũ có dấu hiệu flaky khi chạy toàn bộ suite
 - [ ] **TODO: Test coverage >= 70%**
 
 ### Frontend
@@ -624,24 +622,25 @@
 
 ### 🔥 HIGH PRIORITY (Làm ngay)
 
-1. **Upload middleware cho images**
-2. **Seed data để test**
-3. **Messaging (Real-time)** (Phase 4)
-4. **Notifications** (Phase 4)
+1. **Tích hợp frontend upload ảnh sản phẩm (multipart) vào Add/Edit Product**
+2. **Nối frontend seller verification 3-step vào backend mới**
+3. **Admin seller verification review UI/list**
+4. **Messaging attachments/UI polishing**
 
 ### 🟡 MEDIUM PRIORITY (Sau Phase 4)
 
 5. **Reviews & Ratings** (Phase 5)
 6. **Search & Filters** (Phase 5)
-7. **Groups** (Phase 6)
+7. **Seed data để test/demo**
+8. **Admin frontend & analytics dashboard**
 
 ### 🟢 LOW PRIORITY (Cuối cùng)
 
-8. **Admin Dashboard** (Phase 7)
-9. **Analytics** (Phase 7)
-10. **AI Features** (Phase 8)
-11. **Testing & Documentation**
-12. **Deployment**
+9. **Admin Dashboard** (Phase 7)
+10. **Analytics** (Phase 7)
+11. **AI Features** (Phase 8)
+12. **Testing & Documentation**
+13. **Deployment**
 
 ---
 
@@ -650,19 +649,19 @@
 | Module        | Backend | Frontend | Status     |
 | ------------- | ------- | -------- | ---------- |
 | Auth          | ✅ 100% | ✅ 100%  | ✅ Done    |
-| Products      | ✅ 90%  | ✅ 80%   | ⏳ Phase 1 |
+| Products      | ✅ 95%  | ✅ 80%   | ⏳ Phase 1 |
 | Categories    | ✅ 100% | ✅ 100%  | ✅ Done    |
 | Cart          | ✅ 100% | ✅ 100%  | ✅ Done    |
 | Orders        | ✅ 100% | ✅ 100%  | ✅ Done    |
 | Posts         | ✅ 100% | ✅ 100%  | ✅ Done    |
 | Messages      | ✅ 95%  | ✅ 75%   | ⏳ Phase 4 |
 | Notifications | ✅ 100% | ✅ 100%  | ✅ Done    |
-| Reviews       | ⏳ 95%  | ⏳ 70%   | ⏳ Partial |
-| Search        | ⏳ 80%  | ⏳ 60%   | ⏳ Partial |
-| Seller        | ⏳ 80%  | ⏳ 85%   | ⏳ Partial |
-| Admin         | ⏳ 80%  | ❌ 0%    | ⏳ Partial |
+| Reviews       | ✅ 95%  | ⏳ 70%   | ⏳ Partial |
+| Search        | ✅ 90%  | ⏳ 60%   | ⏳ Partial |
+| Seller        | ✅ 92%  | ⏳ 85%   | ⏳ Partial |
+| Admin         | ⏳ 85%  | ❌ 0%    | ⏳ Partial |
 
-**Tổng tiến độ: ~91%** 🚀
+**Tổng tiến độ: ~94%** 🚀
 
 ---
 
@@ -671,11 +670,11 @@
 1. ✅ ~~Phase 1: Products & Categories~~ (DONE)
 2. ✅ ~~Phase 2: Cart & Orders~~ (DONE - 100%)
 3. ✅ ~~Phase 3: Posts & Social Feed~~ (DONE - 100%)
-4. 🎯 **Phase 4: Messaging & Notifications** (NEXT)
-5. 🔍 Phase 5: Search & Marketplace
-6. 👨‍💼 Phase 6: Admin & Analytics
+4. ⏳ **Phase 4: Messaging polish + seller verification frontend integration**
+5. 🔍 Phase 5: Search & Marketplace UX hoàn thiện
+6. 👨‍💼 Phase 6: Admin & Analytics frontend
 7. 🚀 Phase 7: Deployment
 
 ---
 
-_Last updated: March 15, 2026_
+_Last updated: March 16, 2026_

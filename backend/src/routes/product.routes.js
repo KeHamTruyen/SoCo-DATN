@@ -6,9 +6,11 @@ import {
   createProductValidation,
   updateProductValidation,
   getProductsValidation,
+  getTrendingProductsValidation,
   productIdValidation,
   addImagesValidation
 } from '../validators/product.validator.js';
+import { optimizeAndUploadProductImages, uploadProductImagesMulter } from '../middlewares/product-image-upload.middleware.js';
 
 const router = express.Router();
 
@@ -63,6 +65,33 @@ router.get('/', getProductsValidation, validate, productController.getProducts);
 
 /**
  * @swagger
+ * /products/trending:
+ *   get:
+ *     summary: Get trending products
+ *     tags: [Products]
+ *     parameters:
+ *       - in: query
+ *         name: days
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 365
+ *           default: 30
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 50
+ *           default: 12
+ *     responses:
+ *       200:
+ *         description: Trending products retrieved successfully
+ */
+router.get('/trending', getTrendingProductsValidation, validate, productController.getTrendingProducts);
+
+/**
+ * @swagger
  * /products/seller/me:
  *   get:
  *     summary: Get current seller's products
@@ -109,10 +138,11 @@ router.get('/:id', optionalAuth, productIdValidation, validate, productControlle
  * @swagger
  * /products:
  *   post:
- *     summary: Create new product (Seller only)
+ *     summary: Create new product (Verified seller or admin only)
  *     tags: [Products]
  *     security:
  *       - bearerAuth: []
+ *     description: Sellers must have an approved seller verification before they can create products. Admins can create products without seller verification.
  *     requestBody:
  *       required: true
  *       content:
@@ -153,6 +183,8 @@ router.get('/:id', optionalAuth, productIdValidation, validate, productControlle
  *     responses:
  *       201:
  *         description: Product created successfully
+ *       403:
+ *         description: Seller verification approval is required to create products
  */
 router.post(
   '/',
@@ -295,6 +327,51 @@ router.post(
   addImagesValidation,
   validate,
   productController.addProductImages
+);
+
+/**
+ * @swagger
+ * /products/{id}/images/upload:
+ *   post:
+ *     summary: Upload and attach product images (Seller only)
+ *     tags: [Products]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *               altTexts:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       201:
+ *         description: Product images uploaded successfully
+ */
+router.post(
+  '/:id/images/upload',
+  protect,
+  restrictTo('SELLER', 'ADMIN'),
+  productIdValidation,
+  validate,
+  uploadProductImagesMulter.array('images', 10),
+  optimizeAndUploadProductImages,
+  productController.uploadProductImages
 );
 
 /**

@@ -39,6 +39,20 @@ export const createOrder = async (req, res) => {
       });
     }
 
+    if (error.message === 'Cart contains products from multiple sellers') {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message.includes('Selected variant')) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to create order',
@@ -73,6 +87,20 @@ export const getOrder = async (req, res) => {
 
     if (error.message === 'Unauthorized') {
       return res.status(403).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message === 'Only seller can update order status') {
+      return res.status(403).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message === 'Multi-seller orders must be processed separately') {
+      return res.status(400).json({
         success: false,
         message: error.message,
       });
@@ -177,6 +205,20 @@ export const updateOrderStatus = async (req, res) => {
 
     if (error.message === 'Unauthorized') {
       return res.status(403).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message === 'Only seller can update order status') {
+      return res.status(403).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message === 'Multi-seller orders must be processed separately') {
+      return res.status(400).json({
         success: false,
         message: error.message,
       });

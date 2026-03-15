@@ -1,7 +1,16 @@
 import prisma from '../config/database.js';
-import { sendNotificationToUser } from '../config/socket.js';
+import { sendNotificationToUser, emitNotificationCount } from '../config/socket.js';
 
 class NotificationService {
+  async emitUnreadCount(userId) {
+    try {
+      const count = await this.getUnreadCount(userId);
+      emitNotificationCount(userId, count);
+    } catch (error) {
+      console.error('Failed to emit notification count:', error);
+    }
+  }
+
   /**
    * Create a notification
    */
@@ -51,6 +60,7 @@ class NotificationService {
     // Send real-time notification via Socket.IO
     try {
       sendNotificationToUser(userId, notification);
+      await this.emitUnreadCount(userId);
     } catch (error) {
       console.error('Failed to send real-time notification:', error);
       // Don't throw error - notification is still saved in DB
@@ -152,7 +162,13 @@ class NotificationService {
       },
     });
 
-    return notification.count > 0;
+    const updated = notification.count > 0;
+
+    if (updated) {
+      await this.emitUnreadCount(userId);
+    }
+
+    return updated;
   }
 
   /**
@@ -170,6 +186,10 @@ class NotificationService {
       },
     });
 
+    if (result.count > 0) {
+      await this.emitUnreadCount(userId);
+    }
+
     return result;
   }
 
@@ -184,7 +204,13 @@ class NotificationService {
       },
     });
 
-    return result.count > 0;
+    const deleted = result.count > 0;
+
+    if (deleted) {
+      await this.emitUnreadCount(userId);
+    }
+
+    return deleted;
   }
 
   /**
@@ -325,6 +351,46 @@ class NotificationService {
   }
 
   /**
+   * Create notification for new order to seller
+   */
+  async notifyNewOrderForSeller(orderId, sellerId, buyerId) {
+    const buyer = await prisma.user.findUnique({
+      where: { id: buyerId },
+      select: { fullName: true, username: true }
+    });
+
+    return this.createNotification({
+      userId: sellerId,
+      type: 'ORDER',
+      title: 'Đơn hàng mới',
+      message: `${buyer?.fullName || 'Khách hàng'} (@${buyer?.username || 'unknown'}) vừa đặt đơn hàng mới`,
+      relatedUserId: buyerId,
+      relatedOrderId: orderId,
+      actionUrl: `/orders/${orderId}`,
+    });
+  }
+
+  /**
+   * Create notification for order cancellation to seller
+   */
+  async notifyOrderCancelledForSeller(orderId, sellerId, buyerId) {
+    const buyer = await prisma.user.findUnique({
+      where: { id: buyerId },
+      select: { fullName: true, username: true }
+    });
+
+    return this.createNotification({
+      userId: sellerId,
+      type: 'ORDER',
+      title: 'Đơn hàng đã bị hủy',
+      message: `${buyer?.fullName || 'Khách hàng'} (@${buyer?.username || 'unknown'}) đã hủy đơn hàng`,
+      relatedUserId: buyerId,
+      relatedOrderId: orderId,
+      actionUrl: `/orders/${orderId}`,
+    });
+  }
+
+  /**
    * Create notification for new message
    */
   async notifyNewMessage(recipientId, senderId, conversationId) {
@@ -369,6 +435,60 @@ class NotificationService {
       relatedProductId: productId,
       relatedPostId: postId,
       actionUrl: `/posts/${postId}`,
+    });
+  }
+
+  /**
+   * Notify admins when a new report is submitted
+   */
+  async notifyAdminsNewReport(reportId, reporterId, targetType, reason) {
+    const [admins, reporter] = await Promise.all([
+      prisma.user.findMany({
+        where: { role: 'ADMIN', isActive: true },
+        select: { id: true }
+      }),
+      prisma.user.findUnique({
+        where: { id: reporterId },
+        select: { fullName: true, username: true }
+      })
+    ]);
+
+    if (!admins.length) {
+      return;
+    }
+
+    await Promise.all(
+      admins.map((admin) =>
+        this.createNotification({
+          userId: admin.id,
+          type: 'REPORT',
+          title: 'Báo cáo mới cần xử lý',
+          message: `${reporter?.fullName || 'Người dùng'} (@${reporter?.username || 'unknown'}) đã gửi báo cáo ${targetType} (${reason})`,
+          relatedUserId: reporterId,
+          actionUrl: '/admin/reports'
+        })
+      )
+    );
+  }
+
+  /**
+   * Notify reporter when report status changes
+   */
+  async notifyReportStatusUpdated(reportId, reporterId, status) {
+    const statusText = {
+      PENDING: 'đã được ghi nhận',
+      IN_REVIEW: 'đang được xem xét',
+      RESOLVED: 'đã được xử lý',
+      REJECTED: 'đã bị từ chối'
+    };
+
+    return this.createNotification({
+      userId: reporterId,
+      type: 'REPORT',
+      title: 'Cập nhật báo cáo',
+      message: `Báo cáo của bạn ${statusText[status] || `đã chuyển trạng thái ${status}`}`,
+      relatedPostId: null,
+      actionUrl: `/reports/${reportId}`
     });
   }
 }

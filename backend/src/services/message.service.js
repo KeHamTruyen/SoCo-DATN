@@ -1,4 +1,5 @@
 import prisma from '../config/database.js';
+import notificationService from './notification.service.js';
 
 const inferMessageType = (mediaUrl, explicitType) => {
   if (explicitType && ['TEXT', 'IMAGE', 'VIDEO', 'FILE', 'PRODUCT', 'ORDER'].includes(explicitType)) {
@@ -325,6 +326,25 @@ class MessageService {
       where: { id: conversationId },
       data: { updatedAt: new Date() }
     });
+
+    // Notify other participants about new message (non-blocking).
+    try {
+      const recipients = await prisma.conversationParticipant.findMany({
+        where: {
+          conversationId,
+          userId: { not: senderId }
+        },
+        select: { userId: true }
+      });
+
+      await Promise.all(
+        recipients.map((recipient) =>
+          notificationService.notifyNewMessage(recipient.userId, senderId, conversationId)
+        )
+      );
+    } catch (error) {
+      console.error('Failed to notify recipients for new message:', error);
+    }
 
     return message;
   }

@@ -167,6 +167,17 @@ export const getProductsValidation = [
     .withMessage('Invalid status')
 ];
 
+export const getTrendingProductsValidation = [
+  query('days')
+    .optional()
+    .isInt({ min: 1, max: 365 })
+    .withMessage('days must be between 1 and 365'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 50 })
+    .withMessage('limit must be between 1 and 50')
+];
+
 export const productIdValidation = [
   param('id')
     .notEmpty()

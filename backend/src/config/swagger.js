@@ -323,6 +323,192 @@ const options = {
             }
           }
         },
+        AdminAdvancedAnalyticsResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: {
+              type: 'object',
+              properties: {
+                period: {
+                  type: 'object',
+                  properties: {
+                    startDate: { type: 'string', format: 'date-time' },
+                    endDate: { type: 'string', format: 'date-time' },
+                    interval: { type: 'string', enum: ['day', 'week', 'month'] },
+                    durationDays: { type: 'integer', example: 30 },
+                    bucketCount: { type: 'integer', example: 30 }
+                  }
+                },
+                summary: {
+                  type: 'object',
+                  properties: {
+                    users: {
+                      type: 'object',
+                      properties: {
+                        total: { type: 'integer', example: 1500 },
+                        new: { type: 'integer', example: 120 },
+                        buyersTotal: { type: 'integer', example: 1320 },
+                        sellersTotal: { type: 'integer', example: 180 },
+                        newBuyers: { type: 'integer', example: 95 },
+                        newSellers: { type: 'integer', example: 25 },
+                        buyerSellerRatio: { type: 'number', nullable: true, example: 7.33 },
+                        buyerPercentage: { type: 'number', example: 88 },
+                        sellerPercentage: { type: 'number', example: 12 }
+                      }
+                    },
+                    content: {
+                      type: 'object',
+                      properties: {
+                        newPosts: { type: 'integer', example: 350 },
+                        newProducts: { type: 'integer', example: 90 }
+                      }
+                    },
+                    commerce: {
+                      type: 'object',
+                      properties: {
+                        orders: { type: 'integer', example: 240 },
+                        paidOrders: { type: 'integer', example: 200 },
+                        revenue: {
+                          type: 'object',
+                          properties: {
+                            subtotal: { type: 'number', example: 85000000 },
+                            shippingFee: { type: 'number', example: 4500000 },
+                            total: { type: 'number', example: 89500000 }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                trends: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      bucketStart: { type: 'string', format: 'date-time' },
+                      bucketEnd: { type: 'string', format: 'date-time' },
+                      label: { type: 'string', example: '2026-03-15' },
+                      users: {
+                        type: 'object',
+                        properties: {
+                          new: { type: 'integer' },
+                          newBuyers: { type: 'integer' },
+                          newSellers: { type: 'integer' },
+                          total: { type: 'integer' },
+                          buyersTotal: { type: 'integer' },
+                          sellersTotal: { type: 'integer' },
+                          buyerSellerRatio: { type: 'number', nullable: true }
+                        }
+                      },
+                      content: {
+                        type: 'object',
+                        properties: {
+                          newPosts: { type: 'integer' },
+                          newProducts: { type: 'integer' }
+                        }
+                      },
+                      commerce: {
+                        type: 'object',
+                        properties: {
+                          orders: { type: 'integer' },
+                          paidOrders: { type: 'integer' },
+                          revenue: {
+                            type: 'object',
+                            properties: {
+                              subtotal: { type: 'number' },
+                              shippingFee: { type: 'number' },
+                              total: { type: 'number' }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        SellerVerificationStatusResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', format: 'uuid' },
+                userId: { type: 'string', format: 'uuid' },
+                status: { type: 'string', enum: ['PENDING', 'REVIEWING', 'APPROVED', 'REJECTED'] },
+                idCardNumber: { type: 'string', nullable: true },
+                idCardFrontUrl: { type: 'string', format: 'uri', nullable: true },
+                idCardBackUrl: { type: 'string', format: 'uri', nullable: true },
+                dateOfBirth: { type: 'string', format: 'date-time', nullable: true },
+                address: { type: 'string', nullable: true },
+                businessName: { type: 'string', nullable: true },
+                businessType: { type: 'string', nullable: true },
+                businessLicenseNumber: { type: 'string', nullable: true },
+                businessLicenseUrl: { type: 'string', format: 'uri', nullable: true },
+                taxCode: { type: 'string', nullable: true },
+                bankName: { type: 'string', nullable: true },
+                bankAccountNumber: { type: 'string', nullable: true },
+                bankAccountName: { type: 'string', nullable: true },
+                bankBranch: { type: 'string', nullable: true },
+                rejectionReason: { type: 'string', nullable: true },
+                verifiedAt: { type: 'string', format: 'date-time', nullable: true },
+                verifiedBy: { type: 'string', format: 'uuid', nullable: true },
+                step1Completed: { type: 'boolean', example: true },
+                step2Completed: { type: 'boolean', example: false },
+                step3Completed: { type: 'boolean', example: false },
+                completion: {
+                  type: 'object',
+                  properties: {
+                    step1: { type: 'boolean', example: true },
+                    step2: { type: 'boolean', example: false },
+                    step3: { type: 'boolean', example: false },
+                    allStepsCompleted: { type: 'boolean', example: false }
+                  }
+                }
+              }
+            }
+          }
+        },
+        SellerVerificationUploadResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            message: { type: 'string', example: 'Verification document uploaded successfully' },
+            data: {
+              type: 'object',
+              properties: {
+                documentType: { type: 'string', enum: ['idCardFront', 'idCardBack', 'businessLicense'] },
+                url: { type: 'string', format: 'uri' },
+                publicId: { type: 'string', example: 'social-commerce/seller-verifications/abc123' },
+                resourceType: { type: 'string', example: 'image' }
+              }
+            }
+          }
+        },
+        SellerVerificationMutationResponse: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean', example: true },
+            message: { type: 'string', example: 'Seller verification step 1 saved' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'string', format: 'uuid' },
+                userId: { type: 'string', format: 'uuid' },
+                status: { type: 'string', enum: ['PENDING', 'REVIEWING', 'APPROVED', 'REJECTED'] },
+                step1Completed: { type: 'boolean' },
+                step2Completed: { type: 'boolean' },
+                step3Completed: { type: 'boolean' },
+                updatedAt: { type: 'string', format: 'date-time' }
+              },
+              additionalProperties: true
+            }
+          }
+        },
         // ── Analytics ───────────────────────────────────────────────────────
         SellerDashboardResponse: {
           type: 'object',

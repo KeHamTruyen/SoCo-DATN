@@ -410,4 +410,52 @@ router.patch('/orders/:orderId/status', adminValidator.validateOrderStatusUpdate
  */
 router.get('/reports/summary', adminValidator.validateAnalyticsQuery, adminValidator.validate, adminController.getReportsSummary);
 
+/**
+ * @swagger
+ * /admin/analytics/dashboard:
+ *   get:
+ *     summary: Dashboard analytics nâng cao cho admin (KPI + trend chart)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Ngày bắt đầu lọc (ISO 8601), mặc định 30 ngày gần nhất
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Ngày kết thúc lọc (ISO 8601), mặc định ngày hiện tại
+ *       - in: query
+ *         name: interval
+ *         schema:
+ *           type: string
+ *           enum: [day, week, month]
+ *         description: Bucket cho biểu đồ xu hướng, nếu không truyền sẽ auto theo độ dài khoảng thời gian
+ *     responses:
+ *       200:
+ *         description: Lấy dữ liệu dashboard analytics thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AdminAdvancedAnalyticsResponse'
+ *       400:
+ *         description: Query không hợp lệ
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.get(
+	'/analytics/dashboard',
+	adminValidator.validateAdminDashboardAnalyticsQuery,
+	adminValidator.validate,
+	adminController.getAdvancedAnalyticsDashboard
+);
+
 export default router;

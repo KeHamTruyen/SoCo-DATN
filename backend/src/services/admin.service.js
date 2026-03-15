@@ -1,8 +1,99 @@
 import prisma from '../config/database.js';
+import notificationService from './notification.service.js';
 
 const MAX_LIMIT = 100;
+const DEFAULT_ANALYTICS_DAYS = 30;
+const ANALYTICS_INTERVAL_STEP = {
+  day: '1 day',
+  week: '1 week',
+  month: '1 month'
+};
 
 const toNumber = (value) => Number(value || 0);
+
+const startOfUTCDay = (date) => new Date(Date.UTC(
+  date.getUTCFullYear(),
+  date.getUTCMonth(),
+  date.getUTCDate(),
+  0,
+  0,
+  0,
+  0
+));
+
+const endOfUTCDay = (date) => new Date(Date.UTC(
+  date.getUTCFullYear(),
+  date.getUTCMonth(),
+  date.getUTCDate(),
+  23,
+  59,
+  59,
+  999
+));
+
+const addIntervalUTC = (date, interval) => {
+  const next = new Date(date);
+  if (interval === 'week') {
+    next.setUTCDate(next.getUTCDate() + 7);
+    return next;
+  }
+
+  if (interval === 'month') {
+    next.setUTCMonth(next.getUTCMonth() + 1);
+    return next;
+  }
+
+  next.setUTCDate(next.getUTCDate() + 1);
+  return next;
+};
+
+const formatTrendLabel = (date, interval) => {
+  const iso = date.toISOString();
+  if (interval === 'month') {
+    return iso.slice(0, 7);
+  }
+
+  return iso.slice(0, 10);
+};
+
+const resolveAnalyticsRange = (filters = {}) => {
+  const now = new Date();
+  const parsedStart = filters.startDate ? new Date(filters.startDate) : null;
+  const parsedEnd = filters.endDate ? new Date(filters.endDate) : null;
+
+  if (parsedStart && Number.isNaN(parsedStart.getTime())) {
+    throw new Error('Invalid startDate');
+  }
+
+  if (parsedEnd && Number.isNaN(parsedEnd.getTime())) {
+    throw new Error('Invalid endDate');
+  }
+
+  const endDate = parsedEnd ? endOfUTCDay(parsedEnd) : endOfUTCDay(now);
+  const startDate = parsedStart
+    ? startOfUTCDay(parsedStart)
+    : startOfUTCDay(new Date(endDate.getTime() - ((DEFAULT_ANALYTICS_DAYS - 1) * 24 * 60 * 60 * 1000)));
+
+  if (startDate > endDate) {
+    throw new Error('startDate must be before or equal to endDate');
+  }
+
+  const durationDays = Math.max(Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1, 1);
+  const interval = ['day', 'week', 'month'].includes(filters.interval)
+    ? filters.interval
+    : durationDays <= 62
+      ? 'day'
+      : durationDays <= 370
+        ? 'week'
+        : 'month';
+
+  return {
+    startDate,
+    endDate,
+    interval,
+    durationDays
+  };
+};
 
 const buildDateRange = (startDate, endDate) => {
   const range = {};
@@ -150,6 +241,20 @@ export const setUserActiveStatus = async (userId, isActive) => {
     }
   });
 
+  try {
+    await notificationService.createNotification({
+      userId: user.id,
+      type: 'SYSTEM',
+      title: isActive ? 'Tài khoản đã được kích hoạt' : 'Tài khoản đã bị tạm khóa',
+      message: isActive
+        ? 'Tài khoản của bạn đã được kích hoạt lại. Bạn có thể tiếp tục sử dụng hệ thống.'
+        : 'Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ hỗ trợ để biết thêm chi tiết.',
+      actionUrl: '/profile'
+    });
+  } catch (error) {
+    console.error('Failed to notify user active status update:', error);
+  }
+
   return user;
 };
 
@@ -199,6 +304,18 @@ export const verifySeller = async (adminId, userId, action, rejectionReason = nu
       return updatedUser;
     });
 
+    try {
+      await notificationService.createNotification({
+        userId,
+        type: 'SELLER_VERIFICATION',
+        title: 'Yêu cầu người bán đã được phê duyệt',
+        message: 'Chúc mừng! Bạn đã được xác minh người bán và có thể đăng bán sản phẩm.',
+        actionUrl: '/seller/dashboard'
+      });
+    } catch (error) {
+      console.error('Failed to notify seller verification approval:', error);
+    }
+
     return { action, user: result };
   }
 
@@ -235,6 +352,18 @@ export const verifySeller = async (adminId, userId, action, rejectionReason = nu
 
     return updatedUser;
   });
+
+  try {
+    await notificationService.createNotification({
+      userId,
+      type: 'SELLER_VERIFICATION',
+      title: 'Yêu cầu người bán bị từ chối',
+      message: `Yêu cầu xác minh người bán của bạn đã bị từ chối${rejectionReason ? `: ${rejectionReason}` : '.'}`,
+      actionUrl: '/become-seller'
+    });
+  } catch (error) {
+    console.error('Failed to notify seller verification rejection:', error);
+  }
 
   return { action, user: result };
 };
@@ -320,6 +449,19 @@ export const updateProductModerationStatus = async (productId, status) => {
       }
     }
   });
+
+  try {
+    await notificationService.createNotification({
+      userId: product.seller.id,
+      type: 'PRODUCT',
+      title: 'Cập nhật trạng thái sản phẩm',
+      message: `Sản phẩm của bạn đã được cập nhật trạng thái: ${status}`,
+      relatedProductId: product.id,
+      actionUrl: `/products/${product.id}`
+    });
+  } catch (error) {
+    console.error('Failed to notify product moderation status update:', error);
+  }
 
   return product;
 };
@@ -420,6 +562,12 @@ export const updateOrderStatusByAdmin = async (orderId, status) => {
     }
   });
 
+  try {
+    await notificationService.notifyOrderStatusChange(order.id, order.buyer.id, status);
+  } catch (error) {
+    console.error('Failed to notify admin order status update:', error);
+  }
+
   return order;
 };
 
@@ -490,5 +638,199 @@ export const getAnalyticsSummary = async (filters = {}) => {
       orders: item._count.id,
       sales: toNumber(item._sum.totalPrice)
     }))
+  };
+};
+
+export const getAdvancedAnalyticsDashboard = async (filters = {}) => {
+  const { startDate, endDate, interval, durationDays } = resolveAnalyticsRange(filters);
+  const createdAtRange = {
+    gte: startDate,
+    lte: endDate
+  };
+
+  const [
+    totalUsers,
+    buyersTotal,
+    sellersTotal,
+    newUsers,
+    newBuyers,
+    newSellers,
+    newPosts,
+    newProducts,
+    orderCount,
+    paidOrders,
+    paidRevenueAgg,
+    initialUsers,
+    initialBuyers,
+    initialSellers,
+    trendRows
+  ] = await Promise.all([
+    prisma.user.count({ where: { createdAt: { lte: endDate } } }),
+    prisma.user.count({ where: { role: 'BUYER', createdAt: { lte: endDate } } }),
+    prisma.user.count({ where: { role: 'SELLER', createdAt: { lte: endDate } } }),
+    prisma.user.count({ where: { createdAt: createdAtRange } }),
+    prisma.user.count({ where: { role: 'BUYER', createdAt: createdAtRange } }),
+    prisma.user.count({ where: { role: 'SELLER', createdAt: createdAtRange } }),
+    prisma.post.count({ where: { createdAt: createdAtRange } }),
+    prisma.product.count({ where: { createdAt: createdAtRange } }),
+    prisma.order.count({ where: { createdAt: createdAtRange } }),
+    prisma.order.count({ where: { createdAt: createdAtRange, paymentStatus: 'PAID' } }),
+    prisma.order.aggregate({
+      _sum: { subtotal: true, shippingFee: true, total: true },
+      where: { createdAt: createdAtRange, paymentStatus: 'PAID' }
+    }),
+    prisma.user.count({ where: { createdAt: { lt: startDate } } }),
+    prisma.user.count({ where: { role: 'BUYER', createdAt: { lt: startDate } } }),
+    prisma.user.count({ where: { role: 'SELLER', createdAt: { lt: startDate } } }),
+    prisma.$queryRaw`
+      WITH buckets AS (
+        SELECT generate_series(
+          date_trunc(${interval}, ${startDate}::timestamptz),
+          date_trunc(${interval}, ${endDate}::timestamptz),
+          ${ANALYTICS_INTERVAL_STEP[interval]}::interval
+        ) AS bucket
+      ),
+      users_by_bucket AS (
+        SELECT
+          date_trunc(${interval}, "created_at") AS bucket,
+          COUNT(*)::int AS new_users,
+          COUNT(*) FILTER (WHERE role = 'BUYER')::int AS new_buyers,
+          COUNT(*) FILTER (WHERE role = 'SELLER')::int AS new_sellers
+        FROM "users"
+        WHERE "created_at" BETWEEN ${startDate} AND ${endDate}
+        GROUP BY 1
+      ),
+      posts_by_bucket AS (
+        SELECT
+          date_trunc(${interval}, "created_at") AS bucket,
+          COUNT(*)::int AS new_posts
+        FROM "posts"
+        WHERE "created_at" BETWEEN ${startDate} AND ${endDate}
+        GROUP BY 1
+      ),
+      products_by_bucket AS (
+        SELECT
+          date_trunc(${interval}, "created_at") AS bucket,
+          COUNT(*)::int AS new_products
+        FROM "products"
+        WHERE "created_at" BETWEEN ${startDate} AND ${endDate}
+        GROUP BY 1
+      ),
+      orders_by_bucket AS (
+        SELECT
+          date_trunc(${interval}, "created_at") AS bucket,
+          COUNT(*)::int AS orders,
+          COUNT(*) FILTER (WHERE "payment_status" = 'PAID')::int AS paid_orders,
+          COALESCE(SUM(CASE WHEN "payment_status" = 'PAID' THEN "subtotal" ELSE 0 END), 0)::numeric AS paid_subtotal,
+          COALESCE(SUM(CASE WHEN "payment_status" = 'PAID' THEN "shipping_fee" ELSE 0 END), 0)::numeric AS paid_shipping_fee,
+          COALESCE(SUM(CASE WHEN "payment_status" = 'PAID' THEN "total" ELSE 0 END), 0)::numeric AS paid_total
+        FROM "orders"
+        WHERE "created_at" BETWEEN ${startDate} AND ${endDate}
+        GROUP BY 1
+      )
+      SELECT
+        b.bucket AS "bucketStart",
+        COALESCE(u.new_users, 0)::int AS "newUsers",
+        COALESCE(u.new_buyers, 0)::int AS "newBuyers",
+        COALESCE(u.new_sellers, 0)::int AS "newSellers",
+        COALESCE(p.new_posts, 0)::int AS "newPosts",
+        COALESCE(pr.new_products, 0)::int AS "newProducts",
+        COALESCE(o.orders, 0)::int AS "orders",
+        COALESCE(o.paid_orders, 0)::int AS "paidOrders",
+        COALESCE(o.paid_subtotal, 0)::numeric AS "paidSubtotal",
+        COALESCE(o.paid_shipping_fee, 0)::numeric AS "paidShippingFee",
+        COALESCE(o.paid_total, 0)::numeric AS "paidTotal"
+      FROM buckets b
+      LEFT JOIN users_by_bucket u ON u.bucket = b.bucket
+      LEFT JOIN posts_by_bucket p ON p.bucket = b.bucket
+      LEFT JOIN products_by_bucket pr ON pr.bucket = b.bucket
+      LEFT JOIN orders_by_bucket o ON o.bucket = b.bucket
+      ORDER BY b.bucket ASC
+    `
+  ]);
+
+  let runningUsers = initialUsers;
+  let runningBuyers = initialBuyers;
+  let runningSellers = initialSellers;
+
+  const trends = trendRows.map((row) => {
+    const bucketStart = new Date(row.bucketStart);
+    const nextBucketStart = addIntervalUTC(bucketStart, interval);
+
+    runningUsers += Number(row.newUsers || 0);
+    runningBuyers += Number(row.newBuyers || 0);
+    runningSellers += Number(row.newSellers || 0);
+
+    const buyerSellerRatio = runningSellers > 0
+      ? Number((runningBuyers / runningSellers).toFixed(2))
+      : null;
+
+    return {
+      bucketStart,
+      bucketEnd: new Date(nextBucketStart.getTime() - 1),
+      label: formatTrendLabel(bucketStart, interval),
+      users: {
+        new: Number(row.newUsers || 0),
+        newBuyers: Number(row.newBuyers || 0),
+        newSellers: Number(row.newSellers || 0),
+        total: runningUsers,
+        buyersTotal: runningBuyers,
+        sellersTotal: runningSellers,
+        buyerSellerRatio
+      },
+      content: {
+        newPosts: Number(row.newPosts || 0),
+        newProducts: Number(row.newProducts || 0)
+      },
+      commerce: {
+        orders: Number(row.orders || 0),
+        paidOrders: Number(row.paidOrders || 0),
+        revenue: {
+          subtotal: toNumber(row.paidSubtotal),
+          shippingFee: toNumber(row.paidShippingFee),
+          total: toNumber(row.paidTotal)
+        }
+      }
+    };
+  });
+
+  const buyerSellerRatio = sellersTotal > 0 ? Number((buyersTotal / sellersTotal).toFixed(2)) : null;
+  const totalRoleBase = buyersTotal + sellersTotal;
+
+  return {
+    period: {
+      startDate,
+      endDate,
+      interval,
+      durationDays,
+      bucketCount: trends.length
+    },
+    summary: {
+      users: {
+        total: totalUsers,
+        new: newUsers,
+        buyersTotal,
+        sellersTotal,
+        newBuyers,
+        newSellers,
+        buyerSellerRatio,
+        buyerPercentage: totalRoleBase > 0 ? Number(((buyersTotal / totalRoleBase) * 100).toFixed(2)) : 0,
+        sellerPercentage: totalRoleBase > 0 ? Number(((sellersTotal / totalRoleBase) * 100).toFixed(2)) : 0
+      },
+      content: {
+        newPosts,
+        newProducts
+      },
+      commerce: {
+        orders: orderCount,
+        paidOrders,
+        revenue: {
+          subtotal: toNumber(paidRevenueAgg._sum.subtotal),
+          shippingFee: toNumber(paidRevenueAgg._sum.shippingFee),
+          total: toNumber(paidRevenueAgg._sum.total)
+        }
+      }
+    },
+    trends
   };
 };

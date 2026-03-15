@@ -1,6 +1,42 @@
 import prisma from '../config/database.js';
 import slugify from 'slugify';
 import { trackProductView } from './analytics.service.js';
+import { deleteImage, getPublicIdFromUrl } from '../config/cloudinary.js';
+
+const TRENDING_DEFAULT_DAYS = 30;
+const TRENDING_DEFAULT_LIMIT = 12;
+
+const assertSellerCanManageProducts = async (sellerId) => {
+  const seller = await prisma.user.findUnique({
+    where: { id: sellerId },
+    select: {
+      id: true,
+      role: true,
+      isVerified: true,
+      sellerVerification: {
+        select: {
+          status: true
+        }
+      }
+    }
+  });
+
+  if (!seller) {
+    throw new Error('Seller not found');
+  }
+
+  if (seller.role === 'ADMIN') {
+    return;
+  }
+
+  if (
+    seller.role !== 'SELLER' ||
+    !seller.isVerified ||
+    seller.sellerVerification?.status !== 'APPROVED'
+  ) {
+    throw new Error('Seller verification approval is required to create products');
+  }
+};
 
 class ProductService {
   /**
@@ -8,6 +44,8 @@ class ProductService {
    */
   async createProduct(sellerId, data) {
     const { title, description, price, categoryId, images, variants, ...rest } = data;
+
+    await assertSellerCanManageProducts(sellerId);
 
     // Generate unique slug
     let slug = slugify(title, { lower: true, strict: true });
@@ -383,9 +421,28 @@ class ProductService {
       throw new Error('Unauthorized');
     }
 
-    await prisma.productImage.delete({
-      where: { id: imageId }
+    const image = await prisma.productImage.findFirst({
+      where: {
+        id: imageId,
+        productId
+      }
     });
+
+    if (!image) {
+      throw new Error('Image not found');
+    }
+
+    const cloudPublicId = getPublicIdFromUrl(image.imageUrl);
+
+    await prisma.productImage.delete({ where: { id: imageId } });
+
+    if (cloudPublicId) {
+      try {
+        await deleteImage(cloudPublicId);
+      } catch (error) {
+        // Keep product image deletion successful even if cloud cleanup fails.
+      }
+    }
 
     return { message: 'Image deleted successfully' };
   }
@@ -430,6 +487,117 @@ class ProductService {
         total,
         totalPages: Math.ceil(total / limit)
       }
+    };
+  }
+
+  /**
+   * Get trending products based on recent paid sales and engagement
+   */
+  async getTrendingProducts(filters = {}) {
+    const days = Math.min(Math.max(parseInt(filters.days, 10) || TRENDING_DEFAULT_DAYS, 1), 365);
+    const limit = Math.min(Math.max(parseInt(filters.limit, 10) || TRENDING_DEFAULT_LIMIT, 1), 50);
+    const since = new Date(Date.now() - (days * 24 * 60 * 60 * 1000));
+
+    const salesByProduct = await prisma.orderItem.groupBy({
+      by: ['productId'],
+      where: {
+        productId: { not: null },
+        order: {
+          createdAt: { gte: since },
+          paymentStatus: 'PAID',
+          status: { in: ['DELIVERED', 'COMPLETED'] }
+        },
+        product: {
+          status: 'ACTIVE'
+        }
+      },
+      _sum: {
+        quantity: true,
+        totalPrice: true
+      },
+      orderBy: {
+        _sum: {
+          quantity: 'desc'
+        }
+      },
+      take: limit * 3
+    });
+
+    if (salesByProduct.length === 0) {
+      return {
+        periodDays: days,
+        items: []
+      };
+    }
+
+    const productIds = salesByProduct.map((row) => row.productId).filter(Boolean);
+
+    const products = await prisma.product.findMany({
+      where: {
+        id: { in: productIds },
+        status: 'ACTIVE'
+      },
+      include: {
+        images: {
+          orderBy: { displayOrder: 'asc' },
+          take: 1
+        },
+        seller: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            avatarUrl: true,
+            isVerified: true
+          }
+        },
+        _count: {
+          select: {
+            reviews: true
+          }
+        }
+      }
+    });
+
+    const productMap = products.reduce((acc, product) => {
+      acc[product.id] = product;
+      return acc;
+    }, {});
+
+    const items = salesByProduct
+      .map((salesRow) => {
+        const product = productMap[salesRow.productId];
+        if (!product) {
+          return null;
+        }
+
+        const soldQuantity = Number(salesRow._sum.quantity || 0);
+        const revenue = Number(salesRow._sum.totalPrice || 0);
+
+        // Weighted score balances real sales with current engagement signals.
+        const trendScore = (soldQuantity * 8)
+          + (revenue / 100000)
+          + (product.viewsCount * 0.05)
+          + (product.likesCount * 0.5)
+          + (product._count.reviews * 2);
+
+        return {
+          product,
+          metrics: {
+            soldQuantity,
+            revenue,
+            trendScore: Number(trendScore.toFixed(2)),
+            periodDays: days
+          }
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.metrics.trendScore - a.metrics.trendScore)
+      .slice(0, limit);
+
+    return {
+      periodDays: days,
+      items
     };
   }
 }

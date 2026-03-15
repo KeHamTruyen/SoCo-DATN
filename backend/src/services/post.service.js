@@ -55,6 +55,21 @@ export const createPost = async (authorId, data) => {
     },
   });
 
+  if (productId) {
+    try {
+      const product = await prisma.product.findUnique({
+        where: { id: productId },
+        select: { sellerId: true }
+      });
+
+      if (product?.sellerId) {
+        await notificationService.notifyProductMention(productId, product.sellerId, authorId, post.id);
+      }
+    } catch (error) {
+      console.error('Failed to send product mention notification:', error);
+    }
+  }
+
   return post;
 };
 
@@ -286,6 +301,10 @@ export const updatePost = async (postId, authorId, data) => {
   }
 
   const { content, mediaUrls, mediaType, productId, visibility, status } = data;
+  const shouldNotifyProductMention =
+    productId !== undefined &&
+    productId !== null &&
+    productId !== existingPost.productId;
 
   const post = await prisma.post.update({
     where: { id: postId },
@@ -333,6 +352,21 @@ export const updatePost = async (postId, authorId, data) => {
       },
     },
   });
+
+  if (shouldNotifyProductMention) {
+    try {
+      const product = await prisma.product.findUnique({
+        where: { id: productId },
+        select: { sellerId: true }
+      });
+
+      if (product?.sellerId) {
+        await notificationService.notifyProductMention(productId, product.sellerId, authorId, post.id);
+      }
+    } catch (error) {
+      console.error('Failed to send product mention notification on update:', error);
+    }
+  }
 
   return post;
 };

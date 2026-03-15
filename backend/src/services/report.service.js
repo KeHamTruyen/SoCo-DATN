@@ -1,4 +1,5 @@
 import prisma from '../config/database.js';
+import notificationService from './notification.service.js';
 
 const MAX_LIMIT = 100;
 
@@ -126,6 +127,13 @@ export const createReport = async (reporterId, payload) => {
     }
   });
 
+  // Notify admins that a new report has been submitted.
+  try {
+    await notificationService.notifyAdminsNewReport(report.id, reporterId, targetType, reason);
+  } catch (error) {
+    console.error('Failed to notify admins for new report:', error);
+  }
+
   return report;
 };
 
@@ -225,7 +233,7 @@ export const updateReportStatus = async (reportId, adminId, payload) => {
 
   const report = await prisma.report.findUnique({
     where: { id: reportId },
-    select: { id: true }
+    select: { id: true, reporterId: true, status: true }
   });
 
   if (!report) {
@@ -258,6 +266,15 @@ export const updateReportStatus = async (reportId, adminId, payload) => {
       }
     }
   });
+
+  // Notify reporter about moderation status update.
+  if (report.status !== status) {
+    try {
+      await notificationService.notifyReportStatusUpdated(reportId, report.reporterId, status);
+    } catch (error) {
+      console.error('Failed to notify reporter for report status update:', error);
+    }
+  }
 
   return updatedReport;
 };

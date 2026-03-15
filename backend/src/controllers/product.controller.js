@@ -16,6 +16,13 @@ class ProductController {
         data: product
       });
     } catch (error) {
+      if (error.message === 'Seller verification approval is required to create products') {
+        return res.status(403).json({
+          success: false,
+          message: error.message
+        });
+      }
+
       next(error);
     }
   }
@@ -32,6 +39,26 @@ class ProductController {
         success: true,
         data: result.products,
         pagination: result.pagination
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get trending products
+   * GET /api/products/trending
+   */
+  async getTrendingProducts(req, res, next) {
+    try {
+      const result = await productService.getTrendingProducts(req.query);
+
+      res.json({
+        success: true,
+        data: result.items,
+        meta: {
+          periodDays: result.periodDays
+        }
       });
     } catch (error) {
       next(error);
@@ -143,6 +170,38 @@ class ProductController {
       res.json({
         success: true,
         message: 'Images added successfully',
+        data: createdImages
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Upload and add product images from multipart files
+   * POST /api/products/:id/images/upload
+   */
+  async uploadProductImages(req, res, next) {
+    try {
+      const sellerId = req.user.id;
+      const images = req.processedProductImages || [];
+
+      if (images.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'No images uploaded'
+        });
+      }
+
+      const createdImages = await productService.addProductImages(
+        req.params.id,
+        sellerId,
+        images
+      );
+
+      res.status(201).json({
+        success: true,
+        message: 'Product images uploaded successfully',
         data: createdImages
       });
     } catch (error) {

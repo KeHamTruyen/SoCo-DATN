@@ -1,6 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import notificationService from './notification.service.js';
 
 const prisma = new PrismaClient();
+
+const getCartItemUnitPrice = (item) => {
+  return Number(item.price ?? item.variant?.price ?? item.product?.price ?? 0);
+};
 
 // Keep API response backward-compatible: expose product.name from product.title.
 const normalizeOrderForClient = (order) => {
@@ -24,6 +29,36 @@ const normalizeOrderForClient = (order) => {
       };
     }),
   };
+};
+
+const getDistinctSellerIds = (items = []) => {
+  return [...new Set(items.map((item) => item.product?.sellerId || item.sellerId).filter(Boolean))];
+};
+
+const restoreOrderStock = async (tx, items = []) => {
+  for (const item of items) {
+    if (item.product?.trackInventory && item.productId) {
+      await tx.product.update({
+        where: { id: item.productId },
+        data: {
+          stockQuantity: {
+            increment: item.quantity,
+          },
+        },
+      });
+
+      if (item.variantId) {
+        await tx.productVariant.update({
+          where: { id: item.variantId },
+          data: {
+            stockQuantity: {
+              increment: item.quantity,
+            },
+          },
+        });
+      }
+    }
+  }
 };
 
 /**
@@ -76,8 +111,16 @@ export const createOrder = async (userId, orderData) => {
     throw new Error('Cart is empty');
   }
 
+  if (getDistinctSellerIds(cart.items).length > 1) {
+    throw new Error('Cart contains products from multiple sellers');
+  }
+
   // Validate stock for all items
   for (const item of cart.items) {
+    if (item.variantId && (!item.variant || !item.variant.isActive)) {
+      throw new Error(`Selected variant for ${item.product.title} is not available`);
+    }
+
     if (
       item.product.trackInventory &&
       item.product.stockQuantity < item.quantity
@@ -88,11 +131,19 @@ export const createOrder = async (userId, orderData) => {
     if (item.product.status !== 'ACTIVE') {
       throw new Error(`Product ${item.product.title} is not available`);
     }
+
+    if (
+      item.variant &&
+      item.product.trackInventory &&
+      item.variant.stockQuantity < item.quantity
+    ) {
+      throw new Error(`Insufficient stock for selected variant of ${item.product.title}`);
+    }
   }
 
   // Calculate totals
   const subtotal = cart.items.reduce(
-    (sum, item) => sum + Number(item.product.price) * item.quantity,
+    (sum, item) => sum + getCartItemUnitPrice(item) * item.quantity,
     0
   );
 
@@ -129,7 +180,8 @@ export const createOrder = async (userId, orderData) => {
 
     // Create order items
     for (const item of cart.items) {
-      const totalPrice = Number(item.product.price) * item.quantity;
+      const unitPrice = getCartItemUnitPrice(item);
+      const totalPrice = unitPrice * item.quantity;
 
       await tx.orderItem.create({
         data: {
@@ -144,10 +196,11 @@ export const createOrder = async (userId, orderData) => {
                 id: item.variant.id,
                 variantName: item.variant.variantName,
                 options: item.variant.options,
+                price: item.variant.price,
               }
             : null,
           quantity: item.quantity,
-          unitPrice: item.product.price,
+          unitPrice,
           totalPrice,
           status: 'pending',
         },
@@ -163,6 +216,17 @@ export const createOrder = async (userId, orderData) => {
             },
           },
         });
+
+        if (item.variantId) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: {
+              stockQuantity: {
+                decrement: item.quantity,
+              },
+            },
+          });
+        }
       }
     }
 
@@ -176,6 +240,19 @@ export const createOrder = async (userId, orderData) => {
 
   // Return order with items
   const fullOrder = await getOrder(order.id, userId);
+
+  // Notify sellers about the new order (do not block order creation).
+  try {
+    const sellerIds = [...new Set(cart.items.map((item) => item.product.sellerId).filter(Boolean))];
+    await Promise.all(
+      sellerIds.map((sellerId) =>
+        notificationService.notifyNewOrderForSeller(order.id, sellerId, userId)
+      )
+    );
+  } catch (error) {
+    console.error('Failed to notify sellers for new order:', error);
+  }
+
   return normalizeOrderForClient(fullOrder);
 };
 
@@ -287,10 +364,10 @@ export const getSellerOrders = async (sellerId, filters = {}) => {
   const { status, page = 1, limit = 10 } = filters;
 
   const where = {
+    ...(status && { status }),
     items: {
       some: {
         sellerId,
-        ...(status && { status }),
       },
     },
   };
@@ -345,7 +422,11 @@ export const updateOrderStatus = async (orderId, userId, newStatus) => {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {
-      items: true,
+      items: {
+        include: {
+          product: true,
+        },
+      },
     },
   });
 
@@ -355,10 +436,13 @@ export const updateOrderStatus = async (orderId, userId, newStatus) => {
 
   // Check if user is seller of any item in order
   const isSeller = order.items.some((item) => item.sellerId === userId);
-  const isOwner = order.buyerId === userId;
 
-  if (!isSeller && !isOwner) {
-    throw new Error('Unauthorized');
+  if (!isSeller) {
+    throw new Error('Only seller can update order status');
+  }
+
+  if (getDistinctSellerIds(order.items).length > 1) {
+    throw new Error('Multi-seller orders must be processed separately');
   }
 
   // Validate status transitions
@@ -386,31 +470,43 @@ export const updateOrderStatus = async (orderId, userId, newStatus) => {
     ...(newStatus === 'CANCELLED' && { cancelledAt: new Date() }),
   };
 
-  const updatedOrder = await prisma.order.update({
-    where: { id: orderId },
-    data: updateData,
-    include: {
-      buyer: {
-        select: {
-          id: true,
-          username: true,
-          fullName: true,
-          avatarUrl: true,
+  const updatedOrder = await prisma.$transaction(async (tx) => {
+    if (newStatus === 'CANCELLED') {
+      await restoreOrderStock(tx, order.items);
+    }
+
+    return tx.order.update({
+      where: { id: orderId },
+      data: updateData,
+      include: {
+        buyer: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            avatarUrl: true,
+          },
         },
-      },
-      items: {
-        include: {
-          product: {
-            select: {
-              id: true,
-              title: true,
-              slug: true,
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+              },
             },
           },
         },
       },
-    },
+    });
   });
+
+  try {
+    await notificationService.notifyOrderStatusChange(orderId, order.buyerId, newStatus);
+  } catch (error) {
+    console.error('Failed to notify buyer for order status change:', error);
+  }
 
   return normalizeOrderForClient(updatedOrder);
 };
@@ -457,19 +553,20 @@ export const cancelOrder = async (orderId, userId, reason = null) => {
     });
 
     // Restore product stock
-    for (const item of order.items) {
-      if (item.product?.trackInventory) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: {
-            stockQuantity: {
-              increment: item.quantity,
-            },
-          },
-        });
-      }
-    }
+    await restoreOrderStock(tx, order.items);
   });
+
+  // Notify all involved sellers when buyer cancels order.
+  try {
+    const sellerIds = [...new Set(order.items.map((item) => item.sellerId).filter(Boolean))];
+    await Promise.all(
+      sellerIds.map((sellerId) =>
+        notificationService.notifyOrderCancelledForSeller(orderId, sellerId, userId)
+      )
+    );
+  } catch (error) {
+    console.error('Failed to notify sellers for cancelled order:', error);
+  }
 
   return await getOrder(orderId, userId);
 };
@@ -497,8 +594,6 @@ export const confirmPayment = async (orderId) => {
     data: {
       paymentStatus: 'PAID',
       paidAt: new Date(),
-      status: order.status === 'PENDING' ? 'CONFIRMED' : order.status,
-      ...(order.status === 'PENDING' && { confirmedAt: new Date() }),
     },
     include: {
       buyer: {

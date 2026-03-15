@@ -1,4 +1,4 @@
-import prisma from '../config/database.js';
+import * as sellerService from '../services/seller.service.js';
 
 /**
  * Get seller statistics and dashboard data
@@ -8,224 +8,116 @@ import prisma from '../config/database.js';
 export const getStats = async (req, res, next) => {
   try {
     const sellerId = req.user.id;
-
-    // Revenue is calculated from seller-owned order items in completed orders.
-    const revenueData = await prisma.orderItem.aggregate({
-      where: {
-        sellerId,
-        order: {
-          status: 'COMPLETED'
-        }
-      },
-      _sum: {
-        totalPrice: true
-      }
-    });
-
-    // Get total orders count by status for orders containing seller's items.
-    const ordersCount = await prisma.order.groupBy({
-      by: ['status'],
-      where: {
-        items: {
-          some: {
-            sellerId
-          }
-        }
-      },
-      _count: {
-        status: true
-      }
-    });
-
-    // Get total products count
-    const totalProducts = await prisma.product.count({
-      where: {
-        sellerId,
-        status: {
-          not: 'ARCHIVED'
-        }
-      }
-    });
-
-    const activeProducts = await prisma.product.count({
-      where: {
-        sellerId,
-        status: 'ACTIVE'
-      }
-    });
-
-    // Get average rating from product reviews
-    const ratingData = await prisma.review.aggregate({
-      where: {
-        product: {
-          sellerId
-        }
-      },
-      _avg: {
-        rating: true
-      },
-      _count: {
-        id: true
-      }
-    });
-
-    // Get recent seller orders (last 5)
-    const recentOrders = await prisma.order.findMany({
-      where: {
-        items: {
-          some: {
-            sellerId
-          }
-        }
-      },
-      include: {
-        buyer: {
-          select: {
-            id: true,
-            username: true,
-            fullName: true,
-            avatarUrl: true
-          }
-        },
-        items: {
-          where: {
-            sellerId
-          },
-          include: {
-            product: {
-              select: {
-                id: true,
-                title: true,
-                slug: true
-              }
-            }
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      take: 5
-    });
-
-    // Get top selling products by quantity.
-    const topProducts = await prisma.orderItem.groupBy({
-      by: ['productId'],
-      where: {
-        sellerId,
-        order: {
-          status: {
-            in: ['COMPLETED', 'DELIVERED']
-          }
-        }
-      },
-      _sum: {
-        quantity: true
-      },
-      _count: {
-        productId: true
-      },
-      orderBy: {
-        _sum: {
-          quantity: 'desc'
-        }
-      },
-      take: 5
-    });
-
-    // Get product details for top products
-    const productIds = topProducts
-      .map((item) => item.productId)
-      .filter(Boolean);
-
-    const products = await prisma.product.findMany({
-      where: {
-        id: {
-          in: productIds
-        }
-      },
-      select: {
-        id: true,
-        title: true,
-        price: true,
-        images: {
-          orderBy: {
-            displayOrder: 'asc'
-          },
-          select: {
-            imageUrl: true
-          }
-        }
-      }
-    });
-
-    // Map top products with details
-    const topProductsWithDetails = topProducts.map(item => {
-      const product = products.find(p => p.id === item.productId);
-      return {
-        product: product
-          ? {
-              id: product.id,
-              name: product.title,
-              price: Number(product.price),
-              images: product.images.map((img) => img.imageUrl)
-            }
-          : null,
-        totalSold: item._sum.quantity || 0,
-        orderCount: item._count.productId
-      };
-    });
-
-    // Calculate stats by status
-    const statusStats = {
-      total: 0,
-      pending: 0,
-      processing: 0,
-      shipping: 0,
-      completed: 0,
-      cancelled: 0,
-      refunded: 0
-    };
-
-    ordersCount.forEach(item => {
-      statusStats.total += item._count.status;
-      const status = item.status.toLowerCase();
-      if (status === 'pending' || status === 'confirmed') {
-        statusStats.pending += item._count.status;
-      } else if (status === 'processing') {
-        statusStats.processing += item._count.status;
-      } else if (status === 'shipping' || status === 'delivered') {
-        statusStats.shipping += item._count.status;
-      } else if (status === 'completed') {
-        statusStats.completed += item._count.status;
-      } else if (status === 'cancelled') {
-        statusStats.cancelled += item._count.status;
-      } else if (status === 'refunded') {
-        statusStats.refunded += item._count.status;
-      }
-    });
+    const data = await sellerService.getStats(sellerId);
 
     res.json({
       success: true,
+      data
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getVerificationStatus = async (req, res, next) => {
+  try {
+    const data = await sellerService.getVerificationStatus(req.user.id);
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const uploadVerificationFile = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Verification document uploaded successfully',
       data: {
-        revenue: {
-          total: Number(revenueData._sum.totalPrice || 0),
-          currency: 'VND'
-        },
-        orders: statusStats,
-        products: {
-          total: totalProducts,
-          active: activeProducts
-        },
-        rating: {
-          average: ratingData._avg.rating || 0,
-          count: ratingData._count.id || 0
-        },
-        recentOrders,
-        topProducts: topProductsWithDetails
+        documentType: req.body.documentType,
+        url: req.file.path,
+        publicId: req.file.filename,
+        resourceType: req.file.resource_type
       }
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+export const submitStep1 = async (req, res, next) => {
+  try {
+    const data = await sellerService.submitVerificationStep1(req.user.id, req.body);
+    res.json({
+      success: true,
+      message: 'Seller verification step 1 saved',
+      data
+    });
+  } catch (error) {
+    if (error.message === 'Invalid dateOfBirth' || error.message === 'Seller verification has already been approved') {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
+};
+
+export const submitStep2 = async (req, res, next) => {
+  try {
+    const data = await sellerService.submitVerificationStep2(req.user.id, req.body);
+    res.json({
+      success: true,
+      message: 'Seller verification step 2 saved',
+      data
+    });
+  } catch (error) {
+    if (error.message === 'Seller verification has already been approved') {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
+};
+
+export const submitStep3 = async (req, res, next) => {
+  try {
+    const data = await sellerService.submitVerificationStep3(req.user.id, req.body);
+    res.json({
+      success: true,
+      message: 'Seller verification step 3 saved',
+      data
+    });
+  } catch (error) {
+    if (error.message === 'Seller verification has already been approved') {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
+};
+
+export const submitVerificationForReview = async (req, res, next) => {
+  try {
+    const data = await sellerService.submitVerificationForReview(req.user.id);
+    res.json({
+      success: true,
+      message: 'Seller verification submitted for review',
+      data
+    });
+  } catch (error) {
+    if (
+      error.message === 'Seller verification has already been approved'
+      || error.message === 'All verification steps must be completed before submission'
+      || error.message === 'Step 1 information is incomplete'
+      || error.message === 'Step 2 information is incomplete'
+      || error.message === 'Step 3 information is incomplete'
+    ) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
     next(error);
   }
 };

@@ -20,6 +20,7 @@ const router = express.Router();
  *     tags: [Orders]
  *     security:
  *       - bearerAuth: []
+ *     description: Creates one order from the current cart. The cart must contain products from exactly one seller. Order totals are calculated from the cart item price snapshot captured at add-to-cart time.
  *     requestBody:
  *       required: true
  *       content:
@@ -62,7 +63,7 @@ const router = express.Router();
  *       201:
  *         description: Order created successfully
  *       400:
- *         description: Bad request (cart empty, insufficient stock, etc.)
+ *         description: Bad request (cart empty, multiple sellers in cart, insufficient stock, unavailable product or variant)
  *       401:
  *         description: Unauthorized
  *       500:
@@ -197,10 +198,11 @@ router.get(
  * @swagger
  * /api/orders/{orderId}/status:
  *   put:
- *     summary: Update order status
+ *     summary: Update order status (seller only)
  *     tags: [Orders]
  *     security:
  *       - bearerAuth: []
+ *     description: Only the seller associated with the order can update its status. Single-seller orders can move through the normal fulfillment states; seller cancellation restores inventory.
  *     parameters:
  *       - in: path
  *         name: orderId
@@ -228,7 +230,7 @@ router.get(
  *       401:
  *         description: Unauthorized
  *       403:
- *         description: Forbidden
+ *         description: Forbidden (only seller can update order status)
  *       404:
  *         description: Order not found
  *       500:
@@ -294,6 +296,7 @@ router.post(
  *     tags: [Orders]
  *     security:
  *       - bearerAuth: []
+ *     description: Marks the payment as paid but keeps the order in PENDING status until the seller reviews and confirms the order.
  *     parameters:
  *       - in: path
  *         name: orderId

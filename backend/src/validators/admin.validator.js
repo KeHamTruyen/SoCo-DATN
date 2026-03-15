@@ -82,3 +82,30 @@ export const validateAnalyticsQuery = [
     .isISO8601()
     .withMessage('endDate must be a valid ISO date')
 ];
+
+export const validateAdminDashboardAnalyticsQuery = [
+  ...validateAnalyticsQuery,
+  query('interval')
+    .optional()
+    .isIn(['day', 'week', 'month'])
+    .withMessage('interval must be one of: day, week, month'),
+  query('startDate')
+    .optional()
+    .custom((value, { req }) => {
+      if (!value || !req.query.endDate) {
+        return true;
+      }
+
+      const start = new Date(value);
+      const end = new Date(req.query.endDate);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return true;
+      }
+
+      if (start > end) {
+        throw new Error('startDate must be before or equal to endDate');
+      }
+
+      return true;
+    })
+];

@@ -65,6 +65,15 @@ const messageStorage = new CloudinaryStorage({
   },
 });
 
+const sellerVerificationStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'social-commerce/seller-verifications',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+    resource_type: 'auto'
+  }
+});
+
 // Multer upload middleware
 const uploadProduct = multer({ 
   storage: productStorage,
@@ -86,6 +95,24 @@ const uploadMessage = multer({
   limits: { fileSize: 20 * 1024 * 1024 } // 20MB limit
 });
 
+const uploadSellerVerification = multer({
+  storage: sellerVerificationStorage,
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
+
+const uploadBufferToCloudinary = (buffer, options = {}) => new Promise((resolve, reject) => {
+  const uploadStream = cloudinary.uploader.upload_stream(options, (error, result) => {
+    if (error) {
+      reject(error);
+      return;
+    }
+
+    resolve(result);
+  });
+
+  uploadStream.end(buffer);
+});
+
 // Helper function to delete image from Cloudinary
 const deleteImage = async (publicId) => {
   try {
@@ -100,21 +127,22 @@ const deleteImage = async (publicId) => {
 // Helper function to extract public_id from Cloudinary URL
 const getPublicIdFromUrl = (url) => {
   if (!url) return null;
-  
-  // Example URL: https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg
-  // Public ID: sample
-  const parts = url.split('/');
-  const filename = parts[parts.length - 1];
-  const publicId = filename.split('.')[0];
-  
-  // Include folder path
-  const folderIndex = parts.indexOf('upload') + 1;
-  if (folderIndex > 0 && folderIndex < parts.length - 1) {
-    const folders = parts.slice(folderIndex + 1, parts.length - 1);
-    return folders.length > 0 ? `${folders.join('/')}/${publicId}` : publicId;
+
+  const marker = '/upload/';
+  const markerIndex = url.indexOf(marker);
+  if (markerIndex === -1) {
+    return null;
   }
-  
-  return publicId;
+
+  const rawPath = url.slice(markerIndex + marker.length).split('?')[0];
+  const pathWithoutVersion = rawPath.replace(/^v\d+\//, '');
+  const extIndex = pathWithoutVersion.lastIndexOf('.');
+
+  if (extIndex === -1) {
+    return pathWithoutVersion;
+  }
+
+  return pathWithoutVersion.slice(0, extIndex);
 };
 
 export {
@@ -123,6 +151,8 @@ export {
   uploadAvatar,
   uploadPost,
   uploadMessage,
+  uploadSellerVerification,
+  uploadBufferToCloudinary,
   deleteImage,
   getPublicIdFromUrl,
 };
