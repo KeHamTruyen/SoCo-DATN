@@ -718,6 +718,67 @@ test('integration: group service creates membership flow and prevents last admin
   }
 });
 
+test('integration: group service supports invite flow, moderator actions, and post approval setting', async () => {
+  const admin = await createUser({ role: 'BUYER' });
+  const member = await createUser({ role: 'BUYER' });
+  const target = await createUser({ role: 'BUYER' });
+  const outsider = await createUser({ role: 'BUYER' });
+  let groupId = null;
+
+  try {
+    const group = await groupService.createGroup(admin.id, {
+      name: `Nhom ${uniq('moderation')}`,
+      description: 'Cong dong moderation test'
+    });
+
+    groupId = group.id;
+
+    const invited = await groupService.inviteMember(groupId, admin.id, member.id, 'MODERATOR');
+    assert.equal(invited.invited, true);
+    assert.equal(invited.member.role, 'MODERATOR');
+
+    const enabledApproval = await groupService.updatePostApprovalSetting(groupId, member.id, true);
+    assert.equal(enabledApproval.isApprovedPosts, true);
+
+    const invitedTarget = await groupService.inviteMember(groupId, member.id, target.id, 'MEMBER');
+    assert.equal(invitedTarget.invited, true);
+    assert.equal(invitedTarget.member.role, 'MEMBER');
+
+    await assert.rejects(
+      () => groupService.inviteMember(groupId, member.id, outsider.id, 'ADMIN'),
+      /Only admin can invite moderator or admin role users/
+    );
+
+    await assert.rejects(
+      () => groupService.updateMemberRole(groupId, member.id, target.id, 'MODERATOR'),
+      /Only admin can update member roles/
+    );
+
+    const promoted = await groupService.updateMemberRole(groupId, admin.id, target.id, 'MODERATOR');
+    assert.equal(promoted.role, 'MODERATOR');
+
+    await assert.rejects(
+      () => groupService.kickMember(groupId, member.id, target.id),
+      /Moderator can only remove member role users/
+    );
+
+    const demoted = await groupService.updateMemberRole(groupId, admin.id, target.id, 'MEMBER');
+    assert.equal(demoted.role, 'MEMBER');
+
+    const kicked = await groupService.kickMember(groupId, member.id, target.id);
+    assert.equal(kicked.removed, true);
+
+    const members = await groupService.getGroupMembers(groupId, {});
+    assert.ok(!members.members.some((item) => item.userId === target.id));
+  } finally {
+    if (groupId) {
+      await prisma.groupMember.deleteMany({ where: { groupId } });
+      await prisma.group.deleteMany({ where: { id: groupId } });
+    }
+    await prisma.user.deleteMany({ where: { id: { in: [admin.id, member.id, target.id, outsider.id] } } });
+  }
+});
+
 test('integration: post service creates post and getPostById marks liked state and increments views', async () => {
   const author = await createUser({ role: 'SELLER', isVerified: true });
   const viewer = await createUser({ role: 'BUYER' });

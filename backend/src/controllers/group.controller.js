@@ -116,6 +116,69 @@ class GroupController {
       next(error);
     }
   }
+
+  async updateMemberRole(req, res, next) {
+    try {
+      const { id: groupId, userId } = req.params;
+      const { role } = req.body;
+      const member = await groupService.updateMemberRole(groupId, req.user.id, userId, role);
+
+      res.json({
+        success: true,
+        message: 'Member role updated successfully',
+        data: member
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async kickMember(req, res, next) {
+    try {
+      const { id: groupId, userId } = req.params;
+      const result = await groupService.kickMember(groupId, req.user.id, userId);
+
+      res.json({
+        success: true,
+        message: 'Member removed successfully',
+        data: result
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async inviteMember(req, res, next) {
+    try {
+      const { id: groupId } = req.params;
+      const { userId, role } = req.body;
+      const result = await groupService.inviteMember(groupId, req.user.id, userId, role || 'MEMBER');
+
+      res.json({
+        success: true,
+        message: result.invited ? 'Member invited successfully' : 'User is already a member',
+        data: result
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updatePostApprovalSetting(req, res, next) {
+    try {
+      const { id: groupId } = req.params;
+      const { isApprovedPosts } = req.body;
+      const result = await groupService.updatePostApprovalSetting(groupId, req.user.id, isApprovedPosts);
+
+      res.json({
+        success: true,
+        message: 'Group post approval setting updated successfully',
+        data: result
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new GroupController();

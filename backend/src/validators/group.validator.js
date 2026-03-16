@@ -51,3 +51,34 @@ export const listMembersValidation = [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50')
 ];
+
+export const memberRoleUpdateValidation = [
+  ...groupIdValidation,
+  param('userId').isUUID().withMessage('User ID must be a valid UUID'),
+  body('role')
+    .isIn(['MEMBER', 'MODERATOR', 'ADMIN'])
+    .withMessage('Role must be MEMBER, MODERATOR, or ADMIN')
+];
+
+export const inviteMemberValidation = [
+  ...groupIdValidation,
+  body('userId')
+    .isUUID()
+    .withMessage('userId must be a valid UUID'),
+  body('role')
+    .optional()
+    .isIn(['MEMBER', 'MODERATOR', 'ADMIN'])
+    .withMessage('Role must be MEMBER, MODERATOR, or ADMIN')
+];
+
+export const postApprovalSettingValidation = [
+  ...groupIdValidation,
+  body('isApprovedPosts')
+    .isBoolean()
+    .withMessage('isApprovedPosts must be a boolean')
+];
+
+export const kickMemberValidation = [
+  ...groupIdValidation,
+  param('userId').isUUID().withMessage('User ID must be a valid UUID')
+];

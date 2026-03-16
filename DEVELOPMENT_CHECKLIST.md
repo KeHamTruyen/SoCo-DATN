@@ -306,7 +306,7 @@
 - [x] Group controller
 - [x] Group routes (`/api/groups/*`)
 - [x] Core membership logic (create/join/leave/list/detail/members)
-- [ ] **TODO: Nâng cao phân quyền (moderator actions, approve posts, invite flow)**
+- [x] Nâng cao phân quyền nhóm (moderator actions, invite flow, post approval setting)
 
 ### Frontend
 

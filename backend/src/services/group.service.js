@@ -3,6 +3,38 @@ import prisma from '../config/database.js';
 import { ApiError } from '../middlewares/error.middleware.js';
 
 class GroupService {
+  async getMembership(groupId, userId) {
+    return prisma.groupMember.findUnique({
+      where: {
+        groupId_userId: {
+          groupId,
+          userId
+        }
+      }
+    });
+  }
+
+  async ensureGroupExists(groupId) {
+    const group = await prisma.group.findUnique({ where: { id: groupId } });
+    if (!group) {
+      throw new ApiError(404, 'Group not found');
+    }
+    return group;
+  }
+
+  async assertCanManageMembers(groupId, actorId) {
+    const membership = await this.getMembership(groupId, actorId);
+    if (!membership) {
+      throw new ApiError(403, 'You must be a group member to manage members');
+    }
+
+    if (!['ADMIN', 'MODERATOR'].includes(membership.role)) {
+      throw new ApiError(403, 'Only admin or moderator can manage group members');
+    }
+
+    return membership;
+  }
+
   async generateUniqueSlug(name) {
     const baseSlug = slugify(String(name || '').trim(), {
       lower: true,
@@ -340,6 +372,200 @@ class GroupService {
         totalPages: Math.max(Math.ceil(total / safeLimit), 1)
       }
     };
+  }
+
+  async updateMemberRole(groupId, actorId, targetUserId, role) {
+    await this.ensureGroupExists(groupId);
+
+    if (actorId === targetUserId) {
+      throw new ApiError(400, 'You cannot update your own role');
+    }
+
+    const actorMembership = await this.getMembership(groupId, actorId);
+    if (!actorMembership || actorMembership.role !== 'ADMIN') {
+      throw new ApiError(403, 'Only admin can update member roles');
+    }
+
+    const targetMembership = await this.getMembership(groupId, targetUserId);
+    if (!targetMembership) {
+      throw new ApiError(404, 'Target user is not a member of this group');
+    }
+
+    if (targetMembership.role === role) {
+      return targetMembership;
+    }
+
+    if (targetMembership.role === 'ADMIN' && role !== 'ADMIN') {
+      const adminCount = await prisma.groupMember.count({
+        where: {
+          groupId,
+          role: 'ADMIN'
+        }
+      });
+
+      if (adminCount <= 1) {
+        throw new ApiError(400, 'Group must have at least one admin');
+      }
+    }
+
+    return prisma.groupMember.update({
+      where: {
+        groupId_userId: {
+          groupId,
+          userId: targetUserId
+        }
+      },
+      data: { role },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            avatarUrl: true
+          }
+        }
+      }
+    });
+  }
+
+  async kickMember(groupId, actorId, targetUserId) {
+    await this.ensureGroupExists(groupId);
+
+    if (actorId === targetUserId) {
+      throw new ApiError(400, 'Use leave group to remove yourself');
+    }
+
+    const actorMembership = await this.assertCanManageMembers(groupId, actorId);
+    const targetMembership = await this.getMembership(groupId, targetUserId);
+
+    if (!targetMembership) {
+      throw new ApiError(404, 'Target user is not a member of this group');
+    }
+
+    if (actorMembership.role === 'MODERATOR' && targetMembership.role !== 'MEMBER') {
+      throw new ApiError(403, 'Moderator can only remove member role users');
+    }
+
+    if (targetMembership.role === 'ADMIN') {
+      const adminCount = await prisma.groupMember.count({
+        where: {
+          groupId,
+          role: 'ADMIN'
+        }
+      });
+
+      if (adminCount <= 1) {
+        throw new ApiError(400, 'Group must have at least one admin');
+      }
+    }
+
+    await prisma.$transaction([
+      prisma.groupMember.delete({
+        where: {
+          groupId_userId: {
+            groupId,
+            userId: targetUserId
+          }
+        }
+      }),
+      prisma.group.update({
+        where: { id: groupId },
+        data: {
+          membersCount: { decrement: 1 }
+        }
+      })
+    ]);
+
+    return {
+      groupId,
+      userId: targetUserId,
+      removed: true
+    };
+  }
+
+  async inviteMember(groupId, actorId, targetUserId, role = 'MEMBER') {
+    await this.ensureGroupExists(groupId);
+    const actorMembership = await this.assertCanManageMembers(groupId, actorId);
+
+    if (actorId === targetUserId) {
+      throw new ApiError(400, 'You are already in this group');
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: {
+        id: true,
+        username: true,
+        fullName: true,
+        avatarUrl: true
+      }
+    });
+
+    if (!targetUser) {
+      throw new ApiError(404, 'Target user not found');
+    }
+
+    const targetMembership = await this.getMembership(groupId, targetUserId);
+    if (targetMembership) {
+      return {
+        invited: false,
+        member: {
+          ...targetMembership,
+          user: targetUser
+        }
+      };
+    }
+
+    if (actorMembership.role !== 'ADMIN' && role !== 'MEMBER') {
+      throw new ApiError(403, 'Only admin can invite moderator or admin role users');
+    }
+
+    const created = await prisma.$transaction(async (tx) => {
+      const member = await tx.groupMember.create({
+        data: {
+          groupId,
+          userId: targetUserId,
+          role
+        }
+      });
+
+      await tx.group.update({
+        where: { id: groupId },
+        data: {
+          membersCount: { increment: 1 }
+        }
+      });
+
+      return member;
+    });
+
+    return {
+      invited: true,
+      member: {
+        ...created,
+        user: targetUser
+      }
+    };
+  }
+
+  async updatePostApprovalSetting(groupId, actorId, isApprovedPosts) {
+    await this.ensureGroupExists(groupId);
+
+    const actorMembership = await this.getMembership(groupId, actorId);
+    if (!actorMembership || !['ADMIN', 'MODERATOR'].includes(actorMembership.role)) {
+      throw new ApiError(403, 'Only admin or moderator can update group post approval setting');
+    }
+
+    return prisma.group.update({
+      where: { id: groupId },
+      data: { isApprovedPosts },
+      select: {
+        id: true,
+        isApprovedPosts: true,
+        updatedAt: true
+      }
+    });
   }
 }
 

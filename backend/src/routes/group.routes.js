@@ -6,6 +6,10 @@ import {
   createGroupValidation,
   groupIdValidation,
   listMembersValidation,
+  memberRoleUpdateValidation,
+  inviteMemberValidation,
+  postApprovalSettingValidation,
+  kickMemberValidation,
   validate
 } from '../validators/group.validator.js';
 
@@ -231,6 +235,11 @@ router.get('/:id', optionalAuth, groupIdValidation, validate, groupController.ge
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/:id/members', optionalAuth, listMembersValidation, validate, groupController.getGroupMembers);
+
+router.post('/:id/invites', protect, inviteMemberValidation, validate, groupController.inviteMember);
+router.patch('/:id/members/:userId/role', protect, memberRoleUpdateValidation, validate, groupController.updateMemberRole);
+router.delete('/:id/members/:userId', protect, kickMemberValidation, validate, groupController.kickMember);
+router.patch('/:id/settings/post-approval', protect, postApprovalSettingValidation, validate, groupController.updatePostApprovalSetting);
 
 /**
  * @swagger
