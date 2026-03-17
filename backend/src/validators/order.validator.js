@@ -152,3 +152,58 @@ export const validateCancelOrder = [
     .withMessage('Cancellation reason too long'),
   validate,
 ];
+
+/**
+ * Validate buyer refund request
+ */
+export const validateRefundRequest = [
+  param('orderId')
+    .notEmpty()
+    .withMessage('Order ID is required')
+    .isUUID()
+    .withMessage('Invalid order ID format'),
+  body('reason')
+    .notEmpty()
+    .withMessage('Refund reason is required')
+    .trim()
+    .isLength({ min: 5, max: 500 })
+    .withMessage('Refund reason must be between 5-500 characters'),
+  validate,
+];
+
+/**
+ * Validate list refund requests query
+ */
+export const validateGetRefundRequests = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage('Limit must be between 1 and 100'),
+  validate,
+];
+
+/**
+ * Validate seller processing refund request
+ */
+export const validateProcessRefundRequest = [
+  param('orderId')
+    .notEmpty()
+    .withMessage('Order ID is required')
+    .isUUID()
+    .withMessage('Invalid order ID format'),
+  body('action')
+    .notEmpty()
+    .withMessage('Action is required')
+    .isIn(['APPROVE', 'REJECT'])
+    .withMessage('Action must be APPROVE or REJECT'),
+  body('note')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Note too long'),
+  validate,
+];

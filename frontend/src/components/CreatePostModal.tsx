@@ -5,6 +5,7 @@ import * as postService from '../services/post.service';
 import productService from '../services/product.service';
 import uploadService from '../services/upload.service';
 import scheduledPostService from '../services/scheduled-post.service';
+import aiService from '../services/ai.service';
 
 interface CreatePostModalProps {
   onClose: () => void;
@@ -32,6 +33,7 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
   const [myProducts, setMyProducts] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [generatingAi, setGeneratingAi] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
@@ -113,15 +115,50 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
     }
   };
 
-  const handleAIGenerate = () => {
-    // Mock AI generation
-    const aiTexts = {
-      text: 'Khám phá những sản phẩm tuyệt vời trong ngày! 🌟 Đừng bỏ lỡ cơ hội sở hữu những món đồ chất lượng với giá ưu đãi.',
-      image: 'Hình ảnh thật ấn tượng! Sản phẩm này chắc chắn sẽ làm bạn hài lòng. ✨',
-      product: '🔥 Sale sốc! Giảm giá đến 50% cho sản phẩm này. Nhanh tay đặt hàng ngay!',
-      multi: '💎 Combo ưu đãi đặc biệt! Mua ngay để nhận voucher giảm thêm 10%. Số lượng có hạn!'
-    };
-    setContent(aiTexts[aiMode]);
+  const handleAIGenerate = async () => {
+    if (!content.trim()) {
+      setError('Vui lòng nhập ý tưởng trước khi tạo nội dung bằng AI');
+      return;
+    }
+
+    const selectedProductData = selectedProduct
+      ? myProducts.find((p) => p.id === selectedProduct)
+      : null;
+
+    const toneMap = {
+      text: 'friendly',
+      image: 'professional',
+      product: 'urgent',
+      multi: 'playful',
+    } as const;
+
+    const goalMap = {
+      text: 'tang tuong tac tu nhien',
+      image: 'lam noi bat hinh anh san pham',
+      product: 'chot don nhanh',
+      multi: 'vua tang tuong tac vua tang chuyen doi',
+    } as const;
+
+    try {
+      setGeneratingAi(true);
+      setError(null);
+
+      const response = await aiService.generatePostText({
+        idea: content.trim(),
+        productDescription: selectedProductData?.description || undefined,
+        productImageUrls: mediaUrls.length ? mediaUrls : undefined,
+        tone: toneMap[aiMode],
+        goal: goalMap[aiMode],
+        productId: selectedProduct || undefined,
+      });
+
+      setContent(response.data.primary || response.data.suggestions?.[0] || content);
+    } catch (err: any) {
+      console.error('AI generation error:', err);
+      setError(err.response?.data?.message || 'Không thể tạo nội dung bằng AI');
+    } finally {
+      setGeneratingAi(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -264,10 +301,11 @@ export function CreatePostModal({ onClose, onSubmit }: CreatePostModalProps) {
               <button
                 type="button"
                 onClick={handleAIGenerate}
+                disabled={generatingAi}
                 className="w-full py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-medium"
               >
-                <Sparkles className="w-4 h-4 inline mr-2" />
-                Tạo nội dung bằng AI
+                {generatingAi ? <Loader2 className="w-4 h-4 inline mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 inline mr-2" />}
+                {generatingAi ? 'Đang tạo nội dung...' : 'Tạo nội dung bằng AI'}
               </button>
             </div>
           )}

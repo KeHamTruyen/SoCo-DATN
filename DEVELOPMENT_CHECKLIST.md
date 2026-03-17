@@ -453,24 +453,25 @@
 
 ---
 
-## 🤖 15. AI FEATURES (❌ Chưa làm - Phase 8)
+## 🤖 15. AI FEATURES (⏳ Đang làm - backend core đã có)
 
 ### Backend
 
 - [x] AiContentHistory model (Prisma schema)
-- [ ] **TODO: AI service integration (OpenAI/Claude)**
+- [x] AI service integration (Google Gemini/Gemma)
 - [ ] **TODO: Generate product description**
-- [ ] **TODO: Generate post caption**
+- [x] Generate post caption (`POST /api/ai/posts/generate-text`)
+- [x] Buyer support chat assistant cơ bản (`POST /api/ai/chat/buyer-assistant`)
 - [ ] **TODO: Image tagging**
 - [ ] **TODO: AI content history endpoints**
 
 ### Frontend
 
 - [x] AI buttons trong AddProductPage (chưa hoạt động)
-- [x] AI buttons trong CreatePostModal (chưa hoạt động)
-- [ ] **TODO: Tích hợp AI API calls**
-- [ ] **TODO: Loading states cho AI generation**
-- [ ] **TODO: AI suggestions UI**
+- [x] AI buttons trong CreatePostModal (đã hoạt động)
+- [x] Tích hợp AI API calls cho CreatePostModal
+- [x] Loading states cho AI generation (CreatePostModal)
+- [~] AI suggestions UI (mức cơ bản: trả về suggestions + primary text)
 
 ---
 
@@ -551,7 +552,7 @@
 
 - [x] Swagger/OpenAPI docs (`/api-docs`)
 - [x] API_TESTING_GUIDE.md
-- [ ] **TODO: API documentation hoàn chỉnh**
+- [x] API documentation hoàn chỉnh cho các endpoint backend hiện có (bao gồm AI + refund workflow mới)
 - [ ] **TODO: Database schema documentation**
 - [ ] **TODO: Deployment guide**
 
@@ -677,4 +678,4 @@
 
 ---
 
-_Last updated: March 16, 2026_
+_Last updated: March 18, 2026_

@@ -82,19 +82,29 @@ export const getPosts = async (filters = {}) => {
     limit = 20,
     authorId,
     productId,
-    visibility = 'PUBLIC',
+    visibility,
     status = 'PUBLISHED',
     search,
     userId = null,
   } = filters;
 
   const skip = (page - 1) * limit;
+  const hasExplicitFeedFilters = Boolean(authorId || productId || search || visibility);
+  const shouldPersonalize = Boolean(userId) && status === 'PUBLISHED' && !hasExplicitFeedFilters;
+
+  let followedAuthorIds = [];
+  if (shouldPersonalize) {
+    const followRows = await prisma.follow.findMany({
+      where: { followerId: userId },
+      select: { followingId: true },
+    });
+    followedAuthorIds = followRows.map((item) => item.followingId);
+  }
 
   const where = {
     status,
     ...(authorId && { authorId }),
     ...(productId && { productId }),
-    ...(visibility && { visibility }),
     ...(search && {
       content: {
         contains: search,
@@ -103,56 +113,126 @@ export const getPosts = async (filters = {}) => {
     }),
   };
 
-  const [posts, total] = await Promise.all([
-    prisma.post.findMany({
+  if (visibility) {
+    where.visibility = visibility;
+  } else if (shouldPersonalize) {
+    where.OR = [
+      { visibility: 'PUBLIC' },
+      {
+        visibility: 'FOLLOWERS',
+        authorId: {
+          in: [...followedAuthorIds, userId],
+        },
+      },
+      {
+        visibility: 'PRIVATE',
+        authorId: userId,
+      },
+    ];
+  } else {
+    where.visibility = 'PUBLIC';
+  }
+
+  const includeConfig = {
+    author: {
+      select: {
+        id: true,
+        username: true,
+        fullName: true,
+        avatarUrl: true,
+        isVerified: true,
+        role: true,
+      },
+    },
+    product: {
+      select: {
+        id: true,
+        title: true,
+        price: true,
+        images: {
+          where: { isPrimary: true },
+          take: 1,
+          select: {
+            imageUrl: true,
+            altText: true,
+          },
+        },
+      },
+    },
+    likes: userId
+      ? {
+          where: { userId },
+          select: { id: true },
+        }
+      : false,
+    _count: {
+      select: {
+        likes: true,
+        comments: true,
+      },
+    },
+  };
+
+  let posts;
+  let total;
+
+  if (shouldPersonalize) {
+    total = await prisma.post.count({ where });
+
+    const candidateLimit = Math.min(Math.max(page * limit * 5, 100), 500);
+    const candidates = await prisma.post.findMany({
       where,
-      skip,
-      take: limit,
+      skip: 0,
+      take: candidateLimit,
       orderBy: {
         createdAt: 'desc',
       },
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            fullName: true,
-            avatarUrl: true,
-            isVerified: true,
-            role: true,
-          },
+      include: includeConfig,
+    });
+
+    const now = Date.now();
+    const followedSet = new Set(followedAuthorIds);
+
+    const scored = candidates
+      .map((post) => {
+        const ageHours = Math.max(0, (now - new Date(post.createdAt).getTime()) / 3600000);
+        const recencyScore = Math.max(0, 72 - ageHours) * 1.5;
+        const engagementScore =
+          post.likesCount * 3 +
+          post.commentsCount * 4 +
+          post.sharesCount * 2 +
+          Math.min(post.viewsCount, 1000) * 0.05;
+        const followBoost = followedSet.has(post.authorId) ? 500 : 0;
+        const selfBoost = post.authorId === userId ? 120 : 0;
+
+        return {
+          post,
+          score: followBoost + selfBoost + engagementScore + recencyScore,
+        };
+      })
+      .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return new Date(b.post.createdAt).getTime() - new Date(a.post.createdAt).getTime();
+      });
+
+    posts = scored.slice(skip, skip + limit).map((item) => item.post);
+  } else {
+    const result = await Promise.all([
+      prisma.post.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc',
         },
-        product: {
-          select: {
-            id: true,
-            title: true,
-            price: true,
-            images: {
-              where: { isPrimary: true },
-              take: 1,
-              select: {
-                imageUrl: true,
-                altText: true,
-              },
-            },
-          },
-        },
-        likes: userId
-          ? {
-              where: { userId },
-              select: { id: true },
-            }
-          : false,
-        _count: {
-          select: {
-            likes: true,
-            comments: true,
-          },
-        },
-      },
-    }),
-    prisma.post.count({ where }),
-  ]);
+        include: includeConfig,
+      }),
+      prisma.post.count({ where }),
+    ]);
+
+    posts = result[0];
+    total = result[1];
+  }
 
   // Add isLiked flag if user is logged in
   if (userId) {

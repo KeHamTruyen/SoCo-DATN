@@ -2,6 +2,23 @@ import { PrismaClient } from '@prisma/client';
 import notificationService from './notification.service.js';
 
 const prisma = new PrismaClient();
+const REFUND_REQUEST_PREFIX = '[REFUND_REQUEST]';
+const REFUND_REJECT_PREFIX = '[REFUND_REJECTED]';
+
+const buildRefundMetaString = (prefix, payload) => `${prefix}${JSON.stringify(payload)}`;
+
+const parseRefundMeta = (rawValue, prefix) => {
+  if (!rawValue || !rawValue.startsWith(prefix)) {
+    return null;
+  }
+
+  const jsonPart = rawValue.slice(prefix.length);
+  try {
+    return JSON.parse(jsonPart);
+  } catch {
+    return null;
+  }
+};
 
 const getCartItemUnitPrice = (item) => {
   return Number(item.price ?? item.variant?.price ?? item.product?.price ?? 0);
@@ -617,6 +634,296 @@ export const confirmPayment = async (orderId) => {
       },
     },
   });
+
+  return normalizeOrderForClient(updatedOrder);
+};
+
+/**
+ * Buyer requests refund for delivered/completed order.
+ * This is a simulated workflow storing request metadata in cancellationReason.
+ */
+export const requestRefund = async (orderId, buyerId, reason) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      items: {
+        select: {
+          sellerId: true,
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    throw new Error('Order not found');
+  }
+
+  if (order.buyerId !== buyerId) {
+    throw new Error('Unauthorized');
+  }
+
+  if (!['DELIVERED', 'COMPLETED'].includes(order.status)) {
+    throw new Error('Order is not eligible for refund request');
+  }
+
+  if (order.cancellationReason?.startsWith(REFUND_REQUEST_PREFIX)) {
+    throw new Error('Refund request already submitted');
+  }
+
+  const requestPayload = {
+    reason,
+    requestedAt: new Date().toISOString(),
+  };
+
+  const updated = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      cancellationReason: buildRefundMetaString(REFUND_REQUEST_PREFIX, requestPayload),
+    },
+    include: {
+      buyer: {
+        select: {
+          id: true,
+          username: true,
+          fullName: true,
+          avatarUrl: true,
+        },
+      },
+      items: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // Notify all involved sellers to review the refund request.
+  try {
+    const sellerIds = [...new Set(order.items.map((item) => item.sellerId).filter(Boolean))];
+    await Promise.all(
+      sellerIds.map((sellerId) =>
+        notificationService.createNotification({
+          userId: sellerId,
+          type: 'ORDER',
+          title: 'Yeu cau hoan tien moi',
+          message: `Nguoi mua vua gui yeu cau hoan tien cho don ${order.orderNumber}`,
+          relatedUserId: buyerId,
+          relatedOrderId: orderId,
+          actionUrl: `/orders/${orderId}`,
+        })
+      )
+    );
+  } catch (error) {
+    console.error('Failed to notify sellers for refund request:', error);
+  }
+
+  return normalizeOrderForClient(updated);
+};
+
+/**
+ * Seller gets pending refund requests from their sales.
+ */
+export const getSellerRefundRequests = async (sellerId, filters = {}) => {
+  const { page = 1, limit = 10 } = filters;
+
+  const where = {
+    status: {
+      in: ['DELIVERED', 'COMPLETED'],
+    },
+    cancellationReason: {
+      startsWith: REFUND_REQUEST_PREFIX,
+    },
+    items: {
+      some: {
+        sellerId,
+      },
+    },
+  };
+
+  const [orders, total] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      include: {
+        buyer: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            avatarUrl: true,
+          },
+        },
+        items: {
+          where: { sellerId },
+          include: {
+            product: {
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.order.count({ where }),
+  ]);
+
+  const enrichedOrders = orders.map((order) => ({
+    ...normalizeOrderForClient(order),
+    refundRequest: parseRefundMeta(order.cancellationReason, REFUND_REQUEST_PREFIX),
+  }));
+
+  return {
+    orders: enrichedOrders,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
+
+/**
+ * Seller approves/rejects a pending refund request.
+ */
+export const processRefundRequest = async (orderId, sellerId, action, note = null) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      items: {
+        include: {
+          product: true,
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    throw new Error('Order not found');
+  }
+
+  const isSeller = order.items.some((item) => item.sellerId === sellerId);
+  if (!isSeller) {
+    throw new Error('Only seller can process refund request');
+  }
+
+  if (getDistinctSellerIds(order.items).length > 1) {
+    throw new Error('Multi-seller orders must be processed separately');
+  }
+
+  const requestMeta = parseRefundMeta(order.cancellationReason, REFUND_REQUEST_PREFIX);
+  if (!requestMeta) {
+    throw new Error('Refund request not found');
+  }
+
+  const normalizedAction = String(action || '').toUpperCase();
+  if (!['APPROVE', 'REJECT'].includes(normalizedAction)) {
+    throw new Error('Invalid refund action');
+  }
+
+  const processedAt = new Date();
+
+  const updatedOrder = await prisma.$transaction(async (tx) => {
+    if (normalizedAction === 'APPROVE') {
+      return tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: 'REFUNDED',
+          paymentStatus: 'REFUNDED',
+          cancellationReason: buildRefundMetaString(REFUND_REQUEST_PREFIX, {
+            ...requestMeta,
+            processedAt: processedAt.toISOString(),
+            processedBy: sellerId,
+            action: 'APPROVED',
+            note,
+          }),
+        },
+        include: {
+          buyer: {
+            select: {
+              id: true,
+              username: true,
+              fullName: true,
+              avatarUrl: true,
+            },
+          },
+          items: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  title: true,
+                  slug: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    return tx.order.update({
+      where: { id: orderId },
+      data: {
+        cancellationReason: buildRefundMetaString(REFUND_REJECT_PREFIX, {
+          ...requestMeta,
+          processedAt: processedAt.toISOString(),
+          processedBy: sellerId,
+          action: 'REJECTED',
+          note,
+        }),
+      },
+      include: {
+        buyer: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            avatarUrl: true,
+          },
+        },
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  });
+
+  try {
+    if (normalizedAction === 'APPROVE') {
+      await notificationService.notifyOrderStatusChange(orderId, order.buyerId, 'REFUNDED');
+    } else {
+      await notificationService.createNotification({
+        userId: order.buyerId,
+        type: 'ORDER',
+        title: 'Yeu cau hoan tien bi tu choi',
+        message: `Yeu cau hoan tien cho don ${order.orderNumber} da bi tu choi`,
+        relatedOrderId: orderId,
+        actionUrl: `/orders/${orderId}`,
+      });
+    }
+  } catch (error) {
+    console.error('Failed to notify buyer for refund processing:', error);
+  }
 
   return normalizeOrderForClient(updatedOrder);
 };

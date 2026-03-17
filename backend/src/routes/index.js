@@ -17,6 +17,7 @@ import scheduledPostRoutes from './scheduled-post.routes.js';
 import adminRoutes from './admin.routes.js';
 import analyticsRoutes from './analytics.routes.js';
 import searchRoutes from './search.routes.js';
+import aiRoutes from './ai.routes.js';
 
 const router = express.Router();
 
@@ -39,6 +40,7 @@ router.use('/scheduled-posts', scheduledPostRoutes);
 router.use('/admin', adminRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/search', searchRoutes);
+router.use('/ai', aiRoutes);
 
 // Temporary welcome route
 router.get('/', (req, res) => {
@@ -60,7 +62,8 @@ router.get('/', (req, res) => {
       reports: '/api/reports',
       admin: '/api/admin',
       analytics: '/api/analytics',
-      search: '/api/search'
+      search: '/api/search',
+      ai: '/api/ai'
     }
   });
 });

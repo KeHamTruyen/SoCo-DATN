@@ -8,7 +8,7 @@ import groupService from '../src/services/group.service.js';
 import { createReview, respondToReview } from '../src/services/review.service.js';
 import { searchAll } from '../src/services/search.service.js';
 import { verifySeller, getDashboardOverview, getAdvancedAnalyticsDashboard } from '../src/services/admin.service.js';
-import { createPost, getPostById } from '../src/services/post.service.js';
+import { createPost, getPostById, getPosts } from '../src/services/post.service.js';
 import { createScheduledPost, publishScheduledPostRecord } from '../src/services/scheduled-post.service.js';
 import { trackProductView, getSellerAnalyticsDashboard } from '../src/services/analytics.service.js';
 import productService from '../src/services/product.service.js';
@@ -19,6 +19,12 @@ import {
   submitVerificationStep3,
   submitVerificationForReview
 } from '../src/services/seller.service.js';
+import {
+  requestRefund,
+  getSellerRefundRequests,
+  processRefundRequest,
+} from '../src/services/order.service.js';
+import { buyerAssistantChat } from '../src/services/ai.service.js';
 
 process.env.JWT_SECRET ||= 'test-jwt-secret';
 
@@ -306,6 +312,205 @@ test('integration: search service aggregates product user and post results with 
     await prisma.post.deleteMany({ where: { id: { in: [publicPost.id, privatePost.id] } } });
     await prisma.product.deleteMany({ where: { id: { in: [product.id, hiddenProduct.id] } } });
     await prisma.user.deleteMany({ where: { id: { in: [seller.id, inactiveUser.id] } } });
+  }
+});
+
+test('integration: post feed prioritizes followed authors while guest feed stays public-only', async () => {
+  const viewer = await createUser({ role: 'BUYER' });
+  const followedSeller = await createUser({ role: 'SELLER', isVerified: true });
+  const unfollowedSeller = await createUser({ role: 'SELLER', isVerified: true });
+
+  const followEdge = await prisma.follow.create({
+    data: {
+      followerId: viewer.id,
+      followingId: followedSeller.id,
+    },
+  });
+
+  const followedPublicPost = await prisma.post.create({
+    data: {
+      authorId: followedSeller.id,
+      content: 'followed public post',
+      mediaUrls: [],
+      status: 'PUBLISHED',
+      visibility: 'PUBLIC',
+      likesCount: 1,
+      commentsCount: 0,
+      sharesCount: 0,
+      viewsCount: 10,
+    },
+  });
+
+  const followedFollowersPost = await prisma.post.create({
+    data: {
+      authorId: followedSeller.id,
+      content: 'followed followers-only post',
+      mediaUrls: [],
+      status: 'PUBLISHED',
+      visibility: 'FOLLOWERS',
+      likesCount: 0,
+      commentsCount: 0,
+      sharesCount: 0,
+      viewsCount: 1,
+    },
+  });
+
+  const unfollowedHighEngagementPost = await prisma.post.create({
+    data: {
+      authorId: unfollowedSeller.id,
+      content: 'unfollowed high engagement post',
+      mediaUrls: [],
+      status: 'PUBLISHED',
+      visibility: 'PUBLIC',
+      likesCount: 20,
+      commentsCount: 8,
+      sharesCount: 3,
+      viewsCount: 100,
+    },
+  });
+
+  try {
+    const personalized = await getPosts({
+      page: 1,
+      limit: 20,
+      status: 'PUBLISHED',
+      userId: viewer.id,
+    });
+
+    const personalizedIds = personalized.posts.map((post) => post.id);
+
+    assert.ok(personalizedIds.includes(followedFollowersPost.id));
+    assert.ok(personalizedIds.includes(unfollowedHighEngagementPost.id));
+    assert.equal(personalized.posts[0].authorId, followedSeller.id);
+
+    const guestFeed = await getPosts({
+      page: 1,
+      limit: 20,
+      status: 'PUBLISHED',
+    });
+
+    const guestIds = guestFeed.posts.map((post) => post.id);
+    assert.ok(guestIds.includes(followedPublicPost.id));
+    assert.ok(guestIds.includes(unfollowedHighEngagementPost.id));
+    assert.ok(!guestIds.includes(followedFollowersPost.id));
+  } finally {
+    await prisma.post.deleteMany({
+      where: {
+        id: {
+          in: [
+            followedPublicPost.id,
+            followedFollowersPost.id,
+            unfollowedHighEngagementPost.id,
+          ],
+        },
+      },
+    });
+    await prisma.follow.deleteMany({ where: { id: followEdge.id } });
+    await prisma.user.deleteMany({
+      where: {
+        id: {
+          in: [viewer.id, followedSeller.id, unfollowedSeller.id],
+        },
+      },
+    });
+  }
+});
+
+test('integration: refund request workflow allows buyer request and seller approve/reject', async () => {
+  const buyer = await createUser({ role: 'BUYER' });
+  const seller = await createUser({ role: 'SELLER', isVerified: true });
+
+  const approvedOrder = await prisma.order.create({
+    data: {
+      orderNumber: uniq('REF-APPROVE'),
+      buyerId: buyer.id,
+      subtotal: 200000,
+      shippingFee: 20000,
+      tax: 0,
+      discount: 0,
+      total: 220000,
+      shippingName: 'Refund Buyer',
+      shippingPhone: '0901234567',
+      shippingAddress: '123 Refund Street',
+      shippingCity: 'HCM',
+      paymentMethod: 'COD',
+      paymentStatus: 'PAID',
+      status: 'COMPLETED',
+      items: {
+        create: {
+          sellerId: seller.id,
+          productName: 'Refund Product A',
+          quantity: 1,
+          unitPrice: 200000,
+          totalPrice: 200000,
+          status: 'completed',
+        },
+      },
+    },
+    include: { items: true },
+  });
+
+  const rejectedOrder = await prisma.order.create({
+    data: {
+      orderNumber: uniq('REF-REJECT'),
+      buyerId: buyer.id,
+      subtotal: 150000,
+      shippingFee: 20000,
+      tax: 0,
+      discount: 0,
+      total: 170000,
+      shippingName: 'Refund Buyer',
+      shippingPhone: '0901234567',
+      shippingAddress: '123 Refund Street',
+      shippingCity: 'HCM',
+      paymentMethod: 'COD',
+      paymentStatus: 'PAID',
+      status: 'DELIVERED',
+      items: {
+        create: {
+          sellerId: seller.id,
+          productName: 'Refund Product B',
+          quantity: 1,
+          unitPrice: 150000,
+          totalPrice: 150000,
+          status: 'delivered',
+        },
+      },
+    },
+    include: { items: true },
+  });
+
+  try {
+    const requested = await requestRefund(approvedOrder.id, buyer.id, 'San pham loi nhe');
+    assert.ok(String(requested.cancellationReason || '').startsWith('[REFUND_REQUEST]'));
+
+    const sellerInbox = await getSellerRefundRequests(seller.id, { page: 1, limit: 10 });
+    assert.ok(sellerInbox.orders.some((order) => order.id === approvedOrder.id));
+
+    const approved = await processRefundRequest(approvedOrder.id, seller.id, 'APPROVE', 'Dong y hoan tien');
+    assert.equal(approved.status, 'REFUNDED');
+    assert.equal(approved.paymentStatus, 'REFUNDED');
+
+    await requestRefund(rejectedOrder.id, buyer.id, 'Khong dung mo ta');
+    const rejected = await processRefundRequest(rejectedOrder.id, seller.id, 'REJECT', 'Khong du dieu kien hoan tien');
+    assert.equal(rejected.status, 'DELIVERED');
+    assert.ok(String(rejected.cancellationReason || '').startsWith('[REFUND_REJECTED]'));
+
+    await assert.rejects(
+      () => requestRefund(approvedOrder.id, buyer.id, 'Thu yeu cau lai'),
+      /Order is not eligible for refund request/
+    );
+  } finally {
+    await prisma.orderItem.deleteMany({
+      where: {
+        orderId: {
+          in: [approvedOrder.id, rejectedOrder.id],
+        },
+      },
+    });
+    await prisma.order.deleteMany({ where: { id: { in: [approvedOrder.id, rejectedOrder.id] } } });
+    await prisma.notification.deleteMany({ where: { relatedOrderId: { in: [approvedOrder.id, rejectedOrder.id] } } });
+    await prisma.user.deleteMany({ where: { id: { in: [buyer.id, seller.id] } } });
   }
 });
 
@@ -953,6 +1158,63 @@ test('integration: analytics service tracks views and returns seller dashboard s
     }
     if (productId) {
       await prisma.productView.deleteMany({ where: { productId } });
+      await prisma.product.deleteMany({ where: { id: productId } });
+    }
+    await prisma.user.deleteMany({ where: { id: { in: [seller.id, buyer.id] } } });
+  }
+});
+
+test('integration: buyer assistant chat returns product suggestions and stock-focused reply', async () => {
+  const seller = await createUser({ role: 'SELLER', isVerified: true });
+  const buyer = await createUser({ role: 'BUYER' });
+  let productId = null;
+  let variantId = null;
+
+  try {
+    const product = await prisma.product.create({
+      data: {
+        sellerId: seller.id,
+        title: uniq('ao-thun-nam'),
+        slug: uniq('ao-thun-nam-slug'),
+        description: 'Ao thun cotton form regular',
+        price: 199000,
+        stockQuantity: 25,
+        trackInventory: true,
+        status: 'ACTIVE',
+        metaKeywords: ['ao', 'thun', 'nam']
+      }
+    });
+    productId = product.id;
+
+    const variant = await prisma.productVariant.create({
+      data: {
+        productId,
+        variantName: 'Mau den - Size M',
+        sku: uniq('SKU-CHAT'),
+        stockQuantity: 7,
+        options: { color: 'Den', size: 'M' },
+        isActive: true
+      }
+    });
+    variantId = variant.id;
+
+    const response = await buyerAssistantChat(buyer.id, {
+      message: `San pham ${product.title} con hang size mau nao duoi 250k?`,
+      productId,
+    });
+
+    assert.equal(response.intent, 'stock');
+    assert.ok(Array.isArray(response.products));
+    assert.ok(response.products.length >= 1);
+    assert.ok(response.products.some((item) => item.id === productId));
+    assert.equal(typeof response.reply, 'string');
+    assert.ok(response.reply.length > 0);
+    assert.ok(Array.isArray(response.products[0].variants));
+  } finally {
+    if (variantId) {
+      await prisma.productVariant.deleteMany({ where: { id: variantId } });
+    }
+    if (productId) {
       await prisma.product.deleteMany({ where: { id: productId } });
     }
     await prisma.user.deleteMany({ where: { id: { in: [seller.id, buyer.id] } } });

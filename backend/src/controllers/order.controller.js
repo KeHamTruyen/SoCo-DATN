@@ -331,3 +331,122 @@ export const confirmPayment = async (req, res) => {
     });
   }
 };
+
+/**
+ * @desc    Buyer requests refund
+ * @route   POST /api/orders/:orderId/refund-request
+ * @access  Private (Buyer)
+ */
+export const requestRefund = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { reason } = req.body;
+
+    const order = await orderService.requestRefund(orderId, req.user.id, reason);
+
+    res.json({
+      success: true,
+      message: 'Refund request submitted',
+      data: order,
+    });
+  } catch (error) {
+    console.error('Request refund error:', error);
+
+    if (error.message === 'Order not found') {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+
+    if (error.message === 'Unauthorized') {
+      return res.status(403).json({ success: false, message: error.message });
+    }
+
+    if (
+      error.message === 'Order is not eligible for refund request' ||
+      error.message === 'Refund request already submitted'
+    ) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to submit refund request',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @desc    Get seller refund requests
+ * @route   GET /api/orders/my/sales/refund-requests
+ * @access  Private (Seller)
+ */
+export const getMyRefundRequests = async (req, res) => {
+  try {
+    const { page, limit } = req.query;
+
+    const result = await orderService.getSellerRefundRequests(req.user.id, {
+      page: page ? parseInt(page) : undefined,
+      limit: limit ? parseInt(limit) : undefined,
+    });
+
+    res.json({
+      success: true,
+      data: result.orders,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    console.error('Get refund requests error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to get refund requests',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @desc    Seller processes refund request
+ * @route   PATCH /api/orders/:orderId/refund-request
+ * @access  Private (Seller)
+ */
+export const processRefundRequest = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { action, note } = req.body;
+
+    const order = await orderService.processRefundRequest(orderId, req.user.id, action, note);
+
+    res.json({
+      success: true,
+      message: `Refund request ${String(action || '').toLowerCase()}d`,
+      data: order,
+    });
+  } catch (error) {
+    console.error('Process refund request error:', error);
+
+    if (error.message === 'Order not found') {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+
+    if (
+      error.message === 'Only seller can process refund request' ||
+      error.message === 'Unauthorized'
+    ) {
+      return res.status(403).json({ success: false, message: error.message });
+    }
+
+    if (
+      error.message === 'Refund request not found' ||
+      error.message === 'Invalid refund action' ||
+      error.message === 'Multi-seller orders must be processed separately'
+    ) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to process refund request',
+      error: error.message,
+    });
+  }
+};

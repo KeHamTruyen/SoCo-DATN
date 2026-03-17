@@ -162,6 +162,43 @@ router.get(
 
 /**
  * @swagger
+ * /api/orders/my/sales/refund-requests:
+ *   get:
+ *     summary: Get pending refund requests for seller orders
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Refund requests retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get(
+  '/my/sales/refund-requests',
+  protect,
+  orderValidator.validateGetRefundRequests,
+  orderController.getMyRefundRequests
+);
+
+/**
+ * @swagger
  * /api/orders/{orderId}:
  *   get:
  *     summary: Get order by ID
@@ -286,6 +323,106 @@ router.post(
   protect,
   orderValidator.validateCancelOrder,
   orderController.cancelOrder
+);
+
+/**
+ * @swagger
+ * /api/orders/{orderId}/refund-request:
+ *   post:
+ *     summary: Submit a refund request (buyer)
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - reason
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 minLength: 5
+ *                 maxLength: 500
+ *     responses:
+ *       200:
+ *         description: Refund request submitted
+ *       400:
+ *         description: Invalid state or validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Order not found
+ *       500:
+ *         description: Server error
+ */
+router.post(
+  '/:orderId/refund-request',
+  protect,
+  orderValidator.validateRefundRequest,
+  orderController.requestRefund
+);
+
+/**
+ * @swagger
+ * /api/orders/{orderId}/refund-request:
+ *   patch:
+ *     summary: Approve or reject a refund request (seller)
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - action
+ *             properties:
+ *               action:
+ *                 type: string
+ *                 enum: [APPROVE, REJECT]
+ *               note:
+ *                 type: string
+ *                 maxLength: 500
+ *     responses:
+ *       200:
+ *         description: Refund request processed
+ *       400:
+ *         description: Invalid state or validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Order not found
+ *       500:
+ *         description: Server error
+ */
+router.patch(
+  '/:orderId/refund-request',
+  protect,
+  orderValidator.validateProcessRefundRequest,
+  orderController.processRefundRequest
 );
 
 /**
