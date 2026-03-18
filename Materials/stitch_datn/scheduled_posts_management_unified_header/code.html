@@ -1,0 +1,320 @@
+<html class="light" lang="en"><head></head><body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">```html
+
+
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Scheduled Posts - Social Commerce</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<div class="relative flex min-h-screen flex-col overflow-x-hidden">
+<!-- Header updated to match SCREEN_63 -->
+<header class="sticky top-0 z-50 w-full bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
+<!-- Logo & Nav -->
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 shrink-0">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined block">shopping_bag</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">SocialCommerce</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-bold text-primary border-b-2 border-primary py-5" href="#">Feed</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors py-5" href="#">Marketplace</a>
+</nav>
+</div>
+<!-- Search Bar -->
+<div class="flex-1 max-w-2xl">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-1 focus:ring-primary focus:border-primary transition-all text-sm" placeholder="Search products, sellers, or hashtags..." type="text"/>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-6">
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 cursor-pointer border border-slate-200 dark:border-slate-700">
+<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUKsQim7bZFp5JCR1lc8J5aY3T_Y-QmeQjWo5bADgn_P1TtpH7RugaS_Zm4NI_MKBlj0oWvs8kOgJVX1eQC1lG3P_ggxPQqXmbY90UXPZDAYSwlZEhqsAOAY97xtmJOyHm8L6-bAgW2a8z2N9HbejhmeB6b8iegKSqTmaEw-yPveTlDouLrN6Bs9H7iP5eySFe3IAq5rkDMr9IjtiQoczIgJPykKKmY267qB-Faqhs-2ZREw53vDbcowVPYb9-Xsxq1C7qmjEZZ3wW"/>
+</div>
+</div>
+</div>
+</header>
+<main class="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 p-4 lg:p-8">
+<!-- Page Title Section -->
+<div class="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+<div>
+<h1 class="text-3xl font-bold tracking-tight">Scheduled Posts <span class="text-slate-400 font-normal ml-2">(3)</span></h1>
+<p class="text-slate-500 dark:text-slate-400">Manage your upcoming product releases and social updates.</p>
+</div>
+<div class="flex items-center gap-2 mt-4 md:mt-0">
+<button class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-medium shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+                        View Analytics
+                    </button>
+</div>
+</div>
+<!-- Section 1: Create & Schedule -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="lg:col-span-2 space-y-4">
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-semibold text-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">add_circle</span>
+                                Create New Post
+                            </h3>
+<button class="flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-sm font-bold hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+                                AI Inspiration Lab
+                            </button>
+</div>
+<div class="space-y-4">
+<!-- Caption Textarea -->
+<div class="relative">
+<textarea class="w-full rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus:ring-primary focus:border-primary placeholder:text-slate-400 resize-none" placeholder="What's on your mind? Add product details or a story..." rows="4"></textarea>
+</div>
+<!-- Media Upload Zone -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+<div class="aspect-square border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary">upload_file</span>
+<span class="text-xs font-medium text-slate-500">Upload Media</span>
+</div>
+<div class="aspect-square bg-slate-100 dark:bg-slate-800 rounded-xl relative overflow-hidden group">
+<img class="w-full h-full object-cover" data-alt="Modern minimal watch product photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfDYCcTk2gRJMHL4Fwb1o8NoVlz6IYU6U_gggqt6q3qhVfmBOSfltVefI6Ma_cUJsmuixH7y5QYeVCmt38UPAfYaLvf25VACxKxgZgoGGwERp8fKI8_j0tYqH4jSJdmrLmi3IIXTTBzOZWp357jlfJw75cFxeB61oe04OUR3Fl_vTay5fSb8KHvrJPl7jVOLeeoDn1BkRA6trdEk0r4hly4qmgJa-ADCPe3Vau9NEzSlVRIzajFlXpe2IRilLMrOhL45a8h4Eu5S70"/>
+<button class="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-xs">close</span>
+</button>
+</div>
+</div>
+<!-- Actions Row -->
+<div class="flex flex-wrap items-center gap-3 pt-2">
+<button class="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-sm font-medium transition-colors">
+<span class="material-symbols-outlined text-[18px]">sell</span>
+                                    Tag Products
+                                </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-sm font-medium transition-colors">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+                                    Location
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Schedule Sidebar -->
+<div class="space-y-4">
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
+<div>
+<h3 class="font-semibold text-lg mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">calendar_month</span>
+                                Schedule Details
+                            </h3>
+<div class="space-y-4">
+<div>
+<label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Publish Date</label>
+<div class="relative group cursor-pointer border border-slate-200 dark:border-slate-800 rounded-xl p-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-900 transition-all">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">event</span>
+<span class="font-medium">Dec 24, 2023</span>
+</div>
+<span class="material-symbols-outlined text-slate-400">expand_more</span>
+</div>
+</div>
+<div>
+<label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Publish Time</label>
+<div class="relative group cursor-pointer border border-slate-200 dark:border-slate-800 rounded-xl p-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-900 transition-all">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">schedule</span>
+<span class="font-medium">10:30 AM</span>
+</div>
+<span class="material-symbols-outlined text-slate-400">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">send_time_extension</span>
+                            Schedule Post
+                        </button>
+</div>
+</div>
+</section>
+<!-- Section 2: Scheduled List -->
+<section class="space-y-6">
+<div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+<nav class="flex gap-1 bg-slate-200/50 dark:bg-slate-800/50 p-1 rounded-xl">
+<button class="flex items-center gap-2 px-4 py-1.5 bg-white dark:bg-slate-700 shadow-sm rounded-lg text-sm font-bold">
+<span class="material-symbols-outlined text-[18px]">format_list_bulleted</span>
+                            List View
+                        </button>
+<button class="flex items-center gap-2 px-4 py-1.5 text-slate-500 dark:text-slate-400 rounded-lg text-sm font-medium hover:bg-white/50 dark:hover:bg-slate-700/50 transition-all">
+<span class="material-symbols-outlined text-[18px]">calendar_view_month</span>
+                            Calendar
+                        </button>
+</nav>
+<div class="flex items-center gap-2 text-sm text-slate-500">
+<span class="material-symbols-outlined text-sm">info</span>
+                        Timezone: PST (GMT-8)
+                    </div>
+</div>
+<div class="grid grid-cols-1 gap-4">
+<!-- Post Card 1 -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col md:flex-row gap-5 shadow-sm hover:shadow-md transition-shadow">
+<div class="w-full md:w-32 aspect-square rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Red Nike running shoe thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5WE6QgP_Y6BEfs1RzlAqH5b4Us1q8MVm9nLhwe6CQBJePUtL-Hn3na49fSfs9oQFcvlJdlODJ4i21TfNj-YAlbzfLIRmRpYyCiMZDg-N7emGyzAWQbdHx7A_u_mMlvOzXW2qC4wmlrYiojBu9eQvWsUiIGmvqwH01JUn3JBwZNibBiJP9y59GoWnYUcEbOK6ZK0i-pRnlb7XTrHae2R4RZCwp6XNcBEKkcKiiKIF741wPMeLYjXfTuOfwBo98INX3Kok6dP_nXF59"/>
+</div>
+<div class="flex-1 flex flex-col justify-between py-1">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="px-2.5 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-bold uppercase tracking-wider">Shoppable</span>
+<span class="flex items-center gap-1 text-xs font-medium text-slate-500">
+<span class="material-symbols-outlined text-[14px]">history</span>
+                                        Posting in 2 hours
+                                    </span>
+</div>
+<h4 class="font-semibold text-slate-900 dark:text-slate-100 line-clamp-1">Limited Edition Crimson Sprinters - Launching Today!</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">Get ready for the drop. These high-performance crimson sprinters are finally here. Shop the link in bio at noon. #Nike #NewArrival</p>
+</div>
+<div class="flex items-center gap-4 mt-4 text-xs text-slate-400">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event</span> Dec 24, 10:30 AM</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">sell</span> 1 Product Tagged</span>
+</div>
+</div>
+<div class="flex md:flex-col gap-2 justify-end md:justify-center border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-800 pt-4 md:pt-0 md:pl-4 min-w-[120px]">
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                                Edit
+                            </button>
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-primary hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+                                Post Now
+                            </button>
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+                                Delete
+                            </button>
+</div>
+</div>
+<!-- Post Card 2 -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col md:flex-row gap-5 shadow-sm opacity-90 grayscale-[0.2]">
+<div class="w-full md:w-32 aspect-square rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Minimalistic lifestyle sneaker photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdxFiLq1BjG9wFCIrECTndXAQBo9jpPjxrWyU8wz4NGbLrmFl6PJ6c_CV7WZSl3P6WdOQnoZoR0erUi5n1sdz7ZOyxFmC37p1kseqjNk93Atokv4e1sqQtviecl8_rx4C1t9q_gC1LEvzKwFO6PoyBQHknxVRtcmOCnaCyLMlOc6mUP_kD_EjC_Ycw3tOd1Q0UX6WVIf_OqlmbZpsZCVkuecR1yKkRZF7kM9VnSJ-X9jLcBm0FEcwYQ4YiEoFU9BWnVZVS6YgdEqLG"/>
+</div>
+<div class="flex-1 flex flex-col justify-between py-1">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="px-2.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full text-xs font-bold uppercase tracking-wider">Engagement</span>
+<span class="flex items-center gap-1 text-xs font-medium text-slate-500">
+<span class="material-symbols-outlined text-[14px]">history</span>
+                                        Posting in 1 day
+                                    </span>
+</div>
+<h4 class="font-semibold text-slate-900 dark:text-slate-100 line-clamp-1">Style Check: What's your weekend vibe? 🧥</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">Choose your favorite combination from our winter collection. Let us know in the comments! #WinterStyle #VibeCheck</p>
+</div>
+<div class="flex items-center gap-4 mt-4 text-xs text-slate-400">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event</span> Dec 25, 09:00 AM</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">chat_bubble</span> Questions Sticker</span>
+</div>
+</div>
+<div class="flex md:flex-col gap-2 justify-end md:justify-center border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-800 pt-4 md:pt-0 md:pl-4 min-w-[120px]">
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                                Edit
+                            </button>
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-primary hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+                                Post Now
+                            </button>
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+                                Delete
+                            </button>
+</div>
+</div>
+<!-- Post Card 3 -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col md:flex-row gap-5 shadow-sm opacity-80">
+<div class="w-full md:w-32 aspect-square rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="High quality headphones product shot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHLnDwObMESZGO7qaMFjunZro4I5PR1xMDEyGCnWmkTDePlSSWmA8ZpWQETAbT9fyA28yfCJVtgFZNPsA1IEYu_isWZeB-8l6lGvO7V06D78_FiBkQ4BkdaqlSGwvmlAdg0i0iyGWjUMYwoDB0dvXP2yNmrhrLgMh5gOQRbbJ-HRfyEaUcdWILJIzkaNlNScMIQu7YchTURouJTyYiN8Tam5gekuYaZ-P6IxZNMiW_tcfe28GWCBQpVFkDe9Lt9DeI8ziMd16f708f"/>
+</div>
+<div class="flex-1 flex flex-col justify-between py-1">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="px-2.5 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-bold uppercase tracking-wider">Shoppable</span>
+<span class="flex items-center gap-1 text-xs font-medium text-slate-500">
+<span class="material-symbols-outlined text-[14px]">history</span>
+                                        Posting in 3 days
+                                    </span>
+</div>
+<h4 class="font-semibold text-slate-900 dark:text-slate-100 line-clamp-1">Sonic Excellence: Audio Pro Series restock.</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">The wait is over. All colors of the Audio Pro Series will be back in stock this Thursday. Tap to set a reminder.</p>
+</div>
+<div class="flex items-center gap-4 mt-4 text-xs text-slate-400">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event</span> Dec 27, 12:00 PM</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">sell</span> 2 Products Tagged</span>
+</div>
+</div>
+<div class="flex md:flex-col gap-2 justify-end md:justify-center border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-800 pt-4 md:pt-0 md:pl-4 min-w-[120px]">
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                                Edit
+                            </button>
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-primary hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+                                Post Now
+                            </button>
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+                                Delete
+                            </button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark mt-auto">
+<div class="mx-auto max-w-6xl px-4 py-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+<p class="text-sm text-slate-500 dark:text-slate-400">© 2023 Social Commerce Brand Manager. All rights reserved.</p>
+<div class="flex items-center gap-6">
+<a class="text-xs font-medium text-slate-500 hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="text-xs font-medium text-slate-500 hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="text-xs font-medium text-slate-500 hover:text-primary transition-colors" href="#">Support Center</a>
+</div>
+</div>
+</footer>
+</div>
+```</body></html>

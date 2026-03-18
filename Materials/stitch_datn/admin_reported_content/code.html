@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Admin Management - Reported Content</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 transition-colors duration-200">
+<div class="flex min-h-screen">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex flex-col sticky top-0 h-screen">
+<div class="p-6 flex items-center gap-3">
+<div class="bg-primary rounded-lg p-2 flex items-center justify-center text-white">
+<span class="material-symbols-outlined">shopping_bag</span>
+</div>
+<div>
+<h1 class="text-sm font-bold tracking-tight">ADMIN PANEL</h1>
+<p class="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Social Commerce</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">flag</span>
+<span class="text-sm font-semibold">Reported Content</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span class="text-sm font-medium">User Management</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 px-2 py-3">
+<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+<img alt="Admin avatar" data-alt="Professional admin user profile photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMOaditEzl-_lmgw9jBT6iARQ4zq2gpwZufeKOkIC2ScZNlnbWirnNIY_b6Te6kNHKEqhvcBSeKVCBl65XnqjA7yF-bnNC7ltehM5-jgk2Hvj3Edtd6Acg4W18pQZv1NZUaKvnJKcLLzEsrLR1bj4vA7vMHLtEPnE-iE81eUF22Bpnacc-vJdB8U5i1wMYZTGiPiUS4Bw6IsXkrvm__KtMNRUaPTEZtyNoEgff0AXR0k8SjTOUWFzex6Y51F48PCoVzTXZeb29BSXi"/>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-semibold truncate">Alex Rivera</p>
+<p class="text-[10px] text-slate-500 truncate">Senior Moderator</p>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-sm">logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 p-8 overflow-y-auto">
+<header class="mb-8">
+<div class="flex justify-between items-end">
+<div>
+<h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Reported Content</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Review and manage community flagged posts and comments.</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-medium text-slate-400">Status: System Online</span>
+<div class="size-2 rounded-full bg-green-500"></div>
+</div>
+</div>
+</header>
+<!-- Filter Bar -->
+<section class="bg-white dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mb-6">
+<div class="flex flex-wrap gap-4 items-end">
+<div class="flex-1 min-w-[200px]">
+<label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Category</label>
+<select class="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:ring-primary focus:border-primary">
+<option>All Categories</option>
+<option>Inappropriate Content</option>
+<option>Scam</option>
+<option>Spam</option>
+<option>Harassment</option>
+</select>
+</div>
+<div class="flex-1 min-w-[200px]">
+<label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Priority</label>
+<select class="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:ring-primary focus:border-primary">
+<option>All Priorities</option>
+<option>High Priority</option>
+<option>Medium Priority</option>
+<option>Low Priority</option>
+</select>
+</div>
+<div class="flex-1 min-w-[200px]">
+<label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Date Range</label>
+<select class="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg text-sm focus:ring-primary focus:border-primary">
+<option>Last 24 Hours</option>
+<option>Last 7 Days</option>
+<option>Last 30 Days</option>
+<option>Custom Range</option>
+</select>
+</div>
+<button class="bg-slate-900 dark:bg-white dark:text-slate-900 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+                        Apply Filters
+                    </button>
+</div>
+</section>
+<!-- Reports Table -->
+<div class="bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800">
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Content Preview</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Type &amp; Priority</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Reporter Message</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-14 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden flex-shrink-0">
+<img alt="Reported product" class="object-cover size-full" data-alt="Minimalist white wristwatch on a plain background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbfBCKNMBgBjmSqaIQxTNGDJgqliD_cWXOp-UN6Rs_7HtgMxKqLPLlWPPkx_LbnhQb95GrA_LvJd3qiO39ijhVxONeQm9eErLqd7SCyXfIkq6EqZdTeK7xocpv9CTqsNSNSm_eWIFxnKqeTvigrcySeckAmV8NZZfvNdaPMe4saJaQja06kT_QjDxNkmt1FA6kIt1L7bA_t487k9QdTBQ_j4Jgoa-k9-M7DpmZPChGBqZiLtnhSpaP4G7X_6LKizHfOQDMUj_mH1-D"/>
+</div>
+<div>
+<p class="text-sm font-semibold">Limited Edition Watch</p>
+<p class="text-[11px] text-slate-500">ID: #REP-8829</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="space-y-1.5">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 uppercase tracking-wider">Scam</span>
+<div class="flex items-center gap-1.5">
+<div class="size-1.5 rounded-full bg-red-500"></div>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">High Priority</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm text-slate-600 dark:text-slate-300 max-w-xs line-clamp-2 italic">"Seller is promoting a counterfeit version of this brand. Photos are stolen from official site."</p>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">Dismiss</button>
+<button class="px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-900/30 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Delete Post</button>
+<button class="px-3 py-1.5 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-xs font-semibold hover:opacity-90 transition-opacity">Block User</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-14 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden flex-shrink-0">
+<img alt="Reported furniture" class="object-cover size-full" data-alt="Modern wooden chair with grey fabric upholstery" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQbyEwIL39YNiE59CAR4Tsa8NEgT7r-tpsh8tLmahvI-PN2S835NuDHltet08YkX6G7VHjVSewKaDZ9H5yXIkIxyF4acbRpzW6Ov-hyMjvpnf0L3y8o0i63glbgwxL5x68ZClqQqyhLOv_uF24Q3owgiSu2Hgkhy-nVhHpN4KY_Axd3ekSjTsXG7KUPO3BCbbSswcK_UnHMZ7xkZRGgDJARAIV0cWzCiJsDjnFqSHySoZ5BONq55cMhP5oYnkCsJaQNoK0tRW16WRy"/>
+</div>
+<div>
+<p class="text-sm font-semibold">Designer Lounge Chair</p>
+<p class="text-[11px] text-slate-500">ID: #REP-8812</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="space-y-1.5">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 uppercase tracking-wider">Spam</span>
+<div class="flex items-center gap-1.5">
+<div class="size-1.5 rounded-full bg-slate-400"></div>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">Low Priority</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm text-slate-600 dark:text-slate-300 max-w-xs line-clamp-2 italic">"This account is posting the same advertisement 50 times an hour. Extremely annoying."</p>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">Dismiss</button>
+<button class="px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-900/30 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Delete Post</button>
+<button class="px-3 py-1.5 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-xs font-semibold hover:opacity-90 transition-opacity">Block User</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-14 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden flex-shrink-0">
+<img alt="Reported shoes" class="object-cover size-full" data-alt="Vibrant red athletic running sneakers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUkfJYusoUOnzAfggWiWjp_GFk8phw_eD8X8FW8hsVbU_u1Ry0JNJ8g9uFKbREs3nwD3-46HM-5qEAcXkUYinoSmUfURQrirlMKzrFNZZC3DGT7Wn-MUIEOwfCntlQrOqJxxS-GytrWdI2W0dmSyeCcuEnTnf29ZSJrq6w-Dj1Ddig2h_r0VpbumOgaucRh9V2t6RdDK3E0Kd2ivf7vMZj3U9YOMwbuvQBEFaFPQro-KDo8-rPe8o0qgatzJhwCjCmi9lfyp9raXXd"/>
+</div>
+<div>
+<p class="text-sm font-semibold">Pro Sport Sneakers</p>
+<p class="text-[11px] text-slate-500">ID: #REP-8795</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="space-y-1.5">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 uppercase tracking-wider">Inappropriate Content</span>
+<div class="flex items-center gap-1.5">
+<div class="size-1.5 rounded-full bg-orange-500"></div>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">Medium Priority</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm text-slate-600 dark:text-slate-300 max-w-xs line-clamp-2 italic">"Description contains offensive language and slurs towards specific groups."</p>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2">
+<button class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">Dismiss</button>
+<button class="px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-900/30 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Delete Post</button>
+<button class="px-3 py-1.5 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-xs font-semibold hover:opacity-90 transition-opacity">Block User</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Pagination -->
+<div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+<p class="text-xs text-slate-500 font-medium">Showing 1-3 of 42 reports</p>
+<div class="flex gap-2">
+<button class="p-1.5 rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="p-1.5 rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

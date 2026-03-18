@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Seller Center - SocialCommerce</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .filled-icon { font-variation-settings: 'FILL' 1; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="flex flex-col min-h-screen">
+<!-- Unified Header from Home Feed -->
+<header class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 md:px-6">
+<div class="max-w-7xl mx-auto h-16 flex items-center justify-between gap-4">
+<!-- Logo -->
+<div class="flex items-center gap-2 text-primary shrink-0">
+<span class="material-symbols-outlined text-3xl font-bold">shopping_bag</span>
+<h2 class="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight hidden sm:block">SocialCommerce</h2>
+</div>
+<!-- Navigation Tabs -->
+<nav class="hidden lg:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+<a class="px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" href="#">Home Feed</a>
+<a class="px-4 py-2 rounded-lg text-sm font-bold bg-white dark:bg-slate-700 text-primary shadow-sm" href="#">Marketplace</a>
+<a class="px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" href="#">Social</a>
+<a class="px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" href="#">Studio</a>
+</nav>
+<!-- Search Bar -->
+<div class="flex-1 max-w-md hidden md:flex items-center relative">
+<span class="material-symbols-outlined absolute left-3 text-slate-400">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search trends, products, sellers..." type="text"/>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-2 sm:gap-4">
+<button class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-slate-900"></span>
+</button>
+<button class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<div class="h-10 w-10 rounded-full border-2 border-primary p-0.5 shrink-0">
+<img alt="Profile" class="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIUUIyaUWHNK8ChEpKgMQvjMJF2ZvkJ_qpKwNFU7ar6aIXGfaAd_KeDd4iEtRQ_yEaQQd1-o4DlmTzQaeZ5LORxR-7CMyVpzrfVUI_nUqtiDR5bojcZyZb3DUdsdH8MCe0ftlEpb1LpSQKuGyHpfWw3hn3_9YNPyTTvgwE2ZXC6NRxEg6sdHTeiS8PgfOdU-zbYpf4smmkE-YQRK-6ffRefKvJO4HjX-eB936j1e-DyAH6DUodw8zOTperYdxL2YCpVQF35LrLZTTc"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto w-full flex flex-col md:flex-row gap-6 p-4 md:p-10">
+<!-- Sidebar -->
+<aside class="w-full md:w-64 flex flex-col gap-6">
+<nav class="flex flex-col gap-1 bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-semibold" href="#">
+<span class="material-symbols-outlined filled-icon">dashboard</span>
+<span class="text-sm">Overview</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">storefront</span>
+<span class="text-sm">My Shop</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-sm">Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-sm">Finances</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm">Settings</span>
+</a>
+</nav>
+<!-- AI Creative Studio Widget -->
+<div class="bg-gradient-to-br from-primary to-orange-600 p-5 rounded-2xl text-white shadow-lg shadow-primary/20">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined">auto_awesome</span>
+<h3 class="font-bold">AI Creative Studio</h3>
+</div>
+<p class="text-xs text-white/80 mb-4">Create viral content and schedule posts with one click.</p>
+<div class="flex flex-col gap-2">
+<button class="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">rocket_launch</span>
+                            Generate AI Ad
+                        </button>
+<button class="w-full py-2 bg-white text-primary rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">calendar_month</span>
+                            Schedule Sale
+                        </button>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<div class="flex-1 flex flex-col gap-6">
+<!-- Profile Header -->
+<section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+<div class="flex gap-4 items-center">
+<div class="relative">
+<img class="w-24 h-24 rounded-2xl object-cover border-4 border-slate-50 dark:border-slate-800 shadow-sm" data-alt="Shop logo profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgGgLiRILwkKggM8-qogaxNvilRsVDRycb7GiNY1rwH6rVpMLIugIAG1oReLfJ58UdVTuMFy4-54Y5ak3NKtkcqOJaNFyB_oyBN7kXEmTrMUMJE8ZQTNAIY0zv1CtQGT5jeU1ieGwEIFve21_zBuJYYmw8dGCl1hYwuitjTMEj0RyAOvUzavEHYxOujWRFxY5THsDvgeiVmLje1kmgG4ohnMXZecbBeBn_uP21VejjaPQAm5SMNAUMTId1vE17lQhYQho8UXEWFOEw"/>
+<div class="absolute -bottom-2 -right-2 bg-blue-500 text-white rounded-full p-1 border-2 border-white dark:border-slate-900">
+<span class="material-symbols-outlined text-xs filled-icon">verified</span>
+</div>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<h1 class="text-2xl font-bold text-slate-900 dark:text-white">Alex's Tech Haven</h1>
+<span class="bg-primary/10 text-primary text-[10px] uppercase font-black px-2 py-0.5 rounded-full tracking-wider">Top Rated</span>
+</div>
+<p class="text-slate-500 text-sm">Premium Electronics &amp; Accessories Seller</p>
+<div class="flex items-center gap-4 mt-2">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-orange-400 filled-icon text-sm">star</span>
+<span class="text-sm font-bold">4.8/5</span>
+<span class="text-xs text-slate-400 font-normal ml-1">Shop Rating</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-green-500 text-sm">speed</span>
+<span class="text-sm font-bold">98%</span>
+<span class="text-xs text-slate-400 font-normal ml-1">Chat Response</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex gap-3 w-full md:w-auto">
+<button class="flex-1 md:flex-none px-6 py-2 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Edit Profile</button>
+<button class="flex-1 md:flex-none px-6 py-2 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 shadow-md shadow-primary/20 transition-all">Share Shop</button>
+</div>
+</div>
+</section>
+<!-- Tabs -->
+<div class="flex border-b border-slate-200 dark:border-slate-800 overflow-x-auto gap-8 no-scrollbar">
+<button class="pb-4 border-b-2 border-primary text-primary font-bold text-sm whitespace-nowrap">Dashboard</button>
+<button class="pb-4 border-b-2 border-transparent text-slate-500 font-medium text-sm whitespace-nowrap hover:text-slate-800 dark:hover:text-slate-300">My Shop</button>
+<button class="pb-4 border-b-2 border-transparent text-slate-500 font-medium text-sm whitespace-nowrap hover:text-slate-800 dark:hover:text-slate-300">Customer Orders</button>
+<button class="pb-4 border-b-2 border-transparent text-slate-500 font-medium text-sm whitespace-nowrap hover:text-slate-800 dark:hover:text-slate-300">Customer Feedback</button>
+</div>
+<!-- Dashboard Content (Preview Widget) -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800">
+<div class="flex justify-between items-start mb-2">
+<span class="text-slate-500 text-sm font-medium">Monthly Sales</span>
+<span class="bg-green-100 text-green-600 text-xs font-bold px-2 py-0.5 rounded-full">+12.5%</span>
+</div>
+<h4 class="text-2xl font-black text-slate-900 dark:text-white">$24,580</h4>
+<div class="mt-4 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="w-3/4 h-full bg-primary"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800">
+<div class="flex justify-between items-start mb-2">
+<span class="text-slate-500 text-sm font-medium">New Orders</span>
+<span class="bg-primary/10 text-primary text-xs font-bold px-2 py-0.5 rounded-full">42 pending</span>
+</div>
+<h4 class="text-2xl font-black text-slate-900 dark:text-white">1,248</h4>
+<div class="mt-4 flex gap-1 items-end h-8">
+<div class="flex-1 bg-primary/20 rounded-t h-4"></div>
+<div class="flex-1 bg-primary/20 rounded-t h-6"></div>
+<div class="flex-1 bg-primary rounded-t h-8"></div>
+<div class="flex-1 bg-primary/20 rounded-t h-5"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800">
+<div class="flex justify-between items-start mb-2">
+<span class="text-slate-500 text-sm font-medium">Product Views</span>
+<span class="bg-blue-100 text-blue-600 text-xs font-bold px-2 py-0.5 rounded-full">+400 today</span>
+</div>
+<h4 class="text-2xl font-black text-slate-900 dark:text-white">58.2k</h4>
+<div class="mt-4 flex -space-x-2">
+<div class="h-6 w-6 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Customer avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-reghuiZZPV4tiUaQe_YAyKB2w6cPeFDlKTo5k0h1Uy1b94RuqWx9nc_W9wbvI-0wxqC5GRTH-a-dzB2CfYKLS-BloQ8eiTjnh7TWOPdlZ3x-WWvjzI5tM4WLXBEiogbiZIp2FvZiiBBDMYvaSSXCzppuM8vag1arZvKBXhFzCVrmh2XMOOcWo7slTRilK-H1b1Gmwyh08CJncMHaaMp_Gi7lHFbHFLqXL890T_oxNLMEzJa2iGT0QGjp3GyEGaArWQX7Ct8-k26i"/>
+</div>
+<div class="h-6 w-6 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Customer avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBscsXfBaZ3zEEGEQxfW18EQ4NbV6FS4DrTrW3nJBsmZj3djF-zydfsbnPeaawGDuvGWXqekr1U7Zc-zPz64kCVojKgFnefDDcgKXP66dUFir75_DMzhs1AMFf7nwtPkQJQtseRSejO7b8YgKwMzySDJ61umHd-HnqojqpZB1aH652z7OSMLq7cmgCQ2bgt1NWDTTDOB-HOX9RFmpMg4vPT3sYu8FDSpLvy-l4riLpRv8TKJGr7_WhqhurJcS5Of7xjh44gYTZRd6Ym"/>
+</div>
+<div class="h-6 w-6 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Customer avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2ezglKCBjj8zZXsOju4igKTeJn7WADg1GcL1E-kQm0tHwMFhb-bcIa1uTg3RwURXoUzTQzHUJhMouuYT1Fnj7WX_hY7b7_wR-8D5IoW8qOcX4BVHnuHjyahFJyAka2wxV30VUp0viyLjM3PQj_4H21O81QMZjmex4p9Ixv6xifMlBJoT9JuWm6_yQx1XVKzme8PkfJ3Lptw-Velw_xJRytl-xsbDYJSv-QQL6nlR-65DUVv5-_K8MYUPUclOEHThe655YDr3_6RaL"/>
+</div>
+<div class="h-6 w-6 rounded-full border-2 border-white dark:border-slate-900 bg-primary flex items-center justify-center text-[8px] font-bold text-white">+2k</div>
+</div>
+</div>
+</section>
+<!-- Product Grid (My Shop section) -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-bold">Featured Products</h3>
+<button class="text-primary text-sm font-bold hover:underline">View All</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Product Card 1 -->
+<div class="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform" data-alt="Professional studio headphones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACmxN9i0yZA6arObUEM0RBUi9ot08KFuPKV9G54b5nlXUq0esvmA0yVjkq0V6d4tQb6pZ83Uf5cokI1tJ4-4mVf4TwQxrCvM3m0PfQ-Vq164llDdQgqtjnXEZBE7lwaDOW6o6qUZEYWrWBiOJflwz0QJQUdAW7zQle_vbl0mbeGCdcO9faymfqs-T7slVy3wVmxvS3xg92ctB_JnjwoWNfx78e5k7AYXzJfFcouRZ3LCxXzX68kgKkbaV-b9vCGRei5wscsIOx8vcM"/>
+<div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 bg-white/90 dark:bg-slate-900/90 rounded-lg text-primary shadow-lg">
+<span class="material-symbols-outlined text-sm">edit</span>
+</button>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<h4 class="font-bold text-slate-900 dark:text-white truncate">Pro Wireless Headphones</h4>
+<span class="text-primary font-black">$299</span>
+</div>
+<div class="flex items-center gap-2 mb-3">
+<span class="text-[10px] text-slate-500">328 in stock</span>
+<span class="w-1 h-1 rounded-full bg-slate-300"></span>
+<span class="text-[10px] text-green-500 font-bold">Live</span>
+</div>
+<button class="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-primary hover:text-white transition-colors rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300">Quick Edit</button>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform" data-alt="Minimalist wrist watch" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqzXGOGEupbZcsykWIzrpsFDS7IX_sctavX39r3caEgLDh7csWHJh488WlQt8rmQppXyWPEwReodzrHQ26niFlnmFyc4lua2B1NzVXlryLyFBCk6KgghpPmhXid84Ib2aNZF-krghLNyN6un0i_fs8YOrkZFSqllgkCckwl-ftQHXnixbBaIu3V7v-eInjGrc1UUwZFs4Fl7kgytmzH1YvyA06QdveReOIVyua3Iqa9g_y_wfpBSyj8p7eWqG1Z4sv1BQ3XKxVcERx"/>
+<div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 bg-white/90 dark:bg-slate-900/90 rounded-lg text-primary shadow-lg">
+<span class="material-symbols-outlined text-sm">edit</span>
+</button>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<h4 class="font-bold text-slate-900 dark:text-white truncate">Smart Classic Watch</h4>
+<span class="text-primary font-black">$149</span>
+</div>
+<div class="flex items-center gap-2 mb-3">
+<span class="text-[10px] text-slate-500">12 in stock</span>
+<span class="w-1 h-1 rounded-full bg-slate-300"></span>
+<span class="text-[10px] text-orange-500 font-bold">Low Stock</span>
+</div>
+<button class="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-primary hover:text-white transition-colors rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300">Quick Edit</button>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform" data-alt="Retro polaroid camera" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYDDqzHbAviUHDle7descJhya1oq9wk9ATnKhPNsMlfTBgzCbfgMxUJCumr5LYQP-iKanw3vLAD06WzBTevXbGTRmj9VldYsmBxRjrwNu5aNEVZesoDi5Pn4Qmljcwkk-osU6zUSsHHfZb3Zt4-AOkSAOYfMsYIm2wwpbGtk_XGFj92GRtcyPZ4cRtU4Lf-V_ntftRqFPmUCKZT8IKBW7TI6PTZ-rXtP_VhZoIF3tGpzY3d_t3kL_q4nDtNEB_tYkz2c98CJpqNtD3"/>
+<div class="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 bg-white/90 dark:bg-slate-900/90 rounded-lg text-primary shadow-lg">
+<span class="material-symbols-outlined text-sm">edit</span>
+</button>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<h4 class="font-bold text-slate-900 dark:text-white truncate">Insta-Retro Camera</h4>
+<span class="text-primary font-black">$85</span>
+</div>
+<div class="flex items-center gap-2 mb-3">
+<span class="text-[10px] text-slate-500">1,240 in stock</span>
+<span class="w-1 h-1 rounded-full bg-slate-300"></span>
+<span class="text-[10px] text-green-500 font-bold">Live</span>
+</div>
+<button class="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-primary hover:text-white transition-colors rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300">Quick Edit</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Customer Orders Table -->
+<section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+<div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+<h3 class="text-lg font-bold">Recent Orders</h3>
+<div class="flex gap-2">
+<button class="px-3 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-800 rounded-lg">Pending</button>
+<button class="px-3 py-1.5 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">Shipped</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-slate-50 dark:bg-slate-800/50">
+<tr class="text-slate-500 text-xs font-bold uppercase tracking-wider">
+<th class="px-6 py-4">Order ID</th>
+<th class="px-6 py-4">Customer</th>
+<th class="px-6 py-4">Items</th>
+<th class="px-6 py-4">Total</th>
+<th class="px-6 py-4">Status</th>
+<th class="px-6 py-4 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr>
+<td class="px-6 py-4 text-sm font-medium">#ORD-9021</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Customer avatar Sarah" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiv6niImU6CyDjPueC1Nq8IZTs_LlaAZT4oL4gT7TXj_g7M2-8h52YNf_bW5JERZUpQUwnVaHmVFxuTs_uq080gfzaWvKkfE2Al6GkTc_CguNBUqWLLtb988bTGQx6xcpEHbSv_u5tbFhfXZ_c4cRI0TwwUi2DkVAtMGvDNRAtMVB3N4T94WoBZOWJMI6PuetGJTfmX2ee1z7I16xeRyhiOOwzVZg27FG3QLkp2wPgdbyHA6g-Of9xNiKM_Ezg9Onk0jWxn5GYGEC3"/>
+</div>
+<span class="text-sm">Sarah Jenkins</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">2x Pro Wireless...</td>
+<td class="px-6 py-4 text-sm font-bold">$598.00</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded-full">To Process</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary text-sm font-bold">Ship Now</button>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4 text-sm font-medium">#ORD-9018</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Customer avatar Mike" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATIeFPxpF6Ocuq6vsNU9lhvd8kN646r_6P-Qb_Bgysz8yWT0gu1btfJT02NQX2fAoXdjJrsQoeDU4GEJI1UijVQszatgJR6Yl9n_BxOct0TZGy0QKzLZ_xx4ZHcf1H2p0OnmjyhLTOGuNCeuw0DMc2a9knuvj518LiWkB2cPV7NYN4eCFMvacorSjZkvEelcMMShyX0tRZhf5XCT1VoVDz00Ti09D8S2Pckz8rwCVQNvt03dKt7WdzknNu5Duj_x4nXTkRxYxI3OOc"/>
+</div>
+<span class="text-sm">Mike Ross</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">1x Retro Camera</td>
+<td class="px-6 py-4 text-sm font-bold">$85.00</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full">Paid</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary text-sm font-bold">Ship Now</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Customer Feedback -->
+<section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold">Recent Reviews</h3>
+<div class="flex items-center gap-1 text-orange-400">
+<span class="material-symbols-outlined text-sm filled-icon">star</span>
+<span class="material-symbols-outlined text-sm filled-icon">star</span>
+<span class="material-symbols-outlined text-sm filled-icon">star</span>
+<span class="material-symbols-outlined text-sm filled-icon">star</span>
+<span class="material-symbols-outlined text-sm filled-icon">star_half</span>
+<span class="text-slate-900 dark:text-white text-sm font-bold ml-2">4.8</span>
+</div>
+</div>
+<div class="space-y-6">
+<div class="border-b border-slate-100 dark:border-slate-800 pb-6">
+<div class="flex justify-between items-start mb-2">
+<div class="flex gap-3 items-center">
+<div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Reviewer avatar Lisa" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAa1m5nk_qpXVRfHDBk_VkisQ6frAUFA1pk2GH768LbH-7uYSIw6j08JBtY4MPKWCDTYYIcQLwbE-E1YsBKZ55pbfEgF7V_Z6E7-ITCmM23G1vIqZEyEGJmhNfnV9M77hSThc6ZhBf2d-6WBiwo8PTMFHHKk53v2wVTvOonnHfH8ATG6l0z8fJRMvVHoOGC34PdV3fIHXl9bGDCE2kMIhK_xdD2PPX-w016uucu6ywnGFjP8LB8MSmzzaXd5cKGQwI4CAfGXt__yxdl"/>
+</div>
+<div>
+<h5 class="text-sm font-bold">Lisa Marie</h5>
+<div class="flex text-orange-400">
+<span class="material-symbols-outlined text-[12px] filled-icon">star</span>
+<span class="material-symbols-outlined text-[12px] filled-icon">star</span>
+<span class="material-symbols-outlined text-[12px] filled-icon">star</span>
+<span class="material-symbols-outlined text-[12px] filled-icon">star</span>
+<span class="material-symbols-outlined text-[12px] filled-icon">star</span>
+</div>
+</div>
+</div>
+<span class="text-slate-400 text-xs">2 hours ago</span>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-400 italic mb-4">"The headphones are amazing. Fast shipping and the packaging was really secure. Highly recommend this seller!"</p>
+<div class="flex gap-3">
+<button class="flex items-center gap-1 text-xs font-bold text-primary px-3 py-1.5 bg-primary/5 rounded-lg hover:bg-primary/10">
+<span class="material-symbols-outlined text-xs">reply</span>
+                                    Reply to Buyer
+                                </button>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-start mb-2">
+<div class="flex gap-3 items-center">
+<div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Reviewer avatar Tom" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEMadqrTaOWPzst-RUzl93bCYwfGOJOEgu_VwWimNaqDotFITDK-qjjiDSbHiMOJqVQ721EgDxpuMWAl7fuy9lrhAycWQjmJGwibXJyYy4QmaRxzKp7Gdc5cg2T4PybWk9XDxqjP5drLbjbQHajItXSFvM3hMJH2as-srXg9oYOBfGreYTrLg-CTlSgymF3dAEtWjuPL70aJzwOv2mm2qe39SA3iAw8e12-glbABv3gJr94-_ylHfgIZNzCGjwSQDPmmnY6_J5CgXJ"/>
+</div>
+<div>
+<h5 class="text-sm font-bold">Thomas Wade</h5>
+<div class="flex text-orange-400">
+<span class="material-symbols-outlined text-[12px] filled-icon">star</span>
+<span class="material-symbols-outlined text-[12px] filled-icon">star</span>
+<span class="material-symbols-outlined text-[12px] filled-icon">star</span>
+<span class="material-symbols-outlined text-[12px] filled-icon">star</span>
+<span class="material-symbols-outlined text-[12px]">star</span>
+</div>
+</div>
+</div>
+<span class="text-slate-400 text-xs">Yesterday</span>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-400 italic mb-4">"Great watch, looks even better in person. The battery life is impressive. Shipping took an extra day but happy overall."</p>
+<div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl ml-6 border-l-2 border-primary">
+<p class="text-[10px] font-bold text-primary mb-1 uppercase">Your Reply</p>
+<p class="text-xs text-slate-600 dark:text-slate-400">"Thanks for the feedback Thomas! We're glad you like the watch. We'll look into our courier partner to speed up delivery next time."</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<footer class="mt-auto py-10 px-4 border-t border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2 text-slate-400">
+<span class="material-symbols-outlined text-2xl">shopping_bag</span>
+<span class="font-bold">SocialCommerce Seller Hub</span>
+</div>
+<div class="flex gap-8 text-sm text-slate-500">
+<a class="hover:text-primary" href="#">Help Center</a>
+<a class="hover:text-primary" href="#">Seller Terms</a>
+<a class="hover:text-primary" href="#">Privacy Policy</a>
+<a class="hover:text-primary" href="#">Community Guidelines</a>
+</div>
+<div class="text-xs text-slate-400">
+                    © 2024 SocialCommerce Inc. All rights reserved.
+                </div>
+</div>
+</footer>
+</div>
+</body></html>

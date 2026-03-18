@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Create Social Commerce Post</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-slate-200 dark:bg-slate-900 font-display">
+<!-- Modal Backdrop -->
+<div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+<!-- Modal Container -->
+<div class="bg-background-light dark:bg-background-dark w-full max-w-lg rounded-t-xl sm:rounded-xl shadow-2xl flex flex-col max-h-[95vh] overflow-hidden border border-slate-200 dark:border-slate-800">
+<!-- Top Bar -->
+<div class="flex items-center justify-between px-4 py-4 border-b border-slate-200 dark:border-slate-800">
+<button class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors">
+<span class="material-symbols-outlined text-2xl">close</span>
+</button>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-semibold">Create Post</h2>
+<button class="bg-primary text-white px-5 py-1.5 rounded-full text-sm font-semibold hover:bg-primary/90 transition-all">
+                    Post
+                </button>
+</div>
+<div class="overflow-y-auto custom-scrollbar">
+<!-- User Profile & Caption Area -->
+<div class="px-4 py-4">
+<div class="flex gap-3">
+<div class="size-10 rounded-full bg-primary/10 flex-shrink-0 overflow-hidden border border-primary/20">
+<img class="w-full h-full object-cover" data-alt="User profile avatar smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADjGud8Ntk1fjzctGHdr3U1qznR_KBbwRCmDeaVb_zmt29naCvSmh1vyg7vuTjqnJbcmgppIyvP_wMS19bBJhiGVWGBjveicRHnz4KhTx_yXLr99HvIJgv0La9bQaC_xDm-CaCuA47phLb1BhqVIxh_vhMZdPZgOudLqJ28A1BeRhQYAc_NbZrlxBdch0ydYCnZVBodkqznLF_kKrY7IYAO_aicQWqN494_8OHrE27nuVVUIDf6MwYLgPKt67vfbOV6HXSqfdYldQx"/>
+</div>
+<div class="flex-1">
+<textarea class="w-full min-h-[120px] bg-transparent border-none focus:ring-0 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-0 text-base resize-none" placeholder="What are you sharing today? Describe your product or mood..."></textarea>
+</div>
+</div>
+</div>
+<!-- Media Upload Zone -->
+<div class="px-4 pb-4">
+<div class="group relative border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl hover:border-primary/50 dark:hover:border-primary/50 transition-colors flex flex-col items-center justify-center py-10 px-6 bg-slate-50 dark:bg-slate-800/50">
+<div class="size-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl">add_a_photo</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 font-medium">Add photos or videos</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs mt-1">Drag and drop or click to browse</p>
+<input class="absolute inset-0 opacity-0 cursor-pointer" type="file"/>
+</div>
+</div>
+<!-- Tools & Tags -->
+<div class="px-4 flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">
+<span class="material-symbols-outlined text-base">sell</span>
+                        Tag Products
+                    </button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">
+<span class="material-symbols-outlined text-base">location_on</span>
+                        Location
+                    </button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">
+<span class="material-symbols-outlined text-base">groups</span>
+                        Tag People
+                    </button>
+</div>
+<!-- Magic AI Section -->
+<div class="mx-4 my-4 p-4 rounded-xl bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30 border border-indigo-100 dark:border-indigo-900/50">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<div class="flex items-center justify-center size-8 rounded-lg bg-gradient-to-tr from-blue-600 to-purple-600 shadow-lg shadow-indigo-500/20">
+<span class="material-symbols-outlined text-white text-lg">auto_awesome</span>
+</div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100 text-sm tracking-tight">Magic AI Assistant</h3>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/50 px-2 py-0.5 rounded">Experimental</span>
+</div>
+<div class="grid grid-cols-1 gap-2">
+<button class="flex items-center gap-3 w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all text-left group">
+<span class="material-symbols-outlined text-indigo-500 group-hover:scale-110 transition-transform">image_search</span>
+<div>
+<p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Generate Caption</p>
+<p class="text-[11px] text-slate-500 dark:text-slate-400">Smart analysis from uploaded media</p>
+</div>
+</button>
+<button class="flex items-center gap-3 w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all text-left group">
+<span class="material-symbols-outlined text-indigo-500 group-hover:scale-110 transition-transform">campaign</span>
+<div>
+<p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Write Product Ad</p>
+<p class="text-[11px] text-slate-500 dark:text-slate-400">Turn product tags into selling copies</p>
+</div>
+</button>
+<button class="flex items-center gap-3 w-full p-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all text-left group">
+<span class="material-symbols-outlined text-indigo-500 group-hover:scale-110 transition-transform">tag</span>
+<div>
+<p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Suggest Hashtags</p>
+<p class="text-[11px] text-slate-500 dark:text-slate-400">Optimize reach with trending tags</p>
+</div>
+</button>
+</div>
+</div>
+</div>
+<!-- Bottom Actions -->
+<div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-background-dark/50">
+<div class="flex gap-4">
+<button class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors">
+<span class="material-symbols-outlined">palette</span>
+</button>
+<button class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors">
+<span class="material-symbols-outlined">schedule</span>
+</button>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                        Save Draft
+                    </button>
+</div>
+</div>
+</div>
+</div>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.05);
+        }
+    </style>
+</body></html>

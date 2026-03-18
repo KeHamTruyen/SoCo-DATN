@@ -37,21 +37,29 @@ class AuthService {
       select: USER_SELECT,
     });
 
-    const verifyToken = this._signPurposeToken(user.id, 'email-verify', '24h');
+    const { otp, tempToken } = await this._generateEmailOtp(user.id);
 
     try {
-      await emailService.sendVerificationEmail(email, verifyToken);
+      await emailService.sendVerificationOtpEmail(email, otp);
     } catch {
       // Email send failure is non-blocking; user can request resend
     }
 
-    return { user, message: 'Registration successful. Please check your email to verify your account.' };
+    return {
+      message: 'Registration successful. Please check your email for the 6-digit verification code.',
+      tempToken,
+    };
   }
 
   // ─── UC1.1 – Verify email ──────────────────────────────────
 
-  async verifyEmail(token) {
-    const payload = this._verifyPurposeToken(token, 'email-verify');
+  async verifyEmail(tempToken, otpCode) {
+    const payload = this._verifyPurposeToken(tempToken, 'email-verify');
+
+    const valid = await bcrypt.compare(otpCode, payload.otpHash);
+    if (!valid) {
+      throw Object.assign(new Error('Invalid or expired verification code'), { statusCode: 400 });
+    }
 
     const user = await prisma.user.update({
       where: { id: payload.id },
@@ -60,20 +68,39 @@ class AuthService {
     });
 
     const authToken = this.generateToken(user);
-    return { user, token: authToken };
+    return { user, accessToken: authToken };
   }
 
   // ─── UC1.1 – Resend verification email ─────────────────────
 
   async resendVerification(email) {
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) throw Object.assign(new Error('If that email exists, a verification link has been sent'), { statusCode: 200 });
-    if (user.isVerified) throw Object.assign(new Error('Account is already verified'), { statusCode: 400 });
+    if (!user) {
+      // Prevent email enumeration — return success-like response
+      return { message: 'If that email is registered, a new code has been sent.' };
+    }
+    if (user.isVerified) {
+      throw Object.assign(new Error('Account is already verified'), { statusCode: 400 });
+    }
 
-    const verifyToken = this._signPurposeToken(user.id, 'email-verify', '24h');
-    await emailService.sendVerificationEmail(email, verifyToken);
+    const { otp, tempToken } = await this._generateEmailOtp(user.id);
+    await emailService.sendVerificationOtpEmail(email, otp);
 
-    return { message: 'If that email exists, a verification link has been sent' };
+    return { message: 'A new verification code has been sent to your email.', tempToken };
+  }
+
+  // ─── Helper: generate 6-digit OTP embedded in a signed JWT ─
+
+  async _generateEmailOtp(userId) {
+    const otp = generateOtp(6);
+    const otpHash = await bcrypt.hash(otp, 10);
+    // Embed the hash inside a short-lived signed token — no DB column needed
+    const tempToken = jwt.sign(
+      { id: userId, purpose: 'email-verify', otpHash },
+      process.env.JWT_SECRET,
+      { expiresIn: '10m' },
+    );
+    return { otp, tempToken };
   }
 
   // ─── UC1.2 – Login ─────────────────────────────────────────
@@ -91,7 +118,12 @@ class AuthService {
     if (!valid) throw Object.assign(new Error('Invalid email or password'), { statusCode: 401 });
 
     if (!user.isVerified) {
-      throw Object.assign(new Error('Please verify your email before logging in'), { statusCode: 403 });
+      const { otp, tempToken } = await this._generateEmailOtp(user.id);
+      try { await emailService.sendVerificationOtpEmail(user.email, otp); } catch {}
+      throw Object.assign(
+        new Error('Please verify your email before logging in'),
+        { statusCode: 403, data: { email: user.email, tempToken } },
+      );
     }
 
     // If 2FA is enabled, send OTP instead of returning token
@@ -120,7 +152,7 @@ class AuthService {
     const { passwordHash, twoFactorAuth, ...safeUser } = user;
     const token = this.generateToken(safeUser);
 
-    return { user: safeUser, token };
+    return { user: safeUser, accessToken: token };
   }
 
   // ─── UC1.3 – Verify 2FA OTP ────────────────────────────────
@@ -147,7 +179,7 @@ class AuthService {
     const user = await this.getProfile(payload.id);
     const token = this.generateToken(user);
 
-    return { user, token };
+    return { user, accessToken: token };
   }
 
   // ─── UC1.3 – Enable 2FA ────────────────────────────────────

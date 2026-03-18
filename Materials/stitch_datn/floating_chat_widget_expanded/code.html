@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: "Public Sans", sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+<div class="relative flex h-screen w-full flex-col overflow-hidden">
+<!-- Updated Header from SCREEN_59 -->
+<header class="sticky top-0 z-50 w-full bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
+<!-- Logo & Nav -->
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 shrink-0">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined block">shopping_bag</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">SocialCommerce</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-bold text-primary border-b-2 border-primary py-5" href="#">Feed</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors py-5" href="#">Marketplace</a>
+</nav>
+</div>
+<!-- Search Bar -->
+<div class="flex-1 max-w-2xl">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-1 focus:ring-primary focus:border-primary transition-all text-sm" placeholder="Search products, sellers, or hashtags..." type="text"/>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-6">
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary relative">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-white font-bold">1</span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary relative">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-white font-bold">3</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 cursor-pointer border-2 border-primary/20">
+<img alt="User avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4LZPaxuAAvqO_KMI5Cw8YxZxpkDynDMG5EY7uE0swOgJLLg679x4tBPRIqWnEomTdURZ4oWxv8nbYZnOJi5NKWDJZfQPvwwz8pnQRo78UXvlHVAziLX1SFxUmQJ7rKLcmHzWecntTqQRKxDbev2pgp2ASpq2lyMGKWIY2Qp65MEFoIz52v8sFfH0q8e7HQgnv8eas-rS_aa61ghW35beL6pZnIpARs6V1Qya-FLBNYuCems2ESm3ktBBo4Z86iSvfx_yrSQSGPlyJ"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Feed Content (3 Columns) -->
+<main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-6">
+<div class="max-w-7xl mx-auto grid grid-cols-12 gap-6">
+<!-- Sidebar -->
+<aside class="col-span-3 hidden lg:flex flex-col gap-2">
+<div class="flex items-center gap-3 px-3 py-3 rounded-xl bg-primary/10 text-primary">
+<span class="material-symbols-outlined">home</span>
+<p class="text-sm font-bold">Feed</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">local_fire_department</span>
+<p class="text-sm font-medium">Trending</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">bookmark</span>
+<p class="text-sm font-medium">Saved Items</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">inventory_2</span>
+<p class="text-sm font-medium">My Orders</p>
+</div>
+<div class="h-px bg-slate-200 dark:bg-slate-800 my-4"></div>
+<p class="px-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Communities</p>
+<div class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<div class="size-6 bg-slate-300 dark:bg-slate-700 rounded-lg"></div>
+<p class="text-sm font-medium">Modern Interior</p>
+</div>
+</aside>
+<!-- Feed -->
+<section class="col-span-12 lg:col-span-6 flex flex-col gap-6">
+<!-- Post Card 1 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="p-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-200" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC0RpvKU-1OhCyHExXB15ja7btjnx6FOCz03HOGUA7HFO0AiD7z9tKq6IfHjv5jDwQGe0XuqQXJBE-XUc5kXADYSC6hNZhJdhpagWcTY519EXyqQtYWuCn8dqpBJFmUZ-rVFPJZ4rU-Evk-66YFw67EyZ9uv4cQLLBLjgfUAXQ1cofx7xOKUntin4d9dSvvT8kppicZiNbkFlFtc-IKHOyJolHDzl9IaqpB6wqphnPx5pRVa6GG8OCj9V2QbmQY4z9h74ocCAwCFzvR'); background-size: cover;"></div>
+<div>
+<h4 class="font-bold text-sm">Alex River</h4>
+<p class="text-xs text-slate-500">2 hours ago</p>
+</div>
+</div>
+<button class="text-slate-400"><span class="material-symbols-outlined">more_horiz</span></button>
+</div>
+<div class="aspect-square bg-slate-100" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDoTestVkz4OQREfrqhGYw1nPo9elMRgF6qrQBivVwPLpDvzsr7m0x6NK0dFExTPbFtZvl9-e-xMlfjg-kckEKABD6hPhawNPVNV2EH3BuPQf5o402NGvUGkp5XA7WzfaMlgbSLeuZ4ebei9xNrBcDFdDuuq3vkBN8oj_hlMM14vmmQTmrYnmWi4KnYK4EzN5zqSXGgMDFW9MQ5hTiaqGxTxGJIX4YaLVs1wYhbsGrDOn8Eoltu1PQvZ8k9S0yerS4HuKpKVKJnyocV'); background-size: cover;"></div>
+<div class="p-4">
+<h3 class="font-bold text-lg text-slate-900 dark:text-white">Minimalist Oak Dining Set</h3>
+<p class="text-slate-600 dark:text-slate-400 text-sm mt-1">Perfect for modern spaces. Handcrafted in Sweden with sustainable materials.</p>
+<div class="mt-4 flex items-center justify-between">
+<span class="text-primary font-bold text-xl">$1,299.00</span>
+<button class="bg-primary text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors">View Product</button>
+</div>
+</div>
+</div>
+<!-- Post Card 2 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="p-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-200" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBr5c_JMIJs8aZgEUqG_a_5b-lVIVCXNKffsS1ClsGHqjam03BiEAmUChPko7f1IYNSGYJNh_4yDDeiXE4zVBHkVA6jdj-CJGAR3ScIcW_hC1yg6KFkHzvI_IOb7-2XkLtwAIR76nYM4Z9X_U4KMK5DnlPfOA_Ig8DZ5pTAhVwP3s7w0J5F6W0gQj6N1qz5irFaknkPbPs0kpBGx63AJ8vpTla3drovfuVDC4sXaS3lcPiDWTHhjOVQYOtQRRQMwEcxMBta9WDtWtAe'); background-size: cover;"></div>
+<div>
+<h4 class="font-bold text-sm">Studio Clay</h4>
+<p class="text-xs text-slate-500">5 hours ago</p>
+</div>
+</div>
+<button class="text-slate-400"><span class="material-symbols-outlined">more_horiz</span></button>
+</div>
+<div class="aspect-video bg-slate-100" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuACbfYsyXOlUFpP2ALz8v2tC5akq8T11kfYof7f0JIjTsD1zJXY-hhcrHMIeaoVFg9ytcPUziRdYq2DyUzTPqf_5PBdeybHWkUQn73IFcFWUT7X1ALJyOc7qUnSX-xjT-QnIHJnVJijUcTyB-dYOD1H201XMj_Dy74MpgA4doLBPgWfTJ0eXrTMx8mR_qtGXYwVAZvp70xrUeF7RrPl1TOlb0AZSGZg7aVSKHuW1uQUMsDRb1YU3xqiV-0egUrPVLV81iQ_NkPp6BJm'); background-size: cover;"></div>
+<div class="p-4">
+<h3 class="font-bold text-lg text-slate-900 dark:text-white">Artisan Series Vases</h3>
+<p class="text-slate-600 dark:text-slate-400 text-sm mt-1">New drop! Each piece is unique and hand-numbered. Limited quantities available.</p>
+<div class="mt-4 flex items-center justify-between">
+<span class="text-primary font-bold text-xl">$85.00</span>
+<button class="bg-primary text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors">Add to Cart</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Suggestions -->
+<aside class="col-span-3 hidden lg:flex flex-col gap-6">
+<div class="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+<h4 class="font-bold mb-4 text-sm">Trending Shops</h4>
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-slate-100" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDPIXfXojJ3l94bB_p-BfEo0xv8KnYofrcOlDNZyy0skFt1xAcr11kzgVYve3YAXTodeM2QpkaNv00mqrIxP0s4n9eJGG6JvN92l9uq9ELxJe-uO5NmNmHHMVHi7Ne14yMb8g5r4GZeK-WqTqCoOjxxL5ln2ZQGtaD4O1MnQvFEBUdX9nHrX5VDFcVLbYBFhiqI8pN98atfas76r3KY-NYoVRogtfO4NT2_c0Cj08z2RUpS_ph8tX866t3L58XSB3QBlL-TaHqW47m-'); background-size: cover;"></div>
+<p class="text-sm font-bold">Loom &amp; Thread</p>
+</div>
+<button class="text-primary text-xs font-bold hover:underline">Follow</button>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-slate-100" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDGyk4fM4nZwCRrDN404opT1Wj69yJ1YYuGW2spewLMK8HaEbYvsqXl6cxThsAezyozaP5cERcHvOGcLpp4--vDPXXMawSM1ZoLLyQORy_yhRbMKSyIo7glj_6YGCxwnZpgogLbLhreLwJ6x1SmJTOyouHKXlx1kuZzVSb9dkrv-5ucRxbZIyAknNY8yTDfxEtEgKoJSTAiINGKEbo_lJsxTiM8LIMjMU9DYl77plde8ymhSKry0sPsCBBenkcORwnXPZ9iEEDv-hBd'); background-size: cover;"></div>
+<p class="text-sm font-bold">Velvet Home</p>
+</div>
+<button class="text-primary text-xs font-bold hover:underline">Follow</button>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Floating Chat Widget (Expanded State) -->
+<div class="fixed bottom-6 right-6 w-80 h-[450px] flex flex-col bg-white dark:bg-slate-900 shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-50">
+<!-- Chat Header -->
+<div class="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="size-10 rounded-full bg-slate-200" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBaYafmoLEUlCHPsZkRNygWiogcWwz_LSA40toVqg9I8sGlYZYzktRbviiKCOEV_bXiCxuAHd6Yj_3cWaHqMDX0nNpOiaMeGONYys2Xdn9cjVJ4tTH6_7OZU00CqAcK_mXbal0SmPN-W8oo8F6IQO4Q2e0Ou-dUDYrvccawoOL1essIXzDhe4Zv4hM1371pJ7uhuw-uFnnhKzFcSIhS-EygB51pGzIns-lsdEVmrBujO_EzvP0X-R2KJiAkg269M0X7N5RZ-whlElt1'); background-size: cover;"></div>
+<div class="absolute bottom-0 right-0 size-3 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
+</div>
+<div>
+<h4 class="text-sm font-bold text-slate-900 dark:text-white">Alex River</h4>
+<p class="text-[10px] text-green-500 font-semibold uppercase tracking-wider">Online</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined text-lg">minimize</span></button>
+<button class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined text-lg">close</span></button>
+</div>
+</div>
+<!-- Scrollable Message Area -->
+<div class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+<!-- Received Message -->
+<div class="flex flex-col gap-1 max-w-[80%]">
+<div class="bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl rounded-tl-none text-sm text-slate-800 dark:text-slate-200">
+                    Hey! I saw the dining set you posted. Is it still available?
+                </div>
+<span class="text-[10px] text-slate-400 pl-1">10:42 AM</span>
+</div>
+<!-- Sent Message (with Image) -->
+<div class="flex flex-col gap-1 items-end ml-auto max-w-[85%]">
+<div class="bg-primary p-3 rounded-2xl rounded-tr-none text-sm text-white shadow-sm">
+                    Yes it is! Here's a photo of the actual table in my studio.
+                </div>
+<div class="w-full aspect-video rounded-xl overflow-hidden mt-1 shadow-sm border border-primary/20 bg-primary/5" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC3Vx0K5zXmffzaES3RZ-Qh04J5liw7UFiDrjwE7kuKPRfg9ChoHOFGsTHQneNU7M9o989mGFXm89OLsFGSixmidOtJQitBC43ES59BSVtVoGOWAMJ7PyTtFRioMve9BbWJ-iFdSAk5hzEJN44HqsQ7Rolnpc0wu1mntBhaTASeW1Iz_jxa_0pTBnk2vfRCEuD8EXtPxVa1CNq5gaFjmnSkF2NC3LBF_MKF46w1SBw33Pj-Z_5g0Ln1pYd6bvkxRlz3mT5jZd5PY-I6'); background-size: cover;"></div>
+<span class="text-[10px] text-slate-400 pr-1">10:45 AM</span>
+</div>
+<!-- Received Message -->
+<div class="flex flex-col gap-1 max-w-[80%]">
+<div class="bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl rounded-tl-none text-sm text-slate-800 dark:text-slate-200">
+                    Looks amazing. What's the shipping time to California?
+                </div>
+<span class="text-[10px] text-slate-400 pl-1">10:47 AM</span>
+</div>
+</div>
+<!-- Chat Input Bar -->
+<div class="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2">
+<button class="text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">image</span>
+</button>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-sm p-0 placeholder:text-slate-400" placeholder="Type a message..." type="text"/>
+<button class="text-primary">
+<span class="material-symbols-outlined text-xl">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</body></html>

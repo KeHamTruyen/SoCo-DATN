@@ -1,21 +1,21 @@
-import express from 'express';
-import authController from '../controllers/auth.controller.js';
-import { protect } from '../middlewares/auth.middleware.js';
+import express from "express";
+import authController from "../controllers/auth.controller.js";
+import { protect } from "../middlewares/auth.middleware.js";
 import {
-  validate,
-  registerValidation,
-  loginValidation,
-  verify2FAValidation,
-  forgotPasswordValidation,
-  resetPasswordValidation,
-  updateProfileValidation,
-  changePasswordValidation,
-  privacyValidation,
-  enable2FAOtpValidation,
-  disable2FAValidation,
-  verifyEmailValidation,
-  resendVerificationValidation,
-} from '../validators/auth.validator.js';
+    validate,
+    registerValidation,
+    loginValidation,
+    verify2FAValidation,
+    forgotPasswordValidation,
+    resetPasswordValidation,
+    updateProfileValidation,
+    changePasswordValidation,
+    privacyValidation,
+    enable2FAOtpValidation,
+    disable2FAValidation,
+    verifyEmailValidation,
+    resendVerificationValidation,
+} from "../validators/auth.validator.js";
 
 const router = express.Router();
 
@@ -45,7 +45,7 @@ const router = express.Router();
  *       201: { description: Đăng ký thành công, cần xác thực email }
  *       409: { description: Email/username đã tồn tại }
  */
-router.post('/register', registerValidation, validate, authController.register);
+router.post("/register", registerValidation, validate, authController.register);
 
 /**
  * @swagger
@@ -54,7 +54,12 @@ router.post('/register', registerValidation, validate, authController.register);
  *     summary: Xác thực email sau đăng ký (UC1.1)
  *     tags: [Authentication]
  */
-router.post('/verify-email', verifyEmailValidation, validate, authController.verifyEmail);
+router.post(
+    "/verify-email",
+    verifyEmailValidation,
+    validate,
+    authController.verifyEmail,
+);
 
 /**
  * @swagger
@@ -63,7 +68,12 @@ router.post('/verify-email', verifyEmailValidation, validate, authController.ver
  *     summary: Gửi lại email xác thực (UC1.1)
  *     tags: [Authentication]
  */
-router.post('/resend-verification', resendVerificationValidation, validate, authController.resendVerification);
+router.post(
+    "/resend-verification",
+    resendVerificationValidation,
+    validate,
+    authController.resendVerification,
+);
 
 /**
  * @swagger
@@ -86,7 +96,7 @@ router.post('/resend-verification', resendVerificationValidation, validate, auth
  *       401: { description: Sai thông tin }
  *       403: { description: Tài khoản chưa xác thực / bị khóa }
  */
-router.post('/login', loginValidation, validate, authController.login);
+router.post("/login", loginValidation, validate, authController.login);
 
 /**
  * @swagger
@@ -95,7 +105,12 @@ router.post('/login', loginValidation, validate, authController.login);
  *     summary: Xác thực OTP 2FA (UC1.3)
  *     tags: [Authentication]
  */
-router.post('/verify-2fa', verify2FAValidation, validate, authController.verify2FA);
+router.post(
+    "/verify-2fa",
+    verify2FAValidation,
+    validate,
+    authController.verify2FA,
+);
 
 /**
  * @swagger
@@ -104,7 +119,12 @@ router.post('/verify-2fa', verify2FAValidation, validate, authController.verify2
  *     summary: Gửi link đặt lại mật khẩu (UC1.4)
  *     tags: [Authentication]
  */
-router.post('/forgot-password', forgotPasswordValidation, validate, authController.forgotPassword);
+router.post(
+    "/forgot-password",
+    forgotPasswordValidation,
+    validate,
+    authController.forgotPassword,
+);
 
 /**
  * @swagger
@@ -113,7 +133,12 @@ router.post('/forgot-password', forgotPasswordValidation, validate, authControll
  *     summary: Đặt lại mật khẩu bằng token (UC1.4)
  *     tags: [Authentication]
  */
-router.post('/reset-password', resetPasswordValidation, validate, authController.resetPassword);
+router.post(
+    "/reset-password",
+    resetPasswordValidation,
+    validate,
+    authController.resetPassword,
+);
 
 /**
  * @swagger
@@ -122,7 +147,7 @@ router.post('/reset-password', resetPasswordValidation, validate, authController
  *     summary: Đăng xuất, blacklist JWT (UC1.5)
  *     tags: [Authentication]
  */
-router.post('/logout', authController.logout);
+router.post("/logout", authController.logout);
 
 // ─── Protected routes ─────────────────────────────────────────
 
@@ -134,7 +159,7 @@ router.post('/logout', authController.logout);
  *     tags: [Authentication]
  *     security: [{ bearerAuth: [] }]
  */
-router.get('/me', protect, authController.getMe);
+router.get("/me", protect, authController.getMe);
 
 /**
  * @swagger
@@ -144,7 +169,13 @@ router.get('/me', protect, authController.getMe);
  *     tags: [Authentication]
  *     security: [{ bearerAuth: [] }]
  */
-router.put('/profile', protect, updateProfileValidation, validate, authController.updateProfile);
+router.put(
+    "/profile",
+    protect,
+    updateProfileValidation,
+    validate,
+    authController.updateProfile,
+);
 
 /**
  * @swagger
@@ -154,7 +185,13 @@ router.put('/profile', protect, updateProfileValidation, validate, authControlle
  *     tags: [Authentication]
  *     security: [{ bearerAuth: [] }]
  */
-router.put('/password', protect, changePasswordValidation, validate, authController.changePassword);
+router.put(
+    "/password",
+    protect,
+    changePasswordValidation,
+    validate,
+    authController.changePassword,
+);
 
 /**
  * @swagger
@@ -168,8 +205,14 @@ router.put('/password', protect, changePasswordValidation, validate, authControl
  *     tags: [Authentication]
  *     security: [{ bearerAuth: [] }]
  */
-router.get('/privacy', protect, authController.getPrivacy);
-router.put('/privacy', protect, privacyValidation, validate, authController.updatePrivacy);
+router.get("/privacy", protect, authController.getPrivacy);
+router.put(
+    "/privacy",
+    protect,
+    privacyValidation,
+    validate,
+    authController.updatePrivacy,
+);
 
 /**
  * @swagger
@@ -179,7 +222,7 @@ router.put('/privacy', protect, privacyValidation, validate, authController.upda
  *     tags: [Authentication]
  *     security: [{ bearerAuth: [] }]
  */
-router.post('/2fa/enable', protect, authController.enable2FA);
+router.post("/2fa/enable", protect, authController.enable2FA);
 
 /**
  * @swagger
@@ -189,7 +232,13 @@ router.post('/2fa/enable', protect, authController.enable2FA);
  *     tags: [Authentication]
  *     security: [{ bearerAuth: [] }]
  */
-router.post('/2fa/confirm', protect, enable2FAOtpValidation, validate, authController.confirm2FAEnable);
+router.post(
+    "/2fa/confirm",
+    protect,
+    enable2FAOtpValidation,
+    validate,
+    authController.confirm2FAEnable,
+);
 
 /**
  * @swagger
@@ -199,6 +248,12 @@ router.post('/2fa/confirm', protect, enable2FAOtpValidation, validate, authContr
  *     tags: [Authentication]
  *     security: [{ bearerAuth: [] }]
  */
-router.post('/2fa/disable', protect, disable2FAValidation, validate, authController.disable2FA);
+router.post(
+    "/2fa/disable",
+    protect,
+    disable2FAValidation,
+    validate,
+    authController.disable2FA,
+);
 
 export default router;

@@ -17,10 +17,10 @@ class AuthController {
 
   async verifyEmail(req, res, next) {
     try {
-      const { token } = req.body;
-      const result = await authService.verifyEmail(token);
+      const { tempToken, otpCode } = req.body;
+      const result = await authService.verifyEmail(tempToken, otpCode);
 
-      res.cookie('token', result.token, {
+      res.cookie('token', result.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -56,7 +56,7 @@ class AuthController {
         return res.json({ success: true, data: result });
       }
 
-      res.cookie('token', result.token, {
+      res.cookie('token', result.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -76,7 +76,7 @@ class AuthController {
       const { tempToken, otpCode } = req.body;
       const result = await authService.verify2FA(tempToken, otpCode);
 
-      res.cookie('token', result.token, {
+      res.cookie('token', result.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',

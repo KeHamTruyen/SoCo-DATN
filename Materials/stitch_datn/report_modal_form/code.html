@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Public Sans', sans-serif;
+        }
+        .custom-radio {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            outline: none;
+            transition: all 0.2s;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .custom-radio:checked {
+            border-color: #ec5b13;
+        }
+        .custom-radio:checked::after {
+            content: '';
+            width: 0.625rem;
+            height: 0.625rem;
+            background-color: #ec5b13;
+            border-radius: 50%;
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-slate-200 dark:bg-background-dark font-display">
+<!-- Backdrop Blur Overlay -->
+<div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+<!-- Modal Container -->
+<div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
+<!-- Modal Header -->
+<div class="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
+<h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">report</span>
+                    Báo cáo vi phạm
+                </h2>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Modal Content -->
+<div class="p-6 max-h-[70vh] overflow-y-auto">
+<!-- Social Category -->
+<div class="mb-6">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">Nội dung Social</h3>
+<div class="space-y-3">
+<label class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors group">
+<span class="text-slate-700 dark:text-slate-300 font-medium">Nội dung phản cảm</span>
+<input class="custom-radio" name="report_reason" type="radio"/>
+</label>
+<label class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
+<span class="text-slate-700 dark:text-slate-300 font-medium">Quấy rối hoặc bắt nạt</span>
+<input class="custom-radio" name="report_reason" type="radio"/>
+</label>
+<label class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
+<span class="text-slate-700 dark:text-slate-300 font-medium">Thông tin sai lệch</span>
+<input class="custom-radio" name="report_reason" type="radio"/>
+</label>
+</div>
+</div>
+<!-- Commerce Category -->
+<div class="mb-6">
+<h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">Vi phạm Thương mại</h3>
+<div class="space-y-3">
+<label class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
+<span class="text-slate-700 dark:text-slate-300 font-medium">Sản phẩm giả mạo/lừa đảo</span>
+<input class="custom-radio" name="report_reason" type="radio"/>
+</label>
+<label class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
+<span class="text-slate-700 dark:text-slate-300 font-medium">Giá cả không hợp lệ</span>
+<input class="custom-radio" name="report_reason" type="radio"/>
+</label>
+<label class="flex items-center justify-between p-3 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
+<span class="text-slate-700 dark:text-slate-300 font-medium">Người bán không đáng tin cậy</span>
+<input class="custom-radio" name="report_reason" type="radio"/>
+</label>
+</div>
+</div>
+<!-- Additional Description -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Mô tả thêm</label>
+<textarea class="w-full min-h-[100px] p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none" placeholder="Hãy cho chúng tôi biết thêm chi tiết..."></textarea>
+<div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-xs mt-2">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+                        Mọi báo cáo đều được Admin xem xét bảo mật
+                    </div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="p-6 bg-slate-50 dark:bg-slate-800/30 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+<button class="px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                    Hủy
+                </button>
+<button class="px-5 py-2.5 rounded-lg text-sm font-semibold bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95">
+                    Gửi báo cáo
+                </button>
+</div>
+</div>
+</div>
+</body></html>

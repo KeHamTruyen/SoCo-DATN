@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Orders - SocialCommerce</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "secondary": "#0f172a",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Public Sans', sans-serif;
+        }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Updated Header from SCREEN_59 -->
+<header class="sticky top-0 z-50 w-full bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
+<!-- Logo & Nav -->
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 shrink-0">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined block">shopping_bag</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">SocialCommerce</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors py-5" href="#">Feed</a>
+<a class="text-sm font-bold text-primary border-b-2 border-primary py-5" href="#">Marketplace</a>
+</nav>
+</div>
+<!-- Search Bar -->
+<div class="flex-1 max-w-2xl">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-1 focus:ring-primary focus:border-primary transition-all text-sm" placeholder="Search products, sellers, or hashtags..." type="text"/>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-6">
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiUG13wO72lnKQbFz8mfUSHBTviCjCxJ7cEENUpWGXw0OQfJQekzsBakRCjmTyR5r83p5V34RbIBlHgGs8wkxWwgwg14kAdp0lV4U4mP4qAo_dFLz9lkO-Pxi7ryL4fRWi1F9kWps3DVfhj0LDjwRQt8c0o-mlwY-y31dXOygBazAzQtGip7HQIyAb70h8XT-RBH3EUlZimmQbbhPN5PYMrbcxvKkyCiO335LYseU39YA9vy5rpwBhpqW_pmTrM8b8znz-AmM7dR_y"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+<!-- Page Title -->
+<div class="mb-8">
+<h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">My Orders</h1>
+<p class="mt-2 text-slate-500 dark:text-slate-400">Manage and track your recent purchases</p>
+</div>
+<!-- Status Tabs (Shadcn style) -->
+<div class="mb-8 border-b border-slate-200 dark:border-slate-800">
+<nav aria-label="Order Status" class="flex space-x-8 overflow-x-auto no-scrollbar">
+<a aria-current="page" class="border-primary text-primary whitespace-nowrap border-b-2 py-4 px-1 text-sm font-bold" href="#">All</a>
+<a class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium" href="#">Pending</a>
+<a class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium" href="#">Shipping</a>
+<a class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium" href="#">Delivered</a>
+<a class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium" href="#">Cancelled</a>
+</nav>
+</div>
+<!-- Orders List -->
+<div class="space-y-4">
+<!-- Order Card 1: Shipping -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+<div class="p-5 flex flex-col @md:flex-row gap-6">
+<div class="w-full @md:w-32 h-32 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Minimalist luxury white watch on desk" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4Gi_uiV3j2MpDSNQeH-NEjl2AY4_sBB2YPKHJ6XmaUNNmCDOfrQfHLUIkM-ig_4SvbIiL0Df7u8A0fTZSsz-TgiYUh-IN9wRc0KEyg1l6zvMYh6jTvjE76sVSfRnCZRmP1mBte7YUco2wrWhFHGg8VdOse5ysPM3YuncHwRnCOIcq8z12uWmUWCBL7G1TwllsiVm1wHHAjDCE9_0hIYWWOLs__QHwNm065EC9UFpvSS1AUBqjsQUa60fkkV-F3mCwWqq4CYOh6Rxn"/>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div class="flex flex-wrap items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<h3 class="font-bold text-lg text-slate-900 dark:text-white">#ORD-12345</h3>
+<span class="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/30 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                                    Shipping
+                                </span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400">Placed on Oct 24, 2023</p>
+</div>
+<div class="text-right">
+<p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Amount</p>
+<p class="text-xl font-bold text-primary">$124.99</p>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-sm">storefront</span>
+<span class="text-sm font-medium text-slate-600 dark:text-slate-300">Seller: TechHaven Store</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                                View Details
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Order Card 2: Delivered -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+<div class="p-5 flex flex-col @md:flex-row gap-6">
+<div class="w-full @md:w-32 h-32 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Bright red athletic running shoe" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5E3cJvjwNwH3PwHgjwVEez_b8OwpNqOuKZTJWVqLkZPSRdzlevuCq-LtVSZdvTNlGzf_9ykAefx5qPNFt2C2AK7Heuopu7OFTgr5985k946-THVixubxnik_ZKvncz769fUbQY1Z1aVM0hWRY_v3Bp7U5a3RDdGuFMBUjZa4GaAPgdTkP0hmryxuVjY5x-9KNxv1cJDZcU68RIl3eQwcSLdBAAa4GBhtAnumsRerA_WkXCo_eF1nKIYqRgZ8WTGuQKPgxCUPpRIOm"/>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div class="flex flex-wrap items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<h3 class="font-bold text-lg text-slate-900 dark:text-white">#ORD-11982</h3>
+<span class="inline-flex items-center rounded-full bg-green-50 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800">
+                                    Delivered
+                                </span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400">Placed on Oct 20, 2023</p>
+</div>
+<div class="text-right">
+<p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Amount</p>
+<p class="text-xl font-bold text-primary">$89.00</p>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-sm">storefront</span>
+<span class="text-sm font-medium text-slate-600 dark:text-slate-300">Seller: FashionHub</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                                View Details
+                            </button>
+<button class="px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-primary/90 rounded-lg shadow-sm transition-colors">
+                                Review Product
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Order Card 3: Pending -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow opacity-90">
+<div class="p-5 flex flex-col @md:flex-row gap-6">
+<div class="w-full @md:w-32 h-32 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="High quality black wireless headphones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBu5DLijLM3AKW4Lg0HY6ivpwytT0pGha3lsRWYRDpj5ptquEL0iLvtX1sWxlrw7csIY0RnNNCY4nNAFFGgJDgCf_qMb0KZTa-rkbhfm6xV76aMHZY6ram-Cj8aeI2Wf4oefW1wLM3uGgrPIeThbE9NAejgK0V42UIiVESoN_bUqqfjm00Or8Ce1fdsBTjvhlhVlxzIvqDOM6r0hzWZ1KJJ23PA04Mn2hgEEiOcARvVFFUK61lnZrHrzh0zBcIRNX8eL4zJYFvgTp9U"/>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div class="flex flex-wrap items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<h3 class="font-bold text-lg text-slate-900 dark:text-white">#ORD-12401</h3>
+<span class="inline-flex items-center rounded-full bg-orange-50 dark:bg-orange-900/30 px-2.5 py-0.5 text-xs font-semibold text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-800">
+                                    Pending
+                                </span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400">Placed on Oct 26, 2023</p>
+</div>
+<div class="text-right">
+<p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Amount</p>
+<p class="text-xl font-bold text-primary">$199.50</p>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-sm">storefront</span>
+<span class="text-sm font-medium text-slate-600 dark:text-slate-300">Seller: AudioPro Shop</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                                View Details
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Order Card 4: Cancelled -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow grayscale-[0.5]">
+<div class="p-5 flex flex-col @md:flex-row gap-6">
+<div class="w-full @md:w-32 h-32 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden flex-shrink-0 opacity-60">
+<img class="w-full h-full object-cover" data-alt="Classic black frame sunglasses" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCef9oVGDSa9Dj-ZwuaLX6p5wKgiQ6LpsEnDITwBfjyvjzatXjf5H2Gjounk4Zz0IJhHrfWc1xHs6A5uZndc-nyzJZaUVu2heuIC28UTfFBVaYdJwyuBupSde8Yg95y_JO6I-ApHBRHh81tYC7MwTEXWjp7e9TlJZ8Vld22QXuB9RtSCOPqLXCQMAXjAoqXsTeI-x7b8S-Ff8Rdbja-ngpz3y9bx2_CSv1V09DHI-3As6eolH1I0eTkGpMmhUig1eh9oPr3xoSyi_gA"/>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div class="flex flex-wrap items-start justify-between gap-2">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<h3 class="font-bold text-lg text-slate-900 dark:text-white">#ORD-11540</h3>
+<span class="inline-flex items-center rounded-full bg-red-50 dark:bg-red-900/30 px-2.5 py-0.5 text-xs font-semibold text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
+                                    Cancelled
+                                </span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400">Placed on Oct 15, 2023</p>
+</div>
+<div class="text-right">
+<p class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Amount</p>
+<p class="text-xl font-bold text-slate-400 line-through">$45.00</p>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-sm">storefront</span>
+<span class="text-sm font-medium text-slate-600 dark:text-slate-300">Seller: SunStyle Accessories</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                                View Details
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination / Load More -->
+<div class="mt-12 flex justify-center">
+<button class="flex items-center gap-2 px-6 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            Load more orders
+            <span class="material-symbols-outlined text-lg">expand_more</span>
+</button>
+</div>
+</main>
+<!-- Footer Space -->
+<footer class="mt-20 py-10 border-t border-slate-200 dark:border-slate-800 text-center text-slate-400 text-sm">
+<p>© 2023 SocialCommerce. All rights reserved.</p>
+</footer>
+</body></html>

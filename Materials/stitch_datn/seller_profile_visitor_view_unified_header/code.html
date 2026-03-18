@@ -1,0 +1,245 @@
+<html class="light" lang="en"><head></head><body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">```html
+
+
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Seller Profile - Marketplace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<div class="relative flex min-h-screen flex-col">
+<!-- Unified Header matching SCREEN_63 -->
+<header class="sticky top-0 z-50 w-full bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
+<!-- Logo & Nav -->
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 shrink-0 text-slate-900 dark:text-white">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined block">shopping_bag</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">SocialCommerce</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors py-5" href="#">Feed</a>
+<a class="text-sm font-bold text-primary border-b-2 border-primary py-5" href="#">Marketplace</a>
+</nav>
+</div>
+<!-- Search Bar -->
+<div class="flex-1 max-w-2xl">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-1 focus:ring-primary focus:border-primary transition-all text-sm" placeholder="Search products, sellers, or hashtags..." type="text"/>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-6">
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiUG13wO72lnKQbFz8mfUSHBTviCjCxJ7cEENUpWGXw0OQfJQekzsBakRCjmTyR5r83p5V34RbIBlHgGs8wkxWwgwg14kAdp0lV4U4mP4qAo_dFLz9lkO-Pxi7ryL4fRWi1F9kWps3DVfhj0LDjwRQt8c0o-mlwY-y31dXOygBazAzQtGip7HQIyAb70h8XT-RBH3EUlZimmQbbhPN5PYMrbcxvKkyCiO335LYseU39YA9vy5rpwBhpqW_pmTrM8b8znz-AmM7dR_y"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1 mx-auto w-full max-w-7xl px-0 sm:px-6 lg:px-8 py-0 sm:py-6">
+<!-- Hero / Cover Section -->
+<div class="relative overflow-hidden sm:rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+<div class="h-48 w-full bg-gradient-to-r from-primary/20 to-primary/5 dark:from-primary/10 dark:to-transparent">
+<img class="h-full w-full object-cover opacity-60 dark:opacity-40" data-alt="A lifestyle boutique storefront interior" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAf8JtxElVMK9vkKSOMaxgRzXuKAcRwbAJHT0avnZrAHKgYWtyDRj32sKHWyXL3ofK1xxhJJpRKm2CX8wCeZ94kDTXEQdPpt4fjlYrORz03w2ZJ7kAVw_M0K0934z4khvFD36BzfKrovTkyrYUTh6eMkI1RPll5lfC1kUQKk1nD6vDnX2FYOx9HGaKvUreMPCdlkkKKVQZwPCfxO6x2miLvP8U74zRkrjUAZCr-4w2y3OyK_CZVEmT8QWPFVCyNZUv2RTxAd6PSv84L"/>
+</div>
+<div class="relative px-6 pb-6 pt-16">
+<div class="absolute -top-16 left-6 h-32 w-32 rounded-full border-4 border-white bg-white shadow-lg dark:border-slate-900 overflow-hidden">
+<img class="h-full w-full object-cover" data-alt="Boutique owner or brand logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfkQI92qbXlVRvJl22uVpcDjiFJ-ql0AM52twqZoT99ViJt_jRzDBQV7m859p5iRQLdcW1Iq6M3ukbZ1gWbDaq18vLoBIeDdcNhhSOAV6ppuaFobRioTQ0sWWPBh0sYRPXquuY6mFCMzWy0bXh689_W0V0KXHHBYcePQCGuEe4xZwFNbFPsiZGzE-kuHgpE4t_qEg85lwsSuc8Vr5YWps2bBJpcr7olzMh6XGKM5yy_T97fbVSMOiRaopGOxBU04md34LwggMKHVPJ"/>
+</div>
+<div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<h1 class="text-3xl font-bold text-slate-900 dark:text-slate-50">Studio Minimalist</h1>
+<span class="material-symbols-outlined text-blue-500 text-xl" title="Verified Seller">verified</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400">Curated lifestyle products for the modern home • Joined Oct 2021</p>
+</div>
+<div class="flex flex-wrap gap-3">
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-bold text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 transition-all">
+<span class="material-symbols-outlined text-lg">person_add</span>
+                                Follow Shop
+                            </button>
+<button class="flex-1 md:flex-none flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary/90 shadow-md shadow-primary/20 transition-all">
+<span class="material-symbols-outlined text-lg">send</span>
+                                Message
+                            </button>
+</div>
+</div>
+<!-- Metrics -->
+<div class="mt-8 flex flex-wrap gap-6 border-t border-slate-100 pt-6 dark:border-slate-800">
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<span class="text-xl font-bold text-slate-900 dark:text-white">4.9</span>
+<span class="material-symbols-outlined text-yellow-500 fill-current text-sm">star</span>
+<span class="text-sm text-slate-500 dark:text-slate-400">/ 5</span>
+</div>
+<p class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Star Rating</p>
+</div>
+<div class="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
+<div class="flex flex-col">
+<span class="text-xl font-bold text-slate-900 dark:text-white">95%</span>
+<p class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Chat Response</p>
+</div>
+<div class="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
+<div class="flex flex-col">
+<span class="text-xl font-bold text-slate-900 dark:text-white">12.4k</span>
+<p class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Followers</p>
+</div>
+<div class="h-10 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
+<div class="flex flex-col">
+<span class="text-xl font-bold text-slate-900 dark:text-white">2.8k</span>
+<p class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Total Sold</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Content Area -->
+<div class="mt-6">
+<!-- Tabs -->
+<div class="flex border-b border-slate-200 dark:border-slate-800 mb-6">
+<button class="px-6 py-4 text-sm font-bold text-primary border-b-2 border-primary">Products</button>
+<button class="px-6 py-4 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400">Posts</button>
+<button class="px-6 py-4 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400">Reviews</button>
+</div>
+<!-- Products View -->
+<div class="space-y-6">
+<!-- Filters -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Category:</span>
+<div class="relative">
+<select class="appearance-none rounded-lg border-slate-200 bg-white py-1.5 pl-3 pr-8 text-sm focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-slate-800">
+<option>All Products</option>
+<option>Home Decor</option>
+<option>Kitchenware</option>
+<option>Stationery</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">expand_more</span>
+</div>
+</div>
+<p class="text-sm text-slate-500">142 Items</p>
+</div>
+<!-- Product Grid -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+<!-- Product Card 1 -->
+<div class="group flex flex-col rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden hover:shadow-lg transition-all">
+<div class="relative aspect-square overflow-hidden bg-slate-100">
+<img class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" data-alt="Minimalist ceramic white vase" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtOTsMQJ8fQcvQpVWp0zFqvXlHF_q_tbo_w1moYOIrnyBi9FEgiHeiDGQTKdAjkG2MiuVEuKplofCgoxwJBBy7WmcOutgbDdt-tvoPNfHCJR6dAfTfy33izxqfqyLs9fZMkYe9zSEW49AWndn9Ar8bUTfU_707HC_Z2OQeflhV1vBDoyHAroGbpRl4dre2ZzOOoGExdav7pxT6F3bqc7HGeSyEi0LAcCXYdlyvMhL40mkzSnnhI-1l4WsUhjGJKFH2z9Rvuep7mCK1"/>
+<button class="absolute bottom-3 right-3 h-10 w-10 rounded-full bg-white/90 dark:bg-slate-800/90 flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+</button>
+</div>
+<div class="p-4">
+<h3 class="font-medium text-slate-900 dark:text-white line-clamp-1">Ceramic Arc Vase</h3>
+<div class="mt-2 flex items-center justify-between">
+<span class="text-lg font-bold text-primary">$45.00</span>
+<span class="text-xs text-slate-400">82 sold</span>
+</div>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="group flex flex-col rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden hover:shadow-lg transition-all">
+<div class="relative aspect-square overflow-hidden bg-slate-100">
+<img class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" data-alt="Handcrafted bamboo laundry basket" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBYEfDWfVvh9NpB0suKEgC5LcKa38VgdM1nCgJw_XjVh7BM1PSrrNBsowPyrIH2IxCqPtym_RT4_amHlx0CQpOvwm7sev7dHksUVEiGwe8yrC15nuKqhxsIhvtx5a8hxqtpxJfj-wgTM99E39PM71E34V5fa3oyU3-x-DGYKw0HyzskQNucGkdnqrX9zz0XfqMwV0iFexEqPnmA-rE7PUAQdpkvDoMjbcNqaKnCfH-KrKtF1jsNlirpcmVf5N7psXP34ERrFOY-JTX"/>
+<button class="absolute bottom-3 right-3 h-10 w-10 rounded-full bg-white/90 dark:bg-slate-800/90 flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+</button>
+</div>
+<div class="p-4">
+<h3 class="font-medium text-slate-900 dark:text-white line-clamp-1">Bamboo Woven Basket</h3>
+<div class="mt-2 flex items-center justify-between">
+<span class="text-lg font-bold text-primary">$32.00</span>
+<span class="text-xs text-slate-400">124 sold</span>
+</div>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="group flex flex-col rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden hover:shadow-lg transition-all">
+<div class="relative aspect-square overflow-hidden bg-slate-100">
+<img class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" data-alt="Natural linen tablecloth" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-IYjG9Ni7sJKEudHlNph9zQh1uJ54CkIY6bw63uPlubN2XWzYHRB7ipkx-LT1WS6mcjQcCaceH-xQwuuwPAZaR95bJ03L4XQXqbUsVdYQkMy6iXATXvLFXWq3BI0gg_wdcZbGG-4y5_E-0DEEYS9a05GOj8SQHg6TeqX6xYYTEDWZzW11T4Q44jH8JQu4Ch6HQjIt90oowOTy-OcaMKuTgjwVisTeRzqYJfb5mV9MiwJxa_BpQj_z-fC7ZRnClFoNB4Rz5723B_u7"/>
+<button class="absolute bottom-3 right-3 h-10 w-10 rounded-full bg-white/90 dark:bg-slate-800/90 flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+</button>
+</div>
+<div class="p-4">
+<h3 class="font-medium text-slate-900 dark:text-white line-clamp-1">Premium Linen Cloth</h3>
+<div class="mt-2 flex items-center justify-between">
+<span class="text-lg font-bold text-primary">$28.00</span>
+<span class="text-xs text-slate-400">45 sold</span>
+</div>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="group flex flex-col rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden hover:shadow-lg transition-all">
+<div class="relative aspect-square overflow-hidden bg-slate-100">
+<img class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" data-alt="Stone textured serving bowl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDi2b4Li8rHRmMnZzMLobql-SiTTmIfVXO2SOoCZxHLmz5NV3AAZz4WopGQmfhkJ3uUxx7NejA9uD31DgnK9GWjH-aCu_vCgPR2ktgmgkqnGB8FtkaPO-6TCQUtFlX_xwLKXap0_HevySUNf_5pPx8bq9AsNCV70mKSpmK5m3M_8g7dezT3-UjaVUhoVlitmRnqhF7lMBfMX5j9EPsON7qqjAX-crg20jFkIskvF-kne__ytlCYviKXU3qDSzgCCJKfGuZAwjnaKljg"/>
+<button class="absolute bottom-3 right-3 h-10 w-10 rounded-full bg-white/90 dark:bg-slate-800/90 flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined">add_shopping_cart</span>
+</button>
+</div>
+<div class="p-4">
+<h3 class="font-medium text-slate-900 dark:text-white line-clamp-1">Stone Serving Bowl</h3>
+<div class="mt-2 flex items-center justify-between">
+<span class="text-lg font-bold text-primary">$55.00</span>
+<span class="text-xs text-slate-400">18 sold</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex justify-center py-8">
+<button class="rounded-xl border border-slate-200 bg-white px-8 py-3 text-sm font-bold text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 transition-colors">
+                            Load More Products
+                        </button>
+</div>
+</div>
+</div>
+</main>
+<footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-4 py-8">
+<div class="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-2 text-slate-400">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="text-sm font-medium">© 2024 Marketplace Inc.</span>
+</div>
+<div class="flex gap-6">
+<a class="text-xs font-medium text-slate-500 hover:text-primary" href="#">Terms of Service</a>
+<a class="text-xs font-medium text-slate-500 hover:text-primary" href="#">Privacy Policy</a>
+<a class="text-xs font-medium text-slate-500 hover:text-primary" href="#">Contact Support</a>
+</div>
+</div>
+</footer>
+</div>
+```</body></html>

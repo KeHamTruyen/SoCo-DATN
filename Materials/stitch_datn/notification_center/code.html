@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SocialCommerce - Thông báo</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .fill-icon { font-variation-settings: 'FILL' 1; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Header matching SCREEN_59 -->
+<header class="sticky top-0 z-50 w-full bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
+<!-- Logo & Nav -->
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 shrink-0">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined block">shopping_bag</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">SocialCommerce</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors py-5" href="#">Feed</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors py-5" href="#">Marketplace</a>
+</nav>
+</div>
+<!-- Search Bar -->
+<div class="flex-1 max-w-2xl">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-1 focus:ring-primary focus:border-primary transition-all text-sm" placeholder="Tìm kiếm sản phẩm, bài viết..." type="text"/>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-6">
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 cursor-pointer border border-slate-200 dark:border-slate-700">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="User profile circular avatar photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmfgf3JukkkiQPxdp4Ig5zGTgMozhsSxv3HWJ5Asv0yvBBfiJ9WmqVB9Dp_9hEJoIJz0jrWttFdUvLDgr5QG6nEI1w126WQ_mpq3v5oSDaGE3MtknGNhVhDAiy6dfwPoeV0likYOCiGUucoiijNMg_q7g5cqZMhS_vX9dLUPIVCtbn_h3zMqLPrSaVumnmdYr_iPw4tc85eYxfeF6Le_NsJWnqztWGQIffyk1j3N04jtcPpmUq3UkX4f0lYITJqZYrMT-cw2rXV3Jt"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- Left Column: Main Notifications Content -->
+<div class="flex-1 space-y-6">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<h1 class="text-3xl font-extrabold tracking-tight">Thông báo</h1>
+<button class="inline-flex items-center justify-center rounded-xl bg-primary/10 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined mr-2 text-sm">done_all</span>
+                        Đánh dấu tất cả là đã đọc
+                    </button>
+</div>
+<!-- Tabs (Shadcn UI Style) -->
+<div class="border-b border-slate-200 dark:border-slate-800">
+<nav aria-label="Tabs" class="flex space-x-8">
+<a class="border-primary text-primary border-b-2 py-4 px-1 text-sm font-bold flex items-center gap-2" href="#">
+                            Tất cả
+                            <span class="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs">24</span>
+</a>
+<a class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:hover:text-slate-300 border-b-2 py-4 px-1 text-sm font-medium" href="#">Tương tác xã hội</a>
+<a class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:hover:text-slate-300 border-b-2 py-4 px-1 text-sm font-medium" href="#">Đơn hàng</a>
+<a class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:hover:text-slate-300 border-b-2 py-4 px-1 text-sm font-medium" href="#">Hệ thống</a>
+</nav>
+</div>
+<!-- Notification List -->
+<div class="space-y-1">
+<!-- Notification Item (Unread) -->
+<div class="group flex items-start gap-4 p-4 rounded-xl bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-all cursor-pointer relative">
+<div class="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-primary rounded-full"></div>
+<div class="relative shrink-0">
+<img alt="User Avatar" class="h-12 w-12 rounded-full object-cover" data-alt="Circular avatar of a young male user" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDz1NNvJEysa-kxXHc0fW1XtKZsj1XNNjqr7XZo3yW0YQiaVYEX_cUaXTfL2-tP2v2cp98zLZai__WT79k6DEaXqnu0fJNm_sASC9FwQGHMy6rNSwrdswUZbpeSjJmeyCF6v8FmycqKGorhAGtOIS-9DmD9mJd9k83PDR_kvRMl6jxBdLSll5lr7i35Fs9Nl62rqdJXc-2xGD3uW6mRFYkbDuzra13NT-ojXUKC5tFoTRq-dnvb0hRRRSi1bLUkpCbkloWrQxZcpLUO"/>
+<div class="absolute -right-1 -bottom-1 bg-blue-500 text-white rounded-full p-0.5 border-2 border-white dark:border-background-dark">
+<span class="material-symbols-outlined text-[12px] block">comment</span>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-normal text-slate-900 dark:text-slate-100 leading-relaxed">
+<span class="font-bold">Hoàng Nam</span> đã bình luận về bài viết của bạn: "Sản phẩm này nhìn chất lượng quá, cho mình xin giá nhé!"
+                            </p>
+<p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">schedule</span>
+                                5 phút trước
+                            </p>
+</div>
+<button class="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<!-- Notification Item (Order) -->
+<div class="group flex items-start gap-4 p-4 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer border border-transparent">
+<div class="shrink-0 h-12 w-12 flex items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 text-primary">
+<span class="material-symbols-outlined">local_shipping</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-normal text-slate-900 dark:text-slate-100 leading-relaxed">
+                                Đơn hàng <span class="font-bold">#SC-29381</span> đang trên đường giao đến bạn. Dự kiến nhận hàng trong hôm nay.
+                            </p>
+<p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">schedule</span>
+                                2 giờ trước
+                            </p>
+</div>
+<button class="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<!-- Notification Item (System) -->
+<div class="group flex items-start gap-4 p-4 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer border border-transparent">
+<div class="shrink-0 h-12 w-12 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600">
+<span class="material-symbols-outlined">campaign</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-normal text-slate-900 dark:text-slate-100 leading-relaxed">
+<span class="font-bold">Cập nhật hệ thống:</span> SocialCommerce vừa bổ sung tính năng thanh toán bằng ví điện tử mới. Khám phá ngay!
+                            </p>
+<p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">schedule</span>
+                                1 ngày trước
+                            </p>
+</div>
+<button class="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<!-- Notification Item (Social) -->
+<div class="group flex items-start gap-4 p-4 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer border border-transparent">
+<div class="relative shrink-0">
+<img alt="User Avatar" class="h-12 w-12 rounded-full object-cover" data-alt="Circular avatar of a female user with glasses" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6Hn45vu_zYAcdqsYHujerpA6OTW6RUmWXJ3Cq7-U5TodFoq7M_xElQhxc-wGiF_JOFNbXQR5-P9b3H0pegzSmgeBY9chrZ7Fqch85utthy-rWEyOFMfctCc_k9rh9f3Cj3gMX7JdWRt20elIYNc_cdpWnpJ4V5JhTlb6wfAyimVpngkLmzh-iXmAB7tNnu0SN_uksUaxcpm4f_Ofs67BNes3MKYOJK5NdzE629me5FO6LZmZfsHnS04D5w7TQfHGksJeYAAWbK_iZ"/>
+<div class="absolute -right-1 -bottom-1 bg-red-500 text-white rounded-full p-0.5 border-2 border-white dark:border-background-dark">
+<span class="material-symbols-outlined text-[12px] block">favorite</span>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-normal text-slate-900 dark:text-slate-100 leading-relaxed">
+<span class="font-bold">Minh Anh</span> và 12 người khác đã thích bài viết của bạn.
+                            </p>
+<p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">schedule</span>
+                                2 ngày trước
+                            </p>
+</div>
+<button class="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<div class="flex justify-center pt-4">
+<button class="text-sm font-bold text-slate-500 hover:text-primary transition-colors">Xem các thông báo cũ hơn</button>
+</div>
+</div>
+<!-- Right Column: Sidebar Widgets -->
+<aside class="w-full lg:w-80 space-y-6">
+<!-- Notification Settings Widget -->
+<div class="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary">settings</span>
+<h3 class="font-bold text-lg">Cài đặt thông báo</h3>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-sm font-semibold">Thông báo đẩy</span>
+<span class="text-xs text-slate-500">Trên trình duyệt &amp; mobile</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-sm font-semibold">Email</span>
+<span class="text-xs text-slate-500">Bản tin hàng tuần &amp; đơn hàng</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- Shortcuts Widget -->
+<div class="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary">bolt</span>
+<h3 class="font-bold text-lg">Lối tắt</h3>
+</div>
+<ul class="space-y-2">
+<li>
+<a class="flex items-center justify-between p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">shopping_cart</span>
+<span class="text-sm font-medium">Đơn hàng của tôi</span>
+</div>
+<span class="material-symbols-outlined text-slate-300 text-sm">chevron_right</span>
+</a>
+</li>
+<li>
+<a class="flex items-center justify-between p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">person</span>
+<span class="text-sm font-medium">Hồ sơ cá nhân</span>
+</div>
+<span class="material-symbols-outlined text-slate-300 text-sm">chevron_right</span>
+</a>
+</li>
+<li>
+<a class="flex items-center justify-between p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">favorite</span>
+<span class="text-sm font-medium">Sản phẩm yêu thích</span>
+</div>
+<span class="material-symbols-outlined text-slate-300 text-sm">chevron_right</span>
+</a>
+</li>
+</ul>
+</div>
+<!-- Promotional Card -->
+<div class="relative overflow-hidden rounded-xl bg-primary p-6 text-white">
+<div class="relative z-10">
+<h4 class="font-bold mb-2">SocialCommerce Gold</h4>
+<p class="text-sm opacity-90 mb-4">Nhận ưu đãi vận chuyển và thông báo VIP ngay hôm nay.</p>
+<button class="w-full rounded-lg bg-white py-2 text-sm font-bold text-primary">Nâng cấp ngay</button>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-20">
+<span class="material-symbols-outlined text-[120px]">workspace_premium</span>
+</div>
+</div>
+</aside>
+</div>
+</main>
+</body></html>

@@ -17,7 +17,24 @@ class EmailService {
     }
 
     /**
-     * Send email verification link after registration
+     * Send 6-digit OTP code for email verification after registration
+     */
+    async sendVerificationOtpEmail(email, otp) {
+        return this.sendMail({
+            to: email,
+            subject: "Mã xác thực tài khoản SoCo",
+            html: `
+        <h2>Chào mừng bạn đến với SoCo!</h2>
+        <p>Nhập mã 6 chữ số bên dưới để xác thực tài khoản của bạn:</p>
+        <p style="font-size:36px;font-weight:bold;letter-spacing:10px;color:#4F46E5;margin:24px 0;">${otp}</p>
+        <p>Mã có hiệu lực trong <strong>10 phút</strong>. Không chia sẻ mã này với bất kỳ ai.</p>
+        <p style="color:#888;font-size:13px;">Nếu bạn không đăng ký tài khoản SoCo, hãy bỏ qua email này.</p>
+      `,
+        });
+    }
+
+    /**
+     * @deprecated Use sendVerificationOtpEmail instead
      */
     async sendVerificationEmail(email, token) {
         const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;

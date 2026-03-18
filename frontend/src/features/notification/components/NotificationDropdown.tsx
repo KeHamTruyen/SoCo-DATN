@@ -1,0 +1,118 @@
+import { Bell, MessageSquare, Package, Tag } from "lucide-react";
+import { Link } from "react-router-dom";
+import type { Notification } from "../types/notification.types";
+
+function formatRelativeTime(isoString: string) {
+    const diff = Date.now() - new Date(isoString).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return "Just now";
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+}
+
+const TYPE_ICON: Record<string, { icon: React.ReactNode; bgClass: string }> = {
+    comment: {
+        icon: <MessageSquare className="h-5 w-5" />,
+        bgClass: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+    },
+    like: {
+        icon: <Bell className="h-5 w-5" />,
+        bgClass: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+    },
+    order: {
+        icon: <Package className="h-5 w-5" />,
+        bgClass: "bg-orange-100 text-primary dark:bg-orange-900/30",
+    },
+    system: {
+        icon: <Tag className="h-5 w-5" />,
+        bgClass: "bg-orange-100 text-primary dark:bg-orange-900/30",
+    },
+};
+
+interface NotificationDropdownProps {
+    notifications: Notification[];
+    unreadCount: number;
+    onClose: () => void;
+}
+
+export function NotificationDropdown({
+    notifications,
+    unreadCount,
+    onClose,
+}: NotificationDropdownProps) {
+    return (
+        <div className="absolute right-0 z-50 mt-3 flex w-96 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-background-dark">
+            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+                <h3 className="text-base font-semibold">
+                    Notifications
+                    {unreadCount > 0 && (
+                        <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                            {unreadCount}
+                        </span>
+                    )}
+                </h3>
+                <Link
+                    to="/notifications"
+                    className="text-sm font-medium text-primary hover:underline"
+                    onClick={onClose}
+                >
+                    See all
+                </Link>
+            </div>
+
+            <div className="max-h-96 overflow-y-auto">
+                {notifications.length === 0 ? (
+                    <div className="py-8 text-center text-sm text-slate-400">
+                        No notifications
+                    </div>
+                ) : (
+                    notifications.slice(0, 5).map((n) => {
+                        const iconConf = TYPE_ICON[n.iconType ?? n.type] ?? TYPE_ICON.system;
+                        return (
+                            <div
+                                key={n.id}
+                                className="group relative flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            >
+                                <div className="shrink-0">
+                                    <div
+                                        className={`flex h-10 w-10 items-center justify-center rounded-full ${iconConf.bgClass}`}
+                                    >
+                                        {iconConf.icon}
+                                    </div>
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-sm leading-tight text-slate-800 dark:text-slate-200">
+                                        {n.actorName && (
+                                            <span className="font-semibold">{n.actorName} </span>
+                                        )}
+                                        {n.content}
+                                    </p>
+                                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                        {formatRelativeTime(n.createdAt)}
+                                    </p>
+                                </div>
+                                {!n.isRead && (
+                                    <div className="shrink-0 self-center">
+                                        <div className="h-2 w-2 rounded-full bg-primary" />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+
+            <div className="border-t border-slate-100 p-3 dark:border-slate-800">
+                <Link
+                    to="/notifications"
+                    onClick={onClose}
+                    className="block rounded-lg py-2 text-center text-sm font-semibold text-primary hover:bg-primary/5 transition-colors"
+                >
+                    View all notifications
+                </Link>
+            </div>
+        </div>
+    );
+}

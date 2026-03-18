@@ -1,0 +1,143 @@
+import { CheckCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { notificationApi } from "../features/notification/api/notificationApi";
+import { NotificationItem } from "../features/notification/components/NotificationItem";
+import type { Notification } from "../features/notification/types/notification.types";
+import { cn } from "../shared/lib/cn";
+import { Button, UnifiedHeader } from "../shared/ui";
+
+type TabFilter = "all" | "social" | "order" | "system";
+
+const TABS: { value: TabFilter; label: string }[] = [
+    { value: "all", label: "All" },
+    { value: "social", label: "Social" },
+    { value: "order", label: "Orders" },
+    { value: "system", label: "System" },
+];
+
+export default function Notifications() {
+    const [activeTab, setActiveTab] = useState<TabFilter>("all");
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const load = async (tab: TabFilter) => {
+        setIsLoading(true);
+        try {
+            const data = await notificationApi.listNotifications(tab);
+            setNotifications(data.items);
+            setUnreadCount(data.unreadCount);
+        } catch {
+            setNotifications([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        void load(activeTab);
+    }, [activeTab]);
+
+    const handleMarkAllRead = async () => {
+        await notificationApi.markAllRead();
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+        setUnreadCount(0);
+    };
+
+    const handleRead = async (id: string) => {
+        await notificationApi.markRead(id);
+        setNotifications((prev) =>
+            prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+        );
+        setUnreadCount((c) => Math.max(0, c - 1));
+    };
+
+    return (
+        <div className="min-h-screen bg-background-light dark:bg-background-dark">
+            <UnifiedHeader
+                navItems={[
+                    { label: "Feed", to: "/feed" },
+                    { label: "Marketplace", to: "/marketplace" },
+                ]}
+            />
+            <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
+                <div className="mb-6 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold">Notifications</h1>
+                        {unreadCount > 0 && (
+                            <p className="mt-1 text-sm text-slate-500">
+                                {unreadCount} unread notification(s)
+                            </p>
+                        )}
+                    </div>
+                    {unreadCount > 0 && (
+                        <Button
+                            variant="outline"
+                            className="gap-2"
+                            onClick={() => void handleMarkAllRead()}
+                        >
+                            <CheckCheck className="h-4 w-4" />
+                            Mark all read
+                        </Button>
+                    )}
+                </div>
+
+                <div className="mb-6 border-b border-slate-200 dark:border-slate-800">
+                    <nav className="flex space-x-8">
+                        {TABS.map((tab) => (
+                            <button
+                                key={tab.value}
+                                type="button"
+                                onClick={() => setActiveTab(tab.value)}
+                                className={cn(
+                                    "flex items-center gap-2 border-b-2 px-1 py-4 text-sm font-medium transition-colors",
+                                    activeTab === tab.value
+                                        ? "border-primary font-bold text-primary"
+                                        : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300",
+                                )}
+                            >
+                                {tab.label}
+                                {tab.value === "all" && unreadCount > 0 && (
+                                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                                        {unreadCount}
+                                    </span>
+                                )}
+                            </button>
+                        ))}
+                    </nav>
+                </div>
+
+                {isLoading ? (
+                    <div className="space-y-3">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div
+                                key={i}
+                                className="h-20 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800"
+                            />
+                        ))}
+                    </div>
+                ) : notifications.length === 0 ? (
+                    <div className="rounded-xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
+                        <p className="text-slate-400">No notifications.</p>
+                    </div>
+                ) : (
+                    <div className="space-y-1">
+                        {notifications.map((n) => (
+                            <NotificationItem
+                                key={n.id}
+                                notification={n}
+                                onRead={(id) => void handleRead(id)}
+                            />
+                        ))}
+                    </div>
+                )}
+
+                {notifications.length > 0 && (
+                    <div className="mt-6 flex justify-center">
+                        <Button variant="outline">Load More</Button>
+                    </div>
+                )}
+            </main>
+        </div>
+    );
+}

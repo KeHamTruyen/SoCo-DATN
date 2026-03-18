@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>SocialCommerce Home</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Unified Header from SCREEN_59 -->
+<header class="sticky top-0 z-50 w-full bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
+<!-- Logo & Nav -->
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 shrink-0">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined block">shopping_bag</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">SocialCommerce</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-bold text-primary border-b-2 border-primary py-5" href="#">Feed</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors py-5" href="#">Marketplace</a>
+</nav>
+</div>
+<!-- Search Bar -->
+<div class="flex-1 max-w-2xl">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-1 focus:ring-primary focus:border-primary transition-all text-sm" placeholder="Search products, sellers, or hashtags..." type="text"/>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-6">
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 cursor-pointer border border-slate-200 dark:border-slate-700">
+<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8Zz9mQl0AUVJhiqB4X6UFKTsX6NzvfPcio5rlexU_NjJfYD45m5yMYXVgzs_5zdzzncGLPnrjPzrtxpk1jhaKnmSPCmpVhcRhgA5BGTxe6qoY0O8THIN8zEiJCVTqOJYrycn3ELsjNwAGgZXTvE0l9374ZdgPaOLff68DN41iwzGi2jNMfwWD8-VARNeTxJ8Vdz28AlU2l6LZiqZwF2uQbQByEnajrAOwPp_RV3jikLaYXgvUJWvC0OnrLer7-YJVLDsuAG-z3UnD"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-6 p-6">
+<!-- Left Sidebar -->
+<aside class="hidden md:flex md:col-span-3 flex-col gap-6">
+<div class="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<div class="h-12 w-12 rounded-full bg-center bg-cover shadow-inner" data-alt="Alex River profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBmLY2OrNWWPd-CMiWnHBchwWUCftmfnzxd6gUDY-03oHrAGbbx9XrTsLtImKttcr_YJvyno4bXwyElHGQU3wTIkgU2cRkRiBc7J9zTJSxSW849dGAZr4MJ9WM1flRB1bkEkonvx8ubEEaFmdcEF-bMI4trTWiNe3cXxopFzRyrT9xgKviOAQLfgRhgDTB4VGJr4E7GFrV41dPTMvH74K6RCLDZSlpppGmK_b0Ezk8WAhmNZhup2qqtLbgWmfrTgaYJwJZ_83Ef-L_4')"></div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Alex River</h3>
+<p class="text-xs text-primary font-medium uppercase tracking-wider">Premium Member</p>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-semibold" href="#">
+<span class="material-symbols-outlined">home</span>
+<span>Feed</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">storefront</span>
+<span>Marketplace</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">local_fire_department</span>
+<span>Trending</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">bookmark</span>
+<span>Saved</span>
+</a>
+<hr class="my-4 border-slate-100 dark:border-slate-800"/>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</div>
+</aside>
+<!-- Main Feed -->
+<div class="md:col-span-6 flex flex-col gap-6">
+<!-- Stories -->
+<div class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+<div class="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer">
+<div class="h-16 w-16 rounded-full p-0.5 border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-400">add</span>
+</div>
+<span class="text-xs font-medium">Your Story</span>
+</div>
+<!-- Story Item -->
+<div class="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer">
+<div class="h-16 w-16 rounded-full p-0.5 border-2 border-primary bg-white dark:bg-background-dark">
+<div class="h-full w-full rounded-full bg-center bg-cover" data-alt="User story avatar Sarah" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC6Be1R7EDjwilJK_jSJ_BAcj4HPcSq86DEBETxt__EU0f4oGtaUsWUnIHB4_EMGHoxK2z-Q4ceLfB0v14kWan9OWWjF0UFyBMcHq62bPzuXt5aiYISuErdJ90e7YifjKjrFjJBXAlw5UB9xAx95pC7fDNfmXZWXuIjoNFzq3vMeNjXpaYEKwyISY8_SQ4X2Zs3IdtZNlJ2Xk5z64STvey0Y-quXxvD3u83VT8hO2dtL-8sT7zFPpiugtRsBSBm50Z4gD7DzITIs73o')"></div>
+</div>
+<span class="text-xs font-medium">Sarah</span>
+</div>
+<div class="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer">
+<div class="h-16 w-16 rounded-full p-0.5 border-2 border-primary bg-white dark:bg-background-dark">
+<div class="h-full w-full rounded-full bg-center bg-cover" data-alt="User story avatar Mike" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBLDX6ZDXqhVdRGqeMf3ovKZ89VODd-kalEvdQZbMTHXWGjoNVmlo-6Ov_GFtra6BOvN6P87nceGwvyMWWqgV6TzsoA9Q1RYO5y9U-ID4PD-Kafr6uKK82mw8rGv1sAkEzhFVX1BgifXD2hZ6G0m0nizT8cgD6-LMXaAlUOH1Lrkp_2ivupqzP7Ic4sIGFF3fgwOM2BZORz2rrtYQWQRKh4qBx9qQwkNcoCXmPbmRrsl52fnoZrsQs9Rj23BZ6bvcqbRvaMzNd1_52D')"></div>
+</div>
+<span class="text-xs font-medium">Mike</span>
+</div>
+<div class="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer">
+<div class="h-16 w-16 rounded-full p-0.5 border-2 border-primary bg-white dark:bg-background-dark">
+<div class="h-full w-full rounded-full bg-center bg-cover" data-alt="User story avatar Emma" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDTbARkDtlaIj4E4EWS2cbvdISpL1txFerxVHLt2zfcAl3bMqcJrF1RpF_f2OrddD6SnmimDUYeR4f2Ik48zHUfL_G4EdrQ9AcvWV0FG8o3V7smuVKstKvrOe82-333rGrsbfQzJGfAhr7VyM6_JWbT3ALREP_SDczPXNuQi6h6olissqhCk4ayK7GKk-kjx8GlmnnwU3knt_FkOBCu1xlCpPiVj2wB9wvaua6T9ywwKyE1ABLiTjWhuQT_8DI-EN2Dp0yhA2U2Y0GL')"></div>
+</div>
+<span class="text-xs font-medium">Emma</span>
+</div>
+</div>
+<!-- Create Post -->
+<div class="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex gap-4">
+<div class="h-10 w-10 rounded-full flex-shrink-0 bg-center bg-cover" data-alt="Alex River profile avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAWf0O25fjMtq1dsuh4AJqDHtP_pWeUxQlTyDdTsrc1YlwRbVcfvfRpyR4RKm999yBRrNQIingqo-G0FauOeD5Z1-72SB2xV1td1r4ODzgkyc0FKamUBYsV3Wj6QP6JdJ6PftwvfgD1l0rY3l3QdE7qZEhz0zbEdRla7qyqMxkpn9oW3UclEBY683AXnMxf2XdK70iF5qXsn7rDqzErjSDV89HuS-53e6bXXRj2y_kDDXmxf1LDLJ0xy_bir5kxXpQt-YOZL6oy6jLy')"></div>
+<div class="flex-1 bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-2 text-slate-500 text-sm flex items-center cursor-text">
+                            Share a find or ask for advice...
+                        </div>
+</div>
+<div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex gap-4">
+<button class="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-lg">image</span>
+                                Photos
+                            </button>
+<button class="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-lg">sell</span>
+                                Tag Item
+                            </button>
+<button class="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-lg">location_on</span>
+                                Location
+                            </button>
+</div>
+<button class="bg-primary text-white px-5 py-1.5 rounded-lg text-sm font-bold shadow-md shadow-primary/20">Post</button>
+</div>
+</div>
+<!-- Feed Post -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="p-4 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-center bg-cover" data-alt="Sarah profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBV3TEpeCJHP_Dj7X3kE8r1f-sklqx-ii1G297RN8P6fxLSEJAeOBlb7Gwz06VMxQwr-DGZsuRCLGhBvx_qUFQ_dRabdLDDsVWnTliUFm_9YXnirInxzO3rwS7M2g5TM8k0XSqFKVI86l1xgaZaqnX3r1mDRTchKautP-R1ry6Ea3kBJbs3jp52VncGLv1EQXqBMANtS441z9RxMkx-0H9MlZnpa7-hzo6xkR2AhQAZtFg3N2lg4-r9Yj9uup-Q92sXSvzhkpA0Z3qN')"></div>
+<div>
+<h4 class="font-bold text-sm">Sarah • <span class="font-normal text-slate-500">2h ago</span></h4>
+<p class="text-xs text-slate-500 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">public</span> Global</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="px-4 pb-3">
+<p class="text-sm">Check out these vintage sneakers I found at a local thrift store! Amazing condition and only $25. Should I keep them or flip them?</p>
+</div>
+<div class="relative aspect-video bg-slate-100 dark:bg-slate-800">
+<div class="absolute inset-0 bg-center bg-cover" data-alt="Photo of vintage sneakers on a wooden background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBuMStFHIsw03HL36FrrPwl7NAU7AaMWVpnrG8SRSG6mo6NCZ-B9k_qkWUJCZ6qZDzWqVp6SWaxcp6wc2tobJMDTDwtw_y--SFHfMBJ3uj-KAB1-TUArWaTvh3QC9Uuk0ksrPvzxsnnhzhp2ExrnFzITETRp_9lI9FxUGz6FxG9KM0VzNLV-kMEh1YMXZ9cFi32pt8GDw06ZHoTSXB3kGQfVU7vm3oQkd3Rk9aEsX3YMo0U21oT-z80nl6MSC-VsiWRRwXTkrSWWXNv')"></div>
+<div class="absolute bottom-4 right-4">
+<button class="bg-white/90 backdrop-blur-sm text-slate-900 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg border border-slate-200">
+<span class="material-symbols-outlined text-sm">shopping_bag</span>
+                                View Item
+                            </button>
+</div>
+</div>
+<div class="p-4 flex items-center justify-between border-t border-slate-50 dark:border-slate-800">
+<div class="flex items-center gap-6">
+<button class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">favorite</span>
+<span class="text-xs font-medium">124</span>
+</button>
+<button class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">chat_bubble</span>
+<span class="text-xs font-medium">48</span>
+</button>
+<button class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">share</span>
+<span class="text-xs font-medium">12</span>
+</button>
+</div>
+<button class="text-slate-600 dark:text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">bookmark</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right Sidebar -->
+<aside class="hidden md:flex md:col-span-3 flex-col gap-6">
+<div class="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+<h3 class="font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center justify-between">
+                        Trending Deals
+                        <span class="text-xs text-primary font-bold cursor-pointer hover:underline">See All</span>
+</h3>
+<div class="space-y-4">
+<div class="flex gap-3 items-center">
+<div class="h-12 w-12 rounded-lg bg-center bg-cover flex-shrink-0" data-alt="Red Nike running shoe" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDvSwv9K44ZdjWXyNdRh4VXj6hRIvuuR7jDblgLFwFzMlNwUR3TdH7ayiHmH1PqjTfwZfGB9sdIfLRULXyZlrCsNmAW1GnDqTy91qVFfA-KYXZa4hxV5QAPNwpZlkYXebZ-Jk_73tJaqMLWt-zXlasouQ11-ChCE539HLDmdmboc7IXfqVsTPBLh5DrX4vF4bhZdsJL8rqWS0nSteDDqJk44tS5CgKpZgFQlN02KQoF0IjzMsigbR-L9GbNFOMuGU0SOH6yX64QUUT3')"></div>
+<div class="min-w-0">
+<p class="text-xs font-bold text-slate-900 dark:text-slate-100 truncate leading-tight">Nike Air Zoom Pegasus</p>
+<p class="text-[10px] text-slate-500">20% OFF • 2h left</p>
+<p class="text-sm font-bold text-primary mt-0.5">$88.00</p>
+</div>
+</div>
+<div class="flex gap-3 items-center">
+<div class="h-12 w-12 rounded-lg bg-center bg-cover flex-shrink-0" data-alt="Minimalist wrist watch" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB2d9YAzU-KH_QlbvAeNCt_d6-ZKz2kslAp0Tusmjjz5Rx-enUCyoht_Sp1iSZ33rMvbh2oxP7ymQYfaZmfN8GCcKfspFIj-cJPn4z5YBLMWrWsXlolCbfyXyJD3kuAy3EwM6rPOB29dTDKsQ-R02HmXyoSyQMwtm-K07q1kL01b3nqWmJ-MPaEZ9vQZ-Qz3QcmFcihQBTjcrDLIkxIGC5KC7Gk71sBY5GLQWbuWCnsqLlV0f5l5Im_9940MUdS3vrTQZ5h2aF2Y38T')"></div>
+<div class="min-w-0">
+<p class="text-xs font-bold text-slate-900 dark:text-slate-100 truncate leading-tight">Minimalist Watch Silver</p>
+<p class="text-[10px] text-slate-500">Free Shipping</p>
+<p class="text-sm font-bold text-primary mt-0.5">$120.00</p>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+<h3 class="font-bold text-slate-900 dark:text-slate-100 mb-4">Suggested Sellers</h3>
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="h-8 w-8 rounded-full bg-center bg-cover" data-alt="Suggested user John" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBwOrpJjGWb-0GfrfL39LLTvyiGyJkJzvLTK98W-SrjctN7RkrDaRe97WCBfPR-A9nxyhRDoiZ1MzcHY0bHqaO9Wzhp0ZA_I6FzTZF8Qnk0sQWm8psh5xwZXz8OsRHX4CajlYItVbsGDE2hdxYqBIJ5MPwFe4Q8_aBDAfzdtXVd8xLCZoXDhmGvbyGN6CThvTAsdSqcniMGgQ9oCWSSL1FglLlGFrrSqWvpcIJpoX_FvQmmLVbYyYOdlE4lvNRKw_9kgMpqnZtdjsGM')"></div>
+<span class="text-xs font-bold">John_Designer</span>
+</div>
+<button class="text-[10px] font-bold text-primary border border-primary px-3 py-1 rounded-full hover:bg-primary hover:text-white transition-all">Follow</button>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="h-8 w-8 rounded-full bg-center bg-cover" data-alt="Suggested user Lily" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDG9V-z9DIJut7xmlFH-wHj5dNJtzjY6jHECbzlwBUQe4ISZ0g8leVoBJFeBYVVDjvy4_YPc4PmV-9LAvkhzRs110CpsujlHKfLJJzmfhnsM8Z05k4SnMSf80zjs3To0qoavPhWiK7FZNb7vAfv7Xb61EDvXOxv2yhm7BEnv29eYahV6Fy4-BDLD1K0jw8yx2PZLAdqPN2d7-haFrBGFO2jwpvXKBWVZvj7zM0SLgNVK0NZpvjiVmYVvetVyG5OkikMNmxwJYgOMuH-')"></div>
+<span class="text-xs font-bold">Lily_Boutique</span>
+</div>
+<button class="text-[10px] font-bold text-primary border border-primary px-3 py-1 rounded-full hover:bg-primary hover:text-white transition-all">Follow</button>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<!-- Floating Chat Widget (Collapsed state) -->
+<div class="fixed bottom-0 right-8 z-50">
+<!-- Shadow container for the widget -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-xl shadow-[0_-4px_20px_rgba(0,0,0,0.1)] flex items-center gap-4 px-4 h-12 min-w-[280px] cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<!-- User Avatar with status dot -->
+<div class="relative">
+<div class="h-8 w-8 rounded-full bg-center bg-cover border border-slate-200 dark:border-slate-700" data-alt="Alex River chat avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAa55e6i0NHQ21snu2el8jM88FaCWK8NFvE22PYXoMuWNJuYWKxk-8LCs8lEumclre-58kb3gSJsQxPdOrNSHQpHYCNWGWHGG_3IZ6nEDEdmrMbKZGiFxsfcHAuU9OD-P5mZ_0MUz_AwsHfpkl6nnD0t6-ShjE07knVvGSZFoPO42cLlKyDCjDRcqJFnh5ZKFhdKkZI3H773QjMPGn1NrRCqVerMbS0eJYpgtPvIu6XPU3lPuMSDJKOwoqQZp4whXRi89L8zdUxjgsz')"></div>
+<div class="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-green-500 rounded-full border-2 border-white dark:border-slate-900"></div>
+</div>
+<!-- User Name -->
+<div class="flex-1">
+<p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Alex River</p>
+</div>
+<!-- Action Icons -->
+<div class="flex items-center gap-2 text-slate-400">
+<button class="p-1 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+<span class="material-symbols-outlined text-lg">expand_less</span>
+</button>
+<button class="p-1 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</body></html>

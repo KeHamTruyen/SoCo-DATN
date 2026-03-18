@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Shopping Cart - SocialCommerce</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Public Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon { font-variation-settings: 'FILL' 1; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display">
+<!-- Updated Header based on SCREEN_57 with Marketplace active -->
+<header class="sticky top-0 z-50 w-full bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+<!-- Logo -->
+<div class="flex items-center gap-2 shrink-0">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined block">shopping_bag</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight hidden sm:block">SocialCommerce</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8 ml-4 shrink-0">
+<!-- Feed link set to inactive state -->
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Feed</a>
+<!-- Marketplace link set to active state -->
+<a class="text-sm font-bold text-primary border-b-2 border-primary pb-1 mt-1" href="#">Marketplace</a>
+</nav>
+<!-- Search Bar -->
+<div class="flex-1 max-w-2xl px-4">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm" placeholder="Search products, sellers, or hashtags..." type="text"/>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-2 sm:gap-4">
+<button class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2.5 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<button class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiUG13wO72lnKQbFz8mfUSHBTviCjCxJ7cEENUpWGXw0OQfJQekzsBakRCjmTyR5r83p5V34RbIBlHgGs8wkxWwgwg14kAdp0lV4U4mP4qAo_dFLz9lkO-Pxi7ryL4fRWi1F9kWps3DVfhj0LDjwRQt8c0o-mlwY-y31dXOygBazAzQtGip7HQIyAb70h8XT-RBH3EUlZimmQbbhPN5PYMrbcxvKkyCiO335LYseU39YA9vy5rpwBhpqW_pmTrM8b8znz-AmM7dR_y"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto px-6 py-8">
+<div class="flex flex-col gap-2 mb-8">
+<div class="flex items-center gap-2 text-sm text-slate-500">
+<span>Home</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-slate-900 dark:text-slate-100 font-medium">Shopping Cart</span>
+</div>
+<h2 class="text-3xl font-bold">Shopping Cart <span class="text-lg font-normal text-slate-500">(3 items)</span></h2>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column: Product List (2/3) -->
+<div class="lg:col-span-2 space-y-6">
+<!-- Select All Bar -->
+<div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<label class="flex items-center gap-3 cursor-pointer">
+<input class="w-5 h-5 rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary" type="checkbox"/>
+<span class="font-medium">Select All Items</span>
+</label>
+<button class="text-sm font-medium text-slate-500 hover:text-red-500 transition-colors">Delete Selected</button>
+</div>
+<!-- Store Group 1 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
+<div class="flex items-center gap-3">
+<input class="w-5 h-5 rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary" type="checkbox"/>
+<span class="material-symbols-outlined text-primary">store</span>
+<span class="font-bold">Luxe Essentials</span>
+<span class="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Top Seller</span>
+</div>
+</div>
+<div class="divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Product Item 1 -->
+<div class="p-4 flex flex-col sm:flex-row gap-4">
+<div class="flex items-center gap-3">
+<input checked="" class="w-5 h-5 rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary" type="checkbox"/>
+<div class="w-24 h-24 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Minimalist white ceramic watch on a grey background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbzg6DPUc2BaLzIWcrGdEcJFEhGCRGRUbhbZg8efJDw0D_3YTBrs4yv_fTNUzGE3p2jYMUhy-zO3Sk0bSFwmhp9HNCkrX9MxJP5y39aqgCdwWSpQlpYotWL2F-ZpHhpacirO_TimXwgEAnZm5yi5ixXXDCJqjyv6YPftJUoA56_Tibyq-3Qvh_3734dezZ0Jp5xmSD3PVRflIr7tLwLyamxbBQNtuw7Dmckdw7llXY8CjoMV9bUAZ2G3D2Mgo8IbgxJm2j2mmsE23K"/>
+</div>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-semibold text-lg">Signature Ceramic Watch</h3>
+<p class="text-sm text-slate-500">Color: Midnight Black | Size: One Size</p>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<div class="flex justify-between items-end mt-4">
+<span class="text-xl font-bold text-primary">$129.00</span>
+<div class="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+<button class="px-3 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-r border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+<span class="px-4 py-1 text-sm font-bold">1</span>
+<button class="px-3 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-l border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Product Item 2 -->
+<div class="p-4 flex flex-col sm:flex-row gap-4">
+<div class="flex items-center gap-3">
+<input class="w-5 h-5 rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary" type="checkbox"/>
+<div class="w-24 h-24 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Vibrant red performance running shoe" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEJCux_im1KqvI-CeTSPJsi5SXGF19WyXmfhzIwYBuC9jskCfv82jjSuqtgIte-AWTMKDkDZeG3RkoI2ns4ZN1Cuk0ZwatHIsMRMRIONy8R5Vwoe9P_YnfY1dI4eR_T8B5H5LZHDG213r01u5lkqLJ4xoZcNcvx2s7JIvsTzr_ERYorgRegfPOh2U0Kq0ymyZ3QhPKYMLKKhySexOy1JO-FkbNcb-8C1oztMWL-KvgCX2osCPSNTsXasajqXwQ3cwlOMRffXvOig67"/>
+</div>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-semibold text-lg">Pro Performance Runners</h3>
+<p class="text-sm text-slate-500">Color: Electric Red | Size: 42</p>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<div class="flex justify-between items-end mt-4">
+<span class="text-xl font-bold text-primary">$85.50</span>
+<div class="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+<button class="px-3 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-r border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+<span class="px-4 py-1 text-sm font-bold">2</span>
+<button class="px-3 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-l border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Store Group 2 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
+<div class="flex items-center gap-3">
+<input checked="" class="w-5 h-5 rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary" type="checkbox"/>
+<span class="material-symbols-outlined text-primary">local_mall</span>
+<span class="font-bold">Urban Tech Hub</span>
+</div>
+</div>
+<div class="divide-y divide-slate-100 dark:divide-slate-800">
+<div class="p-4 flex flex-col sm:flex-row gap-4">
+<div class="flex items-center gap-3">
+<input checked="" class="w-5 h-5 rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary" type="checkbox"/>
+<div class="w-24 h-24 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Sleek black wireless noise-cancelling headphones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfbcIkzoL5emlzlQwzt7zYLDrRxFvjxv9JR7vT-uBxXx181ufPAFTdDSOXkA4OPIGpvN0VsBi9sEpF-vs1xfhCOfZ_58pTbknwVbVHTTdOQvRXoKWAw4z23lLdGSQeVnK4gIZGIiIiIr7t3_X6SbObQrNGESCqpiN18ku4H-IYi51XJtn_-maURdVI43r2B0RLqTrbeKp5oWzv_PHkWfYmhNJE1ocePxPlDtayhVH8pmlP5jtnJYlAUlyO5t56Zpuu_rQV7cAWPXhH"/>
+</div>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-semibold text-lg">Sonic ANC Headphones</h3>
+<p class="text-sm text-slate-500">Color: Matte Black</p>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<div class="flex justify-between items-end mt-4">
+<span class="text-xl font-bold text-primary">$249.99</span>
+<div class="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+<button class="px-3 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-r border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+<span class="px-4 py-1 text-sm font-bold">1</span>
+<button class="px-3 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-l border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Order Summary (1/3) -->
+<div class="lg:col-span-1">
+<div class="sticky top-24 space-y-4">
+<!-- Summary Card -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-md">
+<h3 class="text-xl font-bold mb-6">Order Summary</h3>
+<div class="space-y-4 mb-6">
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span>Items selected (2)</span>
+<span>$378.99</span>
+</div>
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span>Subtotal</span>
+<span>$378.99</span>
+</div>
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span>Shipping (est.)</span>
+<span class="text-green-600 font-medium">Free</span>
+</div>
+<div class="flex justify-between text-slate-600 dark:text-slate-400">
+<span>Discount</span>
+<span class="text-red-500">-$25.00</span>
+</div>
+</div>
+<!-- Voucher Input -->
+<div class="mb-8">
+<label class="block text-sm font-medium mb-2">Have a promo code?</label>
+<div class="flex gap-2">
+<input class="flex-1 rounded-lg border-slate-200 dark:border-slate-800 dark:bg-slate-800 text-sm focus:ring-primary focus:border-primary" placeholder="Enter code" type="text"/>
+<button class="bg-primary/10 text-primary hover:bg-primary/20 px-4 py-2 rounded-lg text-sm font-bold transition-colors">Apply</button>
+</div>
+</div>
+<div class="pt-6 border-t border-slate-100 dark:border-slate-800 mb-8">
+<div class="flex justify-between items-end">
+<span class="text-lg font-bold">Total</span>
+<div class="text-right">
+<span class="text-3xl font-bold text-primary">$353.99</span>
+<p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Including VAT</p>
+</div>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2">
+<span>Proceed to Checkout</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<div class="mt-6 flex items-center justify-center gap-4">
+<span class="material-symbols-outlined text-slate-300 text-3xl">credit_card</span>
+<span class="material-symbols-outlined text-slate-300 text-3xl">account_balance_wallet</span>
+<span class="material-symbols-outlined text-slate-300 text-3xl">payments</span>
+</div>
+</div>
+<!-- Trust Badge -->
+<div class="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-xl flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-xl">verified_user</span>
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-slate-500">Secure Purchase</p>
+<p class="text-xs text-slate-600 dark:text-slate-400 mt-1">Your data is encrypted and protected by SocialCommerce SecurePay.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recommendations Section -->
+<div class="mt-16 pt-12 border-t border-slate-200 dark:border-slate-800">
+<h3 class="text-xl font-bold mb-6">Recently Viewed &amp; Recommended</h3>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+<!-- Mini Card 1 -->
+<div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm group cursor-pointer">
+<div class="aspect-square rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden mb-2">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Classic aviator sunglasses on a white surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAoANxnBBYZ-vMQratA7ZhO_Vlphv17SHmxgDzJeXjqWSYS2XHUCD64UwbqSrqyLTLeE8dNQ6n8TpD5z4yoTYDCLVCujk6rgJYp5frEOixo4cbL6yoJrSv-43QdfsA1uBfhXCzqgVRDNTknMiOf_ZwMdgBo2tLRailUCp83BIFLgpcZ9ZmwdtpOQcriL7AwFhWUrTROucXM83D_g8ClZyxZes4XkTgIcm1IgGrc-W7c6BIkROt8ZlHDueWu1U5NG17Ibd32g0CHbyQ"/>
+</div>
+<p class="text-sm font-medium line-clamp-1">Classic Aviators</p>
+<p class="text-primary font-bold">$45.00</p>
+</div>
+<!-- Mini Card 2 -->
+<div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm group cursor-pointer">
+<div class="aspect-square rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden mb-2">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="White sneakers with beige accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_00NXSO0JlbDxBeaPz1ZsoTbiL27a4DiCNB8KbATjMPJj9cY5n7PNAqFOsSqFeaj-SrNUONFGQWsQJu2XO_aU-BTAdh7thSFNVbaKxMQ77ZP-GaWQUZB8Sjauym0_hPcgjlLiSuvPYYjM7JPYejLCVyrr_CFQgtoMehzSPwmxhpurulybLrsrgPSqd6JRqaZE-LGUyok5_w6yju9iY_PLSuD7jSWmIH1RaI_A9NIzCaPdk1X8z87BGjtCb2VcdvsK_nPSPvuvKX8D"/>
+</div>
+<p class="text-sm font-medium line-clamp-1">Urban Comfort Kicks</p>
+<p class="text-primary font-bold">$68.00</p>
+</div>
+<!-- Mini Card 3 -->
+<div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm group cursor-pointer">
+<div class="aspect-square rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden mb-2">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Studio quality large diaphram condenser microphone" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSulIwjvmBdoX8POuVTZT7mAnX8EIt402yklCpm0Pu57l2IVBeP6dvJmRAkYn74a8KhJX9MPYETbX6JrepCfzrqtKYtt5O51sTTnbWL2YtJMj7BXyGE4arnC-uF0MFxmowvtx97K408xgm3ez1abZuK3hFF7Wdbv0KQVauxUnGAActcFsHF7fdjbdcoiywjUZiNd4hfs1tkikUK8HcUw4NzOMf7luDhQuo3Vsh-bJBD5o2zOpQy6oxpvknLyAKlUVOMYzm-Ns6OGwz"/>
+</div>
+<p class="text-sm font-medium line-clamp-1">Studio Mic Pro</p>
+<p class="text-primary font-bold">$189.00</p>
+</div>
+<!-- Mini Card 4 -->
+<div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm group cursor-pointer">
+<div class="aspect-square rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden mb-2">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Pink polaroid camera with a vintage feel" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBefQJPec8dYMmVMN5OD7mIvjGPWHL2EM74XQozlQNeuG_tJLUpSKXoNeJrPrwiydFAHSEtPZxhMsoTfvuAcpnE6-ZXJIbpcd8WVmQgV3Q_yb1vRLeUqtTBJ5YtTr2LL1H99XNi8o14OEjTQia_w_4Cb6ZjjMktpeLWzsHQiKgfEy864qdF1ZmoIM5hD-ojdkiwi92Y3nefcxCfswbPdn25-dUbT316hNnhWuCYrF8NZEHDFdeF__Vw7hkCl8odQk55UYqX4aFDU3I7"/>
+</div>
+<p class="text-sm font-medium line-clamp-1">Instant Retro Cam</p>
+<p class="text-primary font-bold">$112.00</p>
+</div>
+<!-- Mini Card 5 -->
+<div class="hidden lg:block bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm group cursor-pointer">
+<div class="aspect-square rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden mb-2">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Sleek silver metal laptop standing upright" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqnaspn5qce3Rt4J8Si4Vkr1VOlBGunVyoATA8f2_hZUSbxDW1rWbMneX6abmOSG9oNkOXb22OQlhFFrtWbu_p5Y28Lz6J-h_ZI5CFRzEI1ozrNxBe7QshNmJQmaeAVQKpiloppawsj63DtKuzfc9kWf7gYVH0pAu_E4ywTrbrFqljF6YWIrZPrpAZZ5o2rNeRCuQ2Q3teZMOvNkrcT1L6Yb9PlfsZQv9n22ZRq_lKbFLBTRPaLmsHYuW4h2h-PNBspqIzeO7XhVmN"/>
+</div>
+<p class="text-sm font-medium line-clamp-1">Ultra Slim 14"</p>
+<p class="text-primary font-bold">$899.00</p>
+</div>
+</div>
+</div>
+</main>
+<footer class="mt-24 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark py-12">
+<div class="max-w-[1440px] mx-auto px-6 text-center">
+<div class="flex items-center justify-center gap-2 text-primary mb-4"><span class="material-symbols-outlined text-2xl font-bold">shopping_bag</span>
+<span class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">SocialCommerce</span></div>
+<p class="text-slate-500 text-sm">© 2024 SocialCommerce Inc. All rights reserved.</p>
+<div class="flex justify-center gap-6 mt-6">
+<a class="text-sm text-slate-400 hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="text-sm text-slate-400 hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="text-sm text-slate-400 hover:text-primary transition-colors" href="#">Help Center</a>
+</div>
+</div>
+</footer>
+</body></html>

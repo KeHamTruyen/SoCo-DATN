@@ -1,0 +1,36 @@
+import { UserRound } from "lucide-react";
+import { Avatar, Badge } from "../../../shared/ui";
+import type { UserProfile } from "../../auth/types/auth.types";
+
+interface ProfileSummaryProps {
+    user: UserProfile | null;
+}
+
+export function ProfileSummary({ user }: ProfileSummaryProps) {
+    return (
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-center gap-3">
+                {user?.avatarUrl ? (
+                    <Avatar src={user.avatarUrl} alt={user.fullName ?? user.email} />
+                ) : (
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <UserRound className="h-4 w-4" />
+                    </div>
+                )}
+                <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {user?.fullName ?? user?.username ?? "Anonymous User"}
+                    </p>
+                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                        {user?.email ?? "No email"}
+                    </p>
+                </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between">
+                <span className="text-xs text-slate-500 dark:text-slate-400">Role</span>
+                <Badge>{user?.role ?? "buyer"}</Badge>
+            </div>
+        </div>
+    );
+}
+

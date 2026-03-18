@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex min-h-screen flex-col overflow-x-hidden">
+<!-- Header from SCREEN_57 with Marketplace active -->
+<header class="sticky top-0 z-50 w-full bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+<!-- Logo -->
+<div class="flex items-center gap-2 shrink-0">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined block">shopping_bag</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight hidden sm:block">SocialCommerce</h2>
+</div><nav class="hidden md:flex items-center gap-8 ml-4 shrink-0">
+<!-- Feed link set to inactive state -->
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Feed</a>
+<!-- Marketplace link set to active state -->
+<a class="text-sm font-bold text-primary border-b-2 border-primary pb-1 mt-1" href="#">Marketplace</a>
+</nav>
+<!-- Search Bar -->
+<div class="flex-1 max-w-2xl px-4">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm" placeholder="Search products, sellers, or hashtags..." type="text"/>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-2 sm:gap-4">
+<button class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2.5 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<button class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+<span class="material-symbols-outlined text-primary">shopping_cart</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiUG13wO72lnKQbFz8mfUSHBTviCjCxJ7cEENUpWGXw0OQfJQekzsBakRCjmTyR5r83p5V34RbIBlHgGs8wkxWwgwg14kAdp0lV4U4mP4qAo_dFLz9lkO-Pxi7ryL4fRWi1F9kWps3DVfhj0LDjwRQt8c0o-mlwY-y31dXOygBazAzQtGip7HQIyAb70h8XT-RBH3EUlZimmQbbhPN5PYMrbcxvKkyCiO335LYseU39YA9vy5rpwBhpqW_pmTrM8b8znz-AmM7dR_y"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex flex-1 items-center justify-center px-6 py-12">
+<div class="mx-auto flex max-w-[480px] flex-col items-center text-center">
+<!-- Empty State Illustration Container -->
+<div class="relative mb-8 flex h-64 w-64 items-center justify-center rounded-full bg-primary/5 dark:bg-primary/10">
+<div class="absolute inset-0 flex items-center justify-center opacity-20">
+<div class="h-48 w-48 rounded-full border-4 border-dashed border-primary"></div>
+</div>
+<div class="relative z-10 flex h-40 w-40 flex-col items-center justify-center rounded-3xl bg-white dark:bg-slate-800 shadow-xl shadow-primary/10 dark:shadow-none">
+<span class="material-symbols-outlined text-7xl text-primary/40 dark:text-primary/60" style="font-variation-settings: 'FILL' 1">shopping_cart_off</span>
+<!-- Decorative small icons floating -->
+<span class="material-symbols-outlined absolute -top-4 -right-4 text-primary text-3xl">favorite</span>
+<span class="material-symbols-outlined absolute -bottom-2 -left-6 text-slate-300 dark:text-slate-600 text-4xl">sell</span>
+</div>
+</div>
+<!-- Empty State Text -->
+<h1 class="mb-3 text-3xl font-bold text-slate-900 dark:text-white">Your cart is empty</h1>
+<p class="mb-10 text-lg leading-relaxed text-slate-600 dark:text-slate-400">
+                Looks like you haven't discovered anything you love yet. Start browsing the feed for the latest trends and exclusive community deals.
+            </p>
+<!-- CTA Button -->
+<a class="inline-flex h-14 min-w-[240px] items-center justify-center gap-3 rounded-xl bg-primary px-8 text-lg font-bold text-white shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] hover:bg-primary/90 active:scale-95" href="#">
+<span class="material-symbols-outlined">explore</span>
+                Continue Shopping
+            </a>
+<!-- Secondary Links -->
+<div class="mt-12 flex flex-wrap justify-center gap-6">
+<a class="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-500 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">history</span>
+                    Order History
+                </a>
+<a class="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-500 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">bookmark</span>
+                    Saved Items
+                </a>
+</div>
+</div>
+</main>
+<!-- Trending Section (Optional context) -->
+<section class="border-t border-slate-200 dark:border-slate-800 px-6 py-12">
+<div class="mx-auto max-w-[1200px]">
+<div class="mb-8 flex items-center justify-between">
+<h3 class="text-xl font-bold">Trending with your friends</h3>
+<a class="text-sm font-bold text-primary" href="#">View all</a>
+</div>
+<div class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-4">
+<div class="group flex flex-col gap-3">
+<div class="aspect-square w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+<img alt="" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" data-alt="Modern yellow streetwear outfit on a model" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDThSZ6t_DE-rrsO5h-8m1vqe5Fd4eFNOkv2rl0mfcpTJAGChM2_0p5xYUp4tC7DUeY2hXsmgLRQ7oWuQpX1Qt1PpIv6uBUsuYVwU2rQnnXi4Wfd1XSYUJ4RitnYc2YQtwBzoR0USXTpdgwdyOY-kYaltxEfjJoCWWax-8NhaPyeuoFVI5K8y80jPDGEjn-hPDxl7dQEZqFwskk7QZ1gEe7YSY0qBqzXwL8lmsSt6vg_mrt4ryyZifXqL1w877xUEBKjWlS_iSwWI-7"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-bold">Luxe Hoodie</span>
+<span class="text-sm text-slate-500">$59.00</span>
+</div>
+</div>
+<div class="group flex flex-col gap-3">
+<div class="aspect-square w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+<img alt="" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" data-alt="Classic red athletic running shoes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuRAxf3XXuZ8Ju85ih8Z93D3VVlt71dL5vweOlNbDlrY-1yStGRYtZAIpidV-QjIXxVwTqvzX-tYk73Z-FsBmJ-os49VoKxmdhqDS8iz6XE6UZ1slbFjKj9AAjwuvph0KD2alxnewab0OrN0qht8AGr6QLpSE7ze_iI-DQaEsEVnuF8Bnm2va3SEPnsHto3djgDKTpLDvZV5bebrJCh-zcMelZ7dXqCNbu7nvM_sJM-4iaZvgz04fufDG_10hJZygs0DEW9TNYLp_V"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-bold">Aero Runners</span>
+<span class="text-sm text-slate-500">$120.00</span>
+</div>
+</div>
+<div class="group flex flex-col gap-3">
+<div class="aspect-square w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+<img alt="" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" data-alt="Minimalist designer wrist watch white dial" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCU9ni2dk5jFCOLn9eRgrC1xoU-J4E_88SQmcvOosS1fbJlxRRaGVMWwAV44C3gl-F16pUNIQcpX_VaGMFRYZWLgOrjVovNZXUJxFY70yR0FAVj9ve175bIowCIQeX2OUaigzqBZUEgND9eQJkAFv1IySj7TyGkxuc97Z84u7B4-s25NXHLs2YYUWhUpfKEMH2JR8IUPj8Eb65dbDp5tZ22xwK96a94lNiP706GQwBYAqeUP1FNiW5Ga4P_9pB7dvA0iJcXyKhCaRzM"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-bold">Nomad Watch</span>
+<span class="text-sm text-slate-500">$185.00</span>
+</div>
+</div>
+<div class="group flex flex-col gap-3">
+<div class="aspect-square w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+<img alt="" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" data-alt="Professional studio wireless headphones black" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgNt3DxqFiCpuMHfcP3tkv7egldvO652RE3SAcg5iNLUNXDEbTrqv1Q3xnghNtyjEJyTqzfnyJScZml6Ci1n1rQhS5MkezD8ldDIxjJliEGxJe7vEDNLvmCKReGcrVeMgNrVc98HAfKtBLo3DwHYEr52--Hi2t9NMuwyJcGnSyLpeJW43VsAymO4czbn82NUGGzy2LF3L8bOTdSs_TPM117rDQa0kQtK5zyunL_Rk9KjmVtPzRekV3DxelEm4NrHx0t8YU1YciOuyJ"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-bold">Studio Buds Pro</span>
+<span class="text-sm text-slate-500">$249.00</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer Space -->
+<footer class="mt-auto border-t border-slate-200 dark:border-slate-800 px-6 py-8 text-center text-sm text-slate-400">
+<p>© 2024 SocialShop Inc. All rights reserved.</p>
+</footer>
+</div>
+</body></html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Groups Discovery - SocialCommerce</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "secondary": "#0f172a",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .filled-icon { font-variation-settings: 'FILL' 1; }
+        .fill-icon { font-variation-settings: 'FILL' 1; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Unified Header from SCREEN_57 with 'Marketplace' as active link -->
+<header class="sticky top-0 z-50 w-full bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+<!-- Logo -->
+<div class="flex items-center gap-2 shrink-0">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined block">shopping_bag</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight hidden sm:block">SocialCommerce</h2>
+</div><nav class="hidden md:flex items-center gap-8 ml-4 shrink-0">
+<!-- Feed link set to inactive state -->
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Feed</a>
+<!-- Marketplace link set to active state -->
+<a class="text-sm font-bold text-primary border-b-2 border-primary pb-1 mt-1" href="#">Marketplace</a>
+</nav>
+<!-- Search Bar -->
+<div class="flex-1 max-w-2xl px-4">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm" placeholder="Search products, sellers, or hashtags..." type="text"/>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-2 sm:gap-4">
+<button class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2.5 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<button class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 overflow-hidden shrink-0">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiUG13wO72lnKQbFz8mfUSHBTviCjCxJ7cEENUpWGXw0OQfJQekzsBakRCjmTyR5r83p5V34RbIBlHgGs8wkxWwgwg14kAdp0lV4U4mP4qAo_dFLz9lkO-Pxi7ryL4fRWi1F9kWps3DVfhj0LDjwRQt8c0o-mlwY-y31dXOygBazAzQtGip7HQIyAb70h8XT-RBH3EUlZimmQbbhPN5PYMrbcxvKkyCiO335LYseU39YA9vy5rpwBhpqW_pmTrM8b8znz-AmM7dR_y"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-4 py-8 flex gap-8">
+<aside class="w-64 hidden lg:flex flex-col gap-6 shrink-0">
+<section>
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 px-2">Navigation</h3>
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl bg-primary text-white font-medium" href="#">
+<span class="material-symbols-outlined filled-icon">explore</span>
+<span>Discover</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">auto_awesome</span>
+<span>Suggested</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">trending_up</span>
+<span>Popular</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">schedule</span>
+<span>New Arrivals</span>
+</a>
+</div>
+</section>
+<section>
+<div class="flex items-center justify-between mb-4 px-2">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">My Groups</h3>
+<span class="text-[10px] bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded font-bold">12</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors group">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 font-bold">TE</div>
+<div>
+<p class="text-sm font-semibold">Tech Enthusiasts</p>
+<p class="text-[10px] text-slate-500">Active now</p>
+</div>
+</div>
+<span class="w-2 h-2 bg-primary rounded-full"></span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors group">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-primary font-bold">SH</div>
+<div>
+<p class="text-sm font-semibold">Sneakerheads</p>
+<p class="text-[10px] text-slate-500">2h ago</p>
+</div>
+</div>
+<span class="bg-primary/10 text-primary text-[10px] px-1.5 py-0.5 rounded-full font-bold">5+</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors group">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 font-bold">GD</div>
+<div>
+<p class="text-sm font-semibold">Green Decor</p>
+<p class="text-[10px] text-slate-500">Yesterday</p>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-4 text-xs font-semibold text-primary hover:underline">View all groups</button>
+</section>
+</aside>
+<section class="flex-1 flex flex-col gap-6">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<h1 class="text-3xl font-bold tracking-tight">Discover Groups</h1>
+<p class="text-slate-500 dark:text-slate-400">Join communities based on your interests and shopping style.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="relative w-full md:w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20" placeholder="Filter groups..." type="text"/>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition-all whitespace-nowrap shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">add</span>
+<span>Create Group</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all group flex flex-col">
+<div class="h-32 bg-slate-200 dark:bg-slate-700 relative overflow-hidden">
+<img alt="Group Cover" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="High-tech workspace with monitors and neon lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJGmOqrzx_H-XMSBAlB_vUVZNF8wwRyX2cLX9SEHpKllCVOGJKA-Kk7uzHzoBzYcYK8zsmPIlcy2G9l-1K4zKWipVOT0Q9_NopsOO6Ce1R4cldjMnYix2AHXv4kd6310CGUjRmbuLvlStlaZ9nSWMKbPrHb51E5pbMYd-1nOOKp0w_Q0NFOeRGJy9Cl0mNNtw8Pk76t3jAdvLPpv_v-wdGPEFii02p2Dd8ENrrO9bLXZOpIXnVZ1wQywR4SZtx7HfqpcstmLU7Ydln"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-3 left-4 flex items-center gap-2">
+<span class="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/30 uppercase tracking-wider">Public</span>
+</div>
+</div>
+<div class="px-4 pb-4 pt-0 relative flex-1 flex flex-col">
+<div class="flex justify-between items-start -mt-6 mb-4">
+<div class="w-16 h-16 rounded-2xl border-4 border-white dark:border-slate-800 bg-blue-600 shadow-sm flex items-center justify-center text-white text-xl font-bold">TE</div>
+<div class="pt-8">
+<h4 class="font-bold text-lg leading-tight">Tech Central</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">12.5k members • 42 posts/day</p>
+</div>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-300 mb-6 line-clamp-2">The ultimate destination for gadgets, setups, and latest silicon news. Buy and sell tech gear with verified members.</p>
+<div class="mt-auto flex items-center justify-between gap-4">
+<div class="flex -space-x-2">
+<img alt="Friend" class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800" data-alt="Friend avatar 1" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcuhV42XOE6JWCMTIdqF5kzNvo4iSqXmoBSMmEUrOp2s2hTcthxGQAqHv2cFUY5cKYWa2YYjZif105phfSkpQCor9TsyN9_UkaWM0PvBy4DOoXcV-qrgMYBpZJm1axxVzIJZvLRsN4FDXcM0Ki5MtcJmNX-rGqlJNRqJEFeBQRZB5Ack_4NjU3kHrfyks-JQXndmIqDmxoIRDsVfwsxrvLMjxKKmZozF-AZLu3bxQPeYgh8zXr25zXy2U1HnK2UgU332dy0tevxFJ-"/>
+<img alt="Friend" class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800" data-alt="Friend avatar 2" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGem3gDQgwCHvXQK_pNHBcYI0CjQhrlSxOvT_OBBqaNw9wfUudrymjDuDfoyWgg3555v8xLopkeLbZ9lRzYub1XtL5fMVuxNPdUORlU5RT4mQoBVrbFGVlieyT_02mFcwfXTnvbqKyTWH75tfMkm8dA_njQjcYlPZekp1TymfW2M5oRnpNGEvnupcpE9EQzM_F7dr7Tgbr_57dSO8uARinhIzuNMqK0qduSaZx_Fw8ccw13QerNTvAIOmN1GNPfeB0tyjtWl4Ww0Zk"/>
+<img alt="Friend" class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800" data-alt="Friend avatar 3" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJUYQhcA5tlP5QUotvBgubu-j_zeJc0S5Vd8SkqYIJfv0MzBr5_WaNswBnW26UVYqzZ4129kE20RUUxtsiQ3u7JJ4fQx94qlgkkpiCZ4oabWsL5KyXqq7pokbHA3iaoXTflg1RWmaXjFPXqVbUjr0QLDY7s_iv37wzqqtEWGikXKCZY2oWqf3C2nCvEJ3HQJg-NnC5YMFNsTJkq4ZVxq7DoGQOUaZtA2RrVP2-P_uWpbKe9IvNFencKiAId9k0xSdA8ftmHjVReU0P"/>
+<div class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-500">+8</div>
+</div>
+<button class="bg-primary/10 hover:bg-primary text-primary hover:text-white font-bold px-5 py-2 rounded-xl transition-all text-sm">Join Group</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all group flex flex-col">
+<div class="h-32 bg-slate-200 dark:bg-slate-700 relative overflow-hidden">
+<img alt="Group Cover" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Collection of modern luxury sneakers on shelves" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBHrjrz2KgrdodTxoTKxX2LlU3rqxcIfXWGIHmnhEt1USOXVwMW3kOVVdzsNcWdQJX54lPOcXBuAdhny1rohaLEY69bS8zEM6J86yvG7CYwu-YrkZbdrywBNjqIVWJdXYg8UqmSC5Q1aRFtzPvVq04yJklEoWR-Ch-EW4obl4F9o9VkQuyEdBy_SKyd2E9w1sg9w9pzz4jYRRIzmK97PtMpU_yOspLpqMLQKOlMQ5do9ig0YT0TKWhlkhYKlGufVeBnN6MXrNDs1yP"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-3 left-4 flex items-center gap-2">
+<span class="bg-slate-900/40 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/20 uppercase tracking-wider">Private</span>
+</div>
+</div>
+<div class="px-4 pb-4 pt-0 relative flex-1 flex flex-col">
+<div class="flex justify-between items-start -mt-6 mb-4">
+<div class="w-16 h-16 rounded-2xl border-4 border-white dark:border-slate-800 bg-primary shadow-sm flex items-center justify-center text-white text-xl font-bold">SK</div>
+<div class="pt-8">
+<h4 class="font-bold text-lg leading-tight">Sole Society</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">8.2k members • 15 posts/day</p>
+</div>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-300 mb-6 line-clamp-2">Exclusive drops, legit checks, and rare finds. Connect with the most trusted collectors in the game.</p>
+<div class="mt-auto flex items-center justify-between gap-4">
+<div class="flex -space-x-2">
+<img alt="Friend" class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800" data-alt="Friend avatar 4" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8mC1_OhNsAC6O99AFBbrohnGmxc889kiIBMgBr6Xrhq7_QvoO4RtdHIRsxCUqfr-mykNsj_jWi_c4tN8Ya3zUs4tws1YdBo_dXE4qyfMOsWrusfjrzq33JfGMWqqjCQwVeVujAkIdbE9Z-EO4VUVVxK5N5ktqTh1RriBt_TEDFwtW-YvBsgzynxAUziLpVR0mbooVLkem1hdPf-zhHK7R_A4Yp5N3ki5Hgis9bYAWs5zbo1wjeSIYW675ryYRyVE4fXO6XBvJrxwr"/>
+<img alt="Friend" class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800" data-alt="Friend avatar 5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2bdwIHgFGDiRvMkZnNWenJqycpeyNnltpaKdTLgecoSrlcqHTXvl8SG1yU5VGHbaE_wO4C-q0v1SqS1LIR3Ym5PKJDd9WCsHjYr9rK4v8CUdZZ7B6j7pzwOaq8BfKLwTqJ5FYV7Z2loZZUna3RrT4TxEzcA3viA5qoGba9Gs8Vp4YCl3VdA1AzTEwcjbi1IJI5LWDpTgiADhpglPkNn2PdpzpU-bno86H-ghi898rbRJjKhqtXuRiMAER9d7-lE4od7VciSj7vVN5"/>
+<div class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-500">+2</div>
+</div>
+<button class="bg-primary/10 hover:bg-primary text-primary hover:text-white font-bold px-5 py-2 rounded-xl transition-all text-sm">Request to Join</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all group flex flex-col">
+<div class="h-32 bg-slate-200 dark:bg-slate-700 relative overflow-hidden">
+<img alt="Group Cover" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Minimalist modern living room interior design" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBK8oYHaUC-vCS9TtIW6c9uNy8ELn0p2ACnW-gHZzscLKZSXJuXjUVDl0ynxmiJGZ6cb_nAn7cmiKwL--VIywuC4_RjsyHsNa8ULX2ScQgClWKTpKYt_o57KKA9o52TltOsQPUb0s-grfWk3OPzDgWot19QVibgpX1p7bYM9TLTNOhk8_mepn6qC3qm0m7-rZl8SaT7N4GpbI6i6wC3OeXnzZ-QCBLy9mWG42QScAlYhEXnuT3drdvMwZz0V23PmW70-K2DPl4KOD76"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-3 left-4 flex items-center gap-2">
+<span class="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/30 uppercase tracking-wider">Public</span>
+</div>
+</div>
+<div class="px-4 pb-4 pt-0 relative flex-1 flex flex-col">
+<div class="flex justify-between items-start -mt-6 mb-4">
+<div class="w-16 h-16 rounded-2xl border-4 border-white dark:border-slate-800 bg-emerald-600 shadow-sm flex items-center justify-center text-white text-xl font-bold">GD</div>
+<div class="pt-8">
+<h4 class="font-bold text-lg leading-tight">Minimalist Home</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">22k members • 110 posts/day</p>
+</div>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-300 mb-6 line-clamp-2">A haven for minimalist living. Share your space, find sustainable furniture, and simplify your life.</p>
+<div class="mt-auto flex items-center justify-between gap-4">
+<div class="flex -space-x-2">
+<img alt="Friend" class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800" data-alt="Friend avatar 6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5WVuoQiXGIsIH13dhwsrQ-ak55SJgXtCYJ9SOxi_wfm3KwHVviUZOcf7ciFz25P194UcTAkAQaLebT7PDStPSJcEZ3X4m0rDDGeKv5td7q7YY8tuwP2Qpl495AvjSIa3EtW2o1fGs5J_n2XatOOPlA5Y7vkg6qb7zKoqTxUN5lWGwxS8TMpNP65hs46zZQq7kBHOS18MNnG1r2aPs6-crqjjMO_gddh5AgjlOm6cvVrVJDo7_Hua0mlg22-4YbAMDDUJxNc9o_M6A"/>
+<img alt="Friend" class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800" data-alt="Friend avatar 7" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWBoYd2ZvwvCsI3T1J5AVCt-ToozU9Mb56BeN7fRNKj6hzENPoFcaE_gS0nt2Ubs5uXGdWemES2AWUlfCi80Ie0PE6RHRKGntGAuzF6A33Uj-gM_Xe2stI_GEvrIYrBTYZxZ4NvJQotzw_mFoP2-7Cbypcp1sTRPUXmjr8hkSN0PA2I1CxaEhuK3kM3_FPP4swjEgB7FCtlW6QTCbgXE3qYvpnfBoTqDc05VdfRdXNNqEyiUllJm69wxL2keFeC8yRhXribP0OoWws"/>
+<img alt="Friend" class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800" data-alt="Friend avatar 8" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBBTEmT7hcFOgW03YLx4QRFodrH7ewlfTJm0z5gnTMIccdLFzXvZZ69-ycIAhEKZ1YQeuYk3dbHoVJlRfKQKgGF8uNUcmxiL5I_3tchSsWMh9oz9uJtkOxULy23smgIUR4t0nQHR7dUL3ISxOPJJa-xVLx7r4JOezgoxDonHyyFZGsjJCOu0iTLaTOPFhSbEkB9cJGGq2sI7bbRE17m8svwZEb5HJm6ol8jWTzz0anoS_mZL3tSGALG6mDdIXkoS71Wv2M81h5_zPS"/>
+<div class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-500">+15</div>
+</div>
+<button class="bg-primary/10 hover:bg-primary text-primary hover:text-white font-bold px-5 py-2 rounded-xl transition-all text-sm">Join Group</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all group flex flex-col">
+<div class="h-32 bg-slate-200 dark:bg-slate-700 relative overflow-hidden">
+<img alt="Group Cover" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Sports athlete running gear with neon accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDR0IH9XlwN1c6Lx_40fG2-ByhuGSRfW14l4ef8XyDlEh9D7BbcDdNUG-h-WfsXHCTZhBtoD9Sh8hCO4QnH6jkWbWJ4daLkKwL749v4pAaWi1Ky0pBZxii1Lruo2V4HrKjwdLzw6wVWNm1TP_DCCF4gwSxx66rbVqsc-k0G1QY1_lQz4LcarggPalP7sWZiZAPrCUfiwueiLlcvOamwsTgEgN20OAucrQ1mLuvXUj4aLonwnVMrotcIIauJ4dqhD9fYNhHxa-EMlERW"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-3 left-4 flex items-center gap-2">
+<span class="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/30 uppercase tracking-wider">Public</span>
+</div>
+</div>
+<div class="px-4 pb-4 pt-0 relative flex-1 flex flex-col">
+<div class="flex justify-between items-start -mt-6 mb-4">
+<div class="w-16 h-16 rounded-2xl border-4 border-white dark:border-slate-800 bg-red-600 shadow-sm flex items-center justify-center text-white text-xl font-bold">FC</div>
+<div class="pt-8">
+<h4 class="font-bold text-lg leading-tight">Fitness Community</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">31k members • 200 posts/day</p>
+</div>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-300 mb-6 line-clamp-2">Connect with fitness enthusiasts. Share workouts, nutrition tips, and buy/sell fitness equipment.</p>
+<div class="mt-auto flex items-center justify-between gap-4">
+<div class="flex -space-x-2">
+<img alt="Friend" class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800" data-alt="Friend avatar 9" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4ZHTiq85Ggchrzb2PU09zSIaBbAaBC-egIQ0AaRes9d2v7-0gl6LrwlEzLAHJ9xxz3oHHR9nF87DYUJlPmCXu7cEbR3B_vQVrb5wlc5nvod5xm2JC4ypd75uUTx_gJWTKed7dnXLKmMTAwy2U7zmfJwmHP4rN9XB4lAE_YdWG6mjaXUAlqYFL2eykgyj2qoEAgKwNg8dSQ0NAddsIFC5ZBsyNYEZwk4o2LfUpS0rcq6yNZ3LnbIw2mxaV0UOAAdwxW6638f-NmePP"/>
+<div class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-500">+1</div>
+</div>
+<button class="bg-primary/10 hover:bg-primary text-primary hover:text-white font-bold px-5 py-2 rounded-xl transition-all text-sm">Join Group</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all group flex flex-col">
+<div class="h-32 bg-slate-200 dark:bg-slate-700 relative overflow-hidden">
+<img alt="Group Cover" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Vibrant tropical landscape during sunset" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOUT5_mIbG5Glk5GhAJreZA4WJ2Ob_5rY6AUu3VwFkx3cEpcjH9qaCsyEMkkgXM5uh-qBk5_JUKlNDJaUvx520sVZuMTZydy4yRvWomdPvmVaU9VgjC6U6liUPJrfTaiDo_PTwznIdiyUoqsGJaoKWBqOr824UFDf0e3Yw87fMR4Sws55PUlTY-6_111KRdF-3fqvogCOO6iQO2DzWr-azh2wvpjBcv8Dx-0nhg5xADPakVlhDMr4jTPhFwUk_oUHQ5RS8_PRppgM9"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-3 left-4 flex items-center gap-2">
+<span class="bg-slate-900/40 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/20 uppercase tracking-wider">Private</span>
+</div>
+</div>
+<div class="px-4 pb-4 pt-0 relative flex-1 flex flex-col">
+<div class="flex justify-between items-start -mt-6 mb-4">
+<div class="w-16 h-16 rounded-2xl border-4 border-white dark:border-slate-800 bg-yellow-600 shadow-sm flex items-center justify-center text-white text-xl font-bold">TG</div>
+<div class="pt-8">
+<h4 class="font-bold text-lg leading-tight">Travel Gurus</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400">15.5k members • 8 posts/day</p>
+</div>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-300 mb-6 line-clamp-2">Hidden gems, travel deals, and gear reviews. Only for frequent flyers and passionate explorers.</p>
+<div class="mt-auto flex items-center justify-between gap-4">
+<div class="flex -space-x-2">
+<img alt="Friend" class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800" data-alt="Friend avatar 10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_aZ7_IEaidLaJ4PMgEnj-9Ke2pajb9mPlfRHdN0dLH-hFlush1Z-WzelQumeTi9DtWTo7HRMkPMuD8JVfjhXlGiPjk9fRh0h72fs5vJoHsnSiiIrpyRxmg1i94v3eyCOkcbi27p_kfsYusbxKo4Rk46i5LYgxM-uOIMhrp0xAR1Q51ypOuBB7ML4sqoxKIgicI5a6IIQ4jrux31XZpBS59KVu3yxnWBhkJZAD4EoSCUdDeXDhQwkFqME5W0oOTw79oY7PsKKOZ-sR"/>
+<img alt="Friend" class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800" data-alt="Friend avatar 11" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCh0YBKLXTqs8s10WeXgoimlWw00DWh2I8eKIXxPt6Hgr1e_Rl00SY_ABP-R45ugmGaFAPIK_MHMCHdXj2Ppi1nNSywzsQs37QW6KX2Z-swW-38n_lagKQqmtQn7kXvnfgLyn8BCbQGebPpSlA5nZGMFpn5g4rmaxreCgiLIfjIHvz_5QdFEJTYRuH1IK-ZRignojz-PsgjQMkG9KZUPXyxmLld_ImQCAu3LiqqXt_zAuJv5Rix8ane1PA78okjGynMhBKQlleJ4yxn"/>
+<div class="w-7 h-7 rounded-full border-2 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-500">+5</div>
+</div>
+<button class="bg-primary/10 hover:bg-primary text-primary hover:text-white font-bold px-5 py-2 rounded-xl transition-all text-sm">Request to Join</button>
+</div>
+</div>
+</div>
+<div class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl flex flex-col items-center justify-center p-8 gap-4 text-center hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-all group">
+<div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all">
+<span class="material-symbols-outlined text-3xl">add</span>
+</div>
+<div>
+<h4 class="font-bold text-lg">Can't find a group?</h4>
+<p class="text-sm text-slate-500">Create your own community and invite your friends!</p>
+</div>
+<button class="text-primary font-bold text-sm hover:underline">Start a new group</button>
+</div>
+</div>
+</section>
+</main>
+<footer class="border-t border-slate-200 dark:border-slate-800 py-8 bg-white dark:bg-background-dark mt-12">
+<div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2 text-slate-400">
+<span class="material-symbols-outlined text-xl">shopping_bag</span>
+<p class="text-sm">© 2024 SocialCommerce. All rights reserved.</p>
+</div>
+<div class="flex gap-8">
+<a class="text-sm text-slate-500 hover:text-primary" href="#">Help Center</a>
+<a class="text-sm text-slate-500 hover:text-primary" href="#">Safety</a>
+<a class="text-sm text-slate-500 hover:text-primary" href="#">Privacy Policy</a>
+<a class="text-sm text-slate-500 hover:text-primary" href="#">Terms of Service</a>
+</div>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SocialCommerce Messaging</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "secondary": "#0f172a",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .fill-icon { font-variation-settings: 'FILL' 1; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased">
+<div class="flex h-screen flex-col">
+<!-- Header exactly matching SCREEN_59 -->
+<header class="sticky top-0 z-50 w-full bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800 shrink-0">
+<div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
+<!-- Logo & Nav -->
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 shrink-0">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined block">shopping_bag</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">SocialCommerce</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors py-5" href="#">Feed</a>
+<a class="text-sm font-bold text-primary border-b-2 border-primary py-5" href="#">Marketplace</a>
+</nav>
+</div>
+<!-- Search Bar -->
+<div class="flex-1 max-w-2xl">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-1 focus:ring-primary focus:border-primary transition-all text-sm" placeholder="Search products, sellers, or hashtags..." type="text"/>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-6">
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="text-primary">
+<span class="material-symbols-outlined fill-icon">chat_bubble</span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiUG13wO72lnKQbFz8mfUSHBTviCjCxJ7cEENUpWGXw0OQfJQekzsBakRCjmTyR5r83p5V34RbIBlHgGs8wkxWwgwg14kAdp0lV4U4mP4qAo_dFLz9lkO-Pxi7ryL4fRWi1F9kWps3DVfhj0LDjwRQt8c0o-mlwY-y31dXOygBazAzQtGip7HQIyAb70h8XT-RBH3EUlZimmQbbhPN5PYMrbcxvKkyCiO335LYseU39YA9vy5rpwBhpqW_pmTrM8b8znz-AmM7dR_y"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex flex-1 overflow-hidden">
+<!-- Left Column: Conversations -->
+<aside class="flex w-80 flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+<div class="p-4">
+<h1 class="text-xl font-bold mb-4">Messages</h1>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="w-full rounded-lg border-none bg-slate-100 dark:bg-slate-800 pl-10 py-2 text-sm focus:ring-1 focus:ring-primary/50" placeholder="Search chats" type="text"/>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto scrollbar-hide">
+<!-- Chat Item Active -->
+<div class="flex cursor-pointer items-center gap-3 px-4 py-4 bg-primary/5 border-r-4 border-primary">
+<div class="relative shrink-0">
+<div class="size-12 rounded-full bg-cover bg-center" data-alt="Recipient avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDXWVfqBi_O4bWlWTXr8OdVbVnof6OCEJEs9QdaKj09ALjOHVEIX-yK_8fLIm_vAJhp9PbjpROB_8vjT0HQbsXaw24E3KcfOKA-cU32M4TNl9b_7lv7gTJGjFwMm9iWO59MRAhGPouwKlpAjziVvpYJrqRC4oDNz__oNdQupIlvGnxwdF7L5X8e3MfE3o00MoyhtDvpCyge7htlzdgB3FaREaNdO4_B9cbj7VNLgQdxeYOKuid2yhkFeC2zrJmSt1XSErC7qNpFdVWv')"></div>
+<div class="absolute bottom-0 right-0 size-3 rounded-full border-2 border-white bg-green-500"></div>
+</div>
+<div class="flex-1 overflow-hidden">
+<div class="flex items-center justify-between">
+<h3 class="truncate text-sm font-bold">Alex River</h3>
+<span class="text-[10px] font-medium text-primary">12:45 PM</span>
+</div>
+<div class="flex items-center justify-between">
+<p class="truncate text-xs text-slate-500 font-medium">Is the product still available?</p>
+<span class="flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">2</span>
+</div>
+</div>
+</div>
+<!-- Chat Item -->
+<div class="flex cursor-pointer items-center gap-3 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+<div class="relative shrink-0">
+<div class="size-12 rounded-full bg-cover bg-center" data-alt="User avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCXXWqDbOOwRCpw5ilwYhQamAsz1rYZIkRBQcyhdQfKkBFHozKVKBna1X3ZdTYJfFCY1CHo6Wf3HauWR_TbIhv9djpT_iJGhN5mRaniFEYr1aY2ui5J4XN4M5yhIImktXzXTzDSiQx8ZxuIERKQkMeip-cD1B1YVUlwCX4nPZwe7DsCTJacPoFpJI8tjQX4h8yGxpXbv9tFynIn1BzrAXVOVXgLJ6IpGPmD7zEGjL355J6a9_wrIRthJFJ_aWDcA1j7QM4GDgt0_Gpz')"></div>
+</div>
+<div class="flex-1 overflow-hidden">
+<div class="flex items-center justify-between">
+<h3 class="truncate text-sm font-semibold">Sarah Jenkins</h3>
+<span class="text-[10px] text-slate-400">10:12 AM</span>
+</div>
+<p class="truncate text-xs text-slate-400">Can you do $45 for both?</p>
+</div>
+</div>
+<!-- Chat Item -->
+<div class="flex cursor-pointer items-center gap-3 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+<div class="relative shrink-0">
+<div class="size-12 rounded-full bg-cover bg-center" data-alt="User avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDASE1CNRXHrTfuJzdRx0uYP3opEjPqffAY_gfnXkRiRCVSt9e0OK-foa1-Ph0nMSCsWie6tGy7MINoSEBH7TCNLiZEhC4vvRblOiMQVEal3fOqQaH70ly270KjSEyuaKpDcrTNZ2ZHQ7xQ7q_DlJl0i7ekmceYVsI_1szsPbYU-9UnMUhnL6YEnzmYU-n-AwaHBEtAr7KjjaO7CVtm1dvDXjhvL_mAodTtw7Mel7dinh_ip3-kOBeScV0DNxDMX3du1ZxxXBNnKiC7')"></div>
+<div class="absolute bottom-0 right-0 size-3 rounded-full border-2 border-white bg-green-500"></div>
+</div>
+<div class="flex-1 overflow-hidden">
+<div class="flex items-center justify-between">
+<h3 class="truncate text-sm font-semibold">Tech Haven Store</h3>
+<span class="text-[10px] text-slate-400">Yesterday</span>
+</div>
+<p class="truncate text-xs text-slate-400">Your order #429 has been shipped!</p>
+</div>
+</div>
+<!-- Chat Item -->
+<div class="flex cursor-pointer items-center gap-3 px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 opacity-60">
+<div class="relative shrink-0">
+<div class="size-12 rounded-full bg-cover bg-center" data-alt="User avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCdn80dHh359ROMWaQyuLr2OFjA7T3QGkojaTMmN2nv3JPERCV7_nN6G1wgqa6PhuoLaBmn23_Jz8Vw5_8FDytR_fnWbUYQanIcDGeexgNYkR6Uz5IQ7UwP04j4QBMXWPUPg4pULXuTrpxoZN8XUfRbQ-Q0bFIZ7ZG2uNvU1tPW1nXKk3_pp_0hFO6KTRNLilFD74_KCg8WCtHyjcQc4koN0S2Nj32rKy_kAb4XCW1byob48zY7NbW-xCYP7u40e2UyaG_-leUWcdTK')"></div>
+</div>
+<div class="flex-1 overflow-hidden">
+<div class="flex items-center justify-between">
+<h3 class="truncate text-sm font-semibold">Mike Peterson</h3>
+<span class="text-[10px] text-slate-400">Monday</span>
+</div>
+<p class="truncate text-xs text-slate-400">Thanks for the quick response.</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Middle Column: Chat Window -->
+<section class="flex flex-1 flex-col bg-slate-50 dark:bg-background-dark">
+<!-- Chat Header -->
+<div class="flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 px-6 backdrop-blur-sm">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="Alex River profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBoejDYSciF-3bRYsMuC1SBGUMASkgvE4x_O0IItg3rprIKqTK4Xwc-mmJx9k4JfWH-AoSm5hkMzPX2xZY-q1hvt-_GzymISEfSLFJiU7dl1m3q3fFLv8quoKsnJBxYeUTG8c5BMulUDZkml2i9qVlvQeeGgHszrn1pD8dqSDerYqcNvHZ8H55-ERPlQpDGhNfP4N5NEPDl8wnEq8Qo_f7ncWs65vYgdogn4dm3O_srj_6dWQHYiMNb9ebxN4e9BaIO7-gOQ9xbtbvh')"></div>
+<div>
+<h2 class="text-sm font-bold">Alex River</h2>
+<p class="text-[10px] text-green-500 font-medium">Online</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">
+                            View Profile
+                        </button>
+<button class="flex size-8 items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Messages Flow -->
+<div class="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
+<!-- Received Message -->
+<div class="flex max-w-[80%] items-start gap-3">
+<div class="mt-1 size-8 shrink-0 rounded-full bg-cover bg-center" data-alt="Sender avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuClKfdc5t2BNtBDWz7kqfk1yD6vdk1g2rchEfAAQZs3rvUQXs75GnIsXtcGzwwBzdrdDe3_RM3XJMKiPMtsM4eJdVd-ouFJYDb2aLDIvK28_J1mcGhRhFvdTRu_caoru06BzTb6PqcYC7f2QGYAyW8kNyw2QlMzbw4hxFi2Khi3rKXUEaKUMfyioSYv_1kZPD0-1AQpd049K2GkfbLxssHnzIA2tCYGtfoGpqUfxh_D9zO_yqlUfboD4fKkM5NB7a7CUOzkEK5ZGtwv')"></div>
+<div class="rounded-2xl bg-white dark:bg-slate-800 p-4 shadow-sm text-sm">
+<p>Hi! I saw your listing for the Mechanical Keyboard. Is it still available? I'm looking for one for my home office setup.</p>
+<span class="mt-1 block text-[10px] text-slate-400">12:30 PM</span>
+</div>
+</div>
+<!-- Sent Message -->
+<div class="flex max-w-[80%] flex-row-reverse items-start gap-3 self-end ml-auto">
+<div class="rounded-2xl bg-primary p-4 shadow-sm text-sm text-white">
+<p>Yes, it's still available! It's practically brand new, only used it for a week.</p>
+<span class="mt-1 block text-[10px] text-orange-100/70 text-right">12:32 PM</span>
+</div>
+</div>
+<!-- Product Card Integration -->
+<div class="flex max-w-[80%] flex-row-reverse items-start gap-3 self-end ml-auto">
+<div class="w-72 overflow-hidden rounded-2xl bg-white dark:bg-slate-800 shadow-md border border-slate-100 dark:border-slate-700">
+<div class="aspect-video bg-cover bg-center" data-alt="Mechanical keyboard product photo" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB5Xb_4_nj6q_F4cfGb6GmLuSJJgZhOl3LGlyWCMFY0NYEbIQJf90nZkvfNNvkwPH0FikUsv35HBJykrEIti8wI4Hpqr9ENdJwHGBiICFHhpjcaJDkgowA_9DsdmJiccwcgGXPvsXyhSa7SRm7o_QAjNDOUqlMdEiP0h_b0fDFOUmSwSKoHIVnmNcKRRsLpCdHzwx3SLvYsAZ3oBYGTPz-Tvy04kL7I1gwtlSdhVjGmISqpiZSmaYme0ZUGushxWN1Ew2_JA0jJWz5u')"></div>
+<div class="p-3">
+<div class="flex items-start justify-between">
+<h4 class="text-sm font-bold text-slate-900 dark:text-slate-100">NuPhy Air75 V2 Keyboard</h4>
+<span class="text-sm font-bold text-primary">$120</span>
+</div>
+<p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Excellent condition, includes all original accessories.</p>
+<button class="mt-3 w-full rounded-lg bg-primary/10 py-2 text-xs font-bold text-primary hover:bg-primary/20 transition-colors">
+                                    View Product Details
+                                </button>
+</div>
+</div>
+</div>
+<!-- Received Message -->
+<div class="flex max-w-[80%] items-start gap-3">
+<div class="mt-1 size-8 shrink-0 rounded-full bg-cover bg-center" data-alt="Sender avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBLdPyJvXyrsAVELPZ6f0jrUF0vzuYjWmvbqb1l7z_9PXQzIb4pajbcsLNJcG5psHCdmHgsmHhmZnHmwcbOMvfbOcYAm0c2geI3zbncPkBlJ7LeT6F7yAbIAUz8jE4VYpEuzjdliBhiRjHQbuX_EfYXawvXNtvrGiYDAVcQfAJRGwfwUV4PS3940hrN3ggnB_Qh10ffFGBlwUiTMovaP3JWstqNHy--q5Isi5IyZdUsxFGA1mB_QtXX-z6Gzo2cTRsyNhSggZqQQc4b')"></div>
+<div class="rounded-2xl bg-white dark:bg-slate-800 p-4 shadow-sm text-sm">
+<p>It looks great. Could you do $100 for it? I can pick it up today.</p>
+<span class="mt-1 block text-[10px] text-slate-400">12:45 PM</span>
+</div>
+</div>
+</div>
+<!-- Input Bar -->
+<div class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+<div class="flex items-center gap-2 rounded-2xl bg-slate-100 dark:bg-slate-800 p-2">
+<button class="flex size-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="flex size-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700">
+<span class="material-symbols-outlined">mood</span>
+</button>
+<input class="flex-1 border-none bg-transparent py-2 text-sm focus:ring-0" placeholder="Type a message..." type="text"/>
+<button class="flex size-9 items-center justify-center rounded-xl text-primary hover:bg-primary/10">
+<span class="material-symbols-outlined">shopping_basket</span>
+</button>
+<button class="flex size-9 items-center justify-center rounded-xl bg-primary text-white">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Right Column: Details -->
+<aside class="hidden xl:flex w-80 flex-col border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+<div class="flex flex-col items-center p-8 text-center border-b border-slate-100 dark:border-slate-800">
+<div class="size-24 rounded-full border-4 border-primary/20 bg-cover bg-center mb-4" data-alt="Large user avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCg0x0Z1lANqoQ8S0lQLOhs7GCQ0q_B_PKEOcE3_mgUCBbbbBTmDlYCgVt-fgHeXQMLfOXpXapqYcjw7-oMA9Uw8nmVjYsKov6VuV0B10WGg8ABxYlhQCzoGw09VkzbYVApvIt8APnTM7jQHVlJ-J0e25oJwLgTPAMuzD2lowrXNcRpaqF6sCEsMcpWX8NHVeFXM9-yIRn0NsNhA-6NYqv_XgQ3VQMcUSDIx6voxpUhJPn-Fod-p6L09vii5uCj2kIe8d4KO1Dlzoie')"></div>
+<h3 class="text-lg font-bold">Alex River</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 px-4">Tech enthusiast &amp; collector. Selling high-quality desk accessories from Seattle.</p>
+<div class="flex gap-4 mt-6">
+<div class="flex flex-col items-center">
+<span class="text-sm font-bold">4.9</span>
+<span class="text-[10px] text-slate-400 uppercase tracking-wider">Rating</span>
+</div>
+<div class="w-px h-8 bg-slate-100 dark:bg-slate-800"></div>
+<div class="flex flex-col items-center">
+<span class="text-sm font-bold">128</span>
+<span class="text-[10px] text-slate-400 uppercase tracking-wider">Sales</span>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto scrollbar-hide">
+<!-- Shared Media -->
+<div class="p-6">
+<div class="flex items-center justify-between mb-4">
+<h4 class="text-xs font-bold uppercase tracking-widest text-slate-400">Shared Media</h4>
+<a class="text-[10px] font-bold text-primary" href="#">View All</a>
+</div>
+<div class="grid grid-cols-3 gap-2">
+<div class="aspect-square rounded-lg bg-cover bg-center bg-slate-100 dark:bg-slate-800" data-alt="Shared image 1" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuALm6r5ddEdtWQSZC562wyD7MeVCn30ut1JxlGDXG-uGQblco3FET08INeKtkDt-4bwGXT0T4fE1W4d28VXIwGo9wWHrBAqJc0O0mUnk8y17QLUZl5P7mJ92f116cP9wyVDd5WPlScWsPL6Z9iWBNbgeSOB__MTxTQWuyqP9XbylSoTorOFKMrKNtRZlQjnSXZE6KiRn6KCt6bfC1_QsmCsmY5LK3b71II0LKV4VZ7q44t2-wcLZQroUOUtLl5bTlCHHE6XOs6gpKYi')"></div>
+<div class="aspect-square rounded-lg bg-cover bg-center bg-slate-100 dark:bg-slate-800" data-alt="Shared image 2" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAzPO-kBoTQIdCnmz4VG-_55lbns3ODUieBVzoxoxxo4Ci1xV9YjenEIwtHWPZqrhG9JDxzQECz5yipTjL0wqRqoaPOneSFuGJJcBPHJm0wAzJoF7EHwj3onks_arsArY_za5DCK-z3Sh69qHbxBiPIp6Q0QHGGDcTzTnscIILUSvPLHvSxo9SScjinsW3slr4FAzhEjo6TTn571eHStQaZjULC1fJWroW4F-1St5GKo0k_olr7WQVo_uGfIDZeFP5vEZINLwzOiirU')"></div>
+<div class="aspect-square rounded-lg bg-cover bg-center bg-slate-100 dark:bg-slate-800" data-alt="Shared image 3" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDvJtXC15tV2AGMQjY_-I3TvqcqJbBrSXtT74lh-sPGZ1UAxt7-kyXYw6PYX6q5sjkF4WfnWvKLM1fgHIP_OrT5nyQ5u7W-Fi4hu0rKP6RyI4uMhPplscZmitkbjbLkd_AV2EOZJxMvyq9McY31F0Oz6-6hXq56SeL49ZWwv_Mv2XGx0HsyHovBTuR32o0Fd3KcEa5R6vHu1zUj5sK8C5uDgTHDsxlXM7dVt_pZGqligXw3mKFQ3alxOBpVvZv57DJmt_1BhAiA-7jL')"></div>
+<div class="aspect-square rounded-lg bg-cover bg-center bg-slate-100 dark:bg-slate-800" data-alt="Shared image 4" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBarZ4r2q5ZyNow6E7x5V-uEL_SwF31njXWGcI-lX46X7FtE3WVX4Zt_gn435AbNyD1u-zaEX4QhccxWLY1b8E5LRoNB34WxCuDefw3ytIpvC232sdRNb_2VqBjs3QIH5a4tHttD8LZQP1X237c_lACgFb-eFYpJyKxwC_9TfD6BLoJY0Th_D_6mbovEhD1HsjWft2jVJIVPzjVfc0ehhIQ8pOCN7czvT1rK6YYS8ku2wcN0txdQytjhN4mx99QMHNvXgtz7JfE0DYx')"></div>
+<div class="aspect-square rounded-lg bg-cover bg-center bg-slate-100 dark:bg-slate-800" data-alt="Shared image 5" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCbYrdEBXjCJJn_xrcs5b3Jv1nCoj2ZRpVnD2ZqrfMbhO7qcD0eYxz1FMw2Qfh_87jPGDPv84X2paj-Jdvkh0lHWgxI65eRIaV5JbX61CPJ4t2XX1OAM8xL-eA2OqS3r0QzDOTolgXZNAlxSyBjIRlD3Rs9DAtbNc0RQskmNL0irhgp0bH5HRJ041B3yYLCNJAoV8WlS80wXdY8UpA5QswgqIOx1mMecKvOp5LnAkOTsWuL7vEUyHY8lNTVHbHCbNtMZuxUxUTuY0lg')"></div>
+<div class="relative aspect-square rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+<span class="text-xs font-bold">+12</span>
+</div>
+</div>
+</div>
+<!-- Related Orders -->
+<div class="p-6">
+<h4 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Related Orders</h4>
+<div class="space-y-3">
+<div class="flex items-center gap-3 rounded-xl border border-slate-100 dark:border-slate-800 p-3 bg-slate-50/50 dark:bg-slate-800/30">
+<div class="size-10 shrink-0 rounded-lg bg-cover bg-center" data-alt="Product thumbnail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA1FpSFv2OdX5GJ3RPX8ynpZUYfieiaWF0l6quzckx2LrfaYbrXgUH2X3PTBIECyNXVuNsVfFRCL064S90UpyE7PXO8WiZYKfo8s5qEhmQiXvyX8FhkmyC9UEPBtWhJxSr24G_c5mr9geT9e1HUMaB02LxzKvZy5htJ_ynUDArySOLhaTVwnXea-vdSAxDGmnM5Y_sZu5yv10yI3so8CxVAGkXTAn-jupW7Bm_uRZXQYBNsdHoW-X-hAyX9jTB_Oj-4pniTgh4qPK0u')"></div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-bold truncate">Wireless Mouse G-Pro</p>
+<p class="text-[10px] text-slate-500">Ordered: June 12, 2023</p>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-[10px] font-bold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-2 py-0.5 rounded-full">Delivered</p>
+</div>
+</div>
+<div class="flex items-center gap-3 rounded-xl border border-slate-100 dark:border-slate-800 p-3">
+<div class="size-10 shrink-0 rounded-lg bg-cover bg-center" data-alt="Product thumbnail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB6zqWrOOVuq5TGQaMA7AhpknYMQpTP1vJgHc8huX7jqj9P6F5ou3qnkt9NPcYDW9favM0reZM8N-d9BEOEajINjg1wRy-_c1A_c0vt9WX_fEMihPizKWhMefupgma26x9au2x8H8186NUpKATUX8KA7t-g1AhDpz3E3AZ6yt49C1wtjgxFtsnsl_Lw-nD5bRN6-Ppd2YFLMBovvMvW-CNC5Xj3W8RKxtsGCF1QsCQ261JEpviXkm3du5jS3PFmO6kR2lwbbGZRkGlp')"></div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-bold truncate">Wrist Rest Leather</p>
+<p class="text-[10px] text-slate-500">Ordered: Mar 02, 2023</p>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">Completed</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</main>
+</div>
+</body></html>

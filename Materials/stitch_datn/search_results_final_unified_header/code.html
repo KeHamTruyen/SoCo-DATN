@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Search Results - SocialCommerce</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .active-tab { border-bottom: 2px solid #ec5b13; color: #ec5b13; }
+        .fill-icon { font-variation-settings: 'FILL' 1; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+<!-- Top Navigation Bar - Updated to match SCREEN_63 -->
+<header class="sticky top-0 z-50 w-full bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
+<!-- Logo & Nav -->
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 shrink-0">
+<div class="bg-primary p-1.5 rounded-lg text-white">
+<span class="material-symbols-outlined block">shopping_bag</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">SocialCommerce</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors py-5" href="#">Feed</a>
+<a class="text-sm font-bold text-primary border-b-2 border-primary py-5" href="#">Marketplace</a>
+</nav>
+</div>
+<!-- Search Bar -->
+<div class="flex-1 max-w-2xl">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:ring-1 focus:ring-primary focus:border-primary transition-all text-sm" placeholder="Search products, sellers, or hashtags..." type="text" value="Running Shoes"/>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-6">
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<button class="text-slate-600 dark:text-slate-300 hover:text-primary">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIq86rvlfPDMEFiNcm2ZhPl4N3HiKZYgOFbLrCb8MABP7v6a3Ee93qpmqMxtwbIEwL2mWSEdUfU0VJbO09fhs0_vlnLshvK4OpTi7T0XUMTd3hwSBqzIHJXUX5vbHX23psj5D-xmwbZriMsOgMuyghviERtKmCpIpd-XJ3toiIM2z9oDuxg4Dhd67yDX7vbovyH5TAhA8vO7Zs_ciDAVltqveokrW-pci2ZpmuRfoB2uPEfu9nBWIH9KKWZNUKp7sCKIu7BlUIOyNW"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-4 py-8">
+<!-- Title & Tabs -->
+<div class="mb-8">
+<h1 class="text-3xl font-extrabold mb-6">Search Results for: <span class="text-primary">'Running Shoes'</span></h1>
+<div class="flex items-center gap-8 border-b border-slate-200 dark:border-slate-800 overflow-x-auto whitespace-nowrap scrollbar-hide">
+<button class="pb-4 text-sm font-bold active-tab px-2 transition-all">All Results</button>
+<button class="pb-4 text-sm font-bold text-slate-500 hover:text-primary px-2 transition-all">Products</button>
+<button class="pb-4 text-sm font-bold text-slate-500 hover:text-primary px-2 transition-all">Posts</button>
+<button class="pb-4 text-sm font-bold text-slate-500 hover:text-primary px-2 transition-all">People</button>
+<button class="pb-4 text-sm font-bold text-slate-500 hover:text-primary px-2 transition-all">Groups</button>
+</div>
+</div>
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- Sidebar Filter -->
+<aside class="w-full lg:w-64 space-y-8 flex-shrink-0">
+<!-- Price Filter -->
+<div class="space-y-4">
+<h3 class="font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">payments</span>
+                    Price Range
+                </h3>
+<div class="space-y-4">
+<div class="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full relative">
+<div class="absolute left-1/4 right-1/4 h-full bg-primary rounded-full"></div>
+<div class="absolute left-1/4 top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-primary rounded-full shadow-sm"></div>
+<div class="absolute right-1/4 top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-primary rounded-full shadow-sm"></div>
+</div>
+<div class="flex items-center gap-2">
+<input class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs py-2 px-3 focus:ring-primary focus:border-primary" placeholder="Min" type="text"/>
+<span class="text-slate-400">—</span>
+<input class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs py-2 px-3 focus:ring-primary focus:border-primary" placeholder="Max" type="text"/>
+</div>
+</div>
+</div>
+<!-- Time Filter -->
+<div class="space-y-4 pt-6 border-t border-slate-200 dark:border-slate-800">
+<h3 class="font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                    Posted Within
+                </h3>
+<div class="space-y-2">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-4 h-4 text-primary focus:ring-primary border-slate-300" name="time" type="radio"/>
+<span class="text-sm font-medium text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">Latest</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-4 h-4 text-primary focus:ring-primary border-slate-300" name="time" type="radio"/>
+<span class="text-sm font-medium text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">This Week</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-4 h-4 text-primary focus:ring-primary border-slate-300" name="time" type="radio"/>
+<span class="text-sm font-medium text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">This Month</span>
+</label>
+</div>
+</div>
+<!-- Location Filter -->
+<div class="space-y-4 pt-6 border-t border-slate-200 dark:border-slate-800">
+<h3 class="font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">location_on</span>
+                    Location
+                </h3>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">map</span>
+<input class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg py-2 pl-9 pr-3 text-sm focus:ring-primary" placeholder="Enter city or region" type="text"/>
+</div>
+<div class="h-32 rounded-xl overflow-hidden grayscale opacity-80 border border-slate-200 dark:border-slate-800">
+<img class="w-full h-full object-cover" data-alt="Map showing local area search results" data-location="New York City" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7U3cCckJnwPUYp2FtErgF9t3CJGH5A2a_67p902KEH0BL7fw9Yk4mYw8EpIkQ1Lfs0tEFP0nrvY_ZqpdZ7OXwBAQVxobnTzKag7CCk8d2iDzb8LHDdJi-uo1xryxmBI50TsuY_ZKd2Acd-mLhqfPrfeif61Bb9t-KYZkrEGJxnaFv2lrPgQHcDehgbjBWo5N-90CYQIrDmjs5xH8du7ndWlKnjClvK4uYfHudPkPV8Zwbrg7sbvNexGpFl0c7ZiHcQ-HqFQyCFHhy"/>
+</div>
+</div>
+<button class="w-full py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+                Apply Filters
+            </button>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 space-y-12">
+<!-- Top Products Section -->
+<section>
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-xl font-bold flex items-center gap-2">
+                        Top Products
+                        <span class="bg-primary/10 text-primary text-[10px] uppercase tracking-widest py-0.5 px-2 rounded-full">Marketplace</span>
+</h2>
+<a class="text-sm font-bold text-primary hover:underline flex items-center gap-1" href="#">
+                        See All <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Product Card 1 -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 group">
+<div class="aspect-square rounded-xl overflow-hidden mb-3 bg-slate-50 dark:bg-slate-800 relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Neon red athletic running shoes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAewTPSQpKAwxzD-NnNviFkVjmlX5pdTjqerCJW44gduxSVBRktXRJHStYU9JuuVwB0DNvdicow-cdKjcOwKGjVpCQ-IAqxBAtUVq-6GdlOhxnjCeHr8JZmKSF4MUVBB0GGDB1ZAVVUC8lPKPwlM-4xycopqzHJB0Bo6Q-No4Fpnt9gEdfNSbOWqDpPHPJm2H5btMEb-eqF2UiDH2dQ2ilkZRtKtjKkVtcF4SaL10z5bliEViHNOzOh5YbcUc3bNFe_lClHxng2-iGe"/>
+<button class="absolute top-2 right-2 p-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur rounded-lg text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">favorite</span>
+</button>
+</div>
+<h4 class="font-bold text-sm line-clamp-1 mb-1">UltraBoost Nitro 5.0</h4>
+<div class="flex items-center gap-1 text-orange-400 mb-2">
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="text-xs font-bold text-slate-500">4.8 (1.2k)</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-primary font-black">$129.00</span>
+<button class="bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white p-2 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 group">
+<div class="aspect-square rounded-xl overflow-hidden mb-3 bg-slate-50 dark:bg-slate-800 relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Pastel colored fashion sneakers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqr9n49cLaFW3zuWm_2beKJ2VKWP-lwW_dEunasmcQZwrd-LFJcXHXzJEIVXVdo5iFbwhHzUMOi0Ksg3HimtPu3nAzIuEbH_DE871nw1gAYz2bAq85bxE1aTacvvE41Iq6lCS8wkyZUxyIM4cmSAikRDIKgIXohPm1SwVKMij7nR9a6WfVVp0To1LD1tG7Kjr3zD5lgovOnc7j-w2mAhBBaIpjjEIOHVUt2CwUZwO_3TiUIyEVDWYD0S7Yj68DTWdHLWA2UrzBD-lw"/>
+<button class="absolute top-2 right-2 p-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur rounded-lg text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">favorite</span>
+</button>
+</div>
+<h4 class="font-bold text-sm line-clamp-1 mb-1">AeroFlow Marathon Pro</h4>
+<div class="flex items-center gap-1 text-orange-400 mb-2">
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="text-xs font-bold text-slate-500">4.9 (850)</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-primary font-black">$155.00</span>
+<button class="bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white p-2 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 group">
+<div class="aspect-square rounded-xl overflow-hidden mb-3 bg-slate-50 dark:bg-slate-800 relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Bright lime green running sneakers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATyHkUc8h4hksfQRW4QDCFOw8urlO7erDzGcrOLJ-iVNYIvjIjedtJ_tXNd-bg5NL589PAAmXnSlj38LIyJlHH-BKt2yatENPBQrXxvb7TgB9Pgn3s1K0ceQuuI7n_J5vGHH-i94TUL3Qq0B9rtwg2q4yUeGwBIzii9fT6Udp7BB-ja7AdG9hho-PF-X_k8bhXllLXC8NPjXP8zjLjMZy-Z3n-ke7CHkmeZdNfekEHDwIfGA1FHLOLBIEwve-CLBYNm5dtrNOSfSJ8"/>
+<button class="absolute top-2 right-2 p-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur rounded-lg text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">favorite</span>
+</button>
+</div>
+<h4 class="font-bold text-sm line-clamp-1 mb-1">PeakPerformance K-12</h4>
+<div class="flex items-center gap-1 text-orange-400 mb-2">
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="text-xs font-bold text-slate-500">4.7 (430)</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-primary font-black">$89.99</span>
+<button class="bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white p-2 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 group">
+<div class="aspect-square rounded-xl overflow-hidden mb-3 bg-slate-50 dark:bg-slate-800 relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Rugged outdoor trail running shoes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaPySBDCrmT46593I8--eALBkQCasuYuDF4qb3PEaLXBcELTDiZwkBZjoWv0LbG0Xy_zStQnKbGYqU0yCLaWKaFUciPG6rzIY71gml173x8wAl2dq-eMmkEjN5_Yj56hNA6JFyXk7WSGUTOyLgVKDtRtHzqBebYW-a2lBKOhypb4RXEnAJVVM3n6UCbUr5t17cSsTaNsGyLlWnpk6W8BuRTdQl4tSDu11TwS2voq8yZQSIbOvdbaMQqk0fKsTbcuM15CrznqFohI5o"/>
+<button class="absolute top-2 right-2 p-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur rounded-lg text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">favorite</span>
+</button>
+</div>
+<h4 class="font-bold text-sm line-clamp-1 mb-1">TrailX Extreme V2</h4>
+<div class="flex items-center gap-1 text-orange-400 mb-2">
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="text-xs font-bold text-slate-500">4.5 (1.1k)</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-primary font-black">$110.00</span>
+<button class="bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white p-2 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Related People (Full Width Row) -->
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<h2 class="text-xl font-bold">Related People</h2>
+<a class="text-xs font-bold text-primary hover:underline" href="#">See All</a>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl divide-y divide-slate-100 dark:divide-slate-800">
+<!-- User 1 -->
+<div class="p-4 flex items-center justify-between group">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-primary/20">
+<img class="w-full h-full object-cover" data-alt="Professional fitness trainer profile photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYZFXyzvT2u7eTruzexKtyQYnO64FntX2_5Lwcqg10eJGl9sMdhfrmemyOYWLe5KBrbuKhu04d3uVUIZeLpVRpDswHOjdoFn7q1-rPojYDZEHDdyd18HjekQJwXs-PQmugFBYwXKGXJlEsGTzKYF0H0vx0WuuiB1W-tRKKUBj_2dDhYdl8lMPLoZE6Yg7MHGr9HczecXwtgVMFPudDsx4pUAOgHutj4zpHN2nPnZRNsO0tBVdtAafYMoQcA1zZVwkXOMXAesoss7kD"/>
+</div>
+<div>
+<h4 class="font-bold text-sm hover:text-primary cursor-pointer transition-colors">Sarah Runner</h4>
+<p class="text-xs text-slate-500 line-clamp-1">Pro athlete &amp; gear reviewer</p>
+</div>
+</div>
+<button class="text-xs font-bold py-2 px-4 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-white transition-all">Follow</button>
+</div>
+<!-- User 2 -->
+<div class="p-4 flex items-center justify-between group">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Active marathon runner male portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdATXdDDRHrMJnuv7rVxAjm-HwaRToBSSZxjl8kfPYl-OCcQK_b8gIDglslOseq9hcpvhn2al2gbgLy9LCAVYGKjlfepVaQPJLRrlkxJuMc7vRLbI0paK95FEdCP0wyFQwJOVEW71nHW4Ej1iaPezaoNnFW7SbD4Fba8cyo3tbsOKe4a62TrUeemKKnPyXqPt_4-AsFnyVKewagZAheVvD8qkmsuUHGMK0YMIMdj3ATAl1LnMyuqnfXLWY8mIFcitT45BYH7zjk_ZL"/>
+</div>
+<div>
+<h4 class="font-bold text-sm hover:text-primary cursor-pointer transition-colors">Mike's Kicks</h4>
+<p class="text-xs text-slate-500 line-clamp-1">Reseller &amp; sneakerhead</p>
+</div>
+</div>
+<button class="text-xs font-bold py-2 px-4 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-white transition-all">Follow</button>
+</div>
+<!-- User 3 -->
+<div class="p-4 flex items-center justify-between group">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Women runner coach profile photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJ89pdJ4J-id7VXcSwrlN6nYIaIJcFiun6phxwjn9PxpbteLl8sFJe077KJC7-Pip3MfUKN43EZxQgr2wHlmzr6wHa4v-0Uv6ROCUVG1yjuUvKUiaIqlJxhBBsL9VNA1JdJzukMLtCoD5enbksQcT6PSnsX77qGE2yMI9BtYoVaxP9jSF2pfWJ3wQmsxipAQEV2h2nUATchIp3nSaJfD2Fl9nnCUFKWzOMSAglvO6aVBUbr8saaKO9X6ASywzQlmqGXXr-4QEqHoST"/>
+</div>
+<div>
+<h4 class="font-bold text-sm hover:text-primary cursor-pointer transition-colors">Coach Emily</h4>
+<p class="text-xs text-slate-500 line-clamp-1">Marathon training tips</p>
+</div>
+</div>
+<button class="text-xs font-bold py-2 px-4 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-white transition-all">Follow</button>
+</div>
+</div>
+</section>
+<!-- Popular Posts (Full Width Row) -->
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<h2 class="text-xl font-bold">Popular Posts</h2>
+<a class="text-xs font-bold text-primary hover:underline" href="#">See All</a>
+</div>
+<div class="space-y-8">
+<!-- Post 1 -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden">
+<div class="p-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-slate-200">
+<img class="w-full h-full object-cover" data-alt="Sarah Runner profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAHKgALunxxY5Z14Q43eCqTG5xz2YS7HhcMXeo-XSJ_WLpXmhkH1PXedXxy48umWBVXQRrsVRhSm_c9EavkV8SMJq7TVD7YY6X7csHjMJ0MGQSwJDImwkSEku4FpgAzhNWcfhYWW_6RYuLiDgv52XbcScQARK7avBUe-LEnLM9cWqgaQD-X4NDIzT953A0oQpP2HjePpsKdyUSGT-QDJFoivrXN4ByIO7zEnl_nu-Ex9QU_qcnQm21hTKzP9QuLrkjmGwhRIkSdlm5"/>
+</div>
+<div>
+<h5 class="font-bold text-sm">Sarah Runner</h5>
+<p class="text-[10px] text-slate-400 font-medium">3 hours ago • Marathon Training</p>
+</div>
+</div>
+<div class="px-4 pb-3">
+<p class="text-sm text-slate-600 dark:text-slate-300">Just finished a 10k in these new <span class="bg-primary/20 font-bold px-1 rounded">Running Shoes</span>. The cushion is insane! 🏃‍♀️💨 Check the tags to shop the gear.</p>
+</div>
+<div class="aspect-video relative group">
+<img class="w-full h-full object-cover" data-alt="Woman running on city trail at sunset" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPHHpk3pIQfpdPOrXebE0h_4VSIkHwRx12NXheTywoYvdO-mrcGG7Qhn2nPQtBPraBYeNQRbV-DMGh2fbKqZBlKHXpmU3Hh5znjcqDjPSeWNb6NqHgOVZa90NpX3CwxNL-0_EvT2X-r4BOuswtJB4g6JA7Z2FS5i3_jSWsv4M78quloQHjxW2Xz08LIGixAAkPL9GplBGVfRCKk52sF8p0Agnk0oKays9p3KMd_qVzR6d8yK7rDK_F8Q5RTIVNGA5YZ8cSgzjot6W_"/>
+<!-- Shoppable Tag -->
+<div class="absolute top-1/2 left-1/3 group/tag">
+<button class="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-pulse">
+<span class="material-symbols-outlined text-xs">shopping_bag</span>
+</button>
+<div class="absolute top-full mt-2 left-1/2 -translate-x-1/2 hidden group-hover/tag:block bg-white dark:bg-slate-900 shadow-xl rounded-xl p-2 w-32 border border-slate-200 dark:border-slate-800">
+<p class="text-[10px] font-bold truncate">Nitro 5.0 Shoes</p>
+<p class="text-[10px] text-primary font-black">$129.00</p>
+</div>
+</div>
+</div>
+<div class="p-4 flex items-center justify-between text-slate-500">
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-1.5 hover:text-primary"><span class="material-symbols-outlined text-xl">favorite</span> <span class="text-xs font-bold">1.2k</span></button>
+<button class="flex items-center gap-1.5 hover:text-primary"><span class="material-symbols-outlined text-xl">chat_bubble</span> <span class="text-xs font-bold">84</span></button>
+<button class="flex items-center gap-1.5 hover:text-primary"><span class="material-symbols-outlined text-xl">share</span></button>
+</div>
+<button class="material-symbols-outlined">bookmark</button>
+</div>
+</div>
+<!-- Post 2 -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden">
+<div class="p-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-slate-200">
+<img class="w-full h-full object-cover" data-alt="Mike's Kicks profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxY_rQE4l25Ee0rwYKutG9q7pkck6eeGxhSFxnBP9VHwS7rgqv_kAumqK-7bY2j7QtzkFjwNpU0St_wkuGbSgbyxqTSqqyKRyrhHHBen1mkep2wwwl-k8J1VYQKg9vVGlu63VyFiSmSNxoAEqlxN1bPSX5-SFxkP98DIVw0veZYXPVSZVIygHA4WiFbAaAJZF_O87J_JstMgu2ISNO9jciGxiJ3xRXkcr9VgNNqKwfwm4dVwF3m11ftUeO30-4vzqACIwl3rcCsCLy"/>
+</div>
+<div>
+<h5 class="font-bold text-sm">Mike's Kicks</h5>
+<p class="text-[10px] text-slate-400 font-medium">Yesterday • Sneaker Review</p>
+</div>
+</div>
+<div class="px-4 pb-3">
+<p class="text-sm text-slate-600 dark:text-slate-300">What are the best <span class="bg-primary/20 font-bold px-1 rounded">Running Shoes</span> for flat feet? My top 3 list is out now! 👟📈</p>
+</div>
+<div class="aspect-video relative">
+<img class="w-full h-full object-cover" data-alt="Detailed close up of athletic shoe texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfvapKh2PeIGBqyE9N5ItgKjI1jpWUKfrgeVc42HyZNYJG6NpSlVW9-cfPB-SUN_mYooksPJbtzOj7pVTpVSeiBWoaCYLiCJgVAKl_P93qzOGOr6dYHaJvJJ-IRl3ZRj6FLJObNnx1WLzZTmqywy7q0REJeRcMo9IBDRhgG3W1K86vVIJM5YZ3zsvYU_HDqffGC_0-9vJTyXS_bMdi2LXFGFqb_mzia4goTeedtd2VTuR3lOmmHM5f2q8cSprvDKi3F1qCIa4Qsm-6"/>
+</div>
+<div class="p-4 flex items-center justify-between text-slate-500">
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-1.5 hover:text-primary"><span class="material-symbols-outlined text-xl">favorite</span> <span class="text-xs font-bold">850</span></button>
+<button class="flex items-center gap-1.5 hover:text-primary"><span class="material-symbols-outlined text-xl">chat_bubble</span> <span class="text-xs font-bold">241</span></button>
+<button class="flex items-center gap-1.5 hover:text-primary"><span class="material-symbols-outlined text-xl">share</span></button>
+</div>
+<button class="material-symbols-outlined">bookmark</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<footer class="mt-20 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark py-12">
+<div class="max-w-7xl mx-auto px-4 text-center">
+<div class="flex items-center justify-center gap-2 mb-6">
+<div class="bg-primary p-1 rounded-lg text-white">
+<span class="material-symbols-outlined block text-sm">shopping_bag</span>
+</div>
+<h3 class="font-bold tracking-tight">SocialCommerce</h3>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm max-w-md mx-auto mb-8">
+            The leading platform where social media meets e-commerce. Find, share, and shop the best gear with your community.
+        </p>
+<div class="flex justify-center gap-6 text-slate-400 text-xs font-bold uppercase tracking-widest">
+<a class="hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="hover:text-primary transition-colors" href="#">Terms</a>
+<a class="hover:text-primary transition-colors" href="#">Help</a>
+<a class="hover:text-primary transition-colors" href="#">Careers</a>
+</div>
+</div>
+</footer>
+</body></html>
