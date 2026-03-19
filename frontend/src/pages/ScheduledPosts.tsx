@@ -51,11 +51,11 @@ export default function ScheduledPosts() {
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">
                             Scheduled Posts{" "}
-                            <span className="ml-2 text-lg font-normal text-slate-400">
+                            <span className="ml-2 text-lg font-normal text-neutral-400">
                                 ({posts.length})
                             </span>
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400">
+                        <p className="text-neutral-500 dark:text-neutral-400">
                             Manage your upcoming product releases and social updates.
                         </p>
                     </div>
@@ -82,15 +82,15 @@ export default function ScheduledPosts() {
                     </div>
 
                     <div className="space-y-4">
-                        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                             <h3 className="mb-3 font-semibold">Quick Stats</h3>
                             <div className="space-y-3">
-                                <div className="flex items-center justify-between rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-                                    <span className="text-sm text-slate-500">Total Scheduled</span>
+                                <div className="flex items-center justify-between rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800">
+                                    <span className="text-sm text-neutral-500">Total Scheduled</span>
                                     <span className="font-bold text-primary">{posts.length}</span>
                                 </div>
-                                <div className="flex items-center justify-between rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-                                    <span className="text-sm text-slate-500">This Week</span>
+                                <div className="flex items-center justify-between rounded-lg bg-neutral-50 p-3 dark:bg-neutral-800">
+                                    <span className="text-sm text-neutral-500">This Week</span>
                                     <span className="font-bold">
                                         {
                                             posts.filter((p) => {
@@ -108,7 +108,7 @@ export default function ScheduledPosts() {
 
                         <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
                             <h3 className="mb-2 font-semibold text-primary">Tips</h3>
-                            <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                            <ul className="space-y-2 text-sm text-neutral-600 dark:text-neutral-400">
                                 <li>• Post consistently for better reach</li>
                                 <li>• Tag products to drive sales</li>
                                 <li>• Schedule during peak hours (6-9 PM)</li>

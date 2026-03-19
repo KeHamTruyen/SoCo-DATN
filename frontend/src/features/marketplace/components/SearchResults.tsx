@@ -10,7 +10,7 @@ interface SearchResultsProps {
 export function SearchResults({ items, isLoading, error }: SearchResultsProps) {
     if (isLoading) {
         return (
-            <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+            <div className="rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
                 Loading products...
             </div>
         );
@@ -26,7 +26,7 @@ export function SearchResults({ items, isLoading, error }: SearchResultsProps) {
 
     if (items.length === 0) {
         return (
-            <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+            <div className="rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
                 No products found.
             </div>
         );
@@ -40,4 +40,3 @@ export function SearchResults({ items, isLoading, error }: SearchResultsProps) {
         </div>
     );
 }
-

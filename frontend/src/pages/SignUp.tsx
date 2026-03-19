@@ -68,7 +68,7 @@ export default function SignUp() {
                 className="max-w-[540px]"
                 footer={
                     <div className="space-y-4">
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400">
                             Already have an account?{" "}
                             <Link
                                 className="font-semibold text-primary hover:underline"
@@ -77,17 +77,17 @@ export default function SignUp() {
                                 Log in now
                             </Link>
                         </p>
-                        <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                        <p className="text-[11px] text-neutral-400 dark:text-neutral-500">
                             By clicking Sign Up, you agree to our{" "}
                             <a
-                                className="underline hover:text-slate-600"
+                                className="underline hover:text-neutral-600"
                                 href="#"
                             >
                                 Terms of Service
                             </a>{" "}
                             and{" "}
                             <a
-                                className="underline hover:text-slate-600"
+                                className="underline hover:text-neutral-600"
                                 href="#"
                             >
                                 Privacy Policy

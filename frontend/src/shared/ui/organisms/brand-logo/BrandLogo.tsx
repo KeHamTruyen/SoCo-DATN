@@ -12,7 +12,7 @@ export function BrandLogo({ name = "SocialCommerce", className }: BrandLogoProps
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
                 <ShoppingBag className="h-4 w-4" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            <span className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
                 {name}
             </span>
         </div>

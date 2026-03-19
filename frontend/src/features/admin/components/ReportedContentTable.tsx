@@ -2,15 +2,15 @@ import { cn } from "../../../shared/lib/cn";
 import type { Report, ReportPriority } from "../../report/types/report.types";
 
 const PRIORITY_COLOR: Record<ReportPriority, string> = {
-    high: "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400",
-    medium: "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
-    low: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+    high: "bg-destructive/10 text-destructive dark:bg-destructive/20",
+    medium: "bg-warning/10 text-warning dark:bg-warning/20",
+    low: "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400",
 };
 
 const PRIORITY_DOT: Record<ReportPriority, string> = {
-    high: "bg-red-500",
-    medium: "bg-yellow-500",
-    low: "bg-slate-400",
+    high: "bg-destructive",
+    medium: "bg-warning",
+    low: "bg-neutral-400",
 };
 
 const REASON_LABEL: Record<string, string> = {
@@ -39,41 +39,41 @@ export function ReportedContentTable({
 }: ReportedContentTableProps) {
     if (reports.length === 0) {
         return (
-            <div className="rounded-xl border border-slate-200 bg-white p-12 text-center text-slate-400 dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900">
                 No reports found.
             </div>
         );
     }
 
     return (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-left">
                     <thead>
-                        <tr className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900/50">
-                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <tr className="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900/50">
+                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">
                                 Content Preview
                             </th>
-                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">
                                 Type & Priority
                             </th>
-                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-neutral-500">
                                 Reporter Message
                             </th>
-                            <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-500">
+                            <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-neutral-500">
                                 Actions
                             </th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                    <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
                         {reports.map((report) => (
                             <tr
                                 key={report.id}
-                                className="transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-900/30"
+                                className="transition-colors hover:bg-neutral-50/50 dark:hover:bg-neutral-900/30"
                             >
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
+                                        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800">
                                             {report.targetImageUrl && (
                                                 <img
                                                     src={report.targetImageUrl}
@@ -86,7 +86,7 @@ export function ReportedContentTable({
                                             <p className="text-sm font-semibold">
                                                 {report.targetTitle ?? `${report.targetType} content`}
                                             </p>
-                                            <p className="text-[11px] text-slate-500">
+                                            <p className="text-[11px] text-neutral-500">
                                                 ID: #{report.reportNumber}
                                             </p>
                                         </div>
@@ -94,7 +94,7 @@ export function ReportedContentTable({
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="space-y-1.5">
-                                        <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                        <span className="inline-flex items-center rounded-full bg-warning/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-warning dark:bg-warning/20">
                                             {REASON_LABEL[report.reason] ?? report.reason}
                                         </span>
                                         <div className="flex items-center gap-1.5">
@@ -104,7 +104,7 @@ export function ReportedContentTable({
                                                     PRIORITY_DOT[report.priority],
                                                 )}
                                             />
-                                            <span className="text-xs font-medium capitalize text-slate-600 dark:text-slate-400">
+                                            <span className="text-xs font-medium capitalize text-neutral-600 dark:text-neutral-400">
                                                 {report.priority} Priority
                                             </span>
                                         </div>
@@ -112,11 +112,11 @@ export function ReportedContentTable({
                                 </td>
                                 <td className="px-6 py-4">
                                     {report.description ? (
-                                        <p className="line-clamp-2 max-w-xs text-sm italic text-slate-600 dark:text-slate-300">
+                                        <p className="line-clamp-2 max-w-xs text-sm italic text-neutral-600 dark:text-neutral-300">
                                             "{report.description}"
                                         </p>
                                     ) : (
-                                        <p className="text-sm text-slate-400">No description provided</p>
+                                        <p className="text-sm text-neutral-400">No description provided</p>
                                     )}
                                 </td>
                                 <td className="px-6 py-4 text-right">
@@ -124,7 +124,7 @@ export function ReportedContentTable({
                                         <button
                                             type="button"
                                             onClick={() => onDismiss(report.id)}
-                                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-900"
+                                            className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-600 transition-colors hover:bg-neutral-50 dark:border-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-900"
                                         >
                                             Dismiss
                                         </button>
@@ -138,7 +138,7 @@ export function ReportedContentTable({
                                         <button
                                             type="button"
                                             onClick={() => onBlockUser(report.id)}
-                                            className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 dark:bg-slate-100 dark:text-slate-900"
+                                            className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 dark:bg-neutral-100 dark:text-neutral-900"
                                         >
                                             Block User
                                         </button>

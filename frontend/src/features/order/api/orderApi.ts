@@ -20,11 +20,11 @@ function unwrap<T>(res: ApiResponse<T> | T): T {
 export const orderApi = {
     async listOrders(params: OrdersQueryParams = {}) {
         const query = new URLSearchParams();
-        if (params.status && params.status !== "all") query.set("status", params.status);
+        if (params.status && params.status !== "all") query.set("status", params.status.toUpperCase());
         query.set("page", String(params.page ?? 1));
-        query.set("pageSize", String(params.pageSize ?? 10));
+        query.set("limit", String(params.pageSize ?? 10));
         const res = await httpClient.get<ApiResponse<OrdersListResponse> | OrdersListResponse>(
-            `/orders?${query.toString()}`,
+            `/orders/my/purchases?${query.toString()}`,
             { requiresAuth: true },
         );
         return unwrap<OrdersListResponse>(res);
@@ -45,7 +45,7 @@ export const orderApi = {
         return unwrap<Order>(res);
     },
     async cancelOrder(orderId: string) {
-        const res = await httpClient.patch<ApiResponse<Order> | Order>(
+        const res = await httpClient.post<ApiResponse<Order> | Order>(
             `/orders/${orderId}/cancel`,
             {},
             { requiresAuth: true },

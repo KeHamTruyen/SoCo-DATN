@@ -8,7 +8,7 @@ export function Label({
     return (
         <label
             className={cn(
-                "text-sm font-medium text-slate-700 dark:text-slate-300",
+                "text-sm font-medium text-neutral-700 dark:text-neutral-300",
                 className,
             )}
             {...props}

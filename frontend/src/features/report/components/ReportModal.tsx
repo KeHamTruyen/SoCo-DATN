@@ -44,9 +44,9 @@ export function ReportModal({ targetType, targetId, onClose, onSuccess }: Report
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-lg overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-                <div className="flex items-center justify-between border-b border-slate-100 p-6 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/40 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-lg overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="flex items-center justify-between border-b border-neutral-100 p-6 dark:border-neutral-800">
                     <h2 className="flex items-center gap-2 text-xl font-bold">
                         <Flag className="h-5 w-5 text-primary" />
                         Report Violation
@@ -54,7 +54,7 @@ export function ReportModal({ targetType, targetId, onClose, onSuccess }: Report
                     <button
                         type="button"
                         onClick={onClose}
-                        className="text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-200"
+                        className="text-neutral-400 transition-colors hover:text-neutral-600 dark:hover:text-neutral-200"
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -62,11 +62,11 @@ export function ReportModal({ targetType, targetId, onClose, onSuccess }: Report
 
                 {submitted ? (
                     <div className="flex flex-col items-center gap-4 p-8 text-center">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                            <Flag className="h-8 w-8 text-green-600 dark:text-green-400" />
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success/10 dark:bg-success/20">
+                            <Flag className="h-8 w-8 text-success" />
                         </div>
                         <h3 className="text-lg font-bold">Report Submitted</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400">
                             Thank you for your report. Our team will review it within 24 hours.
                         </p>
                         <Button onClick={onClose}>Close</Button>
@@ -75,16 +75,16 @@ export function ReportModal({ targetType, targetId, onClose, onSuccess }: Report
                     <>
                         <div className="max-h-[70vh] space-y-6 overflow-y-auto p-6">
                             <div>
-                                <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                                     Social Content
                                 </h3>
                                 <div className="space-y-3">
                                     {SOCIAL_REASONS.map((r) => (
                                         <label
                                             key={r.value}
-                                            className="flex cursor-pointer items-center justify-between rounded-lg border border-slate-200 p-3 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50"
+                                            className="flex cursor-pointer items-center justify-between rounded-lg border border-neutral-200 p-3 transition-colors hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
                                         >
-                                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                                            <span className="font-medium text-neutral-700 dark:text-neutral-300">
                                                 {r.label}
                                             </span>
                                             <input
@@ -101,16 +101,16 @@ export function ReportModal({ targetType, targetId, onClose, onSuccess }: Report
                             </div>
 
                             <div>
-                                <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                                     Commerce Violations
                                 </h3>
                                 <div className="space-y-3">
                                     {COMMERCE_REASONS.map((r) => (
                                         <label
                                             key={r.value}
-                                            className="flex cursor-pointer items-center justify-between rounded-lg border border-slate-200 p-3 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50"
+                                            className="flex cursor-pointer items-center justify-between rounded-lg border border-neutral-200 p-3 transition-colors hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
                                         >
-                                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                                            <span className="font-medium text-neutral-700 dark:text-neutral-300">
                                                 {r.label}
                                             </span>
                                             <input
@@ -127,7 +127,7 @@ export function ReportModal({ targetType, targetId, onClose, onSuccess }: Report
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
                                     Additional Details
                                 </label>
                                 <textarea
@@ -135,16 +135,16 @@ export function ReportModal({ targetType, targetId, onClose, onSuccess }: Report
                                     onChange={(e) => setDescription(e.target.value)}
                                     placeholder="Please provide more details..."
                                     rows={3}
-                                    className="w-full min-h-[100px] resize-none rounded-lg border border-slate-200 bg-white p-3 text-slate-900 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+                                    className="w-full min-h-[100px] resize-none rounded-lg border border-neutral-200 bg-white p-3 text-neutral-900 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-100"
                                 />
-                                <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                <div className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
                                     <Lock className="h-3 w-3" />
                                     All reports are reviewed confidentially by our admin team
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-800/30">
+                        <div className="flex items-center justify-end gap-3 border-t border-neutral-100 bg-neutral-50 p-6 dark:border-neutral-800 dark:bg-neutral-800/30">
                             <Button variant="ghost" onClick={onClose}>
                                 Cancel
                             </Button>

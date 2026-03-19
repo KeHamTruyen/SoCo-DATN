@@ -1,4 +1,4 @@
-import { BadgeCheck, Building2, CreditCard, ImagePlus } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Building2, CreditCard, ImagePlus } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { sellerApi } from "../features/seller/api/sellerApi";
@@ -74,12 +74,12 @@ export default function SellerRegistration() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col items-center bg-background-light px-4 py-12 dark:bg-background-dark">
+        <div className="flex min-h-screen flex-col items-center bg-background-light px-4 py-12 text-neutral-900 dark:bg-background-dark dark:text-neutral-100">
             <div className="mb-8">
                 <BrandLogo />
             </div>
             <div className="w-full max-w-4xl space-y-6">
-                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                     <div className="mb-4 flex items-center justify-between">
                         <div>
                             <p className="text-sm font-semibold uppercase tracking-wider text-primary">
@@ -89,11 +89,11 @@ export default function SellerRegistration() {
                                 {step === 1 ? "Shop Information" : step === 2 ? "Identity Verification" : "Payment Setup"}
                             </h1>
                         </div>
-                        <span className="text-sm font-medium text-slate-500">
+                        <span className="text-sm font-medium text-neutral-500">
                             {Math.round(progress)}% Complete
                         </span>
                     </div>
-                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
                         <div
                             className="h-full rounded-full bg-primary transition-all duration-500"
                             style={{ width: `${progress}%` }}
@@ -107,7 +107,7 @@ export default function SellerRegistration() {
                                         "flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold",
                                         step >= s
                                             ? "bg-primary text-white"
-                                            : "bg-slate-200 text-slate-500 dark:bg-slate-700",
+                                            : "bg-neutral-200 text-neutral-500 dark:bg-neutral-700",
                                     )}
                                 >
                                     {s}
@@ -115,7 +115,7 @@ export default function SellerRegistration() {
                                 <span
                                     className={cn(
                                         "text-xs font-medium",
-                                        step >= s ? "font-semibold text-slate-900 dark:text-slate-100" : "text-slate-400",
+                                        step >= s ? "font-semibold text-neutral-900 dark:text-neutral-100" : "text-neutral-400",
                                     )}
                                 >
                                     {label}
@@ -125,7 +125,7 @@ export default function SellerRegistration() {
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                     <div className="p-8">
                         {step === 1 && (
                             <div className="space-y-6">
@@ -134,12 +134,12 @@ export default function SellerRegistration() {
                                         <label className="mb-3 block text-sm font-semibold">Shop Logo</label>
                                         <button
                                             type="button"
-                                            className="group flex h-32 w-32 flex-col items-center justify-center rounded-full border-2 border-dashed border-slate-300 bg-slate-50 transition-colors hover:border-primary dark:border-slate-700 dark:bg-slate-800/50"
+                                            className="group flex h-32 w-32 flex-col items-center justify-center rounded-full border-2 border-dashed border-neutral-300 bg-neutral-50 transition-colors hover:border-primary dark:border-neutral-700 dark:bg-neutral-800/50"
                                         >
-                                            <ImagePlus className="mb-1 h-8 w-8 text-slate-400 group-hover:text-primary" />
-                                            <span className="text-[10px] font-medium text-slate-500">UPLOAD</span>
+                                            <ImagePlus className="mb-1 h-8 w-8 text-neutral-400 group-hover:text-primary" />
+                                            <span className="text-[10px] font-medium text-neutral-500">UPLOAD</span>
                                         </button>
-                                        <p className="mt-2 text-center text-xs text-slate-500">
+                                        <p className="mt-2 text-center text-xs text-neutral-500">
                                             Recommended: 500x500px
                                         </p>
                                     </div>
@@ -147,14 +147,14 @@ export default function SellerRegistration() {
                                         <label className="mb-3 block text-sm font-semibold">Cover Photo</label>
                                         <button
                                             type="button"
-                                            className="group flex h-32 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 transition-colors hover:border-primary dark:border-slate-700 dark:bg-slate-800/50"
+                                            className="group flex h-32 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 transition-colors hover:border-primary dark:border-neutral-700 dark:bg-neutral-800/50"
                                         >
-                                            <ImagePlus className="mb-1 h-8 w-8 text-slate-400 group-hover:text-primary" />
-                                            <span className="text-xs font-medium text-slate-500">
+                                            <ImagePlus className="mb-1 h-8 w-8 text-neutral-400 group-hover:text-primary" />
+                                            <span className="text-xs font-medium text-neutral-500">
                                                 Click to upload shop banner
                                             </span>
                                         </button>
-                                        <p className="mt-2 text-xs text-slate-500">
+                                        <p className="mt-2 text-xs text-neutral-500">
                                             Recommended: 1200x400px
                                         </p>
                                     </div>
@@ -168,7 +168,7 @@ export default function SellerRegistration() {
                                             value={step1.shopName}
                                             onChange={(e) => setStep1((s) => ({ ...s, shopName: e.target.value }))}
                                             placeholder="Enter your business name"
-                                            className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800"
+                                            className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
                                         />
                                     </div>
                                     <div className="flex flex-col gap-2">
@@ -176,7 +176,7 @@ export default function SellerRegistration() {
                                         <select
                                             value={step1.shopCategory}
                                             onChange={(e) => setStep1((s) => ({ ...s, shopCategory: e.target.value }))}
-                                            className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800"
+                                            className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
                                         >
                                             <option value="">Select a category</option>
                                             {CATEGORIES.map((c) => (
@@ -195,7 +195,7 @@ export default function SellerRegistration() {
                                         onChange={(e) => setStep1((s) => ({ ...s, shopDescription: e.target.value }))}
                                         placeholder="Tell customers about your shop, brand values, and what you sell..."
                                         rows={4}
-                                        className="w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800"
+                                        className="w-full resize-none rounded-lg border border-neutral-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
                                     />
                                 </div>
 
@@ -207,7 +207,7 @@ export default function SellerRegistration() {
                                             value={step1.shopAddress}
                                             onChange={(e) => setStep1((s) => ({ ...s, shopAddress: e.target.value }))}
                                             placeholder="Business address"
-                                            className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800"
+                                            className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
                                         />
                                     </div>
                                     <div className="flex flex-col gap-2">
@@ -217,7 +217,7 @@ export default function SellerRegistration() {
                                             value={step1.contactPhone}
                                             onChange={(e) => setStep1((s) => ({ ...s, contactPhone: e.target.value }))}
                                             placeholder="+84 000 000 000"
-                                            className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800"
+                                            className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
                                         />
                                     </div>
                                 </div>
@@ -236,7 +236,7 @@ export default function SellerRegistration() {
                                                     "flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition-colors",
                                                     step2.idType === type.value
                                                         ? "border-primary bg-primary/5"
-                                                        : "border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800",
+                                                        : "border-neutral-200 hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800",
                                                 )}
                                             >
                                                 <input
@@ -265,7 +265,7 @@ export default function SellerRegistration() {
                                         value={step2.idNumber}
                                         onChange={(e) => setStep2((s) => ({ ...s, idNumber: e.target.value }))}
                                         placeholder="Enter your ID number"
-                                        className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800"
+                                        className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
                                     />
                                 </div>
 
@@ -274,10 +274,10 @@ export default function SellerRegistration() {
                                         <label className="mb-3 block text-sm font-semibold">Front of ID</label>
                                         <button
                                             type="button"
-                                            className="group flex h-36 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 transition-colors hover:border-primary dark:border-slate-700 dark:bg-slate-800/50"
+                                            className="group flex h-36 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 transition-colors hover:border-primary dark:border-neutral-700 dark:bg-neutral-800/50"
                                         >
-                                            <ImagePlus className="mb-2 h-8 w-8 text-slate-400 group-hover:text-primary" />
-                                            <span className="text-sm font-medium text-slate-500">
+                                            <ImagePlus className="mb-2 h-8 w-8 text-neutral-400 group-hover:text-primary" />
+                                            <span className="text-sm font-medium text-neutral-500">
                                                 Upload front image
                                             </span>
                                         </button>
@@ -286,10 +286,10 @@ export default function SellerRegistration() {
                                         <label className="mb-3 block text-sm font-semibold">Back of ID</label>
                                         <button
                                             type="button"
-                                            className="group flex h-36 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 transition-colors hover:border-primary dark:border-slate-700 dark:bg-slate-800/50"
+                                            className="group flex h-36 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 transition-colors hover:border-primary dark:border-neutral-700 dark:bg-neutral-800/50"
                                         >
-                                            <ImagePlus className="mb-2 h-8 w-8 text-slate-400 group-hover:text-primary" />
-                                            <span className="text-sm font-medium text-slate-500">
+                                            <ImagePlus className="mb-2 h-8 w-8 text-neutral-400 group-hover:text-primary" />
+                                            <span className="text-sm font-medium text-neutral-500">
                                                 Upload back image
                                             </span>
                                         </button>
@@ -300,7 +300,7 @@ export default function SellerRegistration() {
 
                         {step === 3 && (
                             <div className="space-y-6">
-                                <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-700 dark:border-blue-900/40 dark:bg-blue-900/20 dark:text-blue-400">
+                                <div className="rounded-xl border border-info/20 bg-info/10 p-4 text-sm text-info dark:border-info/20 dark:bg-info/10 dark:text-info">
                                     Your bank details are encrypted and stored securely. They are only used for payouts.
                                 </div>
                                 <div className="flex flex-col gap-2">
@@ -310,7 +310,7 @@ export default function SellerRegistration() {
                                         value={step3.bankName}
                                         onChange={(e) => setStep3((s) => ({ ...s, bankName: e.target.value }))}
                                         placeholder="e.g. Vietcombank, Techcombank"
-                                        className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800"
+                                        className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
                                     />
                                 </div>
                                 <div className="flex flex-col gap-2">
@@ -320,7 +320,7 @@ export default function SellerRegistration() {
                                         value={step3.accountNumber}
                                         onChange={(e) => setStep3((s) => ({ ...s, accountNumber: e.target.value }))}
                                         placeholder="Enter your bank account number"
-                                        className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800"
+                                        className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
                                     />
                                 </div>
                                 <div className="flex flex-col gap-2">
@@ -330,7 +330,7 @@ export default function SellerRegistration() {
                                         value={step3.accountHolderName}
                                         onChange={(e) => setStep3((s) => ({ ...s, accountHolderName: e.target.value }))}
                                         placeholder="Full name as on bank account"
-                                        className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800"
+                                        className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
                                     />
                                 </div>
                             </div>
@@ -343,17 +343,19 @@ export default function SellerRegistration() {
                         )}
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-slate-100 p-6 dark:border-slate-800">
+                    <div className="flex items-center justify-between border-t border-neutral-100 p-6 dark:border-neutral-800">
                         {step > 1 ? (
                             <Button
                                 variant="outline"
                                 onClick={() => setStep((s) => Math.max(1, s - 1) as Step)}
                             >
-                                Back
+                                <ArrowLeft className="h-4 w-4" /> Back
                             </Button>
                         ) : (
                             <Link to="/feed">
-                                <Button variant="ghost">Cancel</Button>
+                                <Button variant="outline">
+                                    <ArrowLeft className="h-4 w-4" /> Back to Home
+                                </Button>
                             </Link>
                         )}
                         {step < 3 ? (

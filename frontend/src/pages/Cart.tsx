@@ -101,23 +101,23 @@ export default function Cart() {
             />
             <main className="mx-auto w-full max-w-[1440px] px-6 py-8">
                 <div className="mb-8 flex flex-col gap-2">
-                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                    <div className="flex items-center gap-2 text-sm text-neutral-500">
                         <button type="button" onClick={() => navigate("/marketplace")} className="hover:text-primary transition-colors">
                             Home
                         </button>
                         <span>/</span>
-                        <span className="font-medium text-slate-900 dark:text-slate-100">Shopping Cart</span>
+                        <span className="font-medium text-neutral-900 dark:text-neutral-100">Shopping Cart</span>
                     </div>
                     <h1 className="text-3xl font-bold">
                         Shopping Cart{" "}
-                        <span className="text-lg font-normal text-slate-500">
+                        <span className="text-lg font-normal text-neutral-500">
                             ({cart?.itemCount ?? 0} items)
                         </span>
                     </h1>
                 </div>
 
                 {isLoading ? (
-                    <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-xl border border-neutral-200 bg-white p-8 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900">
                         Loading your cart...
                     </div>
                 ) : error ? (
@@ -125,10 +125,10 @@ export default function Cart() {
                         {error}
                     </div>
                 ) : !cart || cart.itemCount === 0 ? (
-                    <div className="flex flex-col items-center gap-4 rounded-xl border border-slate-200 bg-white py-16 text-center dark:border-slate-800 dark:bg-slate-900">
-                        <ShoppingCart className="h-16 w-16 text-slate-300 dark:text-slate-600" />
+                    <div className="flex flex-col items-center gap-4 rounded-xl border border-neutral-200 bg-white py-16 text-center dark:border-neutral-800 dark:bg-neutral-900">
+                        <ShoppingCart className="h-16 w-16 text-neutral-300 dark:text-neutral-600" />
                         <h2 className="text-xl font-bold">Your cart is empty</h2>
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-neutral-500">
                             Looks like you haven't added anything yet.
                         </p>
                         <Button onClick={() => navigate("/marketplace")}>
@@ -138,13 +138,13 @@ export default function Cart() {
                 ) : (
                     <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                         <div className="space-y-6 lg:col-span-2">
-                            <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                            <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                                 <label className="flex cursor-pointer items-center gap-3">
                                     <input
                                         type="checkbox"
                                         checked={allSelected}
                                         onChange={(e) => handleSelectAll(e.target.checked)}
-                                        className="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:border-slate-700"
+                                        className="h-5 w-5 rounded border-neutral-300 text-primary focus:ring-primary dark:border-neutral-700"
                                     />
                                     <span className="font-medium">Select All Items</span>
                                 </label>
@@ -152,7 +152,7 @@ export default function Cart() {
                                     <button
                                         type="button"
                                         onClick={() => void handleDeleteSelected()}
-                                        className="text-sm font-medium text-slate-500 transition-colors hover:text-red-500"
+                                        className="text-sm font-medium text-neutral-500 transition-colors hover:text-destructive"
                                     >
                                         Delete Selected
                                     </button>
@@ -162,9 +162,9 @@ export default function Cart() {
                             {cart.groups.map((group) => (
                                 <div
                                     key={group.sellerId}
-                                    className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                                    className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
                                 >
-                                    <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50/50 p-4 dark:border-slate-800 dark:bg-slate-800/50">
+                                    <div className="flex items-center gap-3 border-b border-neutral-100 bg-neutral-50/50 p-4 dark:border-neutral-800 dark:bg-neutral-800/50">
                                         <input
                                             type="checkbox"
                                             checked={group.items.every((i) => selectedIds.has(i.id))}
@@ -173,7 +173,7 @@ export default function Cart() {
                                                     handleSelect(i.id, e.target.checked),
                                                 )
                                             }
-                                            className="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:border-slate-700"
+                                            className="h-5 w-5 rounded border-neutral-300 text-primary focus:ring-primary dark:border-neutral-700"
                                         />
                                         <span className="font-bold">{group.sellerName}</span>
                                         {group.isTopSeller && (
@@ -182,7 +182,7 @@ export default function Cart() {
                                             </span>
                                         )}
                                     </div>
-                                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                                    <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
                                         {group.items.map((item) => (
                                             <CartItem
                                                 key={item.id}

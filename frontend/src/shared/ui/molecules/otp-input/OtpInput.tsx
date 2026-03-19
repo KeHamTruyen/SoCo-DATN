@@ -32,7 +32,6 @@ export function OtpInput({
             const input = inputRefs.current[index];
             if (input && input.value === "" && index > 0) {
                 focusAt(index - 1);
-                // Clear the previous field so the user can re-enter
                 const prev = inputRefs.current[index - 1];
                 if (prev) prev.value = "";
             }
@@ -66,7 +65,7 @@ export function OtpInput({
                     name={`${namePrefix}${index + 1}`}
                     autoComplete={index === 0 ? "one-time-code" : "off"}
                     autoFocus={index === 0}
-                    className="h-12 w-10 rounded-lg border-2 border-slate-200 bg-white text-center text-xl font-bold outline-none transition-all focus:border-primary dark:border-slate-700 dark:bg-slate-900 sm:h-14 sm:w-12"
+                    className="h-12 w-10 rounded-lg border-2 border-neutral-200 bg-white text-center text-xl font-bold outline-none transition-all focus:border-primary dark:border-neutral-700 dark:bg-neutral-900 sm:h-14 sm:w-12"
                     aria-label={`OTP digit ${index + 1}`}
                     onChange={(e) => handleChange(e, index)}
                     onKeyDown={(e) => handleKeyDown(e, index)}

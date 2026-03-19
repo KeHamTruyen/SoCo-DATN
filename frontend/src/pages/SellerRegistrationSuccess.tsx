@@ -10,22 +10,22 @@ export default function SellerRegistrationSuccess() {
                 <div className="mb-8 flex justify-center">
                     <BrandLogo />
                 </div>
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                    <div className="flex flex-col items-center gap-4 bg-gradient-to-br from-primary/10 to-orange-50 p-8 dark:from-primary/20 dark:to-orange-950/20">
+                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                    <div className="flex flex-col items-center gap-4 bg-gradient-to-br from-primary/10 to-primary-50 p-8 dark:from-primary/20 dark:to-primary-950/20">
                         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 dark:bg-primary/20">
                             <CheckCircle2 className="h-10 w-10 text-primary" />
                         </div>
                         <div className="text-center">
                             <h1 className="text-2xl font-black">Application Submitted!</h1>
-                            <p className="mt-1 text-slate-500 dark:text-slate-400">
+                            <p className="mt-1 text-neutral-500 dark:text-neutral-400">
                                 Your seller application is under review.
                             </p>
                         </div>
                     </div>
 
                     <div className="space-y-4 p-6">
-                        <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                            <p className="font-semibold text-slate-900 dark:text-slate-100">What's next?</p>
+                        <div className="rounded-xl bg-neutral-50 p-4 text-sm text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
+                            <p className="font-semibold text-neutral-900 dark:text-neutral-100">What's next?</p>
                             <ul className="mt-2 space-y-1">
                                 <li>• We'll review your application within 1-3 business days</li>
                                 <li>• You'll receive an email notification about the decision</li>

@@ -72,7 +72,7 @@ export default function Checkout() {
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="mb-8 flex flex-col gap-2">
                     <h1 className="text-3xl font-black tracking-tight">Checkout</h1>
-                    <p className="text-slate-500 dark:text-slate-400">
+                    <p className="text-neutral-500 dark:text-neutral-400">
                         Complete your order details below
                     </p>
                 </div>
@@ -80,8 +80,8 @@ export default function Checkout() {
                 <form onSubmit={(e) => void handleSubmit(e)}>
                     <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
                         <div className="space-y-6 lg:col-span-7">
-                            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                                <div className="flex items-center gap-3 border-b border-slate-100 p-6 dark:border-slate-800">
+                            <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                                <div className="flex items-center gap-3 border-b border-neutral-100 p-6 dark:border-neutral-800">
                                     <Truck className="h-5 w-5 text-primary" />
                                     <h2 className="text-xl font-bold">Shipping Information</h2>
                                 </div>
@@ -89,7 +89,7 @@ export default function Checkout() {
                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                         <div className="space-y-2">
                                             <label className="text-sm font-semibold">
-                                                Full Name <span className="text-red-500">*</span>
+                                                Full Name <span className="text-destructive">*</span>
                                             </label>
                                             <input
                                                 type="text"
@@ -98,12 +98,12 @@ export default function Checkout() {
                                                     setForm((f) => ({ ...f, fullName: e.target.value }))
                                                 }
                                                 placeholder="John Doe"
-                                                className="w-full rounded-lg border border-slate-200 bg-transparent px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-700"
+                                                className="w-full rounded-lg border border-neutral-200 bg-transparent px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-neutral-700"
                                             />
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-semibold">
-                                                Phone Number <span className="text-red-500">*</span>
+                                                Phone Number <span className="text-destructive">*</span>
                                             </label>
                                             <input
                                                 type="tel"
@@ -112,13 +112,13 @@ export default function Checkout() {
                                                     setForm((f) => ({ ...f, phone: e.target.value }))
                                                 }
                                                 placeholder="+84 000 000 000"
-                                                className="w-full rounded-lg border border-slate-200 bg-transparent px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-700"
+                                                className="w-full rounded-lg border border-neutral-200 bg-transparent px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-neutral-700"
                                             />
                                         </div>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold">
-                                            Detailed Address <span className="text-red-500">*</span>
+                                            Detailed Address <span className="text-destructive">*</span>
                                         </label>
                                         <textarea
                                             value={form.address}
@@ -127,14 +127,14 @@ export default function Checkout() {
                                             }
                                             placeholder="Street address, Apartment, Suite, Floor, etc."
                                             rows={3}
-                                            className="w-full rounded-lg border border-slate-200 bg-transparent px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-700"
+                                            className="w-full rounded-lg border border-neutral-200 bg-transparent px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-neutral-700"
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                                <div className="flex items-center gap-3 border-b border-slate-100 p-6 dark:border-slate-800">
+                            <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                                <div className="flex items-center gap-3 border-b border-neutral-100 p-6 dark:border-neutral-800">
                                     <CreditCard className="h-5 w-5 text-primary" />
                                     <h2 className="text-xl font-bold">Payment Method</h2>
                                 </div>
@@ -142,7 +142,7 @@ export default function Checkout() {
                                     {PAYMENT_METHODS.map(({ value, label, desc, icon: Icon }) => (
                                         <label
                                             key={value}
-                                            className="relative flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 p-4 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                                            className="relative flex cursor-pointer items-center justify-between rounded-xl border border-neutral-200 p-4 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <input
@@ -151,14 +151,14 @@ export default function Checkout() {
                                                     value={value}
                                                     checked={paymentMethod === value}
                                                     onChange={() => setPaymentMethod(value)}
-                                                    className="h-4 w-4 border-slate-300 text-primary focus:ring-primary"
+                                                    className="h-4 w-4 border-neutral-300 text-primary focus:ring-primary"
                                                 />
                                                 <div className="flex flex-col">
                                                     <span className="font-bold">{label}</span>
-                                                    <span className="text-xs text-slate-500">{desc}</span>
+                                                    <span className="text-xs text-neutral-500">{desc}</span>
                                                 </div>
                                             </div>
-                                            <Icon className="h-5 w-5 text-slate-400" />
+                                            <Icon className="h-5 w-5 text-neutral-400" />
                                         </label>
                                     ))}
                                 </div>
@@ -166,20 +166,20 @@ export default function Checkout() {
                         </div>
 
                         <div className="lg:col-span-5">
-                            <div className="sticky top-24 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                                <div className="border-b border-slate-100 p-6 dark:border-slate-800">
+                            <div className="sticky top-24 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                                <div className="border-b border-neutral-100 p-6 dark:border-neutral-800">
                                     <h2 className="text-xl font-bold">Order Summary</h2>
                                 </div>
                                 <div className="space-y-4 p-6">
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-slate-500">Subtotal</span>
+                                        <span className="text-neutral-500">Subtotal</span>
                                         <span className="font-medium">—</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-slate-500">Shipping</span>
-                                        <span className="font-medium text-green-600">Free</span>
+                                        <span className="text-neutral-500">Shipping</span>
+                                        <span className="font-medium text-success">Free</span>
                                     </div>
-                                    <div className="border-t border-slate-100 pt-4 dark:border-slate-800">
+                                    <div className="border-t border-neutral-100 pt-4 dark:border-neutral-800">
                                         <div className="flex justify-between">
                                             <span className="font-bold">Total</span>
                                             <span className="text-xl font-bold text-primary">—</span>
@@ -202,7 +202,7 @@ export default function Checkout() {
                                     <button
                                         type="button"
                                         onClick={() => navigate("/cart")}
-                                        className="w-full text-center text-sm text-slate-500 underline hover:text-primary"
+                                        className="w-full text-center text-sm text-neutral-500 underline hover:text-primary"
                                     >
                                         Back to Cart
                                     </button>

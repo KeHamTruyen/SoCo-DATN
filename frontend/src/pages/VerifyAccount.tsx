@@ -115,7 +115,7 @@ export default function VerifyAccount() {
                 subtitle={
                     <>
                         We've sent a 6-digit confirmation code to{" "}
-                        <span className="font-medium text-slate-900 dark:text-white">
+                        <span className="font-medium text-neutral-900 dark:text-white">
                             {pendingEmail || "your email"}
                         </span>
                     </>
@@ -123,7 +123,7 @@ export default function VerifyAccount() {
                 className="max-w-none"
                 footer={
                     <Link
-                        className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-primary"
+                        className="inline-flex items-center gap-2 text-sm font-medium text-neutral-500 transition-colors hover:text-primary"
                         to="/login"
                     >
                         <ArrowLeft className="h-4 w-4" />
@@ -135,8 +135,8 @@ export default function VerifyAccount() {
                     <div className="mb-1 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 dark:bg-primary/20">
                         <Mail className="h-10 w-10 text-primary" />
                     </div>
-                    <div className="absolute -bottom-1 right-[calc(50%-3.25rem)] rounded-full bg-white p-1 shadow-sm dark:bg-background-dark">
-                        <BadgeCheck className="h-5 w-5 text-emerald-500" />
+                        <div className="absolute -bottom-1 right-[calc(50%-3.25rem)] rounded-full bg-white p-1 shadow-sm dark:bg-background-dark">
+                        <BadgeCheck className="h-5 w-5 text-success" />
                     </div>
                 </div>
 
@@ -154,11 +154,11 @@ export default function VerifyAccount() {
                         </Button>
 
                         <div className="flex flex-col items-center gap-1">
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-neutral-500 dark:text-neutral-400">
                                 Didn't receive a code?
                             </p>
                             {cooldown > 0 ? (
-                                <p className="flex items-center gap-1.5 text-sm text-slate-400 dark:text-slate-600">
+                                <p className="flex items-center gap-1.5 text-sm text-neutral-400 dark:text-neutral-600">
                                     <RotateCcw className="h-3.5 w-3.5" />
                                     Resend code in{" "}
                                     <span className="font-semibold text-primary tabular-nums">
@@ -179,7 +179,7 @@ export default function VerifyAccount() {
                         </div>
 
                         {resendSuccess ? (
-                            <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-400">
+                            <p className="rounded-lg border border-success/20 bg-success/10 px-3 py-2 text-sm text-success dark:bg-success/20">
                                 {resendSuccess}
                             </p>
                         ) : null}

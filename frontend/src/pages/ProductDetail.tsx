@@ -49,7 +49,7 @@ export default function ProductDetail() {
                     Back
                 </Button>
                 {isLoading ? (
-                    <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+                    <div className="rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
                         Loading product...
                     </div>
                 ) : error ? (

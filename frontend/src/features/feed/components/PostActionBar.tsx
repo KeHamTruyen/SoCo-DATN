@@ -26,11 +26,10 @@ export function PostActionBar({
                 <Heart className={`h-4 w-4 ${likedByMe ? "fill-current" : ""}`} />
                 {likesCount}
             </Button>
-            <div className="inline-flex items-center gap-1 px-3 text-xs text-slate-500 dark:text-slate-400">
+            <div className="inline-flex items-center gap-1 px-3 text-xs text-neutral-500 dark:text-neutral-400">
                 <MessageCircle className="h-4 w-4" />
                 {commentsCount}
             </div>
         </div>
     );
 }
-

@@ -27,7 +27,7 @@ export function FormField({
             {label ? <Label htmlFor={id}>{label}</Label> : null}
             <div className="relative">
                 {leftIcon ? (
-                    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+                    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-neutral-400">
                         {leftIcon}
                     </span>
                 ) : null}
@@ -39,9 +39,9 @@ export function FormField({
                 ) : null}
             </div>
             {errorText ? (
-                <p className="text-xs text-red-600 dark:text-red-400">{errorText}</p>
+                <p className="text-xs text-destructive dark:text-red-400">{errorText}</p>
             ) : helperText ? (
-                <p className="text-xs text-slate-500 dark:text-slate-400">{helperText}</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">{helperText}</p>
             ) : null}
         </div>
     );

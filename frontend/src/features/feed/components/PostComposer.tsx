@@ -1,45 +1,52 @@
-import { useState } from "react";
-import { Send } from "lucide-react";
-import { Button } from "../../../shared/ui";
+import { Image, Sparkles, Tag } from "lucide-react";
 
 interface PostComposerProps {
-    onCreate: (content: string) => Promise<void> | void;
+    /** When provided the card becomes a click-to-open trigger for a modal. */
+    onOpen?: () => void;
 }
 
-export function PostComposer({ onCreate }: PostComposerProps) {
-    const [content, setContent] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!content.trim()) return;
-        void (async () => {
-            setIsSubmitting(true);
-            await onCreate(content.trim());
-            setContent("");
-            setIsSubmitting(false);
-        })();
-    };
-
+export function PostComposer({ onOpen }: PostComposerProps) {
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
-        >
-            <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="What's on your mind? Share a product update..."
-                rows={3}
-                className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800"
-            />
-            <div className="mt-3 flex justify-end">
-                <Button type="submit" disabled={isSubmitting || !content.trim()}>
-                    <Send className="h-4 w-4" />
-                    {isSubmitting ? "Posting..." : "Post"}
-                </Button>
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="flex gap-3">
+                <div className="h-10 w-10 shrink-0 rounded-full bg-primary/20" />
+                <button
+                    type="button"
+                    onClick={onOpen}
+                    className="flex-1 rounded-xl bg-neutral-100 px-4 py-2.5 text-left text-sm text-neutral-500 transition-colors hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
+                >
+                    What&apos;s on your mind? Share a product update...
+                </button>
             </div>
-        </form>
+
+            <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-4 dark:border-neutral-800">
+                <div className="flex gap-1">
+                    <button
+                        type="button"
+                        onClick={onOpen}
+                        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                    >
+                        <Image className="h-4 w-4 text-info" />
+                        Photo
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onOpen}
+                        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                    >
+                        <Tag className="h-4 w-4 text-success" />
+                        Tag Product
+                    </button>
+                </div>
+                <button
+                    type="button"
+                    onClick={onOpen}
+                    className="flex items-center gap-2 rounded-lg bg-primary/10 px-4 py-1.5 text-sm font-bold text-primary transition-all hover:bg-primary/20"
+                >
+                    <Sparkles className="h-4 w-4" />
+                    AI Assistant
+                </button>
+            </div>
+        </div>
     );
 }
-

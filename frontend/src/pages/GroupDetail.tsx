@@ -76,8 +76,8 @@ export default function GroupDetail() {
 
             {isLoading ? (
                 <div className="mx-auto max-w-[1440px] space-y-6 px-4 py-8">
-                    <div className="h-48 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />
-                    <div className="h-24 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />
+                    <div className="h-48 animate-pulse rounded-2xl bg-neutral-200 dark:bg-neutral-800" />
+                    <div className="h-24 animate-pulse rounded-2xl bg-neutral-200 dark:bg-neutral-800" />
                 </div>
             ) : !group ? (
                 <div className="mx-auto max-w-[1440px] px-4 py-8">
@@ -87,8 +87,8 @@ export default function GroupDetail() {
                 </div>
             ) : (
                 <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6">
-                    <div className="relative mb-6 rounded-b-2xl bg-white shadow-sm dark:bg-slate-900">
-                        <div className="h-48 overflow-hidden rounded-b-2xl bg-slate-200 dark:bg-slate-800 sm:h-64">
+                    <div className="relative mb-6 rounded-b-2xl bg-white shadow-sm dark:bg-neutral-900">
+                        <div className="h-48 overflow-hidden rounded-b-2xl bg-neutral-200 dark:bg-neutral-800 sm:h-64">
                             {group.coverImageUrl && (
                                 <img
                                     src={group.coverImageUrl}
@@ -100,12 +100,12 @@ export default function GroupDetail() {
                         <div className="flex flex-col gap-4 px-6 pb-4 pt-4 sm:flex-row sm:items-end sm:justify-between">
                             <div className="flex flex-1 gap-4 pb-2">
                                 <h1 className="text-3xl font-bold">{group.name}</h1>
-                                <div className="flex items-center gap-3 mt-1 text-sm font-medium text-slate-500">
+                                <div className="flex items-center gap-3 mt-1 text-sm font-medium text-neutral-500">
                                     <span className="flex items-center gap-1">
                                         <Globe className="h-4 w-4" />
                                         {group.privacy === "public" ? "Public Group" : "Private Group"}
                                     </span>
-                                    <span className="h-1 w-1 rounded-full bg-slate-300" />
+                                    <span className="h-1 w-1 rounded-full bg-neutral-300" />
                                     <span>{group.membersCount.toLocaleString()} Members</span>
                                 </div>
                             </div>
@@ -138,7 +138,7 @@ export default function GroupDetail() {
                             </div>
                         </div>
 
-                        <div className="flex gap-8 border-t border-slate-100 px-6 pt-4 dark:border-slate-800">
+                        <div className="flex gap-8 border-t border-neutral-100 px-6 pt-4 dark:border-neutral-800">
                             {TABS.map((tab) => (
                                 <button
                                     key={tab.value}
@@ -148,7 +148,7 @@ export default function GroupDetail() {
                                         "relative pb-4 text-sm font-semibold transition-colors",
                                         activeTab === tab.value
                                             ? "text-primary"
-                                            : "text-slate-500 hover:text-slate-900 dark:hover:text-white",
+                                            : "text-neutral-500 hover:text-neutral-900 dark:hover:text-white",
                                     )}
                                 >
                                     {tab.label}
@@ -164,28 +164,28 @@ export default function GroupDetail() {
                         <div className="space-y-6 lg:col-span-3">
                             {activeTab === "discussion" && (
                                 <>
-                                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                                    <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                                         <div className="flex gap-4">
-                                            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800" />
+                                            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800" />
                                             <textarea
                                                 value={postContent}
                                                 onChange={(e) => setPostContent(e.target.value)}
                                                 placeholder="Share something with the group..."
-                                                className="w-full min-h-[80px] resize-none rounded-xl border-none bg-slate-100 p-3 text-sm outline-none focus:ring-1 focus:ring-primary/30 dark:bg-slate-800"
+                                                className="w-full min-h-[80px] resize-none rounded-xl border-none bg-neutral-100 p-3 text-sm outline-none focus:ring-1 focus:ring-primary/30 dark:bg-neutral-800"
                                             />
                                         </div>
-                                        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-slate-800">
+                                        <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-4 dark:border-neutral-800">
                                             <div className="flex items-center gap-1">
                                                 <button
                                                     type="button"
-                                                    className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                                                    className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
                                                 >
                                                     <Image className="h-4 w-4 text-primary" />
                                                     Photo/Video
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                                                    className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
                                                 >
                                                     <Tag className="h-4 w-4 text-primary" />
                                                     Tag Product
@@ -193,7 +193,7 @@ export default function GroupDetail() {
                                             </div>
                                             <button
                                                 type="button"
-                                                className="flex items-center gap-2 rounded-lg bg-indigo-50 px-4 py-1.5 text-sm font-bold text-indigo-600 transition-colors hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400"
+                                                className="flex items-center gap-2 rounded-lg bg-primary-50 px-4 py-1.5 text-sm font-bold text-primary transition-colors hover:bg-primary-100 dark:bg-primary-950/30 dark:text-primary"
                                             >
                                                 <Sparkles className="h-3.5 w-3.5" />
                                                 AI Assistant
@@ -201,30 +201,30 @@ export default function GroupDetail() {
                                         </div>
                                     </div>
 
-                                    <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-slate-400 dark:border-slate-800 dark:bg-slate-900">
+                                    <div className="rounded-xl border border-neutral-200 bg-white p-6 text-center text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900">
                                         No posts yet. Start the discussion!
                                     </div>
                                 </>
                             )}
                             {activeTab !== "discussion" && (
-                                <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-400 dark:border-slate-800 dark:bg-slate-900">
+                                <div className="rounded-xl border border-neutral-200 bg-white p-8 text-center text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900">
                                     {TABS.find((t) => t.value === activeTab)?.label} content coming soon.
                                 </div>
                             )}
                         </div>
 
                         <div className="space-y-4">
-                            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                            <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                                 <h3 className="mb-3 font-bold">About Group</h3>
                                 {group.description && (
-                                    <p className="text-sm text-slate-500">{group.description}</p>
+                                    <p className="text-sm text-neutral-500">{group.description}</p>
                                 )}
                                 <div className="mt-3 space-y-2 text-sm">
-                                    <div className="flex items-center gap-2 text-slate-500">
+                                    <div className="flex items-center gap-2 text-neutral-500">
                                         <Users className="h-4 w-4" />
                                         {group.membersCount.toLocaleString()} members
                                     </div>
-                                    <div className="flex items-center gap-2 text-slate-500">
+                                    <div className="flex items-center gap-2 text-neutral-500">
                                         <Globe className="h-4 w-4" />
                                         {group.privacy === "public" ? "Public" : "Private"} group
                                     </div>

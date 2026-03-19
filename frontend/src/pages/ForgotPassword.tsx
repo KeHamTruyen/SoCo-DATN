@@ -42,7 +42,7 @@ export default function ForgotPassword() {
                 subtitle="Enter your email to receive a recovery link"
                 footer={
                     <Link
-                        className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 transition-colors hover:text-primary dark:text-slate-400 dark:hover:text-primary"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-neutral-500 transition-colors hover:text-primary dark:text-neutral-400 dark:hover:text-primary"
                         to="/login"
                     >
                         <ArrowLeft className="h-4 w-4" />
@@ -63,10 +63,10 @@ export default function ForgotPassword() {
 
                     {isSuccess ? (
                         <div
-                            className="rounded-lg border border-emerald-100 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-900/20"
+                            className="rounded-lg border border-success/20 bg-success/10 p-4 dark:bg-success/20"
                             id="success-message"
                         >
-                            <p className="text-center text-sm text-emerald-700 dark:text-emerald-400">
+                            <p className="text-center text-sm text-success">
                                 If this email is registered, we have sent a
                                 password reset link.
                             </p>
@@ -93,7 +93,7 @@ export default function ForgotPassword() {
                 </form>
             </AuthCard>
 
-            <div className="mt-6 flex justify-center gap-6 text-xs text-slate-400 dark:text-slate-500">
+            <div className="mt-6 flex justify-center gap-6 text-xs text-neutral-400 dark:text-neutral-500">
                 <div className="flex items-center gap-1.5">
                     <Shield className="h-4 w-4" />
                     Secure Encryption

@@ -82,18 +82,18 @@ export default function Messages() {
             />
             <div className="mx-auto flex w-full max-w-[1440px] flex-1 overflow-hidden">
                 <div
-                    className="flex h-[calc(100vh-64px)] w-full overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-800"
+                    className="flex h-[calc(100vh-64px)] w-full overflow-hidden rounded-xl border border-neutral-200 shadow-sm dark:border-neutral-800"
                     style={{ margin: "1rem" }}
                 >
-                    <aside className="flex w-80 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                    <aside className="flex w-80 shrink-0 flex-col border-r border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
                         <div className="p-4">
                             <h1 className="mb-4 text-xl font-bold">Messages</h1>
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                                 <input
                                     type="text"
                                     placeholder="Search chats"
-                                    className="w-full rounded-lg border-none bg-slate-100 py-2 pl-10 text-sm focus:ring-1 focus:ring-primary/50 dark:bg-slate-800"
+                                    className="w-full rounded-lg border-none bg-neutral-100 py-2 pl-10 text-sm focus:ring-1 focus:ring-primary/50 dark:bg-neutral-800"
                                 />
                             </div>
                         </div>
@@ -101,17 +101,17 @@ export default function Messages() {
                             {isLoading ? (
                                 <div className="space-y-3 p-4">
                                     {Array.from({ length: 4 }).map((_, i) => (
-                                        <div key={i} className="flex items-center gap-3">
-                                            <div className="h-12 w-12 shrink-0 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
+                                            <div key={i} className="flex items-center gap-3">
+                                            <div className="h-12 w-12 shrink-0 animate-pulse rounded-full bg-neutral-200 dark:bg-neutral-700" />
                                             <div className="flex-1 space-y-2">
-                                                <div className="h-4 w-24 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-                                                <div className="h-3 w-32 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                                                <div className="h-4 w-24 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700" />
+                                                <div className="h-3 w-32 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700" />
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : conversations.length === 0 ? (
-                                <div className="p-6 text-center text-sm text-slate-400">
+                                <div className="p-6 text-center text-sm text-neutral-400">
                                     No conversations yet.
                                 </div>
                             ) : (
@@ -124,12 +124,12 @@ export default function Messages() {
                                             "flex w-full cursor-pointer items-center gap-3 px-4 py-4 text-left transition-colors",
                                             activeConversationId === conv.id
                                                 ? "border-r-4 border-primary bg-primary/5"
-                                                : "hover:bg-slate-50 dark:hover:bg-slate-800/50",
+                                                : "hover:bg-neutral-50 dark:hover:bg-neutral-800/50",
                                         )}
                                     >
                                         <div className="relative shrink-0">
                                             <div
-                                                className="h-12 w-12 rounded-full bg-slate-200 bg-cover bg-center dark:bg-slate-700"
+                                                className="h-12 w-12 rounded-full bg-neutral-200 bg-cover bg-center dark:bg-neutral-700"
                                                 style={
                                                     conv.participantAvatarUrl
                                                         ? { backgroundImage: `url(${conv.participantAvatarUrl})` }
@@ -137,7 +137,7 @@ export default function Messages() {
                                                 }
                                             />
                                             {conv.isOnline && (
-                                                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-slate-900" />
+                                                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-success dark:border-neutral-900" />
                                             )}
                                         </div>
                                         <div className="flex-1 overflow-hidden">
@@ -157,7 +157,7 @@ export default function Messages() {
                                                         "text-[10px]",
                                                         activeConversationId === conv.id
                                                             ? "font-medium text-primary"
-                                                            : "text-slate-400",
+                                                            : "text-neutral-400",
                                                     )}
                                                 >
                                                     {conv.lastMessageAt
@@ -169,7 +169,7 @@ export default function Messages() {
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between">
-                                                <p className="truncate text-xs text-slate-400">
+                                                <p className="truncate text-xs text-neutral-400">
                                                     {conv.lastMessage}
                                                 </p>
                                                 {conv.unreadCount > 0 && (
@@ -185,13 +185,13 @@ export default function Messages() {
                         </div>
                     </aside>
 
-                    <section className="flex flex-1 flex-col bg-slate-50 dark:bg-background-dark">
+                    <section className="flex flex-1 flex-col bg-neutral-50 dark:bg-background-dark">
                         {activeConversation ? (
                             <>
-                                <div className="flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-6 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/80">
+                                <div className="flex h-16 items-center justify-between border-b border-neutral-200 bg-white/80 px-6 backdrop-blur-sm dark:border-neutral-800 dark:bg-neutral-900/80">
                                     <div className="flex items-center gap-3">
                                         <div
-                                            className="h-10 w-10 rounded-full bg-slate-200 bg-cover bg-center dark:bg-slate-700"
+                                            className="h-10 w-10 rounded-full bg-neutral-200 bg-cover bg-center dark:bg-neutral-700"
                                             style={
                                                 activeConversation.participantAvatarUrl
                                                     ? {
@@ -208,8 +208,8 @@ export default function Messages() {
                                                 className={cn(
                                                     "text-[10px] font-medium",
                                                     activeConversation.isOnline
-                                                        ? "text-green-500"
-                                                        : "text-slate-400",
+                                                        ? "text-success"
+                                                        : "text-neutral-400",
                                                 )}
                                             >
                                                 {activeConversation.isOnline ? "Online" : "Offline"}
@@ -219,13 +219,13 @@ export default function Messages() {
                                     <div className="flex items-center gap-2">
                                         <button
                                             type="button"
-                                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                                            className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
                                         >
                                             View Profile
                                         </button>
                                         <button
                                             type="button"
-                                            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                            className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                                         >
                                             <MoreVertical className="h-4 w-4" />
                                         </button>
@@ -234,7 +234,7 @@ export default function Messages() {
 
                                 <div className="no-scrollbar flex-1 space-y-6 overflow-y-auto p-6">
                                     {messages.length === 0 ? (
-                                        <div className="py-12 text-center text-sm text-slate-400">
+                                        <div className="py-12 text-center text-sm text-neutral-400">
                                             No messages yet. Say hello!
                                         </div>
                                     ) : (
@@ -249,18 +249,18 @@ export default function Messages() {
                                                     )}
                                                 >
                                                     {!isSent && (
-                                                        <div className="mt-1 h-8 w-8 shrink-0 rounded-full bg-slate-200 dark:bg-slate-700" />
+                                                        <div className="mt-1 h-8 w-8 shrink-0 rounded-full bg-neutral-200 dark:bg-neutral-700" />
                                                     )}
                                                     <div
                                                         className={cn(
                                                             "rounded-2xl p-4 shadow-sm",
                                                             isSent
                                                                 ? "bg-primary text-white"
-                                                                : "bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100",
+                                                                : "bg-white text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100",
                                                         )}
                                                     >
                                                         {msg.type === "product" && msg.product ? (
-                                                            <div className="w-72 overflow-hidden rounded-xl border border-slate-100 bg-white dark:border-slate-700 dark:bg-slate-900">
+                                                                <div className="w-72 overflow-hidden rounded-xl border border-neutral-100 bg-white dark:border-neutral-700 dark:bg-neutral-900">
                                                                 {msg.product.imageUrl && (
                                                                     <div
                                                                         className="aspect-video bg-cover bg-center"
@@ -271,7 +271,7 @@ export default function Messages() {
                                                                 )}
                                                                 <div className="p-3">
                                                                     <div className="flex items-start justify-between">
-                                                                        <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                                                                                <h4 className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
                                                                             {msg.product.name}
                                                                         </h4>
                                                                         <span className="text-sm font-bold text-primary">
@@ -279,7 +279,7 @@ export default function Messages() {
                                                                         </span>
                                                                     </div>
                                                                     {msg.product.description && (
-                                                                        <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400">
+                                                                        <p className="mt-1 text-[10px] text-neutral-500 dark:text-neutral-400">
                                                                             {msg.product.description}
                                                                         </p>
                                                                     )}
@@ -297,7 +297,7 @@ export default function Messages() {
                                                         <span
                                                             className={cn(
                                                                 "mt-1 block text-[10px]",
-                                                                isSent ? "text-right text-orange-100/70" : "text-slate-400",
+                                                                isSent ? "text-right text-primary-100/70" : "text-neutral-400",
                                                             )}
                                                         >
                                                             {new Date(msg.createdAt).toLocaleTimeString("en-US", {
@@ -313,16 +313,16 @@ export default function Messages() {
                                     <div ref={messagesEndRef} />
                                 </div>
 
-                                <div className="border-t border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                                <div className="border-t border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
                                     <div className="flex items-center gap-3">
                                         <div className="flex items-center gap-1">
-                                            <button type="button" className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                                            <button type="button" className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                                 <Image className="h-4 w-4" />
                                             </button>
-                                            <button type="button" className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                                            <button type="button" className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                                 <Tag className="h-4 w-4" />
                                             </button>
-                                            <button type="button" className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                                            <button type="button" className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                                 <Paperclip className="h-4 w-4" />
                                             </button>
                                         </div>
@@ -337,7 +337,7 @@ export default function Messages() {
                                                 }
                                             }}
                                             placeholder="Type a message..."
-                                            className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-800"
+                                            className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-neutral-700 dark:bg-neutral-800"
                                         />
                                         <button
                                             type="button"
@@ -351,7 +351,7 @@ export default function Messages() {
                                 </div>
                             </>
                         ) : (
-                            <div className="flex flex-1 items-center justify-center text-slate-400">
+                            <div className="flex flex-1 items-center justify-center text-neutral-400">
                                 Select a conversation to start chatting
                             </div>
                         )}

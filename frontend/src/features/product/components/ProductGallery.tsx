@@ -15,7 +15,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
 
     return (
         <div className="space-y-3">
-            <div className="aspect-square overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <div className="aspect-square overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
                 <img
                     src={safeImages[activeIndex]}
                     alt="Product"
@@ -31,7 +31,7 @@ export function ProductGallery({ images }: ProductGalleryProps) {
                         className={`aspect-square overflow-hidden rounded-lg border ${
                             idx === activeIndex
                                 ? "border-primary"
-                                : "border-slate-200 dark:border-slate-700"
+                                : "border-neutral-200 dark:border-neutral-700"
                         }`}
                     >
                         <img
@@ -45,4 +45,3 @@ export function ProductGallery({ images }: ProductGalleryProps) {
         </div>
     );
 }
-

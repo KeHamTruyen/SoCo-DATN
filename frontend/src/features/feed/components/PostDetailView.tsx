@@ -34,7 +34,7 @@ function ShoppableHotspot({ product }: ShoppableHotspotProps) {
                 <Tag className="h-3.5 w-3.5 text-primary" />
             </button>
             {open && (
-                <div className="absolute bottom-full left-1/2 z-10 mb-2 w-56 -translate-x-1/2 rounded-xl border border-slate-200 bg-white p-3 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                <div className="absolute bottom-full left-1/2 z-10 mb-2 w-56 -translate-x-1/2 rounded-xl border border-neutral-200 bg-white p-3 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
                     <div className="flex items-center gap-3">
                         {product.imageUrl && (
                             <img
@@ -50,7 +50,7 @@ function ShoppableHotspot({ product }: ShoppableHotspotProps) {
                     </div>
                     <Link
                         to={`/products/${product.productId}`}
-                        className="mt-2 flex items-center justify-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white hover:bg-primary/90"
+                        className="mt-2 flex items-center justify-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white hover:bg-primary-700"
                     >
                         <ShoppingCart className="h-3 w-3" />
                         View Product
@@ -80,7 +80,7 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
     return (
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
             <div className="lg:col-span-7">
-                <div className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-slate-200 shadow-xl dark:bg-slate-800">
+                <div className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-neutral-200 shadow-xl dark:bg-neutral-800">
                     {post.imageUrl ? (
                         <img
                             src={post.imageUrl}
@@ -88,7 +88,7 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                             className="h-full w-full object-cover"
                         />
                     ) : (
-                        <div className="flex h-full w-full items-center justify-center text-slate-400">
+                        <div className="flex h-full w-full items-center justify-center text-neutral-400">
                             No image
                         </div>
                     )}
@@ -96,7 +96,7 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                         <ShoppableHotspot key={product.id} product={product} />
                     ))}
                     {post.taggedProducts && post.taggedProducts.length > 0 && (
-                        <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow backdrop-blur-sm">
+                        <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow backdrop-blur-sm">
                             <Tag className="h-3 w-3 text-primary" />
                             {post.taggedProducts.length} product(s) tagged
                         </div>
@@ -104,11 +104,11 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                 </div>
 
                 {post.taggedProducts && post.taggedProducts.length > 0 && (
-                    <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                        <div className="border-b border-slate-100 p-4 dark:border-slate-800">
+                    <div className="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                        <div className="border-b border-neutral-100 p-4 dark:border-neutral-800">
                             <h3 className="font-bold">Tagged Products</h3>
                         </div>
-                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
                             {post.taggedProducts.map((product) => (
                                 <div key={product.id} className="flex items-center justify-between p-4">
                                     <div className="flex items-center gap-3">
@@ -138,8 +138,8 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
             </div>
 
             <div className="flex flex-col gap-4 lg:col-span-5">
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                    <div className="flex items-center justify-between border-b border-slate-100 p-4 dark:border-slate-800">
+                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                    <div className="flex items-center justify-between border-b border-neutral-100 p-4 dark:border-neutral-800">
                         <div className="flex items-center gap-3">
                             <Avatar
                                 src={post.author.avatarUrl ?? ""}
@@ -147,7 +147,7 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                             />
                             <div>
                                 <p className="font-semibold">{post.author.fullName}</p>
-                                <p className="text-xs text-slate-500">
+                                <p className="text-xs text-neutral-500">
                                     {new Date(post.createdAt).toLocaleDateString("en-US", {
                                         month: "short",
                                         day: "numeric",
@@ -162,19 +162,19 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                     </div>
 
                     <div className="p-4">
-                        <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                        <p className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
                             {post.content}
                         </p>
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3 dark:border-slate-800">
+                    <div className="flex items-center justify-between border-t border-neutral-100 px-4 py-3 dark:border-neutral-800">
                         <div className="flex items-center gap-4">
                             <button
                                 type="button"
                                 onClick={onLike}
                                 className={cn(
                                     "flex items-center gap-1.5 text-sm font-medium transition-colors",
-                                    post.likedByMe ? "text-red-500" : "text-slate-500 hover:text-red-500",
+                                    post.likedByMe ? "text-destructive" : "text-neutral-500 hover:text-destructive",
                                 )}
                             >
                                 <Heart
@@ -182,7 +182,7 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                                 />
                                 {post.likesCount}
                             </button>
-                            <span className="flex items-center gap-1.5 text-sm font-medium text-slate-500">
+                            <span className="flex items-center gap-1.5 text-sm font-medium text-neutral-500">
                                 <MessageCircle className="h-5 w-5" />
                                 {post.commentsCount}
                             </span>
@@ -198,8 +198,8 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                    <div className="border-b border-slate-100 p-4 dark:border-slate-800">
+                <div className="flex-1 overflow-y-auto rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                    <div className="border-b border-neutral-100 p-4 dark:border-neutral-800">
                         <h3 className="font-bold">Comments ({post.commentsCount})</h3>
                     </div>
                     <div className="max-h-80 space-y-4 overflow-y-auto p-4">
@@ -211,23 +211,23 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                                         alt={comment.author.fullName}
                                         wrapperClassName="h-8 w-8"
                                     />
-                                    <div className="flex-1 rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800">
+                                    <div className="flex-1 rounded-xl bg-neutral-50 px-3 py-2 dark:bg-neutral-800">
                                         <p className="text-xs font-semibold">
                                             {comment.author.fullName}
                                         </p>
-                                        <p className="mt-0.5 text-sm text-slate-700 dark:text-slate-300">
+                                        <p className="mt-0.5 text-sm text-neutral-700 dark:text-neutral-300">
                                             {comment.content}
                                         </p>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <p className="text-center text-sm text-slate-400">
+                            <p className="text-center text-sm text-neutral-400">
                                 No comments yet. Be the first!
                             </p>
                         )}
                     </div>
-                    <div className="flex items-center gap-3 border-t border-slate-100 p-4 dark:border-slate-800">
+                    <div className="flex items-center gap-3 border-t border-neutral-100 p-4 dark:border-neutral-800">
                         <input
                             type="text"
                             value={commentInput}
@@ -236,7 +236,7 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                                 if (e.key === "Enter") handleSendComment();
                             }}
                             placeholder="Add a comment..."
-                            className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-700 dark:bg-slate-800"
+                            className="flex-1 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-neutral-700 dark:bg-neutral-800"
                         />
                         <Button size="icon" onClick={handleSendComment} disabled={!commentInput.trim()}>
                             <Send className="h-4 w-4" />

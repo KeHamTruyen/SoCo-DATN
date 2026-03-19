@@ -2,6 +2,10 @@ import { httpClient } from "../../../shared/api/httpClient";
 import type { UserProfile } from "../../auth/types/auth.types";
 import type { PublicUserProfile, SellerStats } from "../types/profile.types";
 
+interface ApiListResponse<T> {
+    data?: T[] | { items: T[] };
+}
+
 interface ApiResponse<T> {
     data?: T;
 }
@@ -49,6 +53,22 @@ export const profileApi = {
             { requiresAuth: true },
         );
         return unwrap<SellerStats>(res);
+    },
+    async listSuggestedUsers(): Promise<PublicUserProfile[]> {
+        try {
+            const res = await httpClient.get<
+                ApiListResponse<PublicUserProfile> | PublicUserProfile[]
+            >("/users/suggested", { requiresAuth: true });
+            if (Array.isArray(res)) return res;
+            if (res && typeof res === "object" && "data" in res) {
+                const d = (res as ApiListResponse<PublicUserProfile>).data;
+                if (Array.isArray(d)) return d;
+                if (d && "items" in d) return d.items;
+            }
+            return [];
+        } catch {
+            return [];
+        }
     },
 };
 

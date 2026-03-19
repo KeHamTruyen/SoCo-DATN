@@ -21,10 +21,12 @@ export interface FeedPost {
     id: string;
     content: string;
     imageUrl?: string;
+    linkUrl?: string;
     createdAt: string;
     likedByMe?: boolean;
     likesCount: number;
     commentsCount: number;
+    sharesCount?: number;
     author: UserProfile;
     comments?: FeedComment[];
     taggedProducts?: ShoppableProduct[];

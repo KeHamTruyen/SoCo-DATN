@@ -68,8 +68,8 @@ export default function OrderDetail() {
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 {isLoading ? (
                     <div className="space-y-6">
-                        <div className="h-12 w-64 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800" />
-                        <div className="h-48 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800" />
+                        <div className="h-12 w-64 animate-pulse rounded-xl bg-neutral-200 dark:bg-neutral-800" />
+                        <div className="h-48 animate-pulse rounded-xl bg-neutral-200 dark:bg-neutral-800" />
                     </div>
                 ) : error || !order ? (
                     <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-400">
@@ -79,7 +79,7 @@ export default function OrderDetail() {
                     <>
                         <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                             <div>
-                                <nav className="mb-2 flex gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                <nav className="mb-2 flex gap-2 text-sm text-neutral-500 dark:text-neutral-400">
                                     <Link to="/marketplace" className="hover:text-primary">
                                         Marketplace
                                     </Link>
@@ -91,7 +91,7 @@ export default function OrderDetail() {
                                 <h1 className="text-3xl font-extrabold tracking-tight">
                                     Order #{order.orderNumber}
                                 </h1>
-                                <p className="mt-1 text-slate-500 dark:text-slate-400">
+                                <p className="mt-1 text-neutral-500 dark:text-neutral-400">
                                     Placed on{" "}
                                     {new Date(order.createdAt).toLocaleDateString("en-US", {
                                         year: "numeric",
@@ -115,10 +115,10 @@ export default function OrderDetail() {
                         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                             <div className="space-y-8 lg:col-span-2">
                                 {order.status !== "cancelled" && order.status !== "refunded" ? (
-                                    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                                    <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                                         <h3 className="mb-8 text-lg font-bold">Order Status</h3>
                                         <div className="relative flex items-center justify-between">
-                                            <div className="absolute left-0 top-1/2 -z-0 h-1 w-full -translate-y-1/2 bg-slate-100 dark:bg-slate-800">
+                                            <div className="absolute left-0 top-1/2 -z-0 h-1 w-full -translate-y-1/2 bg-neutral-100 dark:bg-neutral-800">
                                                 <div
                                                     className="h-full bg-primary transition-all"
                                                     style={{
@@ -136,12 +136,12 @@ export default function OrderDetail() {
                                                     >
                                                         <div
                                                             className={cn(
-                                                                "flex h-10 w-10 items-center justify-center rounded-full ring-4 ring-white dark:ring-slate-900",
+                                                                "flex h-10 w-10 items-center justify-center rounded-full ring-4 ring-white dark:ring-neutral-900",
                                                                 done
                                                                     ? active
                                                                         ? "bg-primary text-white shadow-lg shadow-primary/30"
                                                                         : "bg-primary text-white"
-                                                                    : "bg-slate-100 text-slate-400 dark:bg-slate-800",
+                                                                    : "bg-neutral-100 text-neutral-400 dark:bg-neutral-800",
                                                             )}
                                                         >
                                                             {step.icon}
@@ -152,8 +152,8 @@ export default function OrderDetail() {
                                                                 active
                                                                     ? "font-bold text-primary"
                                                                     : done
-                                                                        ? "font-bold text-slate-900 dark:text-white"
-                                                                        : "text-slate-400",
+                                                                        ? "font-bold text-neutral-900 dark:text-white"
+                                                                        : "text-neutral-400",
                                                             )}
                                                         >
                                                             {step.label}
@@ -171,16 +171,16 @@ export default function OrderDetail() {
                                     </section>
                                 )}
 
-                                <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                                    <div className="border-b border-slate-100 p-6 dark:border-slate-800">
+                                <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                                    <div className="border-b border-neutral-100 p-6 dark:border-neutral-800">
                                         <h3 className="text-lg font-bold">
                                             Items in Order ({order.items.length})
                                         </h3>
                                     </div>
-                                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                                    <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
                                         {order.items.map((item) => (
                                             <div key={item.id} className="flex flex-col gap-6 p-6 sm:flex-row">
-                                                <div className="h-24 w-full shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-900 sm:w-24">
+                                                <div className="h-24 w-full shrink-0 overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900 sm:w-24">
                                                     {item.imageUrl ? (
                                                         <img
                                                             src={item.imageUrl}
@@ -194,7 +194,7 @@ export default function OrderDetail() {
                                                         <div>
                                                             <h4 className="text-lg font-bold">{item.productName}</h4>
                                                             {item.variantText && (
-                                                                <p className="mt-1 text-sm text-slate-500">
+                                                                <p className="mt-1 text-sm text-neutral-500">
                                                                     {item.variantText}
                                                                 </p>
                                                             )}
@@ -204,7 +204,7 @@ export default function OrderDetail() {
                                                         </p>
                                                     </div>
                                                     <div className="mt-4 flex items-center justify-between">
-                                                        <span className="text-sm text-slate-500">
+                                                        <span className="text-sm text-neutral-500">
                                                             Qty: {item.quantity}
                                                         </span>
                                                         <div className="flex gap-2">
@@ -216,7 +216,7 @@ export default function OrderDetail() {
                                                             </button>
                                                             {order.status === "delivered" && (
                                                                 <>
-                                                                    <span className="text-slate-300">|</span>
+                                                                    <span className="text-neutral-300">|</span>
                                                                     <button
                                                                         type="button"
                                                                         className="text-sm font-semibold text-primary hover:underline"
@@ -234,7 +234,7 @@ export default function OrderDetail() {
                                 </section>
 
                                 {order.timeline && order.timeline.length > 0 && (
-                                    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                                    <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                                         <h3 className="mb-6 text-lg font-bold">Tracking Timeline</h3>
                                         <div className="space-y-6">
                                             {order.timeline.map((entry, idx) => (
@@ -242,7 +242,7 @@ export default function OrderDetail() {
                                                     <div className="flex flex-col items-center">
                                                         <div className="mt-1.5 h-3 w-3 rounded-full bg-primary" />
                                                         {idx < order.timeline!.length - 1 && (
-                                                            <div className="mt-1 w-0.5 flex-1 bg-slate-200 dark:bg-slate-700" />
+                                                            <div className="mt-1 w-0.5 flex-1 bg-neutral-200 dark:bg-neutral-700" />
                                                         )}
                                                     </div>
                                                     <div className="pb-6">
@@ -250,9 +250,9 @@ export default function OrderDetail() {
                                                             {entry.status.replace(/_/g, " ")}
                                                         </p>
                                                         {entry.note && (
-                                                            <p className="text-sm text-slate-500">{entry.note}</p>
+                                                            <p className="text-sm text-neutral-500">{entry.note}</p>
                                                         )}
-                                                        <p className="mt-1 text-xs text-slate-400">
+                                                        <p className="mt-1 text-xs text-neutral-400">
                                                             {new Date(entry.timestamp).toLocaleString()}
                                                         </p>
                                                     </div>
@@ -264,28 +264,28 @@ export default function OrderDetail() {
                             </div>
 
                             <div className="space-y-6">
-                                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                                <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                                     <h3 className="mb-4 text-lg font-bold">Order Summary</h3>
                                     <div className="space-y-3 text-sm">
                                         <div className="flex justify-between">
-                                            <span className="text-slate-500">Subtotal</span>
+                                            <span className="text-neutral-500">Subtotal</span>
                                             <span>${order.subtotal.toFixed(2)}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-slate-500">Shipping</span>
+                                            <span className="text-neutral-500">Shipping</span>
                                             {order.shipping === 0 ? (
-                                                <span className="text-green-600">Free</span>
+                                                <span className="text-success">Free</span>
                                             ) : (
                                                 <span>${order.shipping.toFixed(2)}</span>
                                             )}
                                         </div>
                                         {order.discount > 0 && (
                                             <div className="flex justify-between">
-                                                <span className="text-slate-500">Discount</span>
-                                                <span className="text-green-600">-${order.discount.toFixed(2)}</span>
+                                                <span className="text-neutral-500">Discount</span>
+                                                <span className="text-success">-${order.discount.toFixed(2)}</span>
                                             </div>
                                         )}
-                                        <div className="border-t border-slate-100 pt-3 dark:border-slate-800">
+                                        <div className="border-t border-neutral-100 pt-3 dark:border-neutral-800">
                                             <div className="flex justify-between font-bold">
                                                 <span>Total</span>
                                                 <span className="text-xl text-primary">
@@ -296,17 +296,17 @@ export default function OrderDetail() {
                                     </div>
                                 </div>
 
-                                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                                <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                                     <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
                                         <MapPin className="h-5 w-5 text-primary" />
                                         Shipping Address
                                     </h3>
                                     <p className="font-semibold">{order.shippingAddress.fullName}</p>
-                                    <p className="mt-1 text-sm text-slate-500">{order.shippingAddress.phone}</p>
-                                    <p className="mt-1 text-sm text-slate-500">{order.shippingAddress.address}</p>
+                                    <p className="mt-1 text-sm text-neutral-500">{order.shippingAddress.phone}</p>
+                                    <p className="mt-1 text-sm text-neutral-500">{order.shippingAddress.address}</p>
                                 </div>
 
-                                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                                <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                                     <h3 className="mb-4 text-lg font-bold">Payment</h3>
                                     <p className="text-sm font-medium">
                                         {PAYMENT_LABEL[order.paymentMethod] ?? order.paymentMethod}

@@ -49,14 +49,14 @@ export default function ResetPassword() {
     return (
         <div className="w-full max-w-md">
             {isSuccess ? (
-                <Card className="overflow-hidden border-slate-200 p-8 text-center shadow-xl dark:border-slate-800 dark:bg-slate-900/60">
-                    <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                <Card className="overflow-hidden border-neutral-200 p-8 text-center shadow-xl dark:border-neutral-800 dark:bg-neutral-900/60">
+                    <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-success/10 text-success dark:bg-success/10 dark:text-success">
                         <CheckCircle2 className="h-10 w-10" />
                     </div>
-                    <h1 className="mb-2 text-2xl font-bold text-slate-900 dark:text-white">
+                    <h1 className="mb-2 text-2xl font-bold text-neutral-900 dark:text-white">
                         Password Reset Successful
                     </h1>
-                    <p className="mb-8 text-slate-500 dark:text-slate-400">
+                    <p className="mb-8 text-neutral-500 dark:text-neutral-400">
                         Your password has been successfully updated. You can now
                         use your new password to sign in to your account.
                     </p>
@@ -69,16 +69,16 @@ export default function ResetPassword() {
                     </Link>
                 </Card>
             ) : (
-                <Card className="overflow-hidden border-slate-200 shadow-xl dark:border-slate-800 dark:bg-slate-900/60">
+                <Card className="overflow-hidden border-neutral-200 shadow-xl dark:border-neutral-800 dark:bg-neutral-900/60">
                     <div className="p-8">
                         <div className="mb-8 text-center">
                             <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                                 <LockKeyhole className="h-6 w-6" />
                             </div>
-                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
                                 Reset Password
                             </h1>
-                            <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm leading-relaxed">
+                            <p className="text-neutral-500 dark:text-neutral-400 mt-2 text-sm leading-relaxed">
                                 Please enter a new, secure password for your
                                 account. Ensure it meets the security
                                 requirements.
@@ -103,15 +103,15 @@ export default function ResetPassword() {
 
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between text-xs">
-                                    <span className="font-medium text-slate-500 dark:text-slate-400">
+                                    <span className="font-medium text-neutral-500 dark:text-neutral-400">
                                         Security Requirement:
                                     </span>
                                     <span className="font-medium text-primary">
                                         8+ chars, A-z, 0-9
                                     </span>
                                 </div>
-                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                                    <div className="h-full w-3/4 rounded-full bg-emerald-500" />
+                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
+                                    <div className="h-full w-3/4 rounded-full bg-success" />
                                 </div>
                             </div>
 
@@ -144,15 +144,15 @@ export default function ResetPassword() {
                             ) : null}
                         </form>
                     </div>
-                    <div className="border-t border-slate-200 bg-slate-50 p-4 text-center dark:border-slate-800 dark:bg-slate-800/30">
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <div className="border-t border-neutral-200 bg-neutral-50 p-4 text-center dark:border-neutral-800 dark:bg-neutral-800/30">
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
                             Securely encrypted by SocialShop Guard.
                         </p>
                     </div>
                 </Card>
             )}
 
-            <div className="mt-8 flex justify-center gap-6 text-sm text-slate-500 dark:text-slate-400">
+            <div className="mt-8 flex justify-center gap-6 text-sm text-neutral-500 dark:text-neutral-400">
                 <a className="transition-colors hover:text-primary" href="#">
                     Privacy Policy
                 </a>

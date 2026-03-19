@@ -17,7 +17,7 @@ export function ProfilePostsGrid({ posts, isLoading, columns = 3 }: ProfilePosts
                 {Array.from({ length: 6 }).map((_, i) => (
                     <div
                         key={i}
-                        className="aspect-square animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800"
+                        className="aspect-square animate-pulse rounded-xl bg-neutral-200 dark:bg-neutral-800"
                     />
                 ))}
             </div>
@@ -26,7 +26,7 @@ export function ProfilePostsGrid({ posts, isLoading, columns = 3 }: ProfilePosts
 
     if (posts.length === 0) {
         return (
-            <div className="py-12 text-center text-slate-400">No posts yet.</div>
+            <div className="py-12 text-center text-neutral-400">No posts yet.</div>
         );
     }
 
@@ -38,7 +38,7 @@ export function ProfilePostsGrid({ posts, isLoading, columns = 3 }: ProfilePosts
                 <Link
                     key={post.id}
                     to={`/posts/${post.id}`}
-                    className="group relative overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800"
+                    className="group relative overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800"
                 >
                     {post.imageUrl ? (
                         <img
@@ -47,7 +47,7 @@ export function ProfilePostsGrid({ posts, isLoading, columns = 3 }: ProfilePosts
                             className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                     ) : (
-                        <div className="flex aspect-square items-center justify-center p-4 text-sm text-slate-400">
+                        <div className="flex aspect-square items-center justify-center p-4 text-sm text-neutral-400">
                             <p className="line-clamp-4 text-center">{post.content}</p>
                         </div>
                     )}

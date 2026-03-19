@@ -70,10 +70,10 @@ export default function Marketplace() {
             />
             <main className="mx-auto w-full max-w-[1200px] space-y-4 px-4 py-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                    <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
                         Marketplace
                     </h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400">
                         {total} products found
                     </p>
                 </div>
@@ -94,7 +94,7 @@ export default function Marketplace() {
                     >
                         Previous
                     </Button>
-                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                    <span className="text-sm text-neutral-500 dark:text-neutral-400">
                         Page {params.page ?? 1}
                     </span>
                     <Button

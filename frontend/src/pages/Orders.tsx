@@ -54,12 +54,12 @@ export default function Orders() {
             <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="mb-8">
                     <h1 className="text-3xl font-extrabold tracking-tight">My Orders</h1>
-                    <p className="mt-2 text-slate-500 dark:text-slate-400">
+                    <p className="mt-2 text-neutral-500 dark:text-neutral-400">
                         Manage and track your recent purchases
                     </p>
                 </div>
 
-                <div className="mb-8 border-b border-slate-200 dark:border-slate-800">
+                <div className="mb-8 border-b border-neutral-200 dark:border-neutral-800">
                     <nav className="no-scrollbar flex space-x-8 overflow-x-auto" aria-label="Order Status">
                         {TABS.map((tab) => (
                             <button
@@ -70,7 +70,7 @@ export default function Orders() {
                                     "whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors",
                                     activeTab === tab.value
                                         ? "border-primary font-bold text-primary"
-                                        : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300",
+                                        : "border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-300",
                                 )}
                             >
                                 {tab.label}
@@ -84,7 +84,7 @@ export default function Orders() {
                         {Array.from({ length: 3 }).map((_, i) => (
                             <div
                                 key={i}
-                                className="h-28 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800"
+                                className="h-28 animate-pulse rounded-xl bg-neutral-200 dark:bg-neutral-800"
                             />
                         ))}
                     </div>
@@ -93,8 +93,8 @@ export default function Orders() {
                         {error}
                     </div>
                 ) : orders.length === 0 ? (
-                    <div className="rounded-xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
-                        <p className="text-slate-500">No orders found.</p>
+                    <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center dark:border-neutral-800 dark:bg-neutral-900">
+                        <p className="text-neutral-500">No orders found.</p>
                     </div>
                 ) : (
                     <div className="space-y-4">

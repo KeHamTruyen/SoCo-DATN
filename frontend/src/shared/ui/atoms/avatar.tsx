@@ -9,7 +9,7 @@ export function Avatar({ wrapperClassName, className, alt, ...props }: AvatarPro
     return (
         <div
             className={cn(
-                "size-9 overflow-hidden rounded-full border border-slate-200 dark:border-slate-700",
+                "size-9 overflow-hidden rounded-full border border-neutral-200 dark:border-neutral-700",
                 wrapperClassName,
             )}
         >

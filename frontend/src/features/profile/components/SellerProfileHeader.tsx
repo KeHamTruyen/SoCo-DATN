@@ -18,11 +18,11 @@ export function SellerProfileHeader({
     onUnfollow,
 }: SellerProfileHeaderProps) {
     return (
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
                 <div className="flex items-center gap-4">
                     <div className="relative">
-                        <div className="h-24 w-24 overflow-hidden rounded-2xl border-4 border-slate-50 shadow-sm dark:border-slate-800">
+                        <div className="h-24 w-24 overflow-hidden rounded-2xl border-4 border-neutral-50 shadow-sm dark:border-neutral-800">
                             <Avatar
                                 src={profile.avatarUrl ?? ""}
                                 alt={profile.fullName}
@@ -30,7 +30,7 @@ export function SellerProfileHeader({
                             />
                         </div>
                         {profile.isVerified && (
-                            <div className="absolute -bottom-2 -right-2 rounded-full border-2 border-white bg-blue-500 p-1 dark:border-slate-900">
+                            <div className="absolute -bottom-2 -right-2 rounded-full border-2 border-white bg-info p-1 dark:border-neutral-900">
                                 <BadgeCheck className="h-3 w-3 text-white" />
                             </div>
                         )}
@@ -45,21 +45,21 @@ export function SellerProfileHeader({
                             )}
                         </div>
                         {profile.bio && (
-                            <p className="text-sm text-slate-500">{profile.bio}</p>
+                            <p className="text-sm text-neutral-500">{profile.bio}</p>
                         )}
                         <div className="mt-2 flex items-center gap-4">
                             {profile.shopRating !== undefined && (
                                 <div className="flex items-center gap-1">
-                                    <Star className="h-4 w-4 fill-orange-400 text-orange-400" />
+                                    <Star className="h-4 w-4 fill-primary-400 text-primary-400" />
                                     <span className="text-sm font-bold">{profile.shopRating}/5</span>
-                                    <span className="ml-1 text-xs text-slate-400">Shop Rating</span>
+                                    <span className="ml-1 text-xs text-neutral-400">Shop Rating</span>
                                 </div>
                             )}
                             {profile.shopResponseRate !== undefined && (
                                 <div className="flex items-center gap-1">
-                                    <Zap className="h-4 w-4 text-green-500" />
+                                    <Zap className="h-4 w-4 text-success" />
                                     <span className="text-sm font-bold">{profile.shopResponseRate}%</span>
-                                    <span className="ml-1 text-xs text-slate-400">Chat Response</span>
+                                    <span className="ml-1 text-xs text-neutral-400">Chat Response</span>
                                 </div>
                             )}
                         </div>

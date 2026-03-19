@@ -15,19 +15,19 @@ function formatRelativeTime(isoString: string) {
 const TYPE_ICON: Record<string, { icon: React.ReactNode; bgClass: string }> = {
     comment: {
         icon: <MessageSquare className="h-5 w-5" />,
-        bgClass: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+        bgClass: "bg-info/10 text-info dark:bg-info/20",
     },
     like: {
         icon: <Bell className="h-5 w-5" />,
-        bgClass: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+        bgClass: "bg-info/10 text-info dark:bg-info/20",
     },
     order: {
         icon: <Package className="h-5 w-5" />,
-        bgClass: "bg-orange-100 text-primary dark:bg-orange-900/30",
+        bgClass: "bg-primary-100 text-primary dark:bg-primary-950/40",
     },
     system: {
         icon: <Tag className="h-5 w-5" />,
-        bgClass: "bg-orange-100 text-primary dark:bg-orange-900/30",
+        bgClass: "bg-primary-100 text-primary dark:bg-primary-950/40",
     },
 };
 
@@ -43,8 +43,8 @@ export function NotificationDropdown({
     onClose,
 }: NotificationDropdownProps) {
     return (
-        <div className="absolute right-0 z-50 mt-3 flex w-96 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-background-dark">
-            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+        <div className="absolute right-0 z-50 mt-3 flex w-96 flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl dark:border-neutral-800 dark:bg-background-dark">
+            <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
                 <h3 className="text-base font-semibold">
                     Notifications
                     {unreadCount > 0 && (
@@ -64,7 +64,7 @@ export function NotificationDropdown({
 
             <div className="max-h-96 overflow-y-auto">
                 {notifications.length === 0 ? (
-                    <div className="py-8 text-center text-sm text-slate-400">
+                    <div className="py-8 text-center text-sm text-neutral-400">
                         No notifications
                     </div>
                 ) : (
@@ -73,7 +73,7 @@ export function NotificationDropdown({
                         return (
                             <div
                                 key={n.id}
-                                className="group relative flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                className="group relative flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
                             >
                                 <div className="shrink-0">
                                     <div
@@ -83,13 +83,13 @@ export function NotificationDropdown({
                                     </div>
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-sm leading-tight text-slate-800 dark:text-slate-200">
+                                    <p className="text-sm leading-tight text-neutral-800 dark:text-neutral-200">
                                         {n.actorName && (
                                             <span className="font-semibold">{n.actorName} </span>
                                         )}
                                         {n.content}
                                     </p>
-                                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                    <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                                         {formatRelativeTime(n.createdAt)}
                                     </p>
                                 </div>
@@ -104,7 +104,7 @@ export function NotificationDropdown({
                 )}
             </div>
 
-            <div className="border-t border-slate-100 p-3 dark:border-slate-800">
+            <div className="border-t border-neutral-100 p-3 dark:border-neutral-800">
                 <Link
                     to="/notifications"
                     onClick={onClose}

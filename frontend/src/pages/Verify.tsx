@@ -40,7 +40,7 @@ export default function Verify() {
     };
 
     return (
-        <Card className="w-full max-w-md overflow-hidden border-slate-200 p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+        <Card className="w-full max-w-md overflow-hidden border-neutral-200 p-6 shadow-xl dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
             <div className="flex flex-col items-center text-center">
                 <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 dark:bg-primary/20">
                     <ShieldCheck className="h-8 w-8 text-primary" />
@@ -48,7 +48,7 @@ export default function Verify() {
                 <h1 className="mb-2 text-2xl font-bold tracking-tight">
                     Two-Factor Authentication
                 </h1>
-                <p className="mb-8 text-sm text-slate-500 dark:text-slate-400">
+                <p className="mb-8 text-sm text-neutral-500 dark:text-neutral-400">
                     OTP has been sent to your email
                 </p>
 
@@ -66,7 +66,7 @@ export default function Verify() {
                             {isSubmitting ? "Verifying..." : "Verify"}
                         </Button>
                         <div className="flex items-center justify-center gap-1 text-sm">
-                            <span className="text-slate-500 dark:text-slate-400">
+                            <span className="text-neutral-500 dark:text-neutral-400">
                                 Didn't receive code?
                             </span>
                             <button

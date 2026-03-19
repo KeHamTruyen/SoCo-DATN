@@ -67,7 +67,7 @@ export default function Login() {
                 subtitle="Enter your details to access your shop"
                 footer={
                     <div className="space-y-4">
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                        <p className="text-sm text-neutral-600 dark:text-neutral-400">
                             Don't have an account?{" "}
                             <Link
                                 className="font-semibold text-primary hover:underline"
@@ -76,7 +76,7 @@ export default function Login() {
                                 Sign up
                             </Link>
                         </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-500">
+                        <p className="text-xs text-neutral-500 dark:text-neutral-500">
                             By logging in, you agree to our{" "}
                             <a className="underline hover:text-primary" href="#">
                                 Terms of Service
@@ -103,7 +103,7 @@ export default function Login() {
 
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                 Password
                             </span>
                             <Link

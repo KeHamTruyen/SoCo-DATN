@@ -26,9 +26,9 @@ export function CartItem({
                     type="checkbox"
                     checked={selected}
                     onChange={(e) => onSelect(item.id, e.target.checked)}
-                    className="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary dark:border-slate-700"
+                    className="h-5 w-5 rounded border-neutral-300 text-primary focus:ring-primary dark:border-neutral-700"
                 />
-                <div className="h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
+                <div className="h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800">
                     {item.imageUrl ? (
                         <img
                             src={item.imageUrl}
@@ -36,7 +36,7 @@ export function CartItem({
                             className="h-full w-full object-cover"
                         />
                     ) : (
-                        <div className="flex h-full w-full items-center justify-center text-slate-400 text-xs">
+                        <div className="flex h-full w-full items-center justify-center text-neutral-400 text-xs">
                             No image
                         </div>
                     )}
@@ -47,13 +47,13 @@ export function CartItem({
                     <div>
                         <h3 className="text-lg font-semibold">{item.productName}</h3>
                         {variantText && (
-                            <p className="text-sm text-slate-500">{variantText}</p>
+                            <p className="text-sm text-neutral-500">{variantText}</p>
                         )}
                     </div>
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="text-slate-400 hover:text-red-500"
+                        className="text-neutral-400 hover:text-destructive"
                         onClick={() => onRemove(item.id)}
                     >
                         <Trash2 className="h-4 w-4" />
@@ -63,12 +63,12 @@ export function CartItem({
                     <span className="text-xl font-bold text-primary">
                         ${(item.price * item.quantity).toFixed(2)}
                     </span>
-                    <div className="flex items-center overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700">
                         <button
                             type="button"
                             onClick={() => onQuantityChange(item.id, Math.max(1, item.quantity - 1))}
                             disabled={item.quantity <= 1}
-                            className="border-r border-slate-200 px-3 py-1 transition-colors hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                            className="border-r border-neutral-200 px-3 py-1 transition-colors hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
                         >
                             <Minus className="h-3 w-3" />
                         </button>
@@ -76,7 +76,7 @@ export function CartItem({
                         <button
                             type="button"
                             onClick={() => onQuantityChange(item.id, item.quantity + 1)}
-                            className="border-l border-slate-200 px-3 py-1 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                            className="border-l border-neutral-200 px-3 py-1 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
                         >
                             <Plus className="h-3 w-3" />
                         </button>

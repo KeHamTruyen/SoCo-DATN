@@ -65,7 +65,7 @@ export default function Notifications() {
                     <div>
                         <h1 className="text-3xl font-bold">Notifications</h1>
                         {unreadCount > 0 && (
-                            <p className="mt-1 text-sm text-slate-500">
+                            <p className="mt-1 text-sm text-neutral-500">
                                 {unreadCount} unread notification(s)
                             </p>
                         )}
@@ -82,7 +82,7 @@ export default function Notifications() {
                     )}
                 </div>
 
-                <div className="mb-6 border-b border-slate-200 dark:border-slate-800">
+                <div className="mb-6 border-b border-neutral-200 dark:border-neutral-800">
                     <nav className="flex space-x-8">
                         {TABS.map((tab) => (
                             <button
@@ -93,7 +93,7 @@ export default function Notifications() {
                                     "flex items-center gap-2 border-b-2 px-1 py-4 text-sm font-medium transition-colors",
                                     activeTab === tab.value
                                         ? "border-primary font-bold text-primary"
-                                        : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300",
+                                        : "border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-300",
                                 )}
                             >
                                 {tab.label}
@@ -112,13 +112,13 @@ export default function Notifications() {
                         {Array.from({ length: 5 }).map((_, i) => (
                             <div
                                 key={i}
-                                className="h-20 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800"
+                                className="h-20 animate-pulse rounded-xl bg-neutral-200 dark:bg-neutral-800"
                             />
                         ))}
                     </div>
                 ) : notifications.length === 0 ? (
-                    <div className="rounded-xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
-                        <p className="text-slate-400">No notifications.</p>
+                    <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center dark:border-neutral-800 dark:bg-neutral-900">
+                        <p className="text-neutral-400">No notifications.</p>
                     </div>
                 ) : (
                     <div className="space-y-1">

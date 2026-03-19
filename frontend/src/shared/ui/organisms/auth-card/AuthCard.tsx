@@ -21,7 +21,7 @@ export function AuthCard({
     return (
         <Card
             className={cn(
-                "w-full max-w-md border-slate-200 p-6 shadow-2xl shadow-primary/5 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/60 sm:p-8",
+                "w-full max-w-md border-neutral-200 p-6 shadow-2xl shadow-primary/5 backdrop-blur-sm dark:border-neutral-800 dark:bg-neutral-900/60 sm:p-8",
                 className,
             )}
         >
@@ -29,11 +29,11 @@ export function AuthCard({
                 <BrandLogo />
             </div>
             <div className="mb-7 space-y-2 text-center">
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 sm:text-3xl">
+                <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 sm:text-3xl">
                     {title}
                 </h1>
                 {subtitle ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400">
                         {subtitle}
                     </p>
                 ) : null}

@@ -65,7 +65,7 @@ export function UnifiedHeader({
     }, []);
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/90 backdrop-blur-md dark:border-slate-800 dark:bg-background-dark/90">
+        <header className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/90 backdrop-blur-md dark:border-neutral-800 dark:bg-background-dark/90">
             <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6">
                 <div className="flex items-center gap-4 lg:gap-8">
                     <BrandLogo className="[&>span]:hidden sm:[&>span]:inline" />
@@ -78,7 +78,7 @@ export function UnifiedHeader({
                                     "py-5 text-sm font-medium transition-colors",
                                     (activePath ?? item.to) === item.to
                                         ? "border-b-2 border-primary font-bold text-primary"
-                                        : "text-slate-500 hover:text-primary",
+                                        : "text-neutral-500 hover:text-primary",
                                 )}
                             >
                                 {item.label}
@@ -89,7 +89,7 @@ export function UnifiedHeader({
 
                 <div className="hidden flex-1 px-2 md:block">
                     <div className="relative mx-auto max-w-2xl">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                         <Input
                             className="h-10 pl-9"
                             placeholder="Search products, sellers, or hashtags..."
@@ -103,7 +103,7 @@ export function UnifiedHeader({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="relative text-slate-600 dark:text-slate-300"
+                            className="relative text-neutral-600 dark:text-neutral-300"
                             onClick={() => setNotifOpen((v) => !v)}
                         >
                             <Bell className="h-5 w-5" />
@@ -120,12 +120,12 @@ export function UnifiedHeader({
                         )}
                     </div>
                     <Link to="/messages">
-                        <Button variant="ghost" size="icon" className="text-slate-600 dark:text-slate-300">
+                        <Button variant="ghost" size="icon" className="text-neutral-600 dark:text-neutral-300">
                             <MessageCircle className="h-5 w-5" />
                         </Button>
                     </Link>
                     <Link to="/cart">
-                        <Button variant="ghost" size="icon" className="text-slate-600 dark:text-slate-300">
+                        <Button variant="ghost" size="icon" className="text-neutral-600 dark:text-neutral-300">
                             <ShoppingCart className="h-5 w-5" />
                         </Button>
                     </Link>
@@ -152,9 +152,9 @@ export function UnifiedHeader({
             </div>
 
             {mobileOpen ? (
-                <div className="space-y-3 border-t border-slate-200 px-4 py-4 dark:border-slate-800 md:hidden">
+                <div className="space-y-3 border-t border-neutral-200 px-4 py-4 dark:border-neutral-800 md:hidden">
                     <div className="relative">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                         <Input
                             className="h-10 pl-9"
                             placeholder="Search..."
@@ -170,7 +170,7 @@ export function UnifiedHeader({
                                     "rounded-lg px-3 py-2 text-sm font-medium",
                                     (activePath ?? item.to) === item.to
                                         ? "bg-primary/10 text-primary"
-                                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800",
+                                        : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800",
                                 )}
                             >
                                 {item.label}

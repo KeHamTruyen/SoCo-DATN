@@ -4,11 +4,11 @@ import { cn } from "../../../shared/lib/cn";
 import type { Group } from "../types/group.types";
 
 const AVATAR_COLORS = [
-    "bg-blue-600",
+    "bg-primary-600",
     "bg-primary",
-    "bg-green-600",
-    "bg-purple-600",
-    "bg-pink-600",
+    "bg-success",
+    "bg-info",
+    "bg-warning",
 ];
 
 interface GroupCardProps {
@@ -20,8 +20,8 @@ export function GroupCard({ group, onJoin }: GroupCardProps) {
     const colorClass = AVATAR_COLORS[group.name.charCodeAt(0) % AVATAR_COLORS.length];
 
     return (
-        <div className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all hover:shadow-xl dark:border-slate-700 dark:bg-slate-800">
-            <div className="relative h-32 overflow-hidden bg-slate-200 dark:bg-slate-700">
+        <div className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-all hover:shadow-xl dark:border-neutral-700 dark:bg-neutral-800">
+            <div className="relative h-32 overflow-hidden bg-neutral-200 dark:bg-neutral-700">
                 {group.coverImageUrl ? (
                     <img
                         src={group.coverImageUrl}
@@ -43,7 +43,7 @@ export function GroupCard({ group, onJoin }: GroupCardProps) {
                 <div className="-mt-6 mb-4 flex items-start justify-between">
                     <div
                         className={cn(
-                            "flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-white text-xl font-bold text-white shadow-sm dark:border-slate-800",
+                            "flex h-16 w-16 items-center justify-center rounded-2xl border-4 border-white text-xl font-bold text-white shadow-sm dark:border-neutral-800",
                             colorClass,
                         )}
                     >
@@ -58,7 +58,7 @@ export function GroupCard({ group, onJoin }: GroupCardProps) {
                                 {group.name}
                             </Link>
                         </h4>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
                             {group.membersCount.toLocaleString()} members
                             {group.postsPerDay !== undefined && (
                                 <> • {group.postsPerDay} posts/day</>
@@ -68,13 +68,13 @@ export function GroupCard({ group, onJoin }: GroupCardProps) {
                 </div>
 
                 {group.description && (
-                    <p className="mb-6 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">
+                    <p className="mb-6 line-clamp-2 text-sm text-neutral-600 dark:text-neutral-300">
                         {group.description}
                     </p>
                 )}
 
                 <div className="mt-auto flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                    <div className="flex items-center gap-1 text-xs text-neutral-500">
                         <Users className="h-3.5 w-3.5" />
                         {group.friendsInGroup
                             ? `${group.friendsInGroup} friends joined`
@@ -83,7 +83,7 @@ export function GroupCard({ group, onJoin }: GroupCardProps) {
                     {group.isMember ? (
                         <Link
                             to={`/groups/${group.id}`}
-                            className="rounded-xl bg-slate-100 px-5 py-2 text-sm font-bold text-slate-700 transition-all hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
+                            className="rounded-xl bg-neutral-100 px-5 py-2 text-sm font-bold text-neutral-700 transition-all hover:bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
                         >
                             View
                         </Link>

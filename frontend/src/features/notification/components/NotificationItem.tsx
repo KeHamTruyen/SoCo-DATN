@@ -4,11 +4,11 @@ import { cn } from "../../../shared/lib/cn";
 import type { Notification } from "../types/notification.types";
 
 const ICON_MAP = {
-    comment: { icon: <MessageSquare className="h-3 w-3" />, bg: "bg-blue-500" },
-    like: { icon: <Heart className="h-3 w-3" />, bg: "bg-red-500" },
-    follow: { icon: <User className="h-3 w-3" />, bg: "bg-green-500" },
+    comment: { icon: <MessageSquare className="h-3 w-3" />, bg: "bg-info" },
+    like: { icon: <Heart className="h-3 w-3" />, bg: "bg-destructive" },
+    follow: { icon: <User className="h-3 w-3" />, bg: "bg-success" },
     order: { icon: <Package className="h-3 w-3" />, bg: "bg-primary" },
-    system: { icon: <Settings className="h-3 w-3" />, bg: "bg-blue-600" },
+    system: { icon: <Settings className="h-3 w-3" />, bg: "bg-info" },
 };
 
 function formatRelativeTime(isoString: string) {
@@ -35,7 +35,7 @@ export function NotificationItem({ notification, onRead }: NotificationItemProps
             className={cn(
                 "group relative flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-all",
                 notification.isRead
-                    ? "border-transparent hover:bg-slate-100 dark:hover:bg-slate-800"
+                    ? "border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800"
                     : "border-primary/10 bg-primary/5 hover:bg-primary/10",
             )}
             onClick={() => !notification.isRead && onRead?.(notification.id)}
@@ -68,8 +68,8 @@ export function NotificationItem({ notification, onRead }: NotificationItemProps
                         className={cn(
                             "flex h-12 w-12 items-center justify-center rounded-full text-white",
                             notification.type === "order"
-                                ? "bg-orange-100 text-primary dark:bg-orange-900/30"
-                                : "bg-blue-100 text-blue-600 dark:bg-blue-900/30",
+                                ? "bg-primary-100 text-primary dark:bg-primary-950/40"
+                                : "bg-info/10 text-info dark:bg-info/20",
                         )}
                     >
                         {notification.type === "order" ? (
@@ -82,13 +82,13 @@ export function NotificationItem({ notification, onRead }: NotificationItemProps
             </div>
 
             <div className="min-w-0 flex-1">
-                <p className="text-sm leading-relaxed text-slate-900 dark:text-slate-100">
+                <p className="text-sm leading-relaxed text-neutral-900 dark:text-neutral-100">
                     {notification.actorName && (
                         <span className="font-bold">{notification.actorName} </span>
                     )}
                     {notification.content}
                 </p>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-neutral-500">
                     {formatRelativeTime(notification.createdAt)}
                 </p>
             </div>

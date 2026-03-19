@@ -76,38 +76,38 @@ export default function AdminDashboard() {
             <main className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-                    <p className="mt-1 text-slate-500 dark:text-slate-400">
+                    <p className="mt-1 text-neutral-500 dark:text-neutral-400">
                         Reported Content Management
                     </p>
                 </div>
 
                 <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
                     {[
-                        { label: "Total Reports", value: stats.total, color: "text-slate-900 dark:text-slate-100" },
-                        { label: "High Priority", value: stats.high, color: "text-red-600" },
-                        { label: "Medium Priority", value: stats.medium, color: "text-yellow-600" },
+                        { label: "Total Reports", value: stats.total, color: "text-neutral-900 dark:text-neutral-100" },
+                        { label: "High Priority", value: stats.high, color: "text-destructive" },
+                        { label: "Medium Priority", value: stats.medium, color: "text-warning" },
                         { label: "Pending Review", value: stats.pending, color: "text-primary" },
                     ].map((stat) => (
                         <div
                             key={stat.label}
-                            className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                            className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
                         >
-                            <p className="text-sm text-slate-500">{stat.label}</p>
+                            <p className="text-sm text-neutral-500">{stat.label}</p>
                             <p className={`mt-1 text-3xl font-black ${stat.color}`}>{stat.value}</p>
                         </div>
                     ))}
                 </div>
 
-                <div className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                     <div className="flex flex-wrap items-end gap-4">
                         <div className="min-w-[200px] flex-1">
-                            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">
+                            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-neutral-500">
                                 Category
                             </label>
                             <select
                                 value={filters.category}
                                 onChange={(e) => setFilters((f) => ({ ...f, category: e.target.value }))}
-                                className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 px-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-800 dark:bg-slate-900"
+                                className="w-full rounded-lg border border-neutral-200 bg-neutral-50 py-2 px-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary dark:border-neutral-800 dark:bg-neutral-900"
                             >
                                 <option value="">All Categories</option>
                                 <option value="inappropriate_content">Inappropriate Content</option>
@@ -117,13 +117,13 @@ export default function AdminDashboard() {
                             </select>
                         </div>
                         <div className="min-w-[200px] flex-1">
-                            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">
+                            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-neutral-500">
                                 Priority
                             </label>
                             <select
                                 value={filters.priority}
                                 onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value }))}
-                                className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 px-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-800 dark:bg-slate-900"
+                                className="w-full rounded-lg border border-neutral-200 bg-neutral-50 py-2 px-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary dark:border-neutral-800 dark:bg-neutral-900"
                             >
                                 <option value="">All Priorities</option>
                                 <option value="high">High Priority</option>
@@ -132,13 +132,13 @@ export default function AdminDashboard() {
                             </select>
                         </div>
                         <div className="min-w-[200px] flex-1">
-                            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500">
+                            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-neutral-500">
                                 Date Range
                             </label>
                             <select
                                 value={filters.dateRange}
                                 onChange={(e) => setFilters((f) => ({ ...f, dateRange: e.target.value }))}
-                                className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 px-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary dark:border-slate-800 dark:bg-slate-900"
+                                className="w-full rounded-lg border border-neutral-200 bg-neutral-50 py-2 px-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary dark:border-neutral-800 dark:bg-neutral-900"
                             >
                                 <option value="last_24h">Last 24 Hours</option>
                                 <option value="last_7_days">Last 7 Days</option>
@@ -153,7 +153,7 @@ export default function AdminDashboard() {
                         {Array.from({ length: 4 }).map((_, i) => (
                             <div
                                 key={i}
-                                className="h-20 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800"
+                                className="h-20 animate-pulse rounded-xl bg-neutral-200 dark:bg-neutral-800"
                             />
                         ))}
                     </div>

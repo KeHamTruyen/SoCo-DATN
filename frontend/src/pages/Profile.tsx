@@ -122,8 +122,8 @@ export default function Profile() {
             <main className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
                 {isLoading ? (
                     <div className="space-y-6">
-                        <div className="h-32 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />
-                        <div className="h-48 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />
+                        <div className="h-32 animate-pulse rounded-2xl bg-neutral-200 dark:bg-neutral-800" />
+                        <div className="h-48 animate-pulse rounded-2xl bg-neutral-200 dark:bg-neutral-800" />
                     </div>
                 ) : !profile ? (
                     <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center text-red-600 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-400">
@@ -133,31 +133,31 @@ export default function Profile() {
                     <div className="flex flex-col gap-6 lg:flex-row">
                         {isSelf && (
                             <aside className="w-full shrink-0 space-y-4 lg:w-56">
-                                <nav className="overflow-hidden rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                                <nav className="overflow-hidden rounded-xl border border-neutral-200 bg-white p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                                     <Link
                                         to="/feed"
-                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
+                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-neutral-600 transition-colors hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
                                     >
                                         <LayoutDashboard className="h-4 w-4" />
                                         <span className="text-sm">Home Feed</span>
                                     </Link>
                                     <Link
                                         to="/scheduled-posts"
-                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
+                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-neutral-600 transition-colors hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
                                     >
                                         <CalendarClock className="h-4 w-4" />
                                         <span className="text-sm">Scheduled Posts</span>
                                     </Link>
                                     <Link
                                         to="/orders"
-                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800"
+                                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-neutral-600 transition-colors hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
                                     >
                                         <Package className="h-4 w-4" />
                                         <span className="text-sm">Inventory</span>
                                     </Link>
                                 </nav>
 
-                                <div className="rounded-2xl bg-gradient-to-br from-primary to-orange-600 p-5 text-white shadow-lg shadow-primary/20">
+                                <div className="rounded-2xl bg-gradient-to-br from-primary to-primary-700 p-5 text-white shadow-lg shadow-primary/20">
                                     <div className="mb-4 flex items-center gap-2">
                                         <Sparkles className="h-5 w-5" />
                                         <h3 className="font-bold">AI Creative Studio</h3>
@@ -195,7 +195,7 @@ export default function Profile() {
 
                             {isSelf ? (
                                 <>
-                                    <div className="no-scrollbar flex gap-8 overflow-x-auto border-b border-slate-200 dark:border-slate-800">
+                                    <div className="no-scrollbar flex gap-8 overflow-x-auto border-b border-neutral-200 dark:border-neutral-800">
                                         {SELLER_TABS.map((tab) => (
                                             <button
                                                 key={tab.value}
@@ -205,7 +205,7 @@ export default function Profile() {
                                                     "whitespace-nowrap border-b-2 pb-4 text-sm font-medium transition-colors",
                                                     sellerTab === tab.value
                                                         ? "border-primary font-bold text-primary"
-                                                        : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300",
+                                                        : "border-transparent text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300",
                                                 )}
                                             >
                                                 {tab.label}
@@ -220,7 +220,7 @@ export default function Profile() {
                                         <ProfilePostsGrid posts={posts} isLoading={isLoading} columns={3} />
                                     )}
                                     {(sellerTab === "orders" || sellerTab === "feedback") && (
-                                        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-400 dark:border-slate-800 dark:bg-slate-900">
+                                        <div className="rounded-xl border border-neutral-200 bg-white p-8 text-center text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900">
                                             No data yet.
                                         </div>
                                     )}
@@ -232,7 +232,7 @@ export default function Profile() {
                     </div>
                 ) : (
                     <div className="mx-auto max-w-4xl space-y-6">
-                        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                             <BuyerProfileHeader
                                 profile={profile}
                                 isSelf={isSelf}
@@ -241,8 +241,8 @@ export default function Profile() {
                             />
                         </div>
 
-                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                            <div className="no-scrollbar flex overflow-x-auto border-b border-slate-100 px-2 dark:border-slate-800">
+                        <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                            <div className="no-scrollbar flex overflow-x-auto border-b border-neutral-100 px-2 dark:border-neutral-800">
                                 {BUYER_TABS.map((tab) => (
                                     <button
                                         key={tab.value}
@@ -252,7 +252,7 @@ export default function Profile() {
                                             "flex min-w-[100px] flex-1 items-center justify-center gap-2 py-4 text-sm font-medium transition-colors",
                                             buyerTab === tab.value
                                                 ? "border-b-2 border-primary font-bold text-primary"
-                                                : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200",
+                                                : "text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200",
                                         )}
                                     >
                                         {tab.icon}
@@ -264,7 +264,7 @@ export default function Profile() {
                                 {buyerTab === "posts" ? (
                                     <ProfilePostsGrid posts={posts} isLoading={isLoading} columns={2} />
                                 ) : (
-                                    <div className="py-8 text-center text-slate-400">
+                                    <div className="py-8 text-center text-neutral-400">
                                         No reviews yet.
                                     </div>
                                 )}
@@ -272,7 +272,7 @@ export default function Profile() {
                         </div>
 
                         {isSelf && (
-                            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                            <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                                 <h2 className="mb-4 text-lg font-semibold">Account Actions</h2>
                                 <Button
                                     variant="outline"
