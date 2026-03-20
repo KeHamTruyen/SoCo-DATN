@@ -66,7 +66,7 @@ function SideNavItem({ to, onClick, icon, label, active }: NavItemProps) {
     );
 }
 
-function LeftSidebar({ onOpenModal, isSeller }: { onOpenModal: () => void; isSeller: boolean }) {
+function LeftSidebar({ isSeller }: { isSeller: boolean }) {
     const { pathname } = useLocation();
 
     return (
@@ -120,9 +120,10 @@ function LeftSidebar({ onOpenModal, isSeller }: { onOpenModal: () => void; isSel
                     Creative Hub
                 </p>
                 <SideNavItem
-                    onClick={onOpenModal}
+                    to="/ai-creative-lab"
                     icon={<Sparkles className="h-5 w-5 text-primary" />}
                     label="AI Creative Lab"
+                    active={pathname === "/ai-creative-lab"}
                 />
                 <SideNavItem
                     to="/scheduled-posts"
@@ -484,7 +485,7 @@ export default function Feed() {
             />
 
             <main className="mx-auto flex w-full max-w-[1440px] gap-6 px-6 py-6">
-                <LeftSidebar onOpenModal={() => setShowModal(true)} isSeller={isSeller} />
+                <LeftSidebar isSeller={isSeller} />
 
                 {/* Center column */}
                 <section className="min-w-0 flex-1 space-y-4" style={{ maxWidth: "680px" }}>

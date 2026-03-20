@@ -5,6 +5,7 @@ export interface PublicUserProfile {
     fullName: string;
     username?: string;
     avatarUrl?: string;
+    coverUrl?: string;
     bio?: string;
     role: ProfileRole;
     followersCount: number;

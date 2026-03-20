@@ -1,20 +1,24 @@
 import {
     Bell,
+    LogOut,
     Menu,
     MessageCircle,
+    Monitor,
     Search,
     ShoppingCart,
+    User,
     X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { notificationApi } from "../../../../features/notification/api/notificationApi";
 import { NotificationDropdown } from "../../../../features/notification/components/NotificationDropdown";
 import type { Notification } from "../../../../features/notification/types/notification.types";
 import { useAuthSession } from "../../../auth/useAuthSession";
+import { cn } from "../../../lib/cn";
+import { ThemePickerModal } from "../../molecules/theme-picker-modal/ThemePickerModal";
 import { Avatar, Button, Input } from "../../atoms";
 import { BrandLogo } from "../brand-logo/BrandLogo";
-import { cn } from "../../../lib/cn";
 
 type HeaderNavItem = {
     label: string;
@@ -32,6 +36,9 @@ const defaultNavItems: HeaderNavItem[] = [
     { label: "Marketplace", to: "/marketplace" },
 ];
 
+const avatarFallback =
+    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop";
+
 export function UnifiedHeader({
     navItems = defaultNavItems,
     activePath,
@@ -39,10 +46,15 @@ export function UnifiedHeader({
 }: UnifiedHeaderProps) {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [notifOpen, setNotifOpen] = useState(false);
+    const [profileOpen, setProfileOpen] = useState(false);
+    const [themeModalOpen, setThemeModalOpen] = useState(false);
+    const [loggingOut, setLoggingOut] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const notifRef = useRef<HTMLDivElement>(null);
-    const { user } = useAuthSession();
+    const profileRef = useRef<HTMLDivElement>(null);
+    const navigate = useNavigate();
+    const { user, logout } = useAuthSession();
 
     useEffect(() => {
         void notificationApi
@@ -56,13 +68,35 @@ export function UnifiedHeader({
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+            const t = e.target as Node;
+            if (notifRef.current && !notifRef.current.contains(t)) {
                 setNotifOpen(false);
+            }
+            if (profileRef.current && !profileRef.current.contains(t)) {
+                setProfileOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    const handleLogout = () => {
+        void (async () => {
+            setLoggingOut(true);
+            setProfileOpen(false);
+            try {
+                await logout();
+                navigate("/login");
+            } finally {
+                setLoggingOut(false);
+            }
+        })();
+    };
+
+    const openThemeModal = () => {
+        setProfileOpen(false);
+        setThemeModalOpen(true);
+    };
 
     return (
         <header className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/90 backdrop-blur-md dark:border-neutral-800 dark:bg-background-dark/90">
@@ -129,16 +163,66 @@ export function UnifiedHeader({
                             <ShoppingCart className="h-5 w-5" />
                         </Button>
                     </Link>
-                    <Link to="/profile" className="hidden sm:block">
-                        <Avatar
-                            wrapperClassName=""
-                            src={
-                                user?.avatarUrl ??
-                                "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop"
-                            }
-                            alt={user?.fullName ?? "User avatar"}
-                        />
-                    </Link>
+                    {user ? (
+                        <div ref={profileRef} className="relative shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => setProfileOpen((v) => !v)}
+                                className="rounded-full ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                aria-expanded={profileOpen}
+                                aria-haspopup="menu"
+                            >
+                                <Avatar
+                                    wrapperClassName=""
+                                    src={user.avatarUrl ?? avatarFallback}
+                                    alt={user.fullName ?? "User avatar"}
+                                />
+                            </button>
+                            {profileOpen ? (
+                                <div
+                                    className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+                                    role="menu"
+                                >
+                                    <Link
+                                        to="/profile"
+                                        role="menuitem"
+                                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                                        onClick={() => setProfileOpen(false)}
+                                    >
+                                        <User className="h-4 w-4 shrink-0 text-neutral-500" />
+                                        Trang cá nhân
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        role="menuitem"
+                                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                                        onClick={openThemeModal}
+                                    >
+                                        <Monitor className="h-4 w-4 shrink-0 text-neutral-500" />
+                                        Màn hình
+                                    </button>
+                                    <button
+                                        type="button"
+                                        role="menuitem"
+                                        disabled={loggingOut}
+                                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                                        onClick={handleLogout}
+                                    >
+                                        <LogOut className="h-4 w-4 shrink-0 text-neutral-500" />
+                                        {loggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
+                                    </button>
+                                </div>
+                            ) : null}
+                        </div>
+                    ) : (
+                        <Link to="/profile" className="shrink-0">
+                            <Avatar
+                                wrapperClassName=""
+                                src={avatarFallback}
+                                alt="User avatar"
+                            />
+                        </Link>
+                    )}
                     <Button
                         variant="ghost"
                         size="icon"
@@ -177,8 +261,48 @@ export function UnifiedHeader({
                             </NavLink>
                         ))}
                     </nav>
+                    {user ? (
+                        <div className="border-t border-neutral-200 pt-3 dark:border-neutral-800">
+                            <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                Tài khoản
+                            </p>
+                            <Link
+                                to="/profile"
+                                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                                onClick={() => setMobileOpen(false)}
+                            >
+                                <User className="h-4 w-4" />
+                                Trang cá nhân
+                            </Link>
+                            <button
+                                type="button"
+                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                                onClick={() => {
+                                    setMobileOpen(false);
+                                    setThemeModalOpen(true);
+                                }}
+                            >
+                                <Monitor className="h-4 w-4" />
+                                Màn hình
+                            </button>
+                            <button
+                                type="button"
+                                disabled={loggingOut}
+                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                                onClick={() => {
+                                    setMobileOpen(false);
+                                    handleLogout();
+                                }}
+                            >
+                                <LogOut className="h-4 w-4" />
+                                Đăng xuất
+                            </button>
+                        </div>
+                    ) : null}
                 </div>
             ) : null}
+
+            {themeModalOpen ? <ThemePickerModal onClose={() => setThemeModalOpen(false)} /> : null}
         </header>
     );
 }
