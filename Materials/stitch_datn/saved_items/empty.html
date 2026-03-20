@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Saved Items | The Editorial Synthesizer</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ea580c",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#ffedd5",
+                        "on-primary-container": "#7c2d12",
+                        "secondary": "#78716c",
+                        "background": "#fafaf9",
+                        "surface": "#fafaf9",
+                        "surface-variant": "#f5f5f4",
+                        "on-surface": "#1c1917",
+                        "on-surface-variant": "#44403c",
+                        "outline": "#a8a29e",
+                        "outline-variant": "#d6d3d1",
+                        "surface-container-low": "#f5f5f4",
+                        "surface-container": "#e7e5e4",
+                        "surface-container-high": "#d6d3d1",
+                        "surface-container-highest": "#a8a29e",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    fontFamily: {
+                        "headline": ["Public Sans", "Manrope", "sans-serif"],
+                        "body": ["Public Sans", "Inter", "sans-serif"],
+                        "label": ["Public Sans", "Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Public Sans', sans-serif;
+        }
+
+        h1,
+        h2,
+        h3,
+        .font-headline {
+            font-family: 'Public Sans', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface min-h-screen flex flex-col">
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Main Content Canvas -->
+        <main class="flex-1 overflow-y-auto bg-background p-8 md:p-12 lg:p-24 flex flex-col items-center">
+            <div class="max-w-4xl w-full mx-auto flex flex-col items-center text-center">
+                <!-- Header Section -->
+                <div class="w-full flex flex-col items-center mb-16">
+                    <h1 class="text-5xl md:text-6xl font-headline font-extrabold tracking-tighter text-on-surface mb-4">
+                        Saved Items
+                    </h1>
+                    <div class="h-1.5 w-24 bg-primary rounded-full"></div>
+                </div>
+                <!-- Empty State Content -->
+                <div
+                    class="relative w-full max-w-2xl bg-surface-container-lowest rounded-[2rem] p-12 md:p-20 flex flex-col items-center border border-outline-variant/30 shadow-sm">
+                    <!-- Stylized Illustration Placeholder -->
+                    <div class="relative mb-12">
+                        <div class="absolute inset-0 bg-primary/5 rounded-full blur-3xl scale-150"></div>
+                        <div class="relative w-64 h-64 flex items-center justify-center">
+                            <!-- Abstract Geometric Editorial Illustration -->
+                            <div
+                                class="relative w-48 h-64 bg-stone-100 rounded-xl rotate-[-6deg] shadow-sm flex flex-col p-4 overflow-hidden border border-outline-variant/30">
+                                <div class="w-full h-32 bg-stone-200 rounded-lg mb-4"></div>
+                                <div class="w-3/4 h-3 bg-stone-200 rounded mb-2"></div>
+                                <div class="w-1/2 h-3 bg-stone-200 rounded"></div>
+                            </div>
+                            <div
+                                class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-72 bg-surface-container-lowest rounded-xl rotate-[4deg] shadow-2xl flex flex-col p-6 border border-outline-variant/40 z-10">
+                                <div
+                                    class="w-full h-40 bg-stone-50 rounded-lg mb-6 flex items-center justify-center border border-stone-100">
+                                    <span class="material-symbols-outlined text-primary/30 text-6xl"
+                                        data-icon="bookmark_add">bookmark_add</span>
+                                </div>
+                                <div class="w-full h-4 bg-stone-100 rounded mb-3"></div>
+                                <div class="w-2/3 h-4 bg-stone-100 rounded"></div>
+                                <!-- Floating Icon -->
+                                <div
+                                    class="absolute -top-4 -right-4 w-12 h-12 bg-primary rounded-full flex items-center justify-center text-on-primary shadow-lg border-4 border-surface-container-lowest">
+                                    <span class="material-symbols-outlined" data-icon="favorite"
+                                        style="font-variation-settings: 'FILL' 1;">favorite</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-4 max-w-sm">
+                        <h2 class="text-2xl font-headline font-bold text-on-surface">
+                            You haven't saved any items yet
+                        </h2>
+                        <p class="text-on-surface-variant font-body leading-relaxed">
+                            Start curating your personal collection of inspiration. Items you save will appear here for
+                            easy access.
+                        </p>
+                    </div>
+                    <div class="mt-12">
+                        <button
+                            class="px-10 py-4 bg-primary text-on-primary rounded-xl font-headline font-extrabold text-lg tracking-tight flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/30">
+                            Explore Now
+                            <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+                        </button>
+                    </div>
+                    <!-- Subtle Editorial Background Text -->
+                    <div class="absolute bottom-6 right-8 opacity-[0.05] select-none pointer-events-none">
+                        <span class="text-8xl font-black font-headline text-stone-300">EMPTY</span>
+                    </div>
+                </div>
+                <!-- Contextual Suggestions -->
+                <div class="mt-20 w-full">
+                    <p
+                        class="text-xs font-headline font-bold uppercase tracking-widest text-on-surface-variant/60 mb-6 text-center border-b border-outline-variant/30 pb-2">
+                        Suggested Categories
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-3">
+                        <button
+                            class="px-6 py-3 bg-primary-container text-on-primary-container rounded-full text-sm font-bold font-body transition-all hover:brightness-95 ring-1 ring-primary/20">
+                            #Architecture2024
+                        </button>
+                        <button
+                            class="px-6 py-3 bg-stone-200 text-on-surface-variant rounded-full text-sm font-semibold font-body transition-colors hover:bg-primary/10 hover:text-primary">
+                            #MinimalistFashion
+                        </button>
+                        <button
+                            class="px-6 py-3 bg-stone-200 text-on-surface-variant rounded-full text-sm font-semibold font-body transition-colors hover:bg-primary/10 hover:text-primary">
+                            #FutureTech
+                        </button>
+                        <button
+                            class="px-6 py-3 bg-stone-200 text-on-surface-variant rounded-full text-sm font-semibold font-body transition-colors hover:bg-primary/10 hover:text-primary">
+                            #SustainableDesign
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- BottomNavBar (Mobile Only) -->
+    <nav
+        class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 md:hidden bg-surface-container-lowest/90 backdrop-blur-xl z-50 border-t border-outline-variant/30 shadow-[0_-8px_32px_rgba(41,37,36,0.06)]">
+        <a class="flex flex-col items-center justify-center text-on-surface/50 dark:text-stone-500 tap-highlight-transparent scale-95 transition-transform"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="explore">explore</span>
+            <span class="text-[10px] uppercase tracking-widest mt-1">Explore</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-primary dark:text-primary bg-primary/10 rounded-xl px-4 py-1 tap-highlight-transparent scale-95 transition-transform"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="bookmark"
+                style="font-variation-settings: 'FILL' 1;">bookmark</span>
+            <span class="text-[10px] uppercase tracking-widest mt-1">Saved</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-on-surface/50 dark:text-stone-500 tap-highlight-transparent scale-95 transition-transform"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="search">search</span>
+            <span class="text-[10px] uppercase tracking-widest mt-1">Search</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-on-surface/50 dark:text-stone-500 tap-highlight-transparent scale-95 transition-transform"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="person">person</span>
+            <span class="text-[10px] uppercase tracking-widest mt-1">Profile</span>
+        </a>
+    </nav>
+</body>
+
+</html>

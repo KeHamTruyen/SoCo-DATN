@@ -275,7 +275,7 @@ export default function Cart() {
                                 Order History
                             </Link>
                             <Link
-                                to="/marketplace"
+                                to="/saved-items"
                                 className="flex items-center gap-2 text-sm font-medium text-neutral-500 transition-colors hover:text-primary dark:text-neutral-500"
                             >
                                 <Bookmark className="h-5 w-5" aria-hidden />

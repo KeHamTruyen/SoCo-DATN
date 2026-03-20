@@ -5,6 +5,20 @@
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>Social Commerce Platform</title>
+      <!-- Keep localStorage key in sync with ThemePreferenceProvider (soco-theme-preference) -->
+      <script>
+        (function () {
+          var key = "soco-theme-preference";
+          var pref = localStorage.getItem(key);
+          var dark =
+            pref === "dark" ||
+            (pref !== "light" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var root = document.documentElement;
+          root.classList.toggle("dark", dark);
+          root.style.colorScheme = dark ? "dark" : "light";
+        })();
+      </script>
     </head>
 
     <body>

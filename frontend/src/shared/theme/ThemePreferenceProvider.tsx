@@ -17,7 +17,9 @@ function systemIsDark(): boolean {
 
 export function applyThemeClass(pref: ThemePreference): void {
     const dark = pref === "dark" || (pref === "system" && systemIsDark());
-    document.documentElement.classList.toggle("dark", dark);
+    const root = document.documentElement;
+    root.classList.toggle("dark", dark);
+    root.style.colorScheme = dark ? "dark" : "light";
 }
 
 function readStoredPreference(): ThemePreference {

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Saved Items | The Editorial Synthesizer</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ea580c",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#ffedd5",
+                        "on-primary-container": "#7c2d12",
+                        "secondary": "#78716c",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#f97316",
+                        "background": "#fafaf9",
+                        "on-background": "#1c1917",
+                        "surface": "#fafaf9",
+                        "on-surface": "#1c1917",
+                        "surface-variant": "#e7e5e4",
+                        "on-surface-variant": "#44403c",
+                        "outline": "#a8a29e",
+                        "outline-variant": "#d6d3d1",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f5f5f4",
+                        "surface-container": "#e7e5e4",
+                        "surface-container-high": "#d6d3d1",
+                        "surface-container-highest": "#a8a29e",
+                        "error": "#dc2626",
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Public Sans", "Inter", "sans-serif"],
+                        "label": ["Public Sans", "Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        body {
+            font-family: 'Public Sans', 'Inter', sans-serif;
+        }
+
+        h1,
+        h2,
+        h3,
+        .font-headline {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface min-h-screen">
+    <div class="flex">
+        <!-- Main Content Area -->
+        <main class="flex-1 px-8 py-12 max-w-7xl mx-auto bg-background w-full">
+            <!-- Title and Tabs -->
+            <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 class="text-5xl font-extrabold font-headline tracking-tighter mb-2 text-on-surface">Saved Items
+                    </h1>
+                    <div class="flex gap-8 mt-6">
+                        <button
+                            class="text-lg font-bold text-outline hover:text-on-surface transition-colors pb-2">All</button>
+                        <button
+                            class="text-lg font-bold text-outline hover:text-on-surface transition-colors pb-2">Products</button>
+                        <button class="text-lg font-bold border-b-4 border-primary pb-2 text-on-surface">Posts</button>
+                    </div>
+                </div>
+                <!-- AI Suggestion Chips -->
+                <div class="flex gap-2 flex-wrap">
+                    <span
+                        class="bg-primary-container text-on-primary-container px-3 py-1.5 rounded-lg text-xs font-semibold border border-primary/10">Reading
+                        List</span>
+                    <span
+                        class="bg-primary-container text-on-primary-container px-3 py-1.5 rounded-lg text-xs font-semibold border border-primary/10">Design
+                        Trends</span>
+                    <span
+                        class="bg-primary-container text-on-primary-container px-3 py-1.5 rounded-lg text-xs font-semibold border border-primary/10">Tech
+                        Analysis</span>
+                </div>
+            </div>
+            <!-- Control Bar -->
+            <div
+                class="bg-stone-100 p-6 rounded-xl flex flex-wrap gap-4 items-center mb-12 border border-outline-variant/30">
+                <div class="flex-1 min-w-[280px] relative">
+                    <span
+                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+                    <input
+                        class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary text-on-surface"
+                        placeholder="Search in saved posts" type="text" />
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-outline mr-2">Filters</span>
+                    <button
+                        class="bg-surface-container-lowest border border-outline-variant px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-stone-50 text-on-surface">Topic
+                        <span class="material-symbols-outlined text-sm">expand_more</span></button>
+                    <button
+                        class="bg-surface-container-lowest border border-outline-variant px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-stone-50 text-on-surface">Reading
+                        Time <span class="material-symbols-outlined text-sm">expand_more</span></button>
+                </div>
+                <div class="h-8 w-px bg-outline-variant mx-2"></div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-outline mr-2">Sort</span>
+                    <button
+                        class="bg-surface-container-lowest border border-outline-variant px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-stone-50 text-on-surface">Recent
+                        <span class="material-symbols-outlined text-sm">sort</span></button>
+                </div>
+            </div>
+            <!-- Grid: Posts -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Post Card 1: Featured/Large -->
+                <div
+                    class="md:col-span-2 group flex flex-col lg:flex-row bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden transition-all hover:shadow-xl">
+                    <div class="relative lg:w-3/5 aspect-video lg:aspect-auto bg-stone-200 overflow-hidden">
+                        <img alt="The Future of Minimalist Tech"
+                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAf7XNRyB3Mf8uazOD0ieOJxTD8daf8_kUqSGlrZ-nFSGWAyRx7zLXlCRgtB2hFil0rUGsYl6bkA6Xd3rK_yVd9UOyg9xE14a50nYW89pQ3m1PtcQDwPIkflhBhAfV-h7UKzGoOvbyMT3ibT4rXSHh7KV0aCRdNc3kwZEcLhYHFbSi-vmhARXit7FgBp6JXiSELKKvPi26p1YeaVQnbfRmuMA_gbw7UIbPZS2SvlezYSMmyXMEpqxFrmwP66xaGEVJJa51xi61XeIUG" />
+                        <button
+                            class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-error material-symbols-outlined shadow-sm"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</button>
+                    </div>
+                    <div class="p-8 lg:w-2/5 flex flex-col">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-primary">Long Read</span>
+                            <span class="w-1 h-1 rounded-full bg-outline"></span>
+                            <span class="text-[10px] font-bold text-outline uppercase tracking-widest">12 Min
+                                Read</span>
+                        </div>
+                        <h3
+                            class="text-3xl font-black font-headline tracking-tighter mb-4 leading-tight text-on-surface">
+                            Synthesis: The Future of High-Touch Minimalism</h3>
+                        <p class="text-on-surface-variant text-sm leading-relaxed mb-8">How tactile feedback and premium
+                            materials are redefining our relationship with digital objects in an increasingly ethereal
+                            world.</p>
+                        <div class="mt-auto flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-stone-200"></div>
+                                <span class="text-xs font-bold">Elena Vance</span>
+                            </div>
+                            <button
+                                class="text-primary font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">Read
+                                Post <span class="material-symbols-outlined text-sm">arrow_forward</span></button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Post Card 2 -->
+                <div
+                    class="group flex flex-col bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1">
+                    <div class="relative aspect-video bg-stone-200 overflow-hidden">
+                        <img alt="Design Trends" class="w-full h-full object-cover"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1xQx2fqxunJQH8FGiBgHxAWLo4279LEI-q6MX5A5tpRWs05v9IIOWwCoz8gp7SJohr8uD-EsidhYdgVmxp_j3QeZ8zrtxllhFFyzUV3O3_DmbOpjoDmIgkvO65IFy_ji2JREcoMMgfp97qF7oZjRoVXieJU2Sig2F24DPIyvqjy7uU8lZkFSTrTl6pOJQ1Yk2Z69BaUXXTbMmwIwyICQHTy4Ci48K_kD6lrhJAwPvIdNxgp2r7X6RLVjZwxdg6vOxoPG1-iNFXh4_" />
+                        <button
+                            class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-error material-symbols-outlined shadow-sm"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</button>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-primary">Trends</span>
+                            <span class="w-1 h-1 rounded-full bg-outline"></span>
+                            <span class="text-[10px] font-bold text-outline uppercase tracking-widest">5 Min Read</span>
+                        </div>
+                        <h3 class="font-headline font-bold text-xl mb-3 leading-tight text-on-surface">The Return of
+                            Brutalist Physicality</h3>
+                        <p class="text-on-surface-variant text-sm line-clamp-2 mb-6">Why raw concrete and unpolished
+                            metals are finding their way back into luxury home offices this season.</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-outline">Oct 24, 2023</span>
+                            <button class="text-on-surface font-bold text-xs hover:text-primary transition-colors">Read
+                                More</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Post Card 3 -->
+                <div
+                    class="group flex flex-col bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1">
+                    <div class="relative aspect-video bg-stone-200 overflow-hidden">
+                        <img alt="Tech Culture" class="w-full h-full object-cover"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkQdVE7I84PJ6eTKb96urG3VKKfsPnA5H2uuPgNRdVr4t0ee7DXU6LBf14aFtpsjShCpdl3aE2bJrFj2Dh2WD2Ov7EGkhACOdIDF5QYEfUvkYxgSJBlH4P8yHGk6xuwH9sFOlQNhB-YUAkE302-jUYIYwNqb9ul3WR_uza25KU95Wd1Fz9cXWqESzioU1C0-eBW1QF7RSsgmq_lNnukwOXJxvGy4t-Pzr45OTDcjq_P-eMpqJZCmlfgBF3CwuO7tMEfNGiqTZ2t8Bd" />
+                        <button
+                            class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-error material-symbols-outlined shadow-sm"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</button>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-primary">Culture</span>
+                            <span class="w-1 h-1 rounded-full bg-outline"></span>
+                            <span class="text-[10px] font-bold text-outline uppercase tracking-widest">8 Min Read</span>
+                        </div>
+                        <h3 class="font-headline font-bold text-xl mb-3 leading-tight text-on-surface">Analog Rituals in
+                            a Digital Sanctuary</h3>
+                        <p class="text-on-surface-variant text-sm line-clamp-2 mb-6">How mechanical keyboards and
+                            fountain pens are becoming the ultimate focus tools for modern creators.</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-outline">Oct 19, 2023</span>
+                            <button class="text-on-surface font-bold text-xs hover:text-primary transition-colors">Read
+                                More</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Post Card 4 -->
+                <div
+                    class="group flex flex-col bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1">
+                    <div class="relative aspect-video bg-stone-200 overflow-hidden">
+                        <img alt="AI Design" class="w-full h-full object-cover"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAutG7N9A2ZXO8YHaVspsftQM57_tLi97NgVXoCq9gaDtbTuBNPdOprsbWe_IEGSAnBrwULyjscvhTrzA4QcKp4pcjmKi6NVfkx1JAWFZ3NBo49a52lhfhm7KwN7zMo_J_CiK38VmTEmqRmAMT7J0c7wJbEZlNfsoo66ozU84CMYks_xfKhOVodADMahIi1RvQnxkKG6dPu5iS2siHmtGS5EHu37P__2pZjWUNTPRL36rcqpGq6B6SEdtE02tWzARGOiHkSZfwjg0XY" />
+                        <button
+                            class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-error material-symbols-outlined shadow-sm"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</button>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-primary">Analysis</span>
+                            <span class="w-1 h-1 rounded-full bg-outline"></span>
+                            <span class="text-[10px] font-bold text-outline uppercase tracking-widest">15 Min
+                                Read</span>
+                        </div>
+                        <h3 class="font-headline font-bold text-xl mb-3 leading-tight text-on-surface">AI as the New
+                            Creative Director</h3>
+                        <p class="text-on-surface-variant text-sm line-clamp-2 mb-6">Navigating the tension between
+                            algorithmic generation and human intuition in editorial design.</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-outline">Oct 12, 2023</span>
+                            <button class="text-on-surface font-bold text-xs hover:text-primary transition-colors">Read
+                                More</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Post Card 5 -->
+                <div
+                    class="group flex flex-col bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1">
+                    <div class="relative aspect-video bg-stone-200 overflow-hidden">
+                        <img alt="Workspace" class="w-full h-full object-cover"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-osc5edJqeiVI-WRaohOwUGYr1eZzenAmqYJBGdYsqJ8XI2BLrP7UcbxtRuCwOdKrrWc99K-mWW049k5xqaRJrpuUpRr9RBPD65s1j5Cs_VMOTPWAzfbihq9kfBn_RviFMD1hrQqkho2UifG4qq-ykafYiU0m-k2iDnPoqjzg7OcaHaXYmPaaVg2QorSLie-_1HtM5FV7EKTdYsLVmaG5q8Qh3r72Z1qwrA02poRF3ss3hLdsCqeVYePiA16zMzFxVi7cKN914qOh" />
+                        <button
+                            class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-error material-symbols-outlined shadow-sm"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</button>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-primary">Guides</span>
+                            <span class="w-1 h-1 rounded-full bg-outline"></span>
+                            <span class="text-[10px] font-bold text-outline uppercase tracking-widest">4 Min Read</span>
+                        </div>
+                        <h3 class="font-headline font-bold text-xl mb-3 leading-tight text-on-surface">Curating Your
+                            Essential Carry</h3>
+                        <p class="text-on-surface-variant text-sm line-clamp-2 mb-6">A curated list of objects that
+                            bridge the gap between utility and aesthetic pleasure for the urban nomad.</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-outline">Oct 05, 2023</span>
+                            <button class="text-on-surface font-bold text-xs hover:text-primary transition-colors">Read
+                                More</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- BottomNavBar Component (Mobile Only) -->
+    <nav
+        class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 md:hidden bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl z-50 shadow-[0_-8px_32px_rgba(41,37,36,0.1)] border-t border-outline-variant/30">
+        <a class="flex flex-col items-center justify-center text-on-surface/50 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 transition-transform scale-95"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="explore">explore</span>
+            <span class="font-manrope text-[10px] uppercase tracking-widest mt-1">Explore</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-primary bg-primary/10 rounded-xl px-4 py-1 transition-transform scale-95"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="bookmark"
+                style="font-variation-settings: 'FILL' 1;">bookmark</span>
+            <span class="font-manrope text-[10px] uppercase tracking-widest mt-1">Saved</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-on-surface/50 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 transition-transform scale-95"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="search">search</span>
+            <span class="font-manrope text-[10px] uppercase tracking-widest mt-1">Search</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-on-surface/50 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 transition-transform scale-95"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="person">person</span>
+            <span class="font-manrope text-[10px] uppercase tracking-widest mt-1">Profile</span>
+        </a>
+    </nav>
+</body>
+
+</html>

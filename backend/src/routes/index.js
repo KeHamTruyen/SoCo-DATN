@@ -16,6 +16,7 @@ import messageRoutes from './message.routes.js';
 import groupRoutes from './group.routes.js';
 import reportRoutes from './report.routes.js';
 import reviewRoutes from './review.routes.js';
+import savedItemRoutes from './savedItem.routes.js';
 
 const router = express.Router();
 
@@ -29,6 +30,7 @@ router.use('/posts', postRoutes);
 router.use('/cart', cartRoutes);
 router.use('/orders', orderRoutes);
 router.use('/reviews', reviewRoutes);
+router.use('/saved-items', savedItemRoutes);
 
 // Infrastructure routes
 router.use('/notifications', notificationRoutes);
@@ -62,6 +64,7 @@ router.get('/', (req, res) => {
       messages: '/api/messages',
       groups: '/api/groups',
       reports: '/api/reports',
+      savedItems: '/api/saved-items',
     }
   });
 });

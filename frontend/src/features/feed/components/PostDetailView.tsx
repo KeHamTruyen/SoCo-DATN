@@ -7,8 +7,9 @@ import {
     ShoppingCart,
     Tag,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { savedItemsApi } from "../../saved-items/api/savedItemsApi";
 import { Avatar } from "../../../shared/ui/atoms/avatar";
 import { Button } from "../../../shared/ui/atoms/button";
 import { cn } from "../../../shared/lib/cn";
@@ -69,6 +70,43 @@ interface PostDetailViewProps {
 
 export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps) {
     const [commentInput, setCommentInput] = useState("");
+    const [savedId, setSavedId] = useState<string | null>(null);
+    const [saveBusy, setSaveBusy] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        void (async () => {
+            try {
+                const id = await savedItemsApi.lookup("POST", post.id);
+                if (!cancelled) setSavedId(id);
+            } catch {
+                if (!cancelled) setSavedId(null);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [post.id]);
+
+    const toggleSave = () => {
+        if (saveBusy) return;
+        setSaveBusy(true);
+        void (async () => {
+            try {
+                if (savedId) {
+                    await savedItemsApi.remove(savedId);
+                    setSavedId(null);
+                } else {
+                    const row = await savedItemsApi.save("POST", post.id);
+                    setSavedId(row.id);
+                }
+            } catch {
+                /* ignore */
+            } finally {
+                setSaveBusy(false);
+            }
+        })();
+    };
 
     const handleSendComment = () => {
         const trimmed = commentInput.trim();
@@ -191,8 +229,17 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                             <Button variant="ghost" size="icon">
                                 <Send className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon">
-                                <Bookmark className="h-4 w-4" />
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                type="button"
+                                disabled={saveBusy}
+                                onClick={toggleSave}
+                                aria-label={savedId ? "Remove from saved" : "Save post"}
+                                aria-pressed={!!savedId}
+                                className={savedId ? "text-primary" : undefined}
+                            >
+                                <Bookmark className={cn("h-4 w-4", savedId && "fill-current")} />
                             </Button>
                         </div>
                     </div>

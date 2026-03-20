@@ -11,26 +11,24 @@ const footerLinks = [
 
 export function Footer() {
     return (
-        <footer className="bg-background-dark text-white">
+        <footer className="border-t border-border bg-muted text-foreground">
             <div className="mx-auto max-w-[1440px] px-6 py-10">
                 <div className="flex flex-col items-center gap-8 md:flex-row md:justify-between">
-                    {/* Brand */}
                     <div className="flex items-center gap-2.5">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                            <ShoppingBag className="h-5 w-5 text-white" />
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                            <ShoppingBag className="h-5 w-5" />
                         </div>
-                        <span className="text-xl font-bold tracking-tight text-white">
+                        <span className="text-xl font-bold tracking-tight text-foreground">
                             SocialCommerce
                         </span>
                     </div>
 
-                    {/* Links */}
                     <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2">
                         {footerLinks.map((link) => (
                             <Link
                                 key={link.label}
                                 to={link.to}
-                                className="text-sm text-white/60 transition-colors hover:text-white"
+                                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                             >
                                 {link.label}
                             </Link>
@@ -38,7 +36,7 @@ export function Footer() {
                     </nav>
                 </div>
 
-                <div className="mt-8 border-t border-white/10 pt-6 text-center text-sm text-white/40">
+                <div className="mt-8 border-t border-border pt-6 text-center text-sm text-muted-foreground">
                     © {new Date().getFullYear()} SocialCommerce. All rights reserved.
                 </div>
             </div>

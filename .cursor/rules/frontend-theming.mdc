@@ -1,0 +1,13 @@
+---
+description: Use semantic CSS tokens and Tailwind theme for light/dark/system UI
+globs: frontend/**/*.tsx,frontend/**/*.css
+---
+
+# Frontend theming
+
+- Entry: `frontend/src/index.css` imports Tailwind then `frontend/src/styles/globals.css`. Theme tokens map semantic CSS variables (`:root` / `.dark`) into Tailwind via `@theme inline`.
+- `ThemePreferenceProvider` toggles the `dark` class on `<html>` and sets `colorScheme`. An inline script in `frontend/index.html` mirrors the same logic (key `soco-theme-preference`) to reduce theme FOUC.
+- **Prefer** utilities: `bg-background`, `text-foreground`, `bg-card`, `text-card-foreground`, `border-border`, `text-muted-foreground`, `bg-muted`, `bg-primary`, `text-primary-foreground`.
+- **Avoid** duplicating `dark:` for surfaces/text when a semantic class exists. Legacy `bg-background-light` / `dark:bg-background-dark` remains valid but is not the default for new UI.
+- **Page shell:** use `PageShell` from `@/shared/ui` (or `min-h-screen bg-background text-foreground`) for new pages.
+- **Primitives:** `Card` and `Button` variants use border/surface tokens; follow the same pattern for new shared components.

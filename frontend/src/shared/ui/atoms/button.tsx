@@ -13,8 +13,8 @@ const variantClasses: Record<ButtonVariant, string> = {
     primary:
         "bg-primary text-primary-foreground hover:bg-primary-700 shadow-lg shadow-primary/20",
     outline:
-        "border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-700",
-    ghost: "text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800",
+        "border border-border bg-background text-foreground hover:bg-muted",
+    ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
     destructive:
         "bg-destructive text-destructive-foreground hover:bg-red-700 shadow-lg shadow-destructive/20",
 };

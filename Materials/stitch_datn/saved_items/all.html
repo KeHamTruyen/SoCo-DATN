@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Saved Items | Lumina Studio</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ea580c",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#ffedd5",
+                        "on-primary-container": "#7c2d12",
+                        "secondary": "#78716c",
+                        "on-secondary": "#ffffff",
+                        "background": "#fafaf9",
+                        "on-background": "#1c1917",
+                        "surface": "#ffffff",
+                        "on-surface": "#1c1917",
+                        "surface-variant": "#f5f5f4",
+                        "on-surface-variant": "#44403c",
+                        "outline": "#d6d3d1",
+                        "outline-variant": "#e7e5e4",
+                    },
+                    fontFamily: {
+                        sans: ["Manrope", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface min-h-screen antialiased">
+    <!-- Main Content Area: Full Width -->
+    <main class="w-full max-w-[1440px] mx-auto px-6 py-12 md:px-12 lg:px-16">
+        <!-- Header Section -->
+        <header class="mb-8">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-on-surface mb-8">Saved Items</h1>
+            <!-- Tab Navigation -->
+            <nav class="flex gap-8 border-b border-outline-variant">
+                <button class="pb-4 text-sm font-bold border-b-2 border-primary text-primary">All Items</button>
+                <button
+                    class="pb-4 text-sm font-semibold text-secondary hover:text-on-surface transition-colors">Products</button>
+                <button
+                    class="pb-4 text-sm font-semibold text-secondary hover:text-on-surface transition-colors">Editorial
+                    Posts</button>
+            </nav>
+        </header>
+        <!-- Filter/Control Bar -->
+        <div class="flex flex-col md:flex-row gap-4 mb-10 items-center">
+            <!-- Search -->
+            <div class="relative flex-1 w-full">
+                <span
+                    class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary text-xl">search</span>
+                <input
+                    class="w-full bg-surface border border-outline rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                    placeholder="Search in saved" type="text" />
+            </div>
+            <!-- Shadcn-style Selectors -->
+            <div class="flex flex-wrap gap-3 w-full md:w-auto">
+                <button
+                    class="flex items-center gap-2 px-4 py-2.5 bg-surface border border-outline rounded-lg text-sm font-medium hover:bg-surface-variant transition-colors min-w-[120px] justify-between">
+                    Category <span class="material-symbols-outlined text-lg">expand_more</span>
+                </button>
+                <button
+                    class="flex items-center gap-2 px-4 py-2.5 bg-surface border border-outline rounded-lg text-sm font-medium hover:bg-surface-variant transition-colors min-w-[120px] justify-between">
+                    Price <span class="material-symbols-outlined text-lg">expand_more</span>
+                </button>
+                <div class="h-10 w-px bg-outline-variant hidden md:block"></div>
+                <button
+                    class="flex items-center gap-2 px-4 py-2.5 bg-surface border border-outline rounded-lg text-sm font-medium hover:bg-surface-variant transition-colors min-w-[140px] justify-between">
+                    Recent <span class="material-symbols-outlined text-lg">sort</span>
+                </button>
+            </div>
+        </div>
+        <!-- Grid Layout -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <!-- Product Card: Synthesizer Pro Hub -->
+            <div
+                class="group bg-surface border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300">
+                <div class="relative aspect-square overflow-hidden bg-surface-variant">
+                    <img alt="Synthesizer Pro Hub"
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6x_gfY0jnH6AwQ_lrqU66gf9I1oM8iYaOnOavA6vp6_o53YjZNPyOg8_EuzIQhJppmiM5i8dGXe1ycxSuJuJUBvglXKBVb5sf8gLmAS027V6B5H5Xm-T3a3ltxBGwQQBKblr98QMto2rjMGP6b6v7Ua-6qyy9Bw-QOzYZIliP7witzjGYweCXMenF06H9DOIRjfGbGJt11TV6PWa8wQ_fwBJwPWAx8FzzaR5rtGhWtF1yzADp4y7IQYTtPc1SKkE1G99jw6KX3rlO" />
+                    <button
+                        class="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-primary shadow-sm hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</span>
+                    </button>
+                    <div
+                        class="absolute bottom-3 left-3 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded tracking-wider uppercase">
+                        New Arrival</div>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-lg mb-1">Synthesizer Pro Hub</h3>
+                    <div class="flex items-center gap-1.5 mb-3">
+                        <div class="flex text-amber-500">
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm">star</span>
+                        </div>
+                        <span class="text-xs text-secondary font-medium">(128)</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-auto">
+                        <span class="text-xl font-extrabold">$249.00</span>
+                        <button
+                            class="px-4 py-2 bg-on-background text-white text-xs font-bold rounded-lg hover:bg-secondary transition-colors">Add
+                            to Cart</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Post Card: Brutalist Warmth -->
+            <div
+                class="group bg-surface border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300">
+                <div class="relative aspect-square overflow-hidden bg-surface-variant">
+                    <img alt="Editorial Post"
+                        class="w-full h-full object-cover grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:scale-105"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9pT0P8q69kZ9qK9z_t_S9L2y3-W3h5E7M1R2G0T4Y5U6I7O8P9A0S1D2F3G4H5J6K7L8Q9W0E1R2T3Y4U5I6O7P" />
+                    <button
+                        class="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-primary shadow-sm hover:scale-110 transition-transform">
+                        <span class="material-symbols-outlined"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</span>
+                    </button>
+                    <div
+                        class="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded tracking-widest uppercase">
+                        Editorial</div>
+                </div>
+                <div class="p-6">
+                    <p class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-2">Design Trends</p>
+                    <h3 class="font-extrabold text-xl leading-tight mb-3 line-clamp-2">The Return of Brutalist Warmth in
+                        2024</h3>
+                    <p class="text-on-surface-variant text-sm line-clamp-2 mb-4 italic">"Exploring how designers are
+                        blending harsh industrial lines with organic textures..."</p>
+                    <div class="flex items-center justify-between pt-4 border-t border-outline-variant">
+                        <div class="flex items-center gap-2">
+                            <div
+                                class="w-6 h-6 rounded-full bg-primary-container text-primary flex items-center justify-center text-[10px] font-bold">
+                                LM</div>
+                            <span class="text-xs font-bold">Lumina Editorial</span>
+                        </div>
+                        <span class="material-symbols-outlined text-primary">arrow_forward</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Product Card: Tonal Vase -->
+            <div
+                class="group bg-surface border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300">
+                <div class="relative aspect-square overflow-hidden bg-surface-variant">
+                    <img alt="Sculptural Vase"
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwB4vC5vHdJHMVhC0G0WMTctH5JyzpOjCllT54t2wTLFsoSiOaHjz4Wx761jEATe8TaTOeOkR3Udr3T4SzHbnYmRnuCPf2570iMgpYqfAckFFWr4fu5lRiBj3xSRer-CoOh0tnOs6TRbV2KNvKcOyK7ccCLSFVbEFICTxzzQ2skOx4LOV_Efw-jCvOdRS2V729jT_AUB3KXbOyeSwNBU2S8QEQ9gypAQxtSfDAn6gm7R0TY26cBlQ7cisIaKeoZ9y5_y7dAZsbuE_Z" />
+                    <button
+                        class="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-primary shadow-sm">
+                        <span class="material-symbols-outlined"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</span>
+                    </button>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-lg mb-1">Sculptural Tonal Vase</h3>
+                    <div class="flex items-center gap-1.5 mb-3">
+                        <div class="flex text-amber-500">
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                        </div>
+                        <span class="text-xs text-secondary font-medium">(42)</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-auto">
+                        <span class="text-xl font-extrabold">$85.00</span>
+                        <button
+                            class="px-4 py-2 border border-outline rounded-lg text-xs font-bold hover:bg-surface-variant transition-colors">Add
+                            to Cart</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Product Card: Acoustic Pure One -->
+            <div
+                class="group bg-surface border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300">
+                <div class="relative aspect-square overflow-hidden bg-surface-variant">
+                    <img alt="Headphones"
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoWk6IS6ii1NKXNsnHodTbEwJ2_MhMfyXf_BomPljdv_CLsEgw6WavYLkJU8kUCsWrHgMa3Q5cpKYfZy4s7HFfX0UXAT_SINMg05eKb8kGGKWnLDuaBLm3vUxlGWCED3My2ADcEzP6F58EbCNJ6nGzVAH8q4HLClFhoExtlkb_kQjXnulZhKbOeqcM9Jk79k8ReTYMA3tPcsG9YRhQK7SOO0VSui0Jt407cmTkiZpQf59VoS9Nnt_wWAcZczEMI7yahyKzEDHysqW_" />
+                    <button
+                        class="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-primary shadow-sm">
+                        <span class="material-symbols-outlined"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</span>
+                    </button>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-lg mb-1">Acoustic Precision One</h3>
+                    <div class="flex items-center gap-1.5 mb-3">
+                        <div class="flex text-amber-500">
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm">star_half</span>
+                        </div>
+                        <span class="text-xs text-secondary font-medium">(2.1k)</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-auto">
+                        <span class="text-xl font-extrabold">$299.00</span>
+                        <button
+                            class="px-4 py-2 bg-on-background text-white text-xs font-bold rounded-lg hover:bg-secondary transition-colors">Add
+                            to Cart</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Large Featured Card (Spans 2 columns) -->
+            <div
+                class="lg:col-span-2 group bg-surface border border-outline-variant rounded-xl overflow-hidden flex flex-col md:flex-row hover:shadow-xl transition-all duration-300">
+                <div class="relative md:w-1/2 aspect-video md:aspect-auto overflow-hidden bg-surface-variant">
+                    <img alt="Chronos Watch"
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOJx6BzMPtIdJxL8bBMA6nATHF4-kAdpHDdI02ZgQunc-tCw5ZUPDrSyrukJZUf9tuxQsag5Ys_zirfsfRrgIWS9DoDm0d0MlOqic2WSw9egGnPqdUjm8f9vZwm8FJyWy32TT90voMFaEbVtuIY0ciBMqr8QF1zH15HTQwxXOsPwhCykwyjGEhHF7OazdT5ldX6gbZCUqo-3JokaKpRHxd6Q5AJ2PRgnI2ON5RBDW3drXIGx7d_4Wu0Pr0YYB9ilmbYUG3KBCSpTc9" />
+                    <button
+                        class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-primary shadow-sm">
+                        <span class="material-symbols-outlined"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</span>
+                    </button>
+                </div>
+                <div class="p-8 md:w-1/2 flex flex-col justify-center">
+                    <div
+                        class="inline-flex bg-primary/10 text-primary text-[10px] font-black px-3 py-1 rounded mb-4 tracking-widest uppercase w-fit">
+                        Limited Collection</div>
+                    <h3 class="text-3xl font-extrabold mb-4 leading-tight">Chronos Minimalist Watch</h3>
+                    <p class="text-on-surface-variant text-sm mb-6 leading-relaxed italic">"A intersection of raw
+                        concrete aesthetic and precision engineering..."</p>
+                    <div class="flex items-baseline gap-2 mb-8">
+                        <span class="text-3xl font-black">$350.00</span>
+                        <span class="text-sm text-secondary line-through">$420.00</span>
+                    </div>
+                    <button
+                        class="w-full bg-primary text-white py-4 rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-all shadow-md active:scale-[0.98]">
+                        <span class="material-symbols-outlined">shopping_bag</span>
+                        Add to Collection
+                    </button>
+                </div>
+            </div>
+            <!-- Post Card: Home Office -->
+            <div
+                class="group bg-surface border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300">
+                <div class="relative aspect-square overflow-hidden bg-surface-variant">
+                    <img alt="Interior Post"
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtY9O0P1Q2W3E4R5T6Y7U8I9O0P1A2S3D4F5G6H7J8K9L0Z1X2C3V4B5N6M7Q8W9E0R1T2Y3U4I5O" />
+                    <button
+                        class="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-primary shadow-sm">
+                        <span class="material-symbols-outlined"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</span>
+                    </button>
+                </div>
+                <div class="p-6">
+                    <p class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-2">Lifestyle</p>
+                    <h3 class="font-extrabold text-xl leading-tight mb-3 line-clamp-2">The Art of Curating a Home Office
+                    </h3>
+                    <p class="text-on-surface-variant text-sm line-clamp-2 mb-4 italic">"How to balance ergonomic
+                        necessity with aesthetic delight..."</p>
+                    <div class="flex items-center justify-between pt-4 border-t border-outline-variant">
+                        <div class="flex items-center gap-2">
+                            <div
+                                class="w-6 h-6 rounded-full bg-secondary text-white flex items-center justify-center text-[10px] font-bold">
+                                AR</div>
+                            <span class="text-xs font-bold">Alex Rivers</span>
+                        </div>
+                        <span class="material-symbols-outlined text-primary">arrow_forward</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Product Card: Velocity Sneakers -->
+            <div
+                class="group bg-surface border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300">
+                <div class="relative aspect-square overflow-hidden bg-surface-variant">
+                    <img alt="Sneakers"
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwSR8I4JplWClBNntHReAYNoWcsiHMGzrLKOpUCJi87jzu6NuUEK7UM2_HhswrttQiWTuQf6-Y8UC6X84A406KpWan2Nj9og-RZNGkSFKmLvr_6WGL40TCxcLiy69VfDgs2Aji62vOFvYpHhvCfxrSZxNMgbUCZSRpx1yQnVi98ggT2UnL64ZYrBlFt3uMvDnABTjs2swpQNCrdGAYY4XzyV6_YMdw1XbwJ4QOTEQOzppRBR6ZgkEffQSpP1izNaHrXGxA4QOVJHyT" />
+                    <button
+                        class="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-primary shadow-sm">
+                        <span class="material-symbols-outlined"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</span>
+                    </button>
+                </div>
+                <div class="p-5">
+                    <h3 class="font-bold text-lg mb-1">Velocity Edge Runner</h3>
+                    <div class="flex items-center gap-1.5 mb-3">
+                        <div class="flex text-amber-500">
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span class="material-symbols-outlined text-sm"
+                                style="font-variation-settings: 'FILL' 1;">star</span>
+                        </div>
+                        <span class="text-xs text-secondary font-medium">(89)</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-auto">
+                        <span class="text-xl font-extrabold">$145.00</span>
+                        <button
+                            class="px-4 py-2 border border-outline rounded-lg text-xs font-bold hover:bg-surface-variant transition-colors">Add
+                            to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Mobile Bottom Nav -->
+    <nav
+        class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-4 md:hidden bg-white/95 backdrop-blur-xl z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] border-t border-outline-variant">
+        <a class="flex flex-col items-center justify-center text-secondary" href="#">
+            <span class="material-symbols-outlined">explore</span>
+            <span class="text-[10px] font-bold mt-1">Explore</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-primary" href="#">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bookmark</span>
+            <span class="text-[10px] font-bold mt-1">Saved</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-secondary" href="#">
+            <span class="material-symbols-outlined">search</span>
+            <span class="text-[10px] font-bold mt-1">Search</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-secondary" href="#">
+            <span class="material-symbols-outlined">person</span>
+            <span class="text-[10px] font-bold mt-1">Profile</span>
+        </a>
+    </nav>
+</body>
+
+</html>

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Saved Items | The Editorial Synthesizer</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ea580c",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#ffedd5",
+                        "on-primary-container": "#7c2d12",
+                        "secondary": "#78716c",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#f97316",
+                        "background": "#fafaf9",
+                        "on-background": "#1c1917",
+                        "surface": "#fafaf9",
+                        "on-surface": "#1c1917",
+                        "surface-variant": "#e7e5e4",
+                        "on-surface-variant": "#44403c",
+                        "outline": "#a8a29e",
+                        "outline-variant": "#d6d3d1",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f5f5f4",
+                        "surface-container": "#e7e5e4",
+                        "surface-container-high": "#d6d3d1",
+                        "surface-container-highest": "#a8a29e",
+                        "error": "#dc2626",
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Public Sans", "Inter", "sans-serif"],
+                        "label": ["Public Sans", "Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        body {
+            font-family: 'Public Sans', 'Inter', sans-serif;
+        }
+
+        h1,
+        h2,
+        h3,
+        .font-headline {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface min-h-screen">
+    <div class="flex">
+        <!-- Main Content Area -->
+        <main class="flex-1 px-8 py-12 max-w-7xl mx-auto bg-background w-full">
+            <!-- Title and Tabs -->
+            <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 class="text-5xl font-extrabold font-headline tracking-tighter mb-2 text-on-surface">Saved Items
+                    </h1>
+                    <div class="flex gap-8 mt-6">
+                        <button
+                            class="text-lg font-bold border-b-4 border-primary pb-2 text-on-surface">Products</button>
+                        <button
+                            class="text-lg font-bold text-outline hover:text-on-surface transition-colors pb-2">Posts</button>
+                    </div>
+                </div>
+                <!-- AI Suggestion Chips -->
+                <div class="flex gap-2 flex-wrap">
+                    <span
+                        class="bg-primary-container text-on-primary-container px-3 py-1.5 rounded-lg text-xs font-semibold border border-primary/10">Gifting
+                        Guide</span>
+                    <span
+                        class="bg-primary-container text-on-primary-container px-3 py-1.5 rounded-lg text-xs font-semibold border border-primary/10">Minimalist
+                        Finds</span>
+                    <span
+                        class="bg-primary-container text-on-primary-container px-3 py-1.5 rounded-lg text-xs font-semibold border border-primary/10">New
+                        Drops</span>
+                </div>
+            </div>
+            <!-- Control Bar -->
+            <div
+                class="bg-stone-100 p-6 rounded-xl flex flex-wrap gap-4 items-center mb-12 border border-outline-variant/30">
+                <div class="flex-1 min-w-[280px] relative">
+                    <span
+                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+                    <input
+                        class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary text-on-surface"
+                        placeholder="Search in saved" type="text" />
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-outline mr-2">Filters</span>
+                    <button
+                        class="bg-surface-container-lowest border border-outline-variant px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-stone-50 text-on-surface">Category
+                        <span class="material-symbols-outlined text-sm">expand_more</span></button>
+                    <button
+                        class="bg-surface-container-lowest border border-outline-variant px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-stone-50 text-on-surface">Price
+                        <span class="material-symbols-outlined text-sm">expand_more</span></button>
+                </div>
+                <div class="h-8 w-px bg-outline-variant mx-2"></div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-outline mr-2">Sort</span>
+                    <button
+                        class="bg-surface-container-lowest border border-outline-variant px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-stone-50 text-on-surface">Recent
+                        <span class="material-symbols-outlined text-sm">sort</span></button>
+                </div>
+            </div>
+            <!-- Grid: Products -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <!-- Product Card 1 -->
+                <div
+                    class="group flex flex-col bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1">
+                    <div class="relative aspect-[4/5] bg-stone-200 overflow-hidden">
+                        <img alt="Tech Gadget" class="w-full h-full object-cover"
+                            data-alt="A sleek modern electronic device"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6x_gfY0jnH6AwQ_lrqU66gf9I1oM8iYaOnOavA6vp6_o53YjZNPyOg8_EuzIQhJppmiM5i8dGXe1ycxSuJuJUBvglXKBVb5sf8gLmAS027V6B5H5Xm-T3a3ltxBGwQQBKblr98QMto2rjMGP6b6v7Ua-6qyy9Bw-QOzYZIliP7witzjGYweCXMenF06H9DOIRjfGbGJt11TV6PWa8wQ_fwBJwPWAx8FzzaR5rtGhWtF1yzADp4y7IQYTtPc1SKkE1G99jw6KX3rlO" />
+                        <button
+                            class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-error material-symbols-outlined transition-transform hover:scale-110 shadow-sm"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</button>
+                        <div
+                            class="absolute bottom-4 left-4 bg-primary text-on-primary px-3 py-1 rounded-md text-xs font-bold shadow-lg">
+                            New Arrival</div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-headline font-bold text-lg mb-1 text-on-surface">Synthesizer Pro Hub</h3>
+                        <p class="text-outline text-sm mb-4">Space Grey • Aluminum</p>
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="flex text-amber-500 items-center gap-0.5">
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm">star</span>
+                            </span>
+                            <span class="text-xs text-outline font-medium">(128)</span>
+                        </div>
+                        <div class="flex items-center justify-between mt-auto">
+                            <span class="text-2xl font-black text-on-surface tracking-tight">$249.00</span>
+                            <button
+                                class="bg-stone-100 text-on-surface border border-outline-variant px-4 py-2 rounded-lg font-bold text-sm hover:bg-stone-200 transition-all">Add
+                                to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Product Card 2 -->
+                <div
+                    class="group flex flex-col bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1">
+                    <div class="relative aspect-[4/5] bg-stone-200 overflow-hidden">
+                        <img alt="Home Decor" class="w-full h-full object-cover"
+                            data-alt="Minimalist abstract ceramic vase"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwB4vC5vHdJHMVhC0G0WMTctH5JyzpOjCllT54t2wTLFsoSiOaHjz4Wx761jEATe8TaTOeOkR3Udr3T4SzHbnYmRnuCPf2570iMgpYqfAckFFWr4fu5lRiBj3xSRer-CoOh0tnOs6TRbV2KNvKcOyK7ccCLSFVbEFICTxzzQ2skOx4LOV_Efw-jCvOdRS2V729jT_AUB3KXbOyeSwNBU2S8QEQ9gypAQxtSfDAn6gm7R0TY26cBlQ7cisIaKeoZ9y5_y7dAZsbuE_Z" />
+                        <button
+                            class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-error material-symbols-outlined transition-transform hover:scale-110 shadow-sm"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</button>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-headline font-bold text-lg mb-1 text-on-surface">Sculptural Tonal Vase</h3>
+                        <p class="text-outline text-sm mb-4">Matte Cream • Handmade</p>
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="flex text-amber-500 items-center gap-0.5">
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                            </span>
+                            <span class="text-xs text-outline font-medium">(42)</span>
+                        </div>
+                        <div class="flex items-center justify-between mt-auto">
+                            <span class="text-2xl font-black text-on-surface tracking-tight">$85.00</span>
+                            <button
+                                class="bg-stone-100 text-on-surface border border-outline-variant px-4 py-2 rounded-lg font-bold text-sm hover:bg-stone-200 transition-all">Add
+                                to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Product Card 3 (Featured/Large Layout) -->
+                <div
+                    class="lg:col-span-2 group flex flex-col md:flex-row bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden transition-all hover:shadow-xl">
+                    <div class="relative md:w-1/2 aspect-video md:aspect-auto bg-stone-200 overflow-hidden">
+                        <img alt="Lifestyle" class="w-full h-full object-cover" data-alt="High-end white watch on table"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOJx6BzMPtIdJxL8bBMA6nATHF4-kAdpHDdI02ZgQunc-tCw5ZUPDrSyrukJZUf9tuxQsag5Ys_zirfsfRrgIWS9DoDm0d0MlOqic2WSw9egGnPqdUjm8f9vZwm8FJyWy32TT90voMFaEbVtuIY0ciBMqr8QF1zH15HTQwxXOsPwhCykwyjGEhHF7OazdT5ldX6gbZCUqo-3JokaKpRHxd6Q5AJ2PRgnI2ON5RBDW3drXIGx7d_4Wu0Pr0YYB9ilmbYUG3KBCSpTc9" />
+                        <button
+                            class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-error material-symbols-outlined shadow-sm"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</button>
+                    </div>
+                    <div class="p-8 md:w-1/2 flex flex-col">
+                        <div
+                            class="bg-primary text-on-primary px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest w-fit mb-4 shadow-sm">
+                            Limited Edition</div>
+                        <h3
+                            class="text-3xl font-black font-headline tracking-tighter mb-4 leading-none text-on-surface">
+                            Chronos Minimalist Watch</h3>
+                        <p class="text-on-surface-variant text-sm leading-relaxed mb-6">Designed for those who
+                            appreciate the silence of precision. Featuring a 40mm brushed steel case and Italian leather
+                            strap.</p>
+                        <div class="mt-auto">
+                            <div class="flex items-baseline gap-2 mb-6">
+                                <span class="text-3xl font-black text-on-surface">$350.00</span>
+                                <span class="text-sm text-outline line-through">$420.00</span>
+                            </div>
+                            <button
+                                class="w-full bg-primary text-on-primary py-4 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-primary/90 transition-all shadow-md active:scale-[0.98]">
+                                <span class="material-symbols-outlined">shopping_bag</span>
+                                Purchase Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Product Card 4 -->
+                <div
+                    class="group flex flex-col bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1">
+                    <div class="relative aspect-[4/5] bg-stone-200 overflow-hidden">
+                        <img alt="Headphones" class="w-full h-full object-cover"
+                            data-alt="High quality headphones close up"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoWk6IS6ii1NKXNsnHodTbEwJ2_MhMfyXf_BomPljdv_CLsEgw6WavYLkJU8kUCsWrHgMa3Q5cpKYfZy4s7HFfX0UXAT_SINMg05eKb8kGGKWnLDuaBLm3vUxlGWCED3My2ADcEzP6F58EbCNJ6nGzVAH8q4HLClFhoExtlkb_kQjXnulZhKbOeqcM9Jk79k8ReTYMA3tPcsG9YRhQK7SOO0VSui0Jt407cmTkiZpQf59VoS9Nnt_wWAcZczEMI7yahyKzEDHysqW_" />
+                        <button
+                            class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-error material-symbols-outlined transition-transform hover:scale-110 shadow-sm"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</button>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-headline font-bold text-lg mb-1 text-on-surface">Acoustic Pure One</h3>
+                        <p class="text-outline text-sm mb-4">Obsidian • Noise Cancelling</p>
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="flex text-amber-500 items-center gap-0.5">
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm">star_half</span>
+                            </span>
+                            <span class="text-xs text-outline font-medium">(2.1k)</span>
+                        </div>
+                        <div class="flex items-center justify-between mt-auto">
+                            <span class="text-2xl font-black text-on-surface tracking-tight">$199.99</span>
+                            <button
+                                class="bg-stone-100 text-on-surface border border-outline-variant px-4 py-2 rounded-lg font-bold text-sm hover:bg-stone-200 transition-all">Add
+                                to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Product Card 5 -->
+                <div
+                    class="group flex flex-col bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1">
+                    <div class="relative aspect-[4/5] bg-stone-200 overflow-hidden">
+                        <img alt="Sneakers" class="w-full h-full object-cover" data-alt="Modern athletic sneakers"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwSR8I4JplWClBNntHReAYNoWcsiHMGzrLKOpUCJi87jzu6NuUEK7UM2_HhswrttQiWTuQf6-Y8UC6X84A406KpWan2Nj9og-RZNGkSFKmLvr_6WGL40TCxcLiy69VfDgs2Aji62vOFvYpHhvCfxrSZxNMgbUCZSRpx1yQnVi98ggT2UnL64ZYrBlFt3uMvDnABTjs2swpQNCrdGAYY4XzyV6_YMdw1XbwJ4QOTEQOzppRBR6ZgkEffQSpP1izNaHrXGxA4QOVJHyT" />
+                        <button
+                            class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-error material-symbols-outlined transition-transform hover:scale-110 shadow-sm"
+                            style="font-variation-settings: 'FILL' 1;">bookmark</button>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-headline font-bold text-lg mb-1 text-on-surface">Velocity Edge Runner</h3>
+                        <p class="text-outline text-sm mb-4">Neon White • Pro Series</p>
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="flex text-amber-500 items-center gap-0.5">
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm"
+                                    style="font-variation-settings: 'FILL' 1;">star</span>
+                                <span class="material-symbols-outlined text-sm">star</span>
+                            </span>
+                            <span class="text-xs text-outline font-medium">(89)</span>
+                        </div>
+                        <div class="flex items-center justify-between mt-auto">
+                            <span class="text-2xl font-black text-on-surface tracking-tight">$145.00</span>
+                            <button
+                                class="bg-stone-100 text-on-surface border border-outline-variant px-4 py-2 rounded-lg font-bold text-sm hover:bg-stone-200 transition-all">Add
+                                to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- BottomNavBar Component (Mobile Only) -->
+    <nav
+        class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 md:hidden bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl z-50 shadow-[0_-8px_32px_rgba(41,37,36,0.1)] border-t border-outline-variant/30">
+        <a class="flex flex-col items-center justify-center text-on-surface/50 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 transition-transform scale-95"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="explore">explore</span>
+            <span class="font-manrope text-[10px] uppercase tracking-widest mt-1">Explore</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-primary bg-primary/10 rounded-xl px-4 py-1 transition-transform scale-95"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="bookmark"
+                style="font-variation-settings: 'FILL' 1;">bookmark</span>
+            <span class="font-manrope text-[10px] uppercase tracking-widest mt-1">Saved</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-on-surface/50 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 transition-transform scale-95"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="search">search</span>
+            <span class="font-manrope text-[10px] uppercase tracking-widest mt-1">Search</span>
+        </a>
+        <a class="flex flex-col items-center justify-center text-on-surface/50 dark:text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 transition-transform scale-95"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="person">person</span>
+            <span class="font-manrope text-[10px] uppercase tracking-widest mt-1">Profile</span>
+        </a>
+    </nav>
+</body>
+
+</html>

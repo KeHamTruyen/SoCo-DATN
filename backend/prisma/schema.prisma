@@ -92,6 +92,11 @@ enum GroupMemberRole {
   MEMBER
 }
 
+enum SavedItemType {
+  POST
+  PRODUCT
+}
+
 // =====================================================
 // USERS & AUTHENTICATION
 // =====================================================
@@ -143,6 +148,7 @@ model User {
   verifiedSellers          SellerVerification[]      @relation("VerifiedBy")
   reports                  Report[]                  @relation("ReporterUser")
   resolvedReports          Report[]                  @relation("ResolverUser")
+  savedItems               SavedItem[]
 
   @@map("users")
 }
@@ -651,6 +657,20 @@ model Follow {
 
   @@unique([followerId, followingId])
   @@map("follows")
+}
+
+model SavedItem {
+  id        String        @id @default(uuid())
+  userId    String        @map("user_id")
+  itemType  SavedItemType @map("item_type")
+  targetId  String        @map("target_id")
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemType, targetId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("saved_items")
 }
 
 // =====================================================

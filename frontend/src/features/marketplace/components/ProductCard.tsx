@@ -1,8 +1,10 @@
-import { Heart, ShoppingCart, Star } from "lucide-react";
-import { type MouseEvent, useState } from "react";
+import { Bookmark, ShoppingCart, Star } from "lucide-react";
+import { type MouseEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { cartApi } from "../../cart/api/cartApi";
+import { savedItemsApi } from "../../saved-items/api/savedItemsApi";
 import type { ProductListItem } from "../types/marketplace.types";
+import { cn } from "../../../shared/lib/cn";
 
 interface ProductCardProps {
     product: ProductListItem;
@@ -17,6 +19,23 @@ function formatSold(n: number | undefined): string {
 export function ProductCard({ product }: ProductCardProps) {
     const [cartBusy, setCartBusy] = useState(false);
     const [cartHint, setCartHint] = useState<string | null>(null);
+    const [savedId, setSavedId] = useState<string | null>(null);
+    const [saveBusy, setSaveBusy] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        void (async () => {
+            try {
+                const id = await savedItemsApi.lookup("PRODUCT", product.id);
+                if (!cancelled) setSavedId(id);
+            } catch {
+                if (!cancelled) setSavedId(null);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [product.id]);
 
     const soldLabel = formatSold(product.soldCount);
 
@@ -37,6 +56,26 @@ export function ProductCard({ product }: ProductCardProps) {
         }
     };
 
+    const handleToggleSave = async (e: MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (saveBusy) return;
+        setSaveBusy(true);
+        try {
+            if (savedId) {
+                await savedItemsApi.remove(savedId);
+                setSavedId(null);
+            } else {
+                const row = await savedItemsApi.save("PRODUCT", product.id);
+                setSavedId(row.id);
+            }
+        } catch {
+            /* ignore */
+        } finally {
+            setSaveBusy(false);
+        }
+    };
+
     return (
         <div className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all hover:shadow-xl dark:border-neutral-800 dark:bg-neutral-900">
             <div className="relative aspect-4/5 overflow-hidden">
@@ -52,10 +91,16 @@ export function ProductCard({ product }: ProductCardProps) {
                 </Link>
                 <button
                     type="button"
-                    className="absolute right-3 top-3 z-10 rounded-full bg-white/80 p-2 text-neutral-400 backdrop-blur-md transition-colors hover:text-red-500 dark:bg-neutral-900/80"
-                    aria-label="Save to wishlist"
+                    disabled={saveBusy}
+                    onClick={handleToggleSave}
+                    className={cn(
+                        "absolute right-3 top-3 z-10 rounded-full bg-white/80 p-2 backdrop-blur-md transition-colors dark:bg-neutral-900/80",
+                        savedId ? "text-primary" : "text-neutral-400 hover:text-primary",
+                    )}
+                    aria-label={savedId ? "Remove from saved" : "Save to wishlist"}
+                    aria-pressed={!!savedId}
                 >
-                    <Heart className="h-5 w-5" />
+                    <Bookmark className={cn("h-5 w-5", savedId && "fill-current")} />
                 </button>
             </div>
             <div className="flex flex-1 flex-col p-4">
