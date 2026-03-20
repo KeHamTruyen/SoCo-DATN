@@ -18,6 +18,7 @@ export function CartItem({
     onRemove,
 }: CartItemProps) {
     const variantText = item.variants?.map((v) => `${v.name}: ${v.value}`).join(" | ");
+    const lineTotal = item.price * item.quantity;
 
     return (
         <div className="flex flex-col gap-4 p-4 sm:flex-row">
@@ -36,14 +37,14 @@ export function CartItem({
                             className="h-full w-full object-cover"
                         />
                     ) : (
-                        <div className="flex h-full w-full items-center justify-center text-neutral-400 text-xs">
+                        <div className="flex h-full w-full items-center justify-center text-xs text-neutral-400">
                             No image
                         </div>
                     )}
                 </div>
             </div>
             <div className="flex flex-1 flex-col justify-between">
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-2">
                     <div>
                         <h3 className="text-lg font-semibold">{item.productName}</h3>
                         {variantText && (
@@ -53,22 +54,32 @@ export function CartItem({
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="text-neutral-400 hover:text-destructive"
+                        className="shrink-0 text-neutral-400 hover:text-destructive"
                         onClick={() => onRemove(item.id)}
+                        aria-label="Remove item"
                     >
                         <Trash2 className="h-4 w-4" />
                     </Button>
                 </div>
-                <div className="mt-4 flex items-end justify-between">
-                    <span className="text-xl font-bold text-primary">
-                        ${(item.price * item.quantity).toFixed(2)}
-                    </span>
+                <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                        <span className="text-xl font-bold text-primary">
+                            ${item.price.toFixed(2)}
+                        </span>
+                        {item.quantity > 1 && (
+                            <p className="text-xs text-neutral-500">
+                                Line total · $
+                                {lineTotal.toFixed(2)}
+                            </p>
+                        )}
+                    </div>
                     <div className="flex items-center overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700">
                         <button
                             type="button"
                             onClick={() => onQuantityChange(item.id, Math.max(1, item.quantity - 1))}
                             disabled={item.quantity <= 1}
                             className="border-r border-neutral-200 px-3 py-1 transition-colors hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                            aria-label="Decrease quantity"
                         >
                             <Minus className="h-3 w-3" />
                         </button>
@@ -77,6 +88,7 @@ export function CartItem({
                             type="button"
                             onClick={() => onQuantityChange(item.id, item.quantity + 1)}
                             className="border-l border-neutral-200 px-3 py-1 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                            aria-label="Increase quantity"
                         >
                             <Plus className="h-3 w-3" />
                         </button>
