@@ -19,7 +19,9 @@ export interface MarketplaceListResponse {
 export interface ProductQueryParams {
     q?: string;
     category?: string;
-    sort?: "newest" | "price_asc" | "price_desc";
+    sort?: "newest" | "price_asc" | "price_desc" | "popular";
+    minPrice?: number;
+    maxPrice?: number;
     page?: number;
     pageSize?: number;
 }

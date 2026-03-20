@@ -9,7 +9,7 @@ import {
     User,
     X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { notificationApi } from "../../../../features/notification/api/notificationApi";
 import { NotificationDropdown } from "../../../../features/notification/components/NotificationDropdown";
@@ -42,6 +42,7 @@ const avatarFallback =
 export function UnifiedHeader({
     navItems = defaultNavItems,
     activePath,
+    searchValue,
     onSearch,
 }: UnifiedHeaderProps) {
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -127,7 +128,16 @@ export function UnifiedHeader({
                         <Input
                             className="h-10 pl-9"
                             placeholder="Search products, sellers, or hashtags..."
-                            onChange={(e) => onSearch?.(e.target.value)}
+                            {...(searchValue !== undefined
+                                ? {
+                                      value: searchValue,
+                                      onChange: (e: ChangeEvent<HTMLInputElement>) =>
+                                          onSearch?.(e.target.value),
+                                  }
+                                : {
+                                      onChange: (e: ChangeEvent<HTMLInputElement>) =>
+                                          onSearch?.(e.target.value),
+                                  })}
                         />
                     </div>
                 </div>
@@ -242,7 +252,16 @@ export function UnifiedHeader({
                         <Input
                             className="h-10 pl-9"
                             placeholder="Search..."
-                            onChange={(e) => onSearch?.(e.target.value)}
+                            {...(searchValue !== undefined
+                                ? {
+                                      value: searchValue,
+                                      onChange: (e: ChangeEvent<HTMLInputElement>) =>
+                                          onSearch?.(e.target.value),
+                                  }
+                                : {
+                                      onChange: (e: ChangeEvent<HTMLInputElement>) =>
+                                          onSearch?.(e.target.value),
+                                  })}
                         />
                     </div>
                     <nav className="flex flex-col gap-1">
