@@ -36,7 +36,7 @@ export default function ProductDetail() {
     }, [id]);
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark">
+        <div className="flex min-h-0 flex-1 flex-col">
             <UnifiedHeader
                 navItems={[
                     { label: "Feed", to: "/feed" },
@@ -44,7 +44,7 @@ export default function ProductDetail() {
                 ]}
                 activePath="/marketplace"
             />
-            <main className="mx-auto w-full max-w-[1200px] space-y-4 px-4 py-6">
+            <main className="mx-auto w-full max-w-[1200px] flex-1 space-y-4 px-4 py-6">
                 <Button variant="ghost" onClick={() => navigate(-1)}>
                     Back
                 </Button>

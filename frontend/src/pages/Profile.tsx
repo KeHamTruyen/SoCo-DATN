@@ -141,14 +141,14 @@ export default function Profile() {
     ];
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark">
+        <div className="flex min-h-0 flex-1 flex-col">
             <UnifiedHeader
                 navItems={[
                     { label: "Feed", to: "/feed" },
                     { label: "Marketplace", to: "/marketplace" },
                 ]}
             />
-            <main className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8">
+            <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-8 sm:px-6 lg:px-8">
                 {isLoading ? (
                     <div className="space-y-6">
                         <div className="h-32 animate-pulse rounded-2xl bg-neutral-200 dark:bg-neutral-800" />

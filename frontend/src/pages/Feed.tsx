@@ -6,7 +6,7 @@ import { LeftSidebar, RightSidebar } from "../features/feed/components/FeedSideb
 import { PostComposer } from "../features/feed/components/PostComposer";
 import { useFeed } from "../features/feed/hooks/useFeed";
 import { useAuthSession } from "../shared/auth/useAuthSession";
-import { Button, Footer, UnifiedHeader } from "../shared/ui";
+import { Button, UnifiedHeader } from "../shared/ui";
 
 export default function Feed() {
     const {
@@ -34,7 +34,7 @@ export default function Feed() {
     };
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark">
+        <div className="flex min-h-screen flex-col bg-background-light dark:bg-background-dark">
             <UnifiedHeader
                 navItems={[
                     { label: "Feed", to: "/feed" },
@@ -43,7 +43,7 @@ export default function Feed() {
                 activePath="/feed"
             />
 
-            <main className="mx-auto flex w-full max-w-[1440px] gap-6 px-6 py-6">
+            <main className="mx-auto flex w-full max-w-[1440px] flex-1 gap-6 px-6 py-6">
                 <LeftSidebar isSeller={isSeller} />
 
                 <section className="min-w-0 flex-1 space-y-4" style={{ maxWidth: "680px" }}>
@@ -83,8 +83,6 @@ export default function Feed() {
 
                 <RightSidebar />
             </main>
-
-            <Footer />
 
             {showModal && (
                 <CreatePostModal

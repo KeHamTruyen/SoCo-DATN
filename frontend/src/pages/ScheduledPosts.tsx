@@ -38,7 +38,7 @@ export default function ScheduledPosts() {
     };
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark">
+        <div className="flex min-h-0 flex-1 flex-col">
             <UnifiedHeader
                 navItems={[
                     { label: "Feed", to: "/feed" },

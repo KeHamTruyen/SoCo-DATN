@@ -60,7 +60,7 @@ export default function PostDetail() {
     };
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark">
+        <div className="flex min-h-0 flex-1 flex-col">
             <UnifiedHeader
                 navItems={[
                     { label: "Feed", to: "/feed" },
@@ -68,7 +68,7 @@ export default function PostDetail() {
                 ]}
                 activePath="/feed"
             />
-            <main className="mx-auto w-full max-w-7xl px-4 py-6">
+            <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6">
                 <nav className="mb-6 flex items-center gap-2 text-sm text-neutral-500">
                     <Link to="/feed" className="transition-colors hover:text-primary">Feed</Link>
                     <span>/</span>

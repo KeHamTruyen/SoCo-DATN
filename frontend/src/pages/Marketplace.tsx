@@ -178,7 +178,7 @@ export default function Marketplace() {
     }, [hasMore, isLoadingMore]);
 
     return (
-        <div className="min-h-screen bg-background-light text-neutral-900 dark:bg-background-dark dark:text-neutral-100">
+        <div className="flex min-h-0 flex-1 flex-col">
             <UnifiedHeader
                 navItems={[
                     { label: "Feed", to: "/feed" },
@@ -188,7 +188,7 @@ export default function Marketplace() {
                 searchValue={draftQ}
                 onSearch={handleSearchInput}
             />
-            <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
                 <div className="mb-12 flex flex-col items-center space-y-6">
                     <MarketplaceHero
                         value={draftQ}

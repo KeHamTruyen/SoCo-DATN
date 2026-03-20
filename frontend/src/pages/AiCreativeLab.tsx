@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Button, Footer, UnifiedHeader } from "../shared/ui";
+import { Button, UnifiedHeader } from "../shared/ui";
 import { cn } from "../shared/lib/cn";
 
 type StudioMode = "text" | "image" | "video";
@@ -53,7 +53,7 @@ export default function AiCreativeLab() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark">
+        <div className="flex min-h-0 flex-1 flex-col">
             <UnifiedHeader
                 navItems={[
                     { label: "Feed", to: "/feed" },
@@ -62,7 +62,7 @@ export default function AiCreativeLab() {
                 activePath="/feed"
             />
 
-            <div className="mx-auto flex w-full max-w-[1440px] flex-col lg:flex-row lg:min-h-[calc(100vh-4rem)]">
+            <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col lg:flex-row">
                 {/* Studio sidebar */}
                 <aside
                     className={cn(
@@ -395,8 +395,6 @@ export default function AiCreativeLab() {
                     </section>
                 </div>
             </div>
-
-            <Footer />
         </div>
     );
 }

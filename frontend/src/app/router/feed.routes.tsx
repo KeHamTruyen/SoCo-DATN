@@ -1,4 +1,8 @@
 import { Route } from "react-router-dom";
+import {
+    AppShellHeaderOnlyLayout,
+    AppShellWithFooterLayout,
+} from "../layouts/AppShellLayout";
 import AiCreativeLab from "../../pages/AiCreativeLab";
 import Feed from "../../pages/Feed";
 import PostDetail from "../../pages/PostDetail";
@@ -10,13 +14,17 @@ import ProtectedRoute from "./ProtectedRoute";
 export function FeedRoutes() {
     return (
         <Route element={<ProtectedRoute />}>
-            <Route path="/feed" element={<Feed />} />
-            <Route path="/saved-items" element={<SavedItems />} />
-            <Route path="/ai-creative-lab" element={<AiCreativeLab />} />
-            <Route path="/posts/:id" element={<PostDetail />} />
-            <Route path="/scheduled-posts" element={<ScheduledPosts />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/profile/:id" element={<Profile />} />
+            <Route element={<AppShellHeaderOnlyLayout />}>
+                <Route path="/feed" element={<Feed />} />
+                <Route path="/posts/:id" element={<PostDetail />} />
+                <Route path="/scheduled-posts" element={<ScheduledPosts />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/:id" element={<Profile />} />
+            </Route>
+            <Route element={<AppShellWithFooterLayout />}>
+                <Route path="/saved-items" element={<SavedItems />} />
+                <Route path="/ai-creative-lab" element={<AiCreativeLab />} />
+            </Route>
         </Route>
     );
 }

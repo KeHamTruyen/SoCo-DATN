@@ -8,7 +8,7 @@ import type {
     SavedTab,
 } from "../features/saved-items/types/savedItems.types";
 import { httpClient } from "../shared/api/httpClient";
-import { Footer, UnifiedHeader } from "../shared/ui";
+import { UnifiedHeader } from "../shared/ui";
 
 interface CategoryOption {
     id: string;
@@ -128,7 +128,7 @@ export default function SavedItems() {
     const isEmpty = !loading && items.length === 0 && !error;
 
     return (
-        <div className="min-h-screen bg-background-light text-neutral-900 dark:bg-background-dark dark:text-neutral-100">
+        <div className="flex min-h-0 flex-1 flex-col">
             <UnifiedHeader
                 navItems={[
                     { label: "Feed", to: "/feed" },
@@ -137,7 +137,7 @@ export default function SavedItems() {
                 activePath="/feed"
             />
 
-            <main className="mx-auto w-full max-w-[1440px] px-6 py-8 md:px-12 md:py-12 lg:px-16">
+            <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-8 md:px-12 md:py-12 lg:px-16">
                 <section className="w-full">
                     <header className="mb-8">
                         <h1 className="mb-8 text-3xl font-extrabold tracking-tight md:text-4xl lg:text-5xl">
@@ -489,8 +489,6 @@ export default function SavedItems() {
                     )}
                 </section>
             </main>
-
-            <Footer />
         </div>
     );
 }

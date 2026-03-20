@@ -23,3 +23,13 @@
   | `bg-muted` | `bg-neutral-50 dark:bg-neutral-800` (when meaning “subtle surface”) |
 
   For full-page layouts, you can use the `PageShell` component (`min-h-screen bg-background text-foreground`). Reserve raw `neutral-*` shades for one-off accents when no semantic token fits.
+
+  ## App shell layouts (header / footer)
+
+  Authenticated pages under [`src/app/router/feed.routes.tsx`](src/app/router/feed.routes.tsx) and [`src/app/router/marketplace.routes.tsx`](src/app/router/marketplace.routes.tsx) use [`AppShellWithFooterLayout`](src/app/layouts/AppShellLayout.tsx) or [`AppShellHeaderOnlyLayout`](src/app/layouts/AppShellLayout.tsx) as parent routes. The shell owns `min-h-screen`, background, and optional global `Footer`.
+
+  - **With footer:** register the route inside `AppShellWithFooterLayout` (e.g. saved items, AI creative lab). Sticky footer is handled by the shell.
+  - **Header only:** use `AppShellHeaderOnlyLayout` for feeds, marketplace, or infinite-scroll pages (no site footer).
+  - **Page root:** the routed page should use a root wrapper `className="flex min-h-0 flex-1 flex-col"` and put primary content in `<main className="flex-1 ...">` (or equivalent) so the flex column fills the shell between header and footer.
+
+  Add new routes by nesting the correct layout alongside siblings in the same route file; avoid duplicating `min-h-screen` on the page when the shell already provides it.
