@@ -129,19 +129,12 @@ export function LeftSidebar({ isSeller }: { isSeller: boolean }) {
                     Business
                 </p>
                 {isSeller ? (
-                    <>
-                        <SideNavItem
-                            to="/profile"
-                            icon={<Store className="h-5 w-5" />}
-                            label="My Shop"
-                            active={pathname === "/profile"}
-                        />
-                        <SideNavItem
-                            to="/profile"
-                            icon={<LayoutDashboard className="h-5 w-5" />}
-                            label="Seller Dashboard"
-                        />
-                    </>
+                    <SideNavItem
+                        to="/seller/dashboard"
+                        icon={<LayoutDashboard className="h-5 w-5" />}
+                        label="Seller Dashboard"
+                        active={pathname.startsWith("/seller")}
+                    />
                 ) : (
                     <Link
                         to="/become-seller"

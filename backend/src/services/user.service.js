@@ -12,6 +12,7 @@ const USER_PROFILE_SELECT = {
   coverImage: true,
   bio: true,
   address: true,
+  shopInformation: true,
   isVerified: true,
   privacySettings: true,
   createdAt: true,
@@ -70,7 +71,7 @@ class UserService {
   }
 
   async updateProfile(userId, data) {
-    const { fullName, phone, bio, avatarUrl, coverImage, address } = data;
+    const { fullName, phone, bio, avatarUrl, coverImage, address, shopInformation } = data;
 
     if (data.username) {
       const existingUser = await prisma.user.findFirst({
@@ -87,6 +88,7 @@ class UserService {
     if (coverImage !== undefined) updateData.coverImage = coverImage;
     if (address !== undefined) updateData.address = address;
     if (data.username) updateData.username = data.username;
+    if (shopInformation !== undefined) updateData.shopInformation = shopInformation;
 
     const user = await prisma.user.update({
       where: { id: userId },
@@ -94,6 +96,7 @@ class UserService {
       select: {
         id: true, email: true, username: true, fullName: true, phone: true,
         role: true, avatarUrl: true, coverImage: true, bio: true, address: true,
+        shopInformation: true,
         isVerified: true, privacySettings: true, createdAt: true, updatedAt: true,
       },
     });

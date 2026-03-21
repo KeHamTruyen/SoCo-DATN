@@ -1,10 +1,15 @@
+import type { ShopInformationSnapshot } from "../../seller/types/shopInformation.types";
+
 export interface UserProfile {
     id: string;
     email: string;
     username?: string;
     fullName?: string;
     avatarUrl?: string;
+    coverImage?: string;
     role?: "buyer" | "seller" | "admin";
+    /** Public shop metadata (set when seller registration completes). */
+    shopInformation?: ShopInformationSnapshot | null;
 }
 
 export interface AuthResponse {

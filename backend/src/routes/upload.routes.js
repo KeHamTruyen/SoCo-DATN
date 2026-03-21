@@ -1,6 +1,15 @@
 import express from 'express';
+import prisma from '../config/database.js';
 import { protect } from '../middlewares/auth.middleware.js';
-import { uploadProduct, uploadAvatar, uploadPost } from '../config/cloudinary.js';
+import {
+  uploadProduct,
+  uploadAvatar,
+  uploadPost,
+  uploadShopLogo,
+  uploadShopCover,
+  uploadSellerIdDoc,
+  signedAuthenticatedImageUrl,
+} from '../config/cloudinary.js';
 
 const router = express.Router();
 
@@ -185,6 +194,132 @@ router.post('/products', protect, uploadProduct.array('images', 10), (req, res) 
  *       200:
  *         description: Avatar uploaded successfully
  */
+router.post('/shop-logo', protect, uploadShopLogo.single('image'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Shop logo uploaded successfully',
+      data: {
+        url: req.file.path,
+        publicId: req.file.filename,
+      },
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload shop logo',
+      error: error.message,
+    });
+  }
+});
+
+router.post('/shop-cover', protect, uploadShopCover.single('image'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Shop cover uploaded successfully',
+      data: {
+        url: req.file.path,
+        publicId: req.file.filename,
+      },
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload shop cover',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * Signed URL for authenticated ID uploads (owner or admin).
+ * Query: publicId
+ */
+router.get('/seller-id-doc/signed', protect, async (req, res, next) => {
+  try {
+    const publicId = req.query.publicId;
+    if (!publicId || typeof publicId !== 'string') {
+      return res.status(400).json({ success: false, message: 'publicId is required' });
+    }
+
+    let allowed = false;
+    if (req.user.role === 'ADMIN') {
+      allowed = publicId.includes('seller-id-docs');
+    } else {
+      const v = await prisma.sellerVerification.findUnique({ where: { userId: req.user.id } });
+      const owned = [v?.idCardFrontPublicId, v?.idCardBackPublicId].filter(Boolean);
+      if (owned.includes(publicId)) allowed = true;
+      if (!allowed) {
+        const pending = await prisma.sellerSensitiveChangeRequest.findFirst({
+          where: { userId: req.user.id, status: 'PENDING' },
+        });
+        if (pending) {
+          const pids = [pending.idCardFrontPublicId, pending.idCardBackPublicId].filter(Boolean);
+          if (pids.includes(publicId)) allowed = true;
+        }
+      }
+    }
+
+    if (!allowed) {
+      return res.status(403).json({ success: false, message: 'Not allowed to access this asset' });
+    }
+
+    const url = signedAuthenticatedImageUrl(publicId);
+    if (!url) {
+      return res.status(400).json({ success: false, message: 'Could not generate signed URL' });
+    }
+
+    res.json({ success: true, data: { url } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** Seller KYC — front or back of ID / passport (field: image). */
+router.post('/seller-id-doc', protect, uploadSellerIdDoc.single('image'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'ID document image uploaded successfully',
+      data: {
+        url: req.file.path,
+        publicId: req.file.filename,
+      },
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload ID document',
+      error: error.message,
+    });
+  }
+});
+
 router.post('/avatar', protect, uploadAvatar.single('image'), (req, res) => {
   try {
     if (!req.file) {

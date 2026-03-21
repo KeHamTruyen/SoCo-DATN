@@ -9,6 +9,7 @@ import PostDetail from "../../pages/PostDetail";
 import Profile from "../../pages/Profile";
 import SavedItems from "../../pages/SavedItems";
 import ScheduledPosts from "../../pages/ScheduledPosts";
+import SellerDashboard from "../../pages/SellerDashboard";
 import ProtectedRoute from "./ProtectedRoute";
 
 export function FeedRoutes() {
@@ -18,6 +19,7 @@ export function FeedRoutes() {
                 <Route path="/feed" element={<Feed />} />
                 <Route path="/posts/:id" element={<PostDetail />} />
                 <Route path="/scheduled-posts" element={<ScheduledPosts />} />
+                <Route path="/seller/dashboard" element={<SellerDashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:id" element={<Profile />} />
             </Route>

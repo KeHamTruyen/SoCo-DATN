@@ -28,6 +28,12 @@ enum VerificationStatus {
   REJECTED
 }
 
+enum SensitiveChangeStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum ProductStatus {
   DRAFT
   ACTIVE
@@ -116,6 +122,8 @@ model User {
   isVerified      Boolean   @default(false) @map("is_verified")
   isActive        Boolean   @default(true) @map("is_active")
   privacySettings Json?     @default("{}") @map("privacy_settings")
+  /// Public shop metadata (no avatar/cover URLs, no plaintext CCCD/STK). Source: seller registration + non-sensitive updates.
+  shopInformation Json?     @map("shop_information")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
   lastLogin       DateTime? @map("last_login")
@@ -149,6 +157,8 @@ model User {
   reports                  Report[]                  @relation("ReporterUser")
   resolvedReports          Report[]                  @relation("ResolverUser")
   savedItems               SavedItem[]
+  sellerSensitiveChangeRequests SellerSensitiveChangeRequest[]
+  sensitiveAuditLogsAsActor     SellerSensitiveAuditLog[]      @relation("SensitiveAuditActor")
 
   @@map("users")
 }
@@ -190,9 +200,12 @@ model SellerVerification {
 
   // Step 1: Personal Information
   step1Completed Boolean   @default(false) @map("step1_completed")
-  idCardNumber   String?   @map("id_card_number") @db.VarChar(20)
-  idCardFrontUrl String?   @map("id_card_front_url")
-  idCardBackUrl  String?   @map("id_card_back_url")
+  /// AES-256-GCM ciphertext (base64) or legacy plaintext when decrypt fails.
+  idCardNumber        String? @map("id_card_number") @db.Text
+  idCardFrontUrl      String? @map("id_card_front_url")
+  idCardBackUrl       String? @map("id_card_back_url")
+  idCardFrontPublicId String? @map("id_card_front_public_id")
+  idCardBackPublicId  String? @map("id_card_back_public_id")
   dateOfBirth    DateTime? @map("date_of_birth") @db.Date
   address        String?
 
@@ -207,7 +220,8 @@ model SellerVerification {
   // Step 3: Bank Information
   step3Completed    Boolean @default(false) @map("step3_completed")
   bankName          String? @map("bank_name") @db.VarChar(100)
-  bankAccountNumber String? @map("bank_account_number") @db.VarChar(50)
+  /// AES-256-GCM ciphertext (base64) when SENSITIVE_DATA_KEY is set.
+  bankAccountNumber String? @map("bank_account_number") @db.Text
   bankAccountName   String? @map("bank_account_name")
   bankBranch        String? @map("bank_branch")
 
@@ -224,6 +238,47 @@ model SellerVerification {
   verifier User? @relation("VerifiedBy", fields: [verifiedBy], references: [id])
 
   @@map("seller_verifications")
+}
+
+/// Staging for seller requests to change KYC / bank (admin must approve before promoting to SellerVerification).
+model SellerSensitiveChangeRequest {
+  id       String @id @default(uuid())
+  userId   String @map("user_id")
+  status   SensitiveChangeStatus @default(PENDING)
+
+  idCardNumberCipher      String? @map("id_card_number_cipher") @db.Text
+  bankAccountNumberCipher String? @map("bank_account_number_cipher") @db.Text
+  idCardFrontPublicId     String? @map("id_card_front_public_id")
+  idCardBackPublicId      String? @map("id_card_back_public_id")
+  bankName                String? @map("bank_name") @db.VarChar(100)
+  bankAccountName         String? @map("bank_account_name")
+
+  rejectionReason String?   @map("rejection_reason")
+  reviewedBy      String?   @map("reviewed_by")
+  reviewedAt      DateTime? @map("reviewed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("seller_sensitive_change_requests")
+}
+
+model SellerSensitiveAuditLog {
+  id            String   @id @default(uuid())
+  subjectUserId String?  @map("subject_user_id")
+  actorId       String   @map("actor_id")
+  action        String   @db.VarChar(120)
+  entityType    String   @map("entity_type") @db.VarChar(80)
+  entityId      String?  @map("entity_id")
+  meta          Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  actor User @relation("SensitiveAuditActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([subjectUserId])
+  @@map("seller_sensitive_audit_logs")
 }
 
 // =====================================================

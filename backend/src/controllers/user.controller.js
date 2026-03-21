@@ -38,9 +38,9 @@ class UserController {
 
   async updateProfile(req, res, next) {
     try {
-      const { fullName, username, phone, bio, avatarUrl, coverImage, address } = req.body;
+      const { fullName, username, phone, bio, avatarUrl, coverImage, address, shopInformation } = req.body;
       const user = await userService.updateProfile(req.user.id, {
-        fullName, username, phone, bio, avatarUrl, coverImage, address,
+        fullName, username, phone, bio, avatarUrl, coverImage, address, shopInformation,
       });
       res.json({ success: true, message: 'Profile updated successfully', data: user });
     } catch (error) {

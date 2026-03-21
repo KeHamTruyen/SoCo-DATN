@@ -651,7 +651,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 
 ### Phase 1 (MVP) - BẮT BUỘC:
 
-1. ✅ **Cloudinary** - Product images
+1. ✅ **Cloudinary** - Product images, avatar, post media, **shop logo** (`/api/upload/shop-logo`), **shop cover** (`/api/upload/shop-cover`), **seller ID docs** (`POST /api/upload/seller-id-doc`, `access_mode: authenticated`) — lưu `public_id` + gửi `idCardFrontPublicId` / `idCardBackPublicId` kèm URL trong `PUT /seller/step1`; xem ảnh qua `GET /api/upload/seller-id-doc/signed?publicId=...` (signed URL, TTL). **User.shop_information** (JSON): metadata shop công khai sau `PUT /seller/step3` (không avatar/cover, không CCCD/STK plaintext). **Mã hóa at-rest:** `SENSITIVE_DATA_KEY` (AES-256-GCM) cho `id_card_number` / `bank_account_number` trong `seller_verifications`. **Staging đổi nhạy cảm (seller đã APPROVED):** `POST /api/seller/sensitive/change-request`, admin `GET /api/seller/admin/sensitive-change-requests`, `POST .../approve|reject`; audit `seller_sensitive_audit_logs`.
 2. ✅ **Supabase/Railway** - Database hosting
 3. ✅ **Resend/SendGrid** - Email service
 4. ⏸️ **VNPay/Stripe** - Payment (khi làm checkout)

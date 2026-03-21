@@ -1,5 +1,6 @@
 import { httpClient } from "../../../shared/api/httpClient";
 import type { UserProfile } from "../../auth/types/auth.types";
+import type { ShopInformationSnapshot } from "../../seller/types/shopInformation.types";
 import type { PublicUserProfile, SellerStats } from "../types/profile.types";
 
 interface ApiListResponse<T> {
@@ -53,6 +54,23 @@ export const profileApi = {
             { requiresAuth: true },
         );
         return unwrap<SellerStats>(res);
+    },
+    async updateProfile(payload: {
+        fullName?: string;
+        username?: string;
+        phone?: string;
+        bio?: string;
+        avatarUrl?: string | null;
+        coverImage?: string | null;
+        address?: string | null;
+        shopInformation?: ShopInformationSnapshot | null;
+    }) {
+        const res = await httpClient.put<ApiResponse<UserProfile> | UserProfile>(
+            "/users/me",
+            payload,
+            { requiresAuth: true },
+        );
+        return unwrap<UserProfile>(res);
     },
     async listSuggestedUsers(): Promise<PublicUserProfile[]> {
         try {

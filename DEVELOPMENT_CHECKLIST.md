@@ -2,22 +2,18 @@
 
 ## 🎯 Tổng quan tiến độ
 
-### ✅ Đã hoàn thành (Phase 1 & 3)
+### ✅ Đã hoàn thành (cốt lõi)
 
-- Backend Auth API
-- Backend Product API
-- Backend Category API
-- Backend Posts & Social Feed API
-- Frontend Auth pages
-- Frontend Layout components
-- Frontend Seller pages migration
-- Frontend Product pages migration
-- Frontend Posts & Social Feed
+- **Backend:** Auth, Products, Categories, Cart, Orders, Posts/Feed, Upload/Cloudinary (`/api/upload/*`), Users & follow (`/api/users/*`), Messages (`/api/messages/*` + Socket.IO), Notifications (`/api/notifications/*`), Groups (`/api/groups/*`), Reviews (`/api/reviews/*`), Saved items (`/api/saved-items/*`), Reports (`/api/reports/*`), Scheduled posts (`/api/scheduled-posts/*` + cron), Seller application & admin review (`/api/seller/*`), Admin tối thiểu (`/api/admin/*`), AI Gemini (`/api/ai/*`)
+- **Frontend:** Auth, layout/header, **Feed** (post, like, comment, schedule qua API), Post detail, Cart / Checkout / Orders (buyer), **Marketplace** (tìm kiếm, lọc, sort, phân trang qua `GET /products`), Messages, Notifications (kèm mark read), Groups & Group detail (API list; một phần UI mock), Profile (xem user khác, follow/unfollow, seller stats *nếu backend trả*), Saved items, Admin dashboard (reports API)
 
-### ⏳ Đang thực hiện
+### ⏳ Đang làm / tinh chỉnh
 
-- Backend Cart & Order APIs
-- Frontend Shopping flow
+- Reviews: UI đầy đủ (form, list trên ProductDetail, seller reply)
+- Seller: quản lý sản phẩm trên UI (CRUD), upload giấy tờ lên Cloudinary + đồng bộ `SellerVerification`; endpoint `/seller/stats` (FE đang gọi — cần khớp BE)
+- Realtime: hoàn thiện Socket (typing, notification realtime, v.v.)
+- AI: nối `AiCreativeLab` / nút gợi ý với `/api/ai/*`
+- Production: rate limit & Helmet (package có thể đã cài nhưng chưa gắn app), test, **seed** (`npm run prisma:seed` trỏ `prisma/seed.js` nhưng file chưa có trong repo)
 
 ---
 
@@ -66,24 +62,19 @@
 - [x] Category controller
 - [x] Category routes (`/api/categories/*`)
 - [x] Slugify integration
-- [ ] **TODO: Upload middleware cho product images**
-- [ ] **TODO: Image optimization/resize**
-- [ ] **TODO: Cloud storage integration (AWS S3/Cloudinary)**
+- [x] Upload routes + Cloudinary storage (`/api/upload/product`, avatar, post)
+- [ ] **TODO: Image optimization/resize server-side (ngoài Cloudinary transforms nếu cần)**
 
 ### Frontend
 
-- [x] Product service (`product.service.ts`)
-- [x] Category service (`category.service.ts`)
-- [x] ProductDetailPage - migrated to hooks + API
-- [x] AddProductPage - migrated to hooks + API
-- [x] ProductManagementPage - migrated to hooks
-- [x] CreateProductModal - migrated to hooks
-- [x] SellerDashboard - migrated to hooks
-- [ ] **TODO: Tích hợp API thật vào ProductManagementPage (hiện dùng mock)**
-- [ ] **TODO: Image upload component**
-- [ ] **TODO: Rich text editor cho product description**
-- [ ] **TODO: Product search & filters thực tế**
-- [ ] **TODO: Pagination cho product list**
+- [x] Product API client (`features/product/api`, `features/marketplace/api`)
+- [x] Category integration qua API khi cần
+- [x] ProductDetail — hooks + API
+- [x] Marketplace — `marketplaceApi`, query `q` / category / sort / maxPrice, phân trang
+- [x] Feed / post composer — upload media (Cloudinary)
+- [ ] **TODO: Trang/quy trình seller CRUD sản phẩm đầy đủ (nếu chưa gom vào một flow rõ ràng)**
+- [ ] **TODO: Rich text editor cho mô tả sản phẩm**
+- [ ] **TODO: Autocomplete tìm kiếm nâng cao (ngoài ô search Marketplace)**
 
 ---
 
@@ -134,12 +125,12 @@
 
 ### Frontend
 
-- [x] order.service.ts - TypeScript API client
-- [x] OrderManagementPage - migrated to hooks (chưa có API)
-- [x] OrdersPage - Order history with filters
-- [x] OrderDetailPage - Full order detail view
+- [x] order.service.ts / `orderApi` — buyer: list purchases, detail, create, cancel
+- [x] OrdersPage — lịch sử mua
+- [x] OrderDetailPage — chi tiết đơn
 - [x] Order status badges & filters
 - [x] Order tracking timeline
+- [ ] **TODO: UI quản lý đơn bên seller (nối API seller orders nếu chưa có trên Profile)**
 
 ---
 
@@ -168,10 +159,10 @@
 
 ### Frontend
 
-- [x] HomePage feed (tích hợp API thật)
+- [x] **Feed** (`Feed.tsx`) — tích hợp API
 - [x] PostWithProducts component (dùng navigate)
 - [x] CreatePostModal (tích hợp API đầy đủ)
-- [x] Post service (`post.service.ts`) với TypeScript
+- [x] Post service / `feedApi` với TypeScript
 - [x] Post composer với Cloudinary media upload
 - [x] Like/unlike functionality với optimistic updates
 - [x] Pagination với Load More
@@ -184,250 +175,213 @@
 
 ---
 
-## 📅 6. SCHEDULED POSTS (❌ Chưa làm - Phase 4)
+## 📅 6. SCHEDULED POSTS (✅ Backend xong — ⏳ Frontend một phần)
 
 ### Backend
 
 - [x] ScheduledPost model (Prisma schema)
-- [ ] **TODO: ScheduledPost service**
-- [ ] **TODO: ScheduledPost controller**
-- [ ] **TODO: ScheduledPost routes**
-- [ ] **TODO: Cron job để publish scheduled posts**
-- [ ] **TODO: Timezone handling**
+- [x] ScheduledPost service (`scheduledPost.service.js`)
+- [x] ScheduledPost controller
+- [x] ScheduledPost routes (`/api/scheduled-posts/*`)
+- [x] Cron job publish (`backend/src/jobs/scheduler.js` + `startScheduler` trong server)
+- [x] Trường timezone trong payload (xử lý cơ bản; có thể mở rộng UX)
 
 ### Frontend
 
-- [ ] **TODO: SchedulePostsPage - migrate to hooks + API**
-- [ ] **TODO: Date/time picker component**
-- [ ] **TODO: Timezone selector**
-- [ ] **TODO: Preview scheduled posts**
+- [x] Lên lịch từ Feed/CreatePostModal qua `feedApi.createScheduledPost`
+- [ ] **TODO: Trang quản lý danh sách scheduled posts (list / edit / hủy)**
+- [ ] **TODO: Timezone selector & preview nâng cao**
 
 ---
 
-## 💬 7. MESSAGING (❌ Chưa làm - Phase 5)
+## 💬 7. MESSAGING (✅ Backend — ⏳ Frontend)
 
 ### Backend
 
 - [x] Conversation model (Prisma schema)
 - [x] Message model (Prisma schema)
 - [x] ConversationParticipant model (Prisma schema)
-- [ ] **TODO: Message service**
-- [ ] **TODO: Message controller**
-- [ ] **TODO: Message routes (`/api/messages/*`)**
-- [ ] **TODO: WebSocket/Socket.IO integration cho real-time chat**
-- [ ] **TODO: Message pagination**
-- [ ] **TODO: Read receipts**
+- [x] Message service (`message.service.js`)
+- [x] Message controller
+- [x] Message routes (`/api/messages/*`)
+- [x] Socket.IO (emit real-time trong service)
+- [x] Message pagination
+- [ ] **TODO: Read receipts đầy đủ**
+- [ ] **TODO: Typing / presence (nếu cần)**
 
 ### Frontend
 
-- [ ] **TODO: MessagesPage - migrate to hooks + API**
-- [x] MessengerWidget - migrated to hooks (chưa có API)
-- [ ] **TODO: Real-time message updates (Socket.IO)**
-- [ ] **TODO: Chat UI với emoji picker**
-- [ ] **TODO: File/image attachments trong messages**
-- [ ] **TODO: Typing indicators**
+- [x] MessagesPage — `messagingApi` (list hội thoại, tin nhắn, gửi)
+- [ ] **TODO: Widget chat nổi (floating) nếu cần, đồng bộ Socket**
+- [ ] **TODO: Real-time subscribe Socket.IO trên UI (hiện có thể chỉ REST)**
+- [ ] **TODO: Emoji picker, đính kèm file/image, typing indicator**
 
 ---
 
-## 🔔 8. NOTIFICATIONS (❌ Chưa làm - Phase 5)
+## 🔔 8. NOTIFICATIONS (✅ Backend REST — ⏳ Realtime & preferences)
 
 ### Backend
 
 - [x] Notification model (Prisma schema)
-- [ ] **TODO: Notification service**
-- [ ] **TODO: Notification controller**
-- [ ] **TODO: Notification routes (`/api/notifications/*`)**
-- [ ] **TODO: WebSocket cho real-time notifications**
-- [ ] **TODO: Email notifications**
-- [ ] **TODO: Push notifications (FCM)**
+- [x] Notification service
+- [x] Notification controller
+- [x] Notification routes (`/api/notifications/*`)
+- [ ] **TODO: WebSocket push song song với tạo notification**
+- [ ] **TODO: Email / FCM**
 
 ### Frontend
 
-- [x] NotificationCenter component - migrated to hooks (chưa API)
-- [ ] **TODO: NotificationsPage - migrate to API**
-- [ ] **TODO: Real-time notification updates**
-- [ ] **TODO: Notification preferences page**
-- [ ] **TODO: Mark as read functionality**
+- [x] NotificationsPage — `notificationApi`, mark read / mark all read
+- [ ] **TODO: Badge / dropdown thông báo trên header (realtime)**
+- [ ] **TODO: Real-time cập nhật danh sách**
+- [ ] **TODO: Trang preferences (tắt/bật loại thông báo)**
 
 ---
 
-## 👥 9. GROUPS (❌ Chưa làm - Phase 6)
+## 👥 9. GROUPS (✅ Backend — ⏳ Frontend)
 
 ### Backend
 
 - [x] Group model (Prisma schema)
 - [x] GroupMember model (Prisma schema)
-- [ ] **TODO: Group service**
-- [ ] **TODO: Group controller**
-- [ ] **TODO: Group routes (`/api/groups/*`)**
-- [ ] **TODO: Group permissions logic**
+- [x] Group service (`group.service.js`)
+- [x] Group controller
+- [x] Group routes (`/api/groups/*`)
+- [x] Group permissions logic (admin/member cơ bản)
 
 ### Frontend
 
-- [ ] **TODO: GroupsPage - migrate to hooks + API**
-- [ ] **TODO: GroupDetailPage - migrate to hooks + API**
-- [ ] **TODO: Create group modal**
-- [ ] **TODO: Group member management**
-- [ ] **TODO: Group posts feed**
+- [x] GroupsPage — `groupApi.listGroups`
+- [x] GroupDetailPage — tích hợp API theo route
+- [ ] **TODO: Bỏ mock “My groups” sidebar nếu còn**
+- [ ] **TODO: Create group modal, quản lý member, feed nhóm**
 
 ---
 
-## ⭐ 10. REVIEWS & RATINGS (❌ Chưa làm - Phase 3)
+## ⭐ 10. REVIEWS & RATINGS (✅ Backend — ❌ Frontend đầy đủ)
 
 ### Backend
 
 - [x] Review model (Prisma schema)
-- [ ] **TODO: Review service**
-- [ ] **TODO: Review controller**
-- [ ] **TODO: Review routes (`/api/reviews/*`)**
-- [ ] **TODO: Review validators**
-- [ ] **TODO: Review moderation**
+- [x] Review service
+- [x] Review controller
+- [x] Review routes (`/api/reviews/*`)
+- [x] Review validators
+- [ ] **TODO: Moderation / flag review (nếu cần)**
 
 ### Frontend
 
 - [ ] **TODO: Review form component**
 - [ ] **TODO: Review list component**
-- [ ] **TODO: Star rating component**
+- [ ] **TODO: Star rating component tái sử dụng**
 - [ ] **TODO: Review filters & sorting**
 - [ ] **TODO: Seller response to reviews**
 
 ---
 
-## 🔍 11. SEARCH & MARKETPLACE (❌ Chưa làm - Phase 4)
+## 🔍 11. SEARCH & MARKETPLACE (⏳ Không có `/api/search` thống nhất — Marketplace OK)
 
 ### Backend
 
-- [ ] **TODO: Search service**
-  - [ ] Product search (full-text search)
-  - [ ] User search
-  - [ ] Post search
-- [ ] **TODO: Search routes (`/api/search/*`)**
-- [ ] **TODO: Advanced filters**
-- [ ] **TODO: Search indexing (Elasticsearch optional)**
+- [x] Product list + filter + sort qua `GET /api/products` (query: search, category, sort, v.v.)
+- [x] User search — `GET /api/users/search`
+- [ ] **TODO: Endpoint search thống nhất hoặc post search riêng nếu cần**
+- [ ] **TODO: Full-text / Elasticsearch (tùy chọn)**
 
 ### Frontend
 
-- [ ] **TODO: SearchResultsPage - migrate to hooks + API**
-- [ ] **TODO: MarketplacePage - migrate to hooks + API**
-- [ ] **TODO: Search autocomplete**
-- [ ] **TODO: Filter sidebar**
-- [ ] **TODO: Sort options**
+- [x] MarketplacePage — `marketplaceApi`, filter sidebar, sort, URL `searchParams`
+- [ ] **TODO: SearchResultsPage riêng nếu tách khỏi Marketplace**
+- [ ] **TODO: Search autocomplete toàn app**
+- [ ] **TODO: Lọc nâng cao (đã có một phần)**
 
 ---
 
-## 🏪 12. SELLER FEATURES (⏳ Đã migrate UI, chưa có API)
+## 🏪 12. SELLER FEATURES (⏳ API application — UI dần gắn)
 
 ### Backend
 
 - [x] SellerVerification model (Prisma schema)
 - [x] SellerStats model (Prisma schema)
-- [x] User role update endpoint (cho phép BUYER → SELLER)
-- [ ] **TODO: Seller verification service (3-step form)**
-- [ ] **TODO: Admin approval system cho seller verification**
-- [ ] **TODO: Seller stats aggregation**
-- [ ] **TODO: Seller dashboard analytics API**
+- [x] Seller apply + 3 bước + admin approve/reject (`/api/seller/*`)
+- [x] User role update trong luồng duyệt seller
+- [ ] **TODO: Endpoint thống kê dashboard (`GET /seller/stats` hoặc tương đương) khớp frontend**
+- [ ] **TODO: Upload URL giấy tờ lên Cloudinary + lưu field verification**
 
 ### Frontend
 
-- [x] SellerDashboard - migrated to hooks (chưa có API thật)
-- [x] ProductManagementPage - migrated to hooks (chưa có API thật)
-- [x] OrderManagementPage - migrated to hooks (chưa có API thật)
-- [x] AddProductPage - migrated to hooks + API
-- [x] **BecomeSellerPage - migrated to hooks + API**
-  - ⚠️ **TEMPORARY**: Auto-approve seller registration (không cần admin duyệt)
-  - ⚠️ **TODO FOR PRODUCTION**: Implement admin approval workflow
-  - ⚠️ **TODO**: Upload ID card images to Cloudinary
-  - ⚠️ **TODO**: Store verification data in SellerVerification table
-- [ ] **TODO: StorePage - migrate to hooks + API**
-- [ ] **TODO: Seller verification flow (3 steps với admin approval)**
-- [ ] **TODO: Revenue charts**
-- [ ] **TODO: Sales analytics**
+- [x] SellerRegistration (Become seller) + API
+- [x] Profile seller tab + `profileApi.getSellerStats` (cần backend tương ứng)
+- [ ] **TODO: StorePage / showcase**
+- [ ] **TODO: Revenue charts, sales analytics**
 
 ---
 
-## 👤 13. USER PROFILE & SOCIAL (⏳ Một phần hoàn thành)
+## 👤 13. USER PROFILE & SOCIAL (✅ Gần xong — ⏳ Settings & username URL)
 
 ### Backend
 
 - [x] Follow model (Prisma schema)
-- [ ] **TODO: Follow/unfollow endpoints**
-- [ ] **TODO: Get followers/following lists**
-- [ ] **TODO: User profile endpoints**
-- [ ] **TODO: Update profile endpoint (đã có trong auth)**
+- [x] Follow/unfollow (`POST/DELETE /api/users/:userId/follow`)
+- [x] Followers / following lists
+- [x] Public profile `GET /users/:id`, `GET /users/username/:username`
+- [x] Update profile `PUT /users/me`
 
 ### Frontend
 
-- [x] ProfilePage - migrated to hooks (chưa fetch other users)
-- [ ] **TODO: Fetch other user profiles by username**
-- [ ] **TODO: Follow/unfollow button**
-- [ ] **TODO: Followers/following lists**
-- [ ] **TODO: User posts grid**
-- [ ] **TODO: SettingsPage - migrate to hooks + API**
+- [x] ProfilePage — fetch user khác theo `id`, follow/unfollow
+- [x] User posts grid (tích hợp feed/post list theo context)
+- [ ] **TODO: Route `/profile/:username` nếu muốn slug thay vì id**
+- [ ] **TODO: SettingsPage — hooks + API đầy đủ**
 
 ---
 
-## 👨‍💼 14. ADMIN FEATURES (❌ Chưa làm - Phase 7)
+## 👨‍💼 14. ADMIN FEATURES (⏳ Một phần)
 
 ### Backend
 
-- [ ] **TODO: Admin dashboard API**
-- [ ] **TODO: User management endpoints**
-  - [ ] List all users
-  - [ ] Ban/unban user
-  - [ ] Verify seller manually
-- [ ] **TODO: Product moderation**
-- [ ] **TODO: Order management (admin)**
-- [ ] **TODO: Analytics & reports**
+- [x] Admin routes (`/api/admin/*`) — users toggle active/role, posts/products delete, dashboard stats
+- [ ] **TODO: Mở rộng moderation, order admin, analytics chi tiết**
 
 ### Frontend
 
-- [ ] **TODO: AdminDashboard - migrate to hooks + API**
-- [ ] **TODO: User management page**
-- [ ] **TODO: Product moderation page**
-- [ ] **TODO: Seller verification review**
-- [ ] **TODO: Analytics dashboard**
+- [x] AdminDashboard — reports qua `reportApi` (dismiss, delete content, block user)
+- [ ] **TODO: Trang user management đầy đủ (gọi admin users API)**
+- [ ] **TODO: Product moderation UI, seller verification queue UI**
+- [ ] **TODO: Analytics dashboard (charts)**
 
 ---
 
-## 🤖 15. AI FEATURES (❌ Chưa làm - Phase 8)
+## 🤖 15. AI FEATURES (✅ Backend Gemini — ❌ Frontend wire)
 
 ### Backend
 
 - [x] AiContentHistory model (Prisma schema)
-- [ ] **TODO: AI service integration (OpenAI/Claude)**
-- [ ] **TODO: Generate product description**
-- [ ] **TODO: Generate post caption**
-- [ ] **TODO: Image tagging**
-- [ ] **TODO: AI content history endpoints**
+- [x] AI service + routes (`/api/ai/generate-text`, `generate-image-text`, `generate-video-images-text`)
+- [ ] **TODO: Endpoints lịch sử / quota nếu cần**
 
 ### Frontend
 
-- [x] AI buttons trong AddProductPage (chưa hoạt động)
-- [x] AI buttons trong CreatePostModal (chưa hoạt động)
-- [ ] **TODO: Tích hợp AI API calls**
-- [ ] **TODO: Loading states cho AI generation**
-- [ ] **TODO: AI suggestions UI**
+- [x] AiCreativeLab (UI; generate hiện mock timeout)
+- [ ] **TODO: Nối nút AI trong CreatePostModal / Add product với `/api/ai/*`**
+- [ ] **TODO: Loading states, error handling, suggestions UI**
 
 ---
 
-## 📊 16. ANALYTICS (❌ Chưa làm - Phase 7)
+## 📊 16. ANALYTICS (⏳ Admin dashboard API — ❌ FE charts)
 
 ### Backend
 
 - [x] ProductView model (Prisma schema)
 - [x] SellerStats model (Prisma schema)
-- [ ] **TODO: Analytics service**
-- [ ] **TODO: Track product views**
-- [ ] **TODO: Aggregate seller stats daily**
-- [ ] **TODO: Generate reports**
-- [ ] **TODO: Analytics dashboard API**
+- [x] Admin `GET /api/admin/dashboard` & growth (một phần)
+- [ ] **TODO: Track product views tự động**
+- [ ] **TODO: Aggregate seller stats theo lịch, báo cáo export**
 
 ### Frontend
 
 - [ ] **TODO: Analytics charts (recharts/chart.js)**
-- [ ] **TODO: Sales reports**
-- [ ] **TODO: Traffic analytics**
-- [ ] **TODO: Conversion tracking**
+- [ ] **TODO: Sales reports, traffic, conversion**
 
 ---
 
@@ -439,25 +393,16 @@
 - [x] Password hashing (bcrypt)
 - [x] CORS configuration
 - [x] Input validation (express-validator)
-- [ ] **TODO: Rate limiting (express-rate-limit)**
+- [ ] **TODO: Gắn rate limiting (`express-rate-limit` đã có trong dependencies — chưa dùng trong app)**
 - [ ] **TODO: Helmet.js security headers**
-- [ ] **TODO: SQL injection prevention (Prisma handles)**
-- [ ] **TODO: XSS protection**
-- [ ] **TODO: CSRF tokens**
-- [ ] **TODO: API response caching (Redis)**
-- [ ] **TODO: Database query optimization**
-- [ ] **TODO: Indexing important fields**
+- [x] SQL injection prevention (Prisma)
+- [ ] **TODO: XSS / CSRF / caching Redis / tối ưu query & index**
 
 ### Frontend
 
 - [x] Token storage (localStorage)
 - [x] Axios interceptors
-- [ ] **TODO: Input sanitization**
-- [ ] **TODO: XSS prevention**
-- [ ] **TODO: Route-level code splitting**
-- [ ] **TODO: Image lazy loading**
-- [ ] **TODO: Performance monitoring**
-- [ ] **TODO: Error boundary components**
+- [ ] **TODO: Input sanitization, XSS, route code splitting, lazy load ảnh, error boundary**
 
 ---
 
@@ -484,6 +429,7 @@
 
 - [x] Swagger/OpenAPI docs (`/api-docs`)
 - [x] API_TESTING_GUIDE.md
+- [x] EXTERNAL_SERVICES_GUIDE.md (Cloudinary, v.v. — thay thế các file CLOUDINARY_*.md đã gỡ)
 - [ ] **TODO: API documentation hoàn chỉnh**
 - [ ] **TODO: Database schema documentation**
 - [ ] **TODO: Deployment guide**
@@ -496,32 +442,25 @@
 
 ---
 
-## 🚀 20. DEPLOYMENT & DEVOPS (❌ Chưa làm)
+## 🚀 20. DEPLOYMENT & DEVOPS (⏳ Dev local — ❌ Production)
 
 ### Backend
 
-- [ ] **TODO: Environment variables setup**
-- [ ] **TODO: Production database (PostgreSQL)**
-- [ ] **TODO: File storage (AWS S3/Cloudinary)**
-- [ ] **TODO: Logging (Winston/Pino)**
-- [ ] **TODO: Monitoring (Sentry/New Relic)**
-- [ ] **TODO: CI/CD pipeline (GitHub Actions)**
-- [ ] **TODO: Docker containerization**
-- [ ] **TODO: Deploy to cloud (AWS/GCP/Heroku)**
+- [x] Environment variables (dev — `dotenv`)
+- [ ] **TODO: Production database & secrets**
+- [x] File storage dev (Cloudinary)
+- [ ] **TODO: Logging (Winston/Pino), monitoring, CI/CD, Docker, cloud deploy**
 
 ### Frontend
 
-- [ ] **TODO: Environment variables (.env)**
-- [ ] **TODO: Build optimization**
-- [ ] **TODO: CDN setup**
-- [ ] **TODO: Deploy to Vercel/Netlify**
-- [ ] **TODO: Domain & SSL**
+- [x] Environment variables (Vite `.env` local)
+- [ ] **TODO: Build tối ưu production, CDN, deploy, domain & SSL**
 
 ---
 
 ## 🎨 21. UI/UX IMPROVEMENTS
 
-- [ ] **TODO: Dark mode support**
+- [x] Dark mode support (ThemePreference + token semantic; một số màn hình còn class legacy)
 - [ ] **TODO: Mobile responsive (hoàn thiện 100%)**
 - [ ] **TODO: Loading skeletons**
 - [ ] **TODO: Error states với illustrations**
@@ -534,14 +473,15 @@
 
 ## 📈 22. DATABASE & DATA
 
+### Saved items & Reports (bổ sung)
+
+- [x] SavedItem API + FE SavedItems page
+- [x] Report API + Admin reported content table
+
 ### Seed Data
 
-- [ ] **TODO: Create seed script**
-- [ ] **TODO: Sample categories**
-- [ ] **TODO: Sample products**
-- [ ] **TODO: Sample users**
-- [ ] **TODO: Sample orders**
-- [ ] **TODO: Sample reviews**
+- [ ] **TODO: Thêm `backend/prisma/seed.js` (script `prisma:seed` đang trỏ file chưa tồn tại)**
+- [ ] **TODO: Sample categories, products, users, orders, reviews**
 
 ### Migrations
 
@@ -553,59 +493,64 @@
 
 ## 🎯 PRIORITY ORDER (Đề xuất)
 
-### 🔥 HIGH PRIORITY (Làm ngay)
+### 🔥 HIGH PRIORITY
 
-1. **Upload middleware cho images**
-2. **Seed data để test**
-3. **Messaging (Real-time)** (Phase 4)
-4. **Notifications** (Phase 4)
+1. **Sửa / bổ sung `prisma/seed.js`** (hoặc chỉnh script) để test nhanh
+2. **Reviews UI** + seller orders UI (nếu thiếu)
+3. **Khớp `/seller/stats` BE ↔ FE**
+4. **Gắn rate limit + Helmet** trước khi public
 
-### 🟡 MEDIUM PRIORITY (Sau Phase 4)
+### 🟡 MEDIUM PRIORITY
 
-5. **Reviews & Ratings** (Phase 5)
-6. **Search & Filters** (Phase 5)
-7. **Groups** (Phase 6)
+5. **AI frontend** → `/api/ai/*`
+6. **Realtime** notifications + chat polish (Socket trên FE)
+7. **Admin UI** đầy đủ (users, products, seller queue)
+8. **Groups** — bỏ mock, tạo nhóm, member management
 
-### 🟢 LOW PRIORITY (Cuối cùng)
+### 🟢 LOW PRIORITY
 
-8. **Admin Dashboard** (Phase 7)
-9. **Analytics** (Phase 7)
-10. **AI Features** (Phase 8)
-11. **Testing & Documentation**
-12. **Deployment**
+9. **Analytics** nâng cao + charts
+10. **Testing & documentation**
+11. **Deployment production**
 
 ---
 
 ## 📊 Tổng quan tiến độ
 
-| Module        | Backend | Frontend | Status     |
-| ------------- | ------- | -------- | ---------- |
-| Auth          | ✅ 100% | ✅ 100%  | ✅ Done    |
-| Products      | ✅ 90%  | ✅ 80%   | ⏳ Phase 1 |
-| Categories    | ✅ 100% | ✅ 100%  | ✅ Done    |
-| Cart          | ✅ 100% | ✅ 100%  | ✅ Done    |
-| Orders        | ✅ 100% | ✅ 100%  | ✅ Done    |
-| Posts         | ✅ 100% | ✅ 100%  | ✅ Done    |
-| Messages      | ❌ 0%   | 🟡 20%   | ❌ Todo    |
-| Notifications | ❌ 0%   | 🟡 30%   | ❌ Todo    |
-| Reviews       | ❌ 0%   | ❌ 0%    | ❌ Todo    |
-| Search        | ❌ 0%   | ❌ 0%    | ❌ Todo    |
-| Admin         | ❌ 0%   | ❌ 0%    | ❌ Todo    |
+| Module           | Backend | Frontend | Status        |
+| ---------------- | ------- | -------- | ------------- |
+| Auth             | ✅ 100% | ✅ 100%  | ✅ Done       |
+| Products/Upload  | ✅ ~95% | ✅ ~85%  | ⏳ Polish FE  |
+| Categories       | ✅ 100% | ✅ ~100% | ✅ Done       |
+| Cart             | ✅ 100% | ✅ 100%  | ✅ Done       |
+| Orders           | ✅ 100% | ✅ ~85%  | ⏳ Seller UI  |
+| Posts/Feed       | ✅ 100% | ✅ 100%  | ✅ Done       |
+| Scheduled posts  | ✅ ~95% | 🟡 ~40%  | ⏳ Mgmt page  |
+| Messages         | ✅ ~90% | 🟡 ~60%  | ⏳ Socket FE  |
+| Notifications    | ✅ ~85% | 🟡 ~70%  | ⏳ Realtime   |
+| Groups           | ✅ ~90% | 🟡 ~55%  | ⏳ UI đầy đủ  |
+| Reviews          | ✅ ~90% | ❌ ~15%  | ⏳ FE chính   |
+| Search/Marketplace | 🟡 ~70% | ✅ ~80% | ⏳ Unified search |
+| Seller           | 🟡 ~75% | 🟡 ~50%  | ⏳ Stats/CRUD |
+| Profile/Social   | ✅ ~95% | 🟡 ~80%  | ⏳ Settings   |
+| Admin            | 🟡 ~50% | 🟡 ~35%  | ⏳ Mở rộng    |
+| AI               | ✅ ~80% | ❌ ~25%  | ⏳ Wire FE    |
+| Saved items      | ✅ ~100%| ✅ ~90%  | ✅ Done       |
+| Reports          | ✅ ~90% | 🟡 ~50%  | ⏳ Admin flow |
 
-**Tổng tiến độ: ~60%** 🚀
+**Tổng tiến độ ước tính: ~72%**
 
 ---
 
 ## 🏁 Next Steps
 
 1. ✅ ~~Phase 1: Products & Categories~~ (DONE)
-2. ✅ ~~Phase 2: Cart & Orders~~ (DONE - 100%)
-3. ✅ ~~Phase 3: Posts & Social Feed~~ (DONE - 100%)
-4. 🎯 **Phase 4: Messaging & Notifications** (NEXT)
-5. 🔍 Phase 5: Search & Marketplace
-6. 👨‍💼 Phase 6: Admin & Analytics
-7. 🚀 Phase 7: Deployment
+2. ✅ ~~Phase 2: Cart & Orders~~ (DONE)
+3. ✅ ~~Phase 3: Posts & Social Feed~~ (DONE)
+4. ✅ ~~Phase 3b: Scheduled posts (BE + cron), Marketplace, nhiều API social~~ (DONE cốt lõi)
+5. 🎯 **Tiếp theo:** Reviews FE + seller tooling + seed + hardening (rate limit, Helmet)
+6. 🎯 **Sau đó:** Realtime FE, Admin UI đầy đủ, AI trên FE, test & deploy
 
 ---
 
-_Last updated: February 19, 2026_
+_Last updated: March 21, 2026_

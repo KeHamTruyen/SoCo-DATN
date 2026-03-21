@@ -1,5 +1,14 @@
+import bcrypt from 'bcryptjs';
 import prisma from '../config/database.js';
+import {
+  signedAuthenticatedImageUrl,
+  uploadSellerRegistrationBuffers,
+  collectRegistrationPublicIds,
+  deleteImage,
+} from '../config/cloudinary.js';
 import emailService from './email.service.js';
+import notificationService from './notification.service.js';
+import { decryptSensitive, encryptSensitive, maskAccountOrId } from '../utils/sensitiveCrypto.js';
 
 class SellerService {
   /**
@@ -10,7 +19,10 @@ class SellerService {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error('User not found');
     if (user.role === 'SELLER') {
-      throw Object.assign(new Error('You are already a seller'), { statusCode: 400 });
+      throw Object.assign(new Error('You are already a seller'), {
+        statusCode: 409,
+        code: 'USER_ALREADY_SELLER',
+      });
     }
 
     let verification = await prisma.sellerVerification.findUnique({ where: { userId } });
@@ -34,9 +46,11 @@ class SellerService {
     return prisma.sellerVerification.update({
       where: { userId },
       data: {
-        idCardNumber: data.idCardNumber,
+        idCardNumber: encryptSensitive(data.idCardNumber),
         idCardFrontUrl: data.idCardFrontUrl || null,
         idCardBackUrl: data.idCardBackUrl || null,
+        idCardFrontPublicId: data.idCardFrontPublicId || null,
+        idCardBackPublicId: data.idCardBackPublicId || null,
         dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
         address: data.address || null,
         step1Completed: true,
@@ -77,11 +91,13 @@ class SellerService {
       throw Object.assign(new Error('Please complete Step 2 first'), { statusCode: 400 });
     }
 
+    const bankCipher = encryptSensitive(data.bankAccountNumber);
+
     const updated = await prisma.sellerVerification.update({
       where: { userId },
       data: {
         bankName: data.bankName,
-        bankAccountNumber: data.bankAccountNumber,
+        bankAccountNumber: bankCipher,
         bankAccountName: data.bankAccountName || null,
         bankBranch: data.bankBranch || null,
         step3Completed: true,
@@ -89,7 +105,141 @@ class SellerService {
       },
     });
 
+    const shopInformation = this._normalizeShopSnapshot(data.registrationMeta);
+    if (shopInformation) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { shopInformation },
+      });
+    }
+
     return updated;
+  }
+
+  _validateCompleteRegistrationPayload(p) {
+    if (!p || typeof p !== 'object') {
+      throw Object.assign(new Error('Invalid registration payload'), { statusCode: 400 });
+    }
+    const idNum = typeof p.idNumber === 'string' ? p.idNumber.trim() : '';
+    if (!idNum) {
+      throw Object.assign(new Error('ID number is required'), { statusCode: 400 });
+    }
+    const shopName = typeof p.shopName === 'string' ? p.shopName.trim() : '';
+    if (!shopName) {
+      throw Object.assign(new Error('Shop name is required'), { statusCode: 400 });
+    }
+    if (!p.bankName || !String(p.bankName).trim()) {
+      throw Object.assign(new Error('Bank name is required'), { statusCode: 400 });
+    }
+    const acc = typeof p.accountNumber === 'string' ? p.accountNumber.trim() : '';
+    if (!acc) {
+      throw Object.assign(new Error('Bank account number is required'), { statusCode: 400 });
+    }
+    if (!p.accountHolderName || !String(p.accountHolderName).trim()) {
+      throw Object.assign(new Error('Account holder name is required'), { statusCode: 400 });
+    }
+  }
+
+  /**
+   * Validate payload → upload images to Cloudinary → persist steps 1–3 in one transaction.
+   * Upload runs only after validation; if the DB transaction fails, uploaded assets are deleted.
+   */
+  async completeRegistrationWithUploads(userId, multerFiles, payload) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw Object.assign(new Error('User not found'), { statusCode: 404 });
+    if (user.role === 'SELLER') {
+      throw Object.assign(new Error('You are already a seller'), {
+        statusCode: 409,
+        code: 'USER_ALREADY_SELLER',
+      });
+    }
+
+    await this.getOrCreateApplication(userId);
+    const verification = await this._getVerification(userId);
+    this._ensureEditable(verification);
+
+    this._validateCompleteRegistrationPayload(payload);
+
+    const files = {
+      shopLogo: multerFiles.shopLogo?.[0],
+      shopCover: multerFiles.shopCover?.[0],
+      idFront: multerFiles.idFront?.[0],
+      idBack: multerFiles.idBack?.[0],
+    };
+    if (!files.idFront || !files.idBack) {
+      throw Object.assign(new Error('ID front and back images are required'), { statusCode: 400 });
+    }
+
+    const assets = await uploadSellerRegistrationBuffers({
+      shopLogo: files.shopLogo,
+      shopCover: files.shopCover,
+      idFront: files.idFront,
+      idBack: files.idBack,
+    });
+    const uploadedIds = collectRegistrationPublicIds(assets);
+
+    const registrationMeta = {
+      idType: payload.idType,
+      shopName: payload.shopName,
+      shopCategory: payload.shopCategory,
+      shopDescription: payload.shopDescription,
+      shopAddress: payload.shopAddress,
+      contactPhone: payload.contactPhone,
+    };
+    const shopInformation = this._normalizeShopSnapshot(registrationMeta);
+    const bankCipher = encryptSensitive(payload.accountNumber);
+    const applyBrand = payload.applyShopBrandingToProfile !== false;
+
+    try {
+      const updated = await prisma.$transaction(async (tx) => {
+        const v = await tx.sellerVerification.update({
+          where: { userId },
+          data: {
+            idCardNumber: encryptSensitive(payload.idNumber),
+            idCardFrontUrl: assets.idFront.url,
+            idCardBackUrl: assets.idBack.url,
+            idCardFrontPublicId: assets.idFront.publicId,
+            idCardBackPublicId: assets.idBack.publicId,
+            dateOfBirth: null,
+            address: typeof payload.shopAddress === 'string' ? payload.shopAddress.trim() || null : null,
+            step1Completed: true,
+            businessName: payload.shopName.trim(),
+            businessType: (payload.shopCategory || '').toString().trim().slice(0, 50) || null,
+            taxCode: (payload.contactPhone || '').toString().replace(/\s/g, '').slice(0, 50) || null,
+            businessLicenseNumber: (payload.shopDescription || '').toString().trim().slice(0, 50) || null,
+            businessLicenseUrl: null,
+            step2Completed: true,
+            bankName: String(payload.bankName).trim(),
+            bankAccountNumber: bankCipher,
+            bankAccountName: String(payload.accountHolderName).trim() || null,
+            bankBranch: null,
+            step3Completed: true,
+            status: 'REVIEWING',
+          },
+        });
+
+        const userPatch = {};
+        if (shopInformation) userPatch.shopInformation = shopInformation;
+        if (applyBrand) {
+          if (assets.shopLogo?.url) userPatch.avatarUrl = assets.shopLogo.url;
+          if (assets.shopCover?.url) userPatch.coverImage = assets.shopCover.url;
+        }
+        if (Object.keys(userPatch).length) {
+          await tx.user.update({ where: { id: userId }, data: userPatch });
+        }
+        return v;
+      });
+      return updated;
+    } catch (err) {
+      for (const pid of uploadedIds) {
+        try {
+          await deleteImage(pid);
+        } catch {
+          /* ignore */
+        }
+      }
+      throw err;
+    }
   }
 
   /**
@@ -110,6 +260,49 @@ class SellerService {
     };
   }
 
+  /**
+   * Withdraw a submitted application (REVIEWING only): remove SellerVerification and clear public shop JSON.
+   */
+  async withdrawReviewingApplication(userId) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw Object.assign(new Error('User not found'), { statusCode: 404 });
+    if (user.role === 'SELLER') {
+      throw Object.assign(new Error('Seller accounts cannot withdraw registration'), {
+        statusCode: 400,
+        code: 'USER_ALREADY_SELLER',
+      });
+    }
+
+    const v = await prisma.sellerVerification.findUnique({ where: { userId } });
+    if (!v) {
+      throw Object.assign(new Error('No seller application to withdraw'), { statusCode: 404 });
+    }
+    if (v.status !== 'REVIEWING') {
+      throw Object.assign(new Error('Only applications under review can be withdrawn'), {
+        statusCode: 400,
+        code: 'SELLER_APPLICATION_WITHDRAW_INVALID_STATE',
+      });
+    }
+
+    for (const pid of [v.idCardFrontPublicId, v.idCardBackPublicId].filter(Boolean)) {
+      try {
+        await deleteImage(pid);
+      } catch {
+        /* best-effort */
+      }
+    }
+
+    await prisma.$transaction([
+      prisma.sellerVerification.delete({ where: { userId } }),
+      prisma.user.update({
+        where: { id: userId },
+        data: { shopInformation: null },
+      }),
+    ]);
+
+    return { message: 'Application withdrawn. You can submit a new application.' };
+  }
+
   // ─── Admin actions ──────────────────────────────────────────
 
   /**
@@ -120,7 +313,7 @@ class SellerService {
     const where = {};
     if (status) where.status = status;
 
-    const [applications, total] = await Promise.all([
+    const [rows, total] = await Promise.all([
       prisma.sellerVerification.findMany({
         where,
         include: {
@@ -132,6 +325,8 @@ class SellerService {
       }),
       prisma.sellerVerification.count({ where }),
     ]);
+
+    const applications = rows.map((v) => this._sanitizeVerificationForAdminList(v));
 
     return { applications, total, page, limit };
   }
@@ -192,6 +387,362 @@ class SellerService {
     return { message: 'Application rejected' };
   }
 
+  /**
+   * Live dashboard stats for seller center (from orders, views).
+   */
+  async getDashboardStats(sellerId) {
+    const now = new Date();
+    const startThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const activeOrderStatuses = { notIn: ['CANCELLED', 'REFUNDED'] };
+
+    const [
+      thisMonthSum,
+      prevMonthSum,
+      pendingOrders,
+      newOrders,
+      productViews,
+      productViewsToday,
+    ] = await Promise.all([
+      prisma.orderItem.aggregate({
+        where: {
+          sellerId,
+          order: {
+            createdAt: { gte: startThisMonth },
+            status: activeOrderStatuses,
+          },
+        },
+        _sum: { totalPrice: true },
+      }),
+      prisma.orderItem.aggregate({
+        where: {
+          sellerId,
+          order: {
+            createdAt: { gte: startPrevMonth, lte: endPrevMonth },
+            status: activeOrderStatuses,
+          },
+        },
+        _sum: { totalPrice: true },
+      }),
+      prisma.order.count({
+        where: {
+          status: 'PENDING',
+          items: { some: { sellerId } },
+        },
+      }),
+      prisma.order.count({
+        where: {
+          items: { some: { sellerId } },
+          createdAt: { gte: startThisMonth },
+          status: activeOrderStatuses,
+        },
+      }),
+      prisma.productView.count({
+        where: { product: { sellerId } },
+      }),
+      prisma.productView.count({
+        where: {
+          product: { sellerId },
+          createdAt: { gte: startToday },
+        },
+      }),
+    ]);
+
+    const monthlyThis = Number(thisMonthSum._sum.totalPrice ?? 0);
+    const monthlyPrev = Number(prevMonthSum._sum.totalPrice ?? 0);
+    let monthlySalesGrowth = 0;
+    if (monthlyPrev > 0) {
+      monthlySalesGrowth = Math.round(((monthlyThis - monthlyPrev) / monthlyPrev) * 1000) / 10;
+    } else if (monthlyThis > 0) {
+      monthlySalesGrowth = 100;
+    }
+
+    return {
+      monthlySales: monthlyThis,
+      monthlySalesGrowth,
+      newOrders,
+      pendingOrders,
+      productViews,
+      productViewsToday,
+    };
+  }
+
+  /**
+   * Public shop JSON on User (no avatar/cover, no plaintext CCCD/STK).
+   * Built from step3 `registrationMeta` so the snapshot matches the wizard (FE sends full shop fields).
+   */
+  _normalizeShopSnapshot(meta) {
+    if (!meta || typeof meta !== 'object') return null;
+    const t = (v) => (typeof v === 'string' ? v.trim() : v);
+    const clip = (s, max) => {
+      const x = t(s);
+      if (x == null || x === '') return null;
+      return x.length > max ? x.slice(0, max) : x;
+    };
+    const o = {
+      shopName: clip(meta.shopName, 255),
+      shopCategory: clip(meta.shopCategory, 100),
+      shopDescription: clip(meta.shopDescription, 5000),
+      shopAddress: clip(meta.shopAddress, 500),
+      contactPhone: clip(meta.contactPhone, 40),
+      idType: clip(meta.idType, 50),
+    };
+    if (!Object.values(o).some(Boolean)) return null;
+    return o;
+  }
+
+  _sanitizeVerificationForAdminList(v) {
+    const idDec = decryptSensitive(v.idCardNumber);
+    const bankDec = decryptSensitive(v.bankAccountNumber);
+    return {
+      ...v,
+      idCardNumber: maskAccountOrId(idDec),
+      bankAccountNumber: maskAccountOrId(bankDec),
+      idCardFrontSignedUrl: signedAuthenticatedImageUrl(v.idCardFrontPublicId) || v.idCardFrontUrl,
+      idCardBackSignedUrl: signedAuthenticatedImageUrl(v.idCardBackPublicId) || v.idCardBackUrl,
+    };
+  }
+
+  async verifySensitiveReauth(userId, password) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user?.passwordHash) {
+      throw Object.assign(new Error('User not found'), { statusCode: 404 });
+    }
+    const ok = await bcrypt.compare(password || '', user.passwordHash);
+    if (!ok) {
+      throw Object.assign(new Error('Invalid password'), { statusCode: 401 });
+    }
+    return { verified: true };
+  }
+
+  async getMaskedSensitiveSummary(userId, password) {
+    await this.verifySensitiveReauth(userId, password);
+    const v = await prisma.sellerVerification.findUnique({ where: { userId } });
+    if (!v) {
+      throw Object.assign(new Error('No seller verification on file'), { statusCode: 404 });
+    }
+    const idDec = decryptSensitive(v.idCardNumber);
+    const bankDec = decryptSensitive(v.bankAccountNumber);
+    return {
+      idCardNumberMasked: maskAccountOrId(idDec),
+      bankAccountNumberMasked: maskAccountOrId(bankDec),
+      bankName: v.bankName,
+      bankAccountName: v.bankAccountName,
+    };
+  }
+
+  async submitSensitiveChangeRequest(userId, body) {
+    await this.verifySensitiveReauth(userId, body.currentPassword);
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (user.role !== 'SELLER') {
+      throw Object.assign(new Error('Only approved sellers can submit sensitive changes'), {
+        statusCode: 403,
+      });
+    }
+    const v = await prisma.sellerVerification.findUnique({ where: { userId } });
+    if (!v || v.status !== 'APPROVED') {
+      throw Object.assign(new Error('Seller verification must be approved'), { statusCode: 400 });
+    }
+    const pending = await prisma.sellerSensitiveChangeRequest.findFirst({
+      where: { userId, status: 'PENDING' },
+    });
+    if (pending) {
+      throw Object.assign(new Error('You already have a pending sensitive change request'), {
+        statusCode: 400,
+      });
+    }
+    const row = await prisma.sellerSensitiveChangeRequest.create({
+      data: {
+        userId,
+        idCardNumberCipher:
+          body.idCardNumber != null && String(body.idCardNumber).trim() !== ''
+            ? encryptSensitive(body.idCardNumber)
+            : null,
+        bankAccountNumberCipher:
+          body.bankAccountNumber != null && String(body.bankAccountNumber).trim() !== ''
+            ? encryptSensitive(body.bankAccountNumber)
+            : null,
+        idCardFrontPublicId: body.idCardFrontPublicId || null,
+        idCardBackPublicId: body.idCardBackPublicId || null,
+        bankName: body.bankName || null,
+        bankAccountName: body.bankAccountName || null,
+      },
+    });
+    await this._appendAuditLog({
+      actorId: userId,
+      subjectUserId: userId,
+      action: 'SENSITIVE_CHANGE_SUBMITTED',
+      entityType: 'SellerSensitiveChangeRequest',
+      entityId: row.id,
+      meta: {
+        hasId: Boolean(body.idCardNumber),
+        hasBank: Boolean(body.bankAccountNumber),
+      },
+    });
+    try {
+      await notificationService.create({
+        userId,
+        type: 'SELLER_SENSITIVE',
+        title: 'KYC update submitted',
+        message: 'Your sensitive information change request is pending admin review.',
+      });
+    } catch {
+      /* optional */
+    }
+    try {
+      const admins = await prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } });
+      await Promise.all(
+        admins.map((a) =>
+          notificationService
+            .create({
+              userId: a.id,
+              type: 'SELLER_SENSITIVE',
+              title: 'Seller KYC change pending',
+              message: 'A seller submitted a sensitive information change request.',
+            })
+            .catch(() => {}),
+        ),
+      );
+    } catch {
+      /* optional */
+    }
+    return row;
+  }
+
+  async getMyPendingSensitiveChange(userId) {
+    return prisma.sellerSensitiveChangeRequest.findFirst({
+      where: { userId, status: 'PENDING' },
+      select: { id: true, status: true, createdAt: true },
+    });
+  }
+
+  async listSensitiveChangeRequestsAdmin({ page = 1, limit = 20 }) {
+    const skip = (page - 1) * limit;
+    const [rows, total] = await Promise.all([
+      prisma.sellerSensitiveChangeRequest.findMany({
+        where: { status: 'PENDING' },
+        include: {
+          user: { select: { id: true, email: true, username: true, fullName: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.sellerSensitiveChangeRequest.count({ where: { status: 'PENDING' } }),
+    ]);
+    const requests = rows.map((r) => {
+      const { idCardNumberCipher, bankAccountNumberCipher, ...rest } = r;
+      return {
+        ...rest,
+        idCardNumberMasked: maskAccountOrId(decryptSensitive(idCardNumberCipher)),
+        bankAccountNumberMasked: maskAccountOrId(decryptSensitive(bankAccountNumberCipher)),
+        idCardFrontSignedUrl: signedAuthenticatedImageUrl(r.idCardFrontPublicId),
+        idCardBackSignedUrl: signedAuthenticatedImageUrl(r.idCardBackPublicId),
+      };
+    });
+    return { requests, total, page, limit };
+  }
+
+  async approveSensitiveChangeRequest(requestId, adminId) {
+    const reqRow = await prisma.sellerSensitiveChangeRequest.findUnique({
+      where: { id: requestId },
+    });
+    if (!reqRow || reqRow.status !== 'PENDING') {
+      throw Object.assign(new Error('Request not found or not pending'), { statusCode: 400 });
+    }
+
+    const vData = {};
+    if (reqRow.idCardNumberCipher) vData.idCardNumber = reqRow.idCardNumberCipher;
+    if (reqRow.bankAccountNumberCipher) vData.bankAccountNumber = reqRow.bankAccountNumberCipher;
+    if (reqRow.idCardFrontPublicId) vData.idCardFrontPublicId = reqRow.idCardFrontPublicId;
+    if (reqRow.idCardBackPublicId) vData.idCardBackPublicId = reqRow.idCardBackPublicId;
+    if (reqRow.bankName) vData.bankName = reqRow.bankName;
+    if (reqRow.bankAccountName) vData.bankAccountName = reqRow.bankAccountName;
+
+    await prisma.$transaction([
+      prisma.sellerVerification.update({
+        where: { userId: reqRow.userId },
+        data: vData,
+      }),
+      prisma.sellerSensitiveChangeRequest.update({
+        where: { id: requestId },
+        data: { status: 'APPROVED', reviewedBy: adminId, reviewedAt: new Date() },
+      }),
+    ]);
+
+    await this._appendAuditLog({
+      actorId: adminId,
+      subjectUserId: reqRow.userId,
+      action: 'SENSITIVE_CHANGE_APPROVED',
+      entityType: 'SellerSensitiveChangeRequest',
+      entityId: requestId,
+      meta: {},
+    });
+
+    try {
+      await notificationService.create({
+        userId: reqRow.userId,
+        type: 'SELLER_SENSITIVE',
+        title: 'KYC update approved',
+        message: 'Your sensitive information change has been approved.',
+      });
+    } catch {
+      /* optional */
+    }
+    return { message: 'Change request approved' };
+  }
+
+  async rejectSensitiveChangeRequest(requestId, adminId, reason) {
+    const reqRow = await prisma.sellerSensitiveChangeRequest.findUnique({ where: { id: requestId } });
+    if (!reqRow || reqRow.status !== 'PENDING') {
+      throw Object.assign(new Error('Request not found or not pending'), { statusCode: 400 });
+    }
+    await prisma.sellerSensitiveChangeRequest.update({
+      where: { id: requestId },
+      data: {
+        status: 'REJECTED',
+        reviewedBy: adminId,
+        reviewedAt: new Date(),
+        rejectionReason: reason || 'Rejected',
+      },
+    });
+    await this._appendAuditLog({
+      actorId: adminId,
+      subjectUserId: reqRow.userId,
+      action: 'SENSITIVE_CHANGE_REJECTED',
+      entityType: 'SellerSensitiveChangeRequest',
+      entityId: requestId,
+      meta: { reason: reason || null },
+    });
+    try {
+      await notificationService.create({
+        userId: reqRow.userId,
+        type: 'SELLER_SENSITIVE',
+        title: 'KYC update rejected',
+        message: reason || 'Your change request was rejected.',
+      });
+    } catch {
+      /* optional */
+    }
+    return { message: 'Change request rejected' };
+  }
+
+  async _appendAuditLog({ actorId, subjectUserId, action, entityType, entityId, meta }) {
+    await prisma.sellerSensitiveAuditLog.create({
+      data: {
+        actorId,
+        subjectUserId: subjectUserId || null,
+        action,
+        entityType,
+        entityId: entityId || null,
+        meta: meta || {},
+      },
+    });
+  }
+
   // ─── Helpers ────────────────────────────────────────────────
 
   async _getVerification(userId) {
@@ -202,10 +753,16 @@ class SellerService {
 
   _ensureEditable(verification) {
     if (verification.status === 'APPROVED') {
-      throw Object.assign(new Error('Application already approved'), { statusCode: 400 });
+      throw Object.assign(new Error('Application already approved'), {
+        statusCode: 409,
+        code: 'SELLER_APPLICATION_ALREADY_APPROVED',
+      });
     }
     if (verification.status === 'REVIEWING') {
-      throw Object.assign(new Error('Application is under review and cannot be edited'), { statusCode: 400 });
+      throw Object.assign(new Error('Application is under review and cannot be edited'), {
+        statusCode: 409,
+        code: 'SELLER_APPLICATION_LOCKED',
+      });
     }
   }
 }

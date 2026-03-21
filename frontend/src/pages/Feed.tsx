@@ -2,7 +2,10 @@ import { useState } from "react";
 import { feedApi } from "../features/feed/api/feedApi";
 import { CreatePostModal } from "../features/feed/components/CreatePostModal";
 import { FeedPostCard } from "../features/feed/components/FeedPostCard";
-import { LeftSidebar, RightSidebar } from "../features/feed/components/FeedSidebars";
+import {
+    LeftSidebar,
+    RightSidebar,
+} from "../features/feed/components/FeedSidebars";
 import { PostComposer } from "../features/feed/components/PostComposer";
 import { useFeed } from "../features/feed/hooks/useFeed";
 import { useAuthSession } from "../shared/auth/useAuthSession";
@@ -46,7 +49,10 @@ export default function Feed() {
             <main className="mx-auto flex w-full max-w-[1440px] flex-1 gap-6 px-6 py-6">
                 <LeftSidebar isSeller={isSeller} />
 
-                <section className="min-w-0 flex-1 space-y-4" style={{ maxWidth: "680px" }}>
+                <section
+                    className="min-w-0 flex-1 space-y-4"
+                    style={{ maxWidth: "680px" }}
+                >
                     <PostComposer onOpen={() => setShowModal(true)} />
 
                     {isLoading ? (
@@ -67,14 +73,20 @@ export default function Feed() {
                                 key={post.id}
                                 post={post}
                                 onLike={() => toggleLike(post.id)}
-                                onComment={(content) => addComment(post.id, content)}
+                                onComment={(content) =>
+                                    addComment(post.id, content)
+                                }
                             />
                         ))
                     )}
 
                     {hasMore ? (
                         <div className="flex justify-center py-2">
-                            <Button variant="outline" onClick={loadMore} disabled={isLoadingMore}>
+                            <Button
+                                variant="outline"
+                                onClick={loadMore}
+                                disabled={isLoadingMore}
+                            >
                                 {isLoadingMore ? "Loading..." : "Load more"}
                             </Button>
                         </div>
@@ -87,7 +99,9 @@ export default function Feed() {
             {showModal && (
                 <CreatePostModal
                     onClose={() => setShowModal(false)}
-                    onCreate={(content, scheduled) => handleCreate(content, scheduled)}
+                    onCreate={(content, scheduled) =>
+                        handleCreate(content, scheduled)
+                    }
                 />
             )}
         </div>

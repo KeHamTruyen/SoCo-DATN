@@ -24,7 +24,7 @@ export function BuyerProfileHeader({
     onFollow,
     onUnfollow,
 }: BuyerProfileHeaderProps) {
-    const cover = profile.coverUrl;
+    const cover = profile.coverUrl ?? profile.coverImage;
 
     return (
         <div className="mb-6 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">

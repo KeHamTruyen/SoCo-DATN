@@ -1,3 +1,5 @@
+import type { ShopInformationSnapshot } from "../../seller/types/shopInformation.types";
+
 export type ProfileRole = "buyer" | "seller";
 
 export interface PublicUserProfile {
@@ -6,6 +8,8 @@ export interface PublicUserProfile {
     username?: string;
     avatarUrl?: string;
     coverUrl?: string;
+    /** API trả `coverImage` (Prisma); ưu tiên `coverUrl` nếu có */
+    coverImage?: string;
     bio?: string;
     role: ProfileRole;
     followersCount: number;
@@ -20,6 +24,7 @@ export interface PublicUserProfile {
     isTopSeller?: boolean;
     isVerified?: boolean;
     location?: string;
+    shopInformation?: ShopInformationSnapshot | null;
 }
 
 export interface SellerStats {

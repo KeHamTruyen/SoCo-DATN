@@ -115,6 +115,16 @@ export const updateProfileValidation = [
         .trim()
         .isURL()
         .withMessage("Avatar URL must be a valid URL"),
+    body("coverImage")
+        .optional()
+        .trim()
+        .isURL()
+        .withMessage("Cover image URL must be a valid URL"),
+    body("address").optional().trim().isLength({ max: 500 }),
+    body("shopInformation")
+        .optional()
+        .isObject()
+        .withMessage("shopInformation must be an object"),
 ];
 
 export const changePasswordValidation = [

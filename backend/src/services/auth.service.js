@@ -15,6 +15,7 @@ const USER_SELECT = {
     coverImage: true,
     bio: true,
     address: true,
+    shopInformation: true,
     role: true,
     isVerified: true,
     isActive: true,
