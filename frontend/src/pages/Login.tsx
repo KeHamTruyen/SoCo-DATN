@@ -1,6 +1,6 @@
 import { ArrowRight, UserRound } from "lucide-react";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthActions } from "../features/auth/hooks/useAuthActions";
 import { HttpError } from "../shared/api/httpClient";
 import {
@@ -14,9 +14,18 @@ import {
 
 export default function Login() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { login, completeLogin } = useAuthActions();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const msg = (location.state as { authError?: string } | null)?.authError;
+        if (msg) {
+            setError(msg);
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.pathname, location.state, navigate]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -38,16 +47,17 @@ export default function Login() {
                 navigate("/feed");
             } catch (err) {
                 if (err instanceof HttpError && err.status === 403) {
-                    // Backend already sent the OTP; read the actual email + tempToken from the response
                     const details = err.details as {
                         data?: { email?: string; tempToken?: string };
                     } | null;
-                    const verifyEmail = details?.data?.email ?? email;
                     const tempToken = details?.data?.tempToken;
-                    sessionStorage.setItem("soco.pendingEmail", verifyEmail);
-                    if (tempToken) sessionStorage.setItem("soco.tempToken", tempToken);
-                    navigate("/verify-account");
-                    return;
+                    if (tempToken) {
+                        const verifyEmail = details?.data?.email ?? email;
+                        sessionStorage.setItem("soco.pendingEmail", verifyEmail);
+                        sessionStorage.setItem("soco.tempToken", tempToken);
+                        navigate("/verify-account");
+                        return;
+                    }
                 }
                 const message =
                     err instanceof HttpError

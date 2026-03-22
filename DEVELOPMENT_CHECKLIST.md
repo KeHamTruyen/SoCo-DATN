@@ -5,7 +5,7 @@
 ### ✅ Đã hoàn thành (cốt lõi)
 
 - **Backend:** Auth, Products, Categories, Cart, Orders, Posts/Feed, Upload/Cloudinary (`/api/upload/*`), Users & follow (`/api/users/*`), Messages (`/api/messages/*` + Socket.IO), Notifications (`/api/notifications/*`), Groups (`/api/groups/*`), Reviews (`/api/reviews/*`), Saved items (`/api/saved-items/*`), Reports (`/api/reports/*`), Scheduled posts (`/api/scheduled-posts/*` + cron), Seller application & admin review (`/api/seller/*`), Admin tối thiểu (`/api/admin/*`), AI Gemini (`/api/ai/*`)
-- **Frontend:** Auth, layout/header, **Feed** (post, like, comment, schedule qua API), Post detail, Cart / Checkout / Orders (buyer), **Marketplace** (tìm kiếm, lọc, sort, phân trang qua `GET /products`), Messages, Notifications (kèm mark read), Groups & Group detail (API list; một phần UI mock), Profile (xem user khác, follow/unfollow, seller stats *nếu backend trả*), Saved items, Admin dashboard (reports API)
+- **Frontend:** Auth, layout/header, **Feed** (post, like, comment, schedule qua API), Post detail, Cart / Checkout / Orders (buyer), **Marketplace** (tìm kiếm, lọc, sort, phân trang qua `GET /products`), Messages, Notifications (kèm mark read), Groups & Group detail (API list; một phần UI mock), Profile (xem user khác, follow/unfollow, seller stats _nếu backend trả_), Saved items, Admin dashboard (reports API)
 
 ### ⏳ Đang làm / tinh chỉnh
 
@@ -85,11 +85,11 @@
 - [x] Cart model (Prisma schema)
 - [x] CartItem model (Prisma schema)
 - [x] Cart service (cart.service.js)
-  - [x] Add item to cart
-  - [x] Update cart item quantity
-  - [x] Remove item from cart
-  - [x] Get user cart
-  - [x] Clear cart
+    - [x] Add item to cart
+    - [x] Update cart item quantity
+    - [x] Remove item from cart
+    - [x] Get user cart
+    - [x] Clear cart
 - [x] Cart controller (cart.controller.js)
 - [x] Cart routes (`/api/cart/*`)
 - [x] Cart validators (cart.validator.js)
@@ -111,13 +111,13 @@
 - [x] Order model (Prisma schema)
 - [x] OrderItem model (Prisma schema)
 - [x] Order service (order.service.js)
-  - [x] Create order from cart
-  - [x] Get order by ID
-  - [x] Get user orders (buyer)
-  - [x] Get seller orders
-  - [x] Update order status
-  - [x] Cancel order
-  - [x] Mock payment confirmation
+    - [x] Create order from cart
+    - [x] Get order by ID
+    - [x] Get user orders (buyer)
+    - [x] Get seller orders
+    - [x] Update order status
+    - [x] Cancel order
+    - [x] Mock payment confirmation
 - [x] Order controller (order.controller.js)
 - [x] Order routes (`/api/orders/*`)
 - [x] Order validators (order.validator.js)
@@ -142,15 +142,15 @@
 - [x] PostLike model (Prisma schema)
 - [x] PostComment model (Prisma schema)
 - [x] Post service (`post.service.js`)
-  - [x] Create post
-  - [x] Get post by ID
-  - [x] Get user posts
-  - [x] Get feed with filters (authorId, status, visibility, search)
-  - [x] Update post
-  - [x] Delete post
-  - [x] Like/unlike post
-  - [x] Add comment
-  - [x] Get comments with pagination
+    - [x] Create post
+    - [x] Get post by ID
+    - [x] Get user posts
+    - [x] Get feed with filters (authorId, status, visibility, search)
+    - [x] Update post
+    - [x] Delete post
+    - [x] Like/unlike post
+    - [x] Add comment
+    - [x] Get comments with pagination
 - [x] Post controller (`post.controller.js`)
 - [x] Post routes (`/api/posts/*`) - 10 endpoints
 - [x] Post validators with express-validator
@@ -429,7 +429,7 @@
 
 - [x] Swagger/OpenAPI docs (`/api-docs`)
 - [x] API_TESTING_GUIDE.md
-- [x] EXTERNAL_SERVICES_GUIDE.md (Cloudinary, v.v. — thay thế các file CLOUDINARY_*.md đã gỡ)
+- [x] EXTERNAL*SERVICES_GUIDE.md (Cloudinary, v.v. — thay thế các file CLOUDINARY*\*.md đã gỡ)
 - [ ] **TODO: API documentation hoàn chỉnh**
 - [ ] **TODO: Database schema documentation**
 - [ ] **TODO: Deployment guide**
@@ -517,26 +517,26 @@
 
 ## 📊 Tổng quan tiến độ
 
-| Module           | Backend | Frontend | Status        |
-| ---------------- | ------- | -------- | ------------- |
-| Auth             | ✅ 100% | ✅ 100%  | ✅ Done       |
-| Products/Upload  | ✅ ~95% | ✅ ~85%  | ⏳ Polish FE  |
-| Categories       | ✅ 100% | ✅ ~100% | ✅ Done       |
-| Cart             | ✅ 100% | ✅ 100%  | ✅ Done       |
-| Orders           | ✅ 100% | ✅ ~85%  | ⏳ Seller UI  |
-| Posts/Feed       | ✅ 100% | ✅ 100%  | ✅ Done       |
-| Scheduled posts  | ✅ ~95% | 🟡 ~40%  | ⏳ Mgmt page  |
-| Messages         | ✅ ~90% | 🟡 ~60%  | ⏳ Socket FE  |
-| Notifications    | ✅ ~85% | 🟡 ~70%  | ⏳ Realtime   |
-| Groups           | ✅ ~90% | 🟡 ~55%  | ⏳ UI đầy đủ  |
-| Reviews          | ✅ ~90% | ❌ ~15%  | ⏳ FE chính   |
-| Search/Marketplace | 🟡 ~70% | ✅ ~80% | ⏳ Unified search |
-| Seller           | 🟡 ~75% | 🟡 ~50%  | ⏳ Stats/CRUD |
-| Profile/Social   | ✅ ~95% | 🟡 ~80%  | ⏳ Settings   |
-| Admin            | 🟡 ~50% | 🟡 ~35%  | ⏳ Mở rộng    |
-| AI               | ✅ ~80% | ❌ ~25%  | ⏳ Wire FE    |
-| Saved items      | ✅ ~100%| ✅ ~90%  | ✅ Done       |
-| Reports          | ✅ ~90% | 🟡 ~50%  | ⏳ Admin flow |
+| Module             | Backend  | Frontend | Status            |
+| ------------------ | -------- | -------- | ----------------- |
+| Auth               | ✅ 100%  | ✅ 100%  | ✅ Done           |
+| Products/Upload    | ✅ ~95%  | ✅ ~85%  | ⏳ Polish FE      |
+| Categories         | ✅ 100%  | ✅ ~100% | ✅ Done           |
+| Cart               | ✅ 100%  | ✅ 100%  | ✅ Done           |
+| Orders             | ✅ 100%  | ✅ ~85%  | ⏳ Seller UI      |
+| Posts/Feed         | ✅ 100%  | ✅ 100%  | ✅ Done           |
+| Scheduled posts    | ✅ ~95%  | 🟡 ~40%  | ⏳ Mgmt page      |
+| Messages           | ✅ ~90%  | 🟡 ~60%  | ⏳ Socket FE      |
+| Notifications      | ✅ ~85%  | 🟡 ~70%  | ⏳ Realtime       |
+| Groups             | ✅ ~90%  | 🟡 ~55%  | ⏳ UI đầy đủ      |
+| Reviews            | ✅ ~90%  | ❌ ~15%  | ⏳ FE chính       |
+| Search/Marketplace | 🟡 ~70%  | ✅ ~80%  | ⏳ Unified search |
+| Seller             | 🟡 ~75%  | 🟡 ~50%  | ⏳ Stats/CRUD     |
+| Profile/Social     | ✅ ~95%  | 🟡 ~80%  | ⏳ Settings       |
+| Admin              | 🟡 ~50%  | 🟡 ~35%  | ⏳ Mở rộng        |
+| AI                 | ✅ ~80%  | ❌ ~25%  | ⏳ Wire FE        |
+| Saved items        | ✅ ~100% | ✅ ~90%  | ✅ Done           |
+| Reports            | ✅ ~90%  | 🟡 ~50%  | ⏳ Admin flow     |
 
 **Tổng tiến độ ước tính: ~72%**
 

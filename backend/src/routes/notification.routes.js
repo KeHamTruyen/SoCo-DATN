@@ -1,10 +1,10 @@
 import express from 'express';
 import notificationController from '../controllers/notification.controller.js';
-import { protect } from '../middlewares/auth.middleware.js';
+import { protect, restrictToMember } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-router.use(protect);
+router.use(protect, restrictToMember);
 
 router.get('/', notificationController.getNotifications);
 // Support both PATCH and PUT for backward compatibility with existing clients/docs.

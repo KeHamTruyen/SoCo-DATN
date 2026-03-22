@@ -1,14 +1,14 @@
-import express from 'express';
-import productController from '../controllers/product.controller.js';
-import { protect, restrictTo } from '../middlewares/auth.middleware.js';
+import express from "express";
+import productController from "../controllers/product.controller.js";
+import { protect, restrictTo } from "../middlewares/auth.middleware.js";
 import {
-  validate,
-  createProductValidation,
-  updateProductValidation,
-  getProductsValidation,
-  productIdValidation,
-  addImagesValidation
-} from '../validators/product.validator.js';
+    validate,
+    createProductValidation,
+    updateProductValidation,
+    getProductsValidation,
+    productIdValidation,
+    addImagesValidation,
+} from "../validators/product.validator.js";
 
 const router = express.Router();
 
@@ -59,7 +59,7 @@ const router = express.Router();
  *       200:
  *         description: Products retrieved successfully
  */
-router.get('/', getProductsValidation, validate, productController.getProducts);
+router.get("/", getProductsValidation, validate, productController.getProducts);
 
 /**
  * @swagger
@@ -83,7 +83,12 @@ router.get('/', getProductsValidation, validate, productController.getProducts);
  *       200:
  *         description: Seller products retrieved successfully
  */
-router.get('/seller/me', protect, restrictTo('SELLER', 'ADMIN'), productController.getMyProducts);
+router.get(
+    "/seller/me",
+    protect,
+    restrictTo("SELLER", "ADMIN"),
+    productController.getMyProducts,
+);
 
 /**
  * @swagger
@@ -103,7 +108,7 @@ router.get('/seller/me', protect, restrictTo('SELLER', 'ADMIN'), productControll
  *       404:
  *         description: Product not found
  */
-router.get('/:id', productIdValidation, validate, productController.getProduct);
+router.get("/:id", productIdValidation, validate, productController.getProduct);
 
 /**
  * @swagger
@@ -155,12 +160,12 @@ router.get('/:id', productIdValidation, validate, productController.getProduct);
  *         description: Product created successfully
  */
 router.post(
-  '/',
-  protect,
-  restrictTo('SELLER', 'ADMIN'),
-  createProductValidation,
-  validate,
-  productController.createProduct
+    "/",
+    protect,
+    restrictTo("SELLER", "ADMIN"),
+    createProductValidation,
+    validate,
+    productController.createProduct,
 );
 
 /**
@@ -188,13 +193,13 @@ router.post(
  *         description: Product updated successfully
  */
 router.put(
-  '/:id',
-  protect,
-  restrictTo('SELLER', 'ADMIN'),
-  productIdValidation,
-  updateProductValidation,
-  validate,
-  productController.updateProduct
+    "/:id",
+    protect,
+    restrictTo("SELLER", "ADMIN"),
+    productIdValidation,
+    updateProductValidation,
+    validate,
+    productController.updateProduct,
 );
 
 /**
@@ -216,12 +221,12 @@ router.put(
  *         description: Product deleted successfully
  */
 router.delete(
-  '/:id',
-  protect,
-  restrictTo('SELLER', 'ADMIN'),
-  productIdValidation,
-  validate,
-  productController.deleteProduct
+    "/:id",
+    protect,
+    restrictTo("SELLER", "ADMIN"),
+    productIdValidation,
+    validate,
+    productController.deleteProduct,
 );
 
 /**
@@ -243,12 +248,12 @@ router.delete(
  *         description: Product published successfully
  */
 router.post(
-  '/:id/publish',
-  protect,
-  restrictTo('SELLER', 'ADMIN'),
-  productIdValidation,
-  validate,
-  productController.publishProduct
+    "/:id/publish",
+    protect,
+    restrictTo("SELLER", "ADMIN"),
+    productIdValidation,
+    validate,
+    productController.publishProduct,
 );
 
 /**
@@ -288,13 +293,13 @@ router.post(
  *         description: Images added successfully
  */
 router.post(
-  '/:id/images',
-  protect,
-  restrictTo('SELLER', 'ADMIN'),
-  productIdValidation,
-  addImagesValidation,
-  validate,
-  productController.addProductImages
+    "/:id/images",
+    protect,
+    restrictTo("SELLER", "ADMIN"),
+    productIdValidation,
+    addImagesValidation,
+    validate,
+    productController.addProductImages,
 );
 
 /**
@@ -321,12 +326,12 @@ router.post(
  *         description: Image deleted successfully
  */
 router.delete(
-  '/:id/images/:imageId',
-  protect,
-  restrictTo('SELLER', 'ADMIN'),
-  productIdValidation,
-  validate,
-  productController.deleteProductImage
+    "/:id/images/:imageId",
+    protect,
+    restrictTo("SELLER", "ADMIN"),
+    productIdValidation,
+    validate,
+    productController.deleteProductImage,
 );
 
 export default router;

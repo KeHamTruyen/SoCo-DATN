@@ -165,7 +165,9 @@ export const disable2FAValidation = [
 ];
 
 export const verifyEmailValidation = [
-    body("tempToken").notEmpty().withMessage("Verification session token is required"),
+    body("tempToken")
+        .notEmpty()
+        .withMessage("Verification session token is required"),
     body("otpCode")
         .isLength({ min: 6, max: 6 })
         .withMessage("Verification code must be exactly 6 digits")

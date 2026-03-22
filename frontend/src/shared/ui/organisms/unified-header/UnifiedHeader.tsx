@@ -78,7 +78,8 @@ export function UnifiedHeader({
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const handleLogout = () => {
@@ -131,12 +132,14 @@ export function UnifiedHeader({
                             {...(searchValue !== undefined
                                 ? {
                                       value: searchValue,
-                                      onChange: (e: ChangeEvent<HTMLInputElement>) =>
-                                          onSearch?.(e.target.value),
+                                      onChange: (
+                                          e: ChangeEvent<HTMLInputElement>,
+                                      ) => onSearch?.(e.target.value),
                                   }
                                 : {
-                                      onChange: (e: ChangeEvent<HTMLInputElement>) =>
-                                          onSearch?.(e.target.value),
+                                      onChange: (
+                                          e: ChangeEvent<HTMLInputElement>,
+                                      ) => onSearch?.(e.target.value),
                                   })}
                         />
                     </div>
@@ -164,12 +167,20 @@ export function UnifiedHeader({
                         )}
                     </div>
                     <Link to="/messages">
-                        <Button variant="ghost" size="icon" className="text-neutral-600 dark:text-neutral-300">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-neutral-600 dark:text-neutral-300"
+                        >
                             <MessageCircle className="h-5 w-5" />
                         </Button>
                     </Link>
                     <Link to="/cart">
-                        <Button variant="ghost" size="icon" className="text-neutral-600 dark:text-neutral-300">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-neutral-600 dark:text-neutral-300"
+                        >
                             <ShoppingCart className="h-5 w-5" />
                         </Button>
                     </Link>
@@ -219,7 +230,9 @@ export function UnifiedHeader({
                                         onClick={handleLogout}
                                     >
                                         <LogOut className="h-4 w-4 shrink-0 text-neutral-500" />
-                                        {loggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
+                                        {loggingOut
+                                            ? "Đang đăng xuất..."
+                                            : "Đăng xuất"}
                                     </button>
                                 </div>
                             ) : null}
@@ -240,7 +253,11 @@ export function UnifiedHeader({
                         onClick={() => setMobileOpen((prev) => !prev)}
                         aria-label="Toggle navigation"
                     >
-                        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                        {mobileOpen ? (
+                            <X className="h-5 w-5" />
+                        ) : (
+                            <Menu className="h-5 w-5" />
+                        )}
                     </Button>
                 </div>
             </div>
@@ -255,12 +272,14 @@ export function UnifiedHeader({
                             {...(searchValue !== undefined
                                 ? {
                                       value: searchValue,
-                                      onChange: (e: ChangeEvent<HTMLInputElement>) =>
-                                          onSearch?.(e.target.value),
+                                      onChange: (
+                                          e: ChangeEvent<HTMLInputElement>,
+                                      ) => onSearch?.(e.target.value),
                                   }
                                 : {
-                                      onChange: (e: ChangeEvent<HTMLInputElement>) =>
-                                          onSearch?.(e.target.value),
+                                      onChange: (
+                                          e: ChangeEvent<HTMLInputElement>,
+                                      ) => onSearch?.(e.target.value),
                                   })}
                         />
                     </div>
@@ -321,7 +340,9 @@ export function UnifiedHeader({
                 </div>
             ) : null}
 
-            {themeModalOpen ? <ThemePickerModal onClose={() => setThemeModalOpen(false)} /> : null}
+            {themeModalOpen ? (
+                <ThemePickerModal onClose={() => setThemeModalOpen(false)} />
+            ) : null}
         </header>
     );
 }

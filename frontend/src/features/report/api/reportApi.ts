@@ -1,9 +1,5 @@
 import { httpClient } from "../../../shared/api/httpClient";
-import type {
-    CreateReportPayload,
-    Report,
-    ReportsListResponse,
-} from "../types/report.types";
+import type { CreateReportPayload, Report } from "../types/report.types";
 
 interface ApiResponse<T> {
     data?: T;
@@ -25,37 +21,14 @@ export const reportApi = {
         );
         return unwrap<Report>(res);
     },
-    async listReports(params?: {
-        category?: string;
-        priority?: string;
-        dateRange?: string;
-    }) {
-        const query = new URLSearchParams();
-        if (params?.category) query.set("category", params.category);
-        if (params?.priority) query.set("priority", params.priority);
-        if (params?.dateRange) query.set("dateRange", params.dateRange);
-        const res = await httpClient.get<
-            ApiResponse<ReportsListResponse> | ReportsListResponse
-        >(`/admin/reports?${query.toString()}`, { requiresAuth: true });
-        return unwrap<ReportsListResponse>(res);
-    },
-    async dismissReport(reportId: string) {
-        return httpClient.patch(
-            `/admin/reports/${reportId}/dismiss`,
-            {},
-            { requiresAuth: true },
-        );
-    },
-    async deleteReportedContent(reportId: string) {
-        return httpClient.delete(`/admin/reports/${reportId}/content`, {
-            requiresAuth: true,
-        });
-    },
-    async blockUser(reportId: string) {
-        return httpClient.post(
-            `/admin/reports/${reportId}/block-user`,
-            {},
-            { requiresAuth: true },
-        );
+    async getMyReports(params?: { page?: number; limit?: number }) {
+        const q = new URLSearchParams();
+        if (params?.page != null) q.set("page", String(params.page));
+        if (params?.limit != null) q.set("limit", String(params.limit));
+        return httpClient.get<{
+            success: boolean;
+            data: Report[];
+            pagination?: { page: number; limit: number; total: number };
+        }>(`/reports/me?${q.toString()}`, { requiresAuth: true });
     },
 };

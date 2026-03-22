@@ -92,12 +92,19 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
             }).catch(() => {});
         }
         // #endregion
-        if (response.status === 401) {
-            clearAuthStorage();
-        }
         const message =
             (data as { message?: string } | null)?.message ??
             `Request failed with status ${response.status}`;
+        if (
+            response.status === 401 ||
+            (response.status === 403 &&
+                requiresAuth &&
+                /administrator accounts use the admin application/i.test(
+                    String(message),
+                ))
+        ) {
+            clearAuthStorage();
+        }
         throw new HttpError(message, response.status, data);
     }
 

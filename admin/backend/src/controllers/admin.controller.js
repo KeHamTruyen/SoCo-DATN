@@ -1,11 +1,6 @@
 import adminService from "../services/admin.service.js";
 
 class AdminController {
-    // ─── UC4.1: Account Management ──────────────────────────────
-
-    /**
-     * GET /api/admin/users
-     */
     async getUsers(req, res, next) {
         try {
             const { page, limit, search, role, isActive } = req.query;
@@ -22,9 +17,6 @@ class AdminController {
         }
     }
 
-    /**
-     * PATCH /api/admin/users/:id/toggle-active
-     */
     async toggleUserActive(req, res, next) {
         try {
             const user = await adminService.toggleUserActive(req.params.id);
@@ -38,9 +30,6 @@ class AdminController {
         }
     }
 
-    /**
-     * PATCH /api/admin/users/:id/role
-     */
     async changeUserRole(req, res, next) {
         try {
             const { role } = req.body;
@@ -55,11 +44,6 @@ class AdminController {
         }
     }
 
-    // ─── UC4.2: Content Management ─────────────────────────────
-
-    /**
-     * GET /api/admin/posts
-     */
     async getPosts(req, res, next) {
         try {
             const { page, limit, status, authorId } = req.query;
@@ -75,9 +59,6 @@ class AdminController {
         }
     }
 
-    /**
-     * DELETE /api/admin/posts/:id
-     */
     async deletePost(req, res, next) {
         try {
             await adminService.deletePost(req.params.id);
@@ -87,9 +68,6 @@ class AdminController {
         }
     }
 
-    /**
-     * GET /api/admin/products
-     */
     async getProducts(req, res, next) {
         try {
             const { page, limit, status, sellerId } = req.query;
@@ -105,9 +83,6 @@ class AdminController {
         }
     }
 
-    /**
-     * DELETE /api/admin/products/:id
-     */
     async deleteProduct(req, res, next) {
         try {
             await adminService.deleteProduct(req.params.id);
@@ -117,11 +92,6 @@ class AdminController {
         }
     }
 
-    // ─── UC4.4: Analytics ──────────────────────────────────────
-
-    /**
-     * GET /api/admin/dashboard
-     */
     async getDashboard(req, res, next) {
         try {
             const stats = await adminService.getDashboardStats();
@@ -131,9 +101,6 @@ class AdminController {
         }
     }
 
-    /**
-     * GET /api/admin/dashboard/growth?days=30
-     */
     async getGrowthStats(req, res, next) {
         try {
             const days = parseInt(req.query.days) || 30;

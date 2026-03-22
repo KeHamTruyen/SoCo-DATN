@@ -42,6 +42,11 @@ class AuthService {
         phone,
         role = "BUYER",
     }) {
+        if (role === "ADMIN") {
+            throw Object.assign(new Error("Invalid role"), { statusCode: 400 });
+        }
+        const safeRole = role === "SELLER" ? "SELLER" : "BUYER";
+
         const existing = await prisma.user.findFirst({
             where: { OR: [{ email }, { username }] },
         });
@@ -107,6 +112,15 @@ class AuthService {
             data: { isVerified: true },
             select: USER_SELECT,
         });
+
+        if (user.role === "ADMIN") {
+            throw Object.assign(
+                new Error(
+                    "Administrator accounts must sign in through the admin portal.",
+                ),
+                { statusCode: 403 },
+            );
+        }
 
         const authToken = this.generateToken(user);
         return { user, accessToken: authToken };
@@ -174,6 +188,15 @@ class AuthService {
             throw Object.assign(new Error("Invalid email or password"), {
                 statusCode: 401,
             });
+
+        if (user.role === "ADMIN") {
+            throw Object.assign(
+                new Error(
+                    "Administrator accounts must sign in through the admin portal.",
+                ),
+                { statusCode: 403 },
+            );
+        }
 
         if (!user.isVerified) {
             const { otp, tempToken } = await this._generateEmailOtp(user.id);
@@ -254,6 +277,14 @@ class AuthService {
         });
 
         const user = await this.getProfile(payload.id);
+        if (user.role === "ADMIN") {
+            throw Object.assign(
+                new Error(
+                    "Administrator accounts must sign in through the admin portal.",
+                ),
+                { statusCode: 403 },
+            );
+        }
         const token = this.generateToken(user);
 
         return { user, accessToken: token };

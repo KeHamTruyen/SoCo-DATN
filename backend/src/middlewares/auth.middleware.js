@@ -31,6 +31,15 @@ export const protect = async (req, res, next) => {
       }
 
       req.user = user;
+
+      if (req.user.role === 'ADMIN') {
+        return res.status(403).json({
+          success: false,
+          message:
+            'Administrator accounts use the admin application. This API is for buyers and sellers only.',
+        });
+      }
+
       next();
     } catch {
       return res.status(401).json({ success: false, message: 'Invalid or expired token' });
@@ -52,6 +61,9 @@ export const restrictTo = (...roles) => {
   };
 };
 
+/** Authenticated buyers/sellers (admin is blocked earlier in `protect`). */
+export const restrictToMember = restrictTo('BUYER', 'SELLER');
+
 /**
  * Optional auth – Attach user if token exists, but don't block
  */
@@ -69,7 +81,7 @@ export const optionalAuth = async (req, res, next) => {
       try {
         const decoded = authService.verifyToken(token);
         const user = await authService.getProfile(decoded.id);
-        if (user && user.isActive) {
+        if (user && user.isActive && user.role !== 'ADMIN') {
           req.user = user;
         }
       } catch {

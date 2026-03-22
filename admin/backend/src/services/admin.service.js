@@ -1,8 +1,6 @@
 import prisma from "../config/database.js";
 
 class AdminService {
-    // ─── UC4.1: Account Management ──────────────────────────────
-
     async getUsers({ page = 1, limit = 20, search, role, isActive }) {
         const skip = (page - 1) * limit;
         const where = {};
@@ -73,8 +71,6 @@ class AdminService {
             select: { id: true, email: true, username: true, role: true },
         });
     }
-
-    // ─── UC4.2: Content Management ─────────────────────────────
 
     async getPosts({ page = 1, limit = 20, status, authorId }) {
         const skip = (page - 1) * limit;
@@ -147,8 +143,6 @@ class AdminService {
         await prisma.product.delete({ where: { id: productId } });
         return { id: productId };
     }
-
-    // ─── UC4.4: Analytics Dashboard ─────────────────────────────
 
     async getDashboardStats() {
         const [

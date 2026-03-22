@@ -1,66 +1,93 @@
-# Social Commerce Platform
+# Social Commerce Platform (SoCo-DATN)
 
-Nền tảng thương mại xã hội kết hợp mua sắm và tương tác xã hội, cho phép người dùng mua bán sản phẩm, chia sẻ bài viết và kết nối với cộng đồng.
+Nền tảng thương mại xã hội kết hợp mua sắm và tương tác xã hội: feed, marketplace, giỏ hàng và đơn hàng, tin nhắn, nhóm, thông báo và các luồng người bán / quản trị.
 
-## 🚀 Tính năng chính
+**Tiến độ chi tiết, API và hạng mục đang tinh chỉnh:** xem [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md).
 
-- **Mạng xã hội**: Đăng bài, bình luận, like, follow người dùng khác
-- **Marketplace**: Mua bán sản phẩm, quản lý đơn hàng
-- **Tag sản phẩm**: Gắn thẻ sản phẩm trong bài viết
-- **Nhóm cộng đồng**: Tạo và tham gia các nhóm chuyên đề
-- **Tin nhắn**: Chat trực tiếp giữa người dùng
-- **Thông báo**: Nhận thông báo real-time
-- **Seller Dashboard**: Quản lý sản phẩm và đơn hàng cho người bán
-- **Admin Panel**: Quản lý hệ thống và người dùng
+## 📚 Tài liệu liên quan
+
+| Tài liệu                                                     | Mô tả ngắn                                                          |
+| ------------------------------------------------------------ | ------------------------------------------------------------------- |
+| [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md)         | Tiến độ tính năng FE/BE, TODO, endpoint tổng quan                   |
+| [EXTERNAL_SERVICES_GUIDE.md](EXTERNAL_SERVICES_GUIDE.md)     | Cloudinary, email (SMTP), Gemini AI, dịch vụ ngoài và cách cấu hình |
+| [backend/README.md](backend/README.md)                       | Cài đặt backend, cấu trúc thư mục, script Prisma                    |
+| [backend/API_TESTING_GUIDE.md](backend/API_TESTING_GUIDE.md) | Gợi ý kiểm thử API                                                  |
+| [backend/.env.example](backend/.env.example)                 | Danh sách biến môi trường đầy đủ (mẫu)                              |
+
+## 🚀 Tính năng chính (tổng quan)
+
+- **Feed & bài viết**: Đăng bài, like, bình luận; upload media qua Cloudinary; lên lịch đăng bài (cron phía server)
+- **Marketplace**: Tìm kiếm, lọc, sắp xếp, phân trang sản phẩm; chi tiết sản phẩm
+- **Giỏ hàng & đơn hàng**: Cart, checkout (thanh toán mock/COD), theo dõi đơn (buyer/seller)
+- **Người dùng & hồ sơ**: Đăng ký/đăng nhập (JWT), follow, xem hồ sơ
+- **Tin nhắn**: REST API + **Socket.IO** cho realtime (đang mở rộng typing, v.v.)
+- **Thông báo**: API thông báo; đánh dấu đã đọc
+- **Nhóm cộng đồng**: Tạo/tham gia nhóm, trang nhóm
+- **Đánh giá & lưu**: Reviews API; mục đã lưu (saved items)
+- **Báo cáo & quản trị**: Báo cáo nội dung; admin dashboard (tối thiểu)
+- **Người bán**: Đăng ký seller, xác minh (dữ liệu nhạy cảm có thể mã hóa khi cấu hình key); dashboard người bán
+- **AI**: Backend `/api/ai/*` (Google Gemini); frontend có SDK GenAI cho tích hợp gợi ý/sáng tạo (theo tiến độ UI)
 
 ## 📁 Cấu trúc dự án
 
 ```
-social-commerce-platform/
-├── backend/          # Node.js + Express + Prisma + PostgreSQL
+SoCo-DATN/
+├── backend/                 # Node.js (ESM) + Express + Prisma + PostgreSQL
 │   ├── src/
 │   │   ├── config/
 │   │   ├── controllers/
 │   │   ├── middlewares/
 │   │   ├── routes/
 │   │   ├── services/
-│   │   └── validators/
-│   └── prisma/       # Database schema và migrations
+│   │   ├── validators/
+│   │   └── ...
+│   ├── prisma/              # schema.prisma & migrations
+│   └── .env.example
 │
-└── frontend/         # React + TypeScript + Vite + Tailwind CSS
-    └── src/
-        ├── components/
-        ├── styles/
-        └── data/
+├── frontend/                # React 19 + TypeScript + Vite + Tailwind CSS
+│   └── src/
+│       ├── app/             # router, layouts, providers
+│       ├── features/        # theo domain (feed, marketplace, cart, …)
+│       ├── pages/
+│       ├── shared/
+│       └── styles/
+│
+├── Materials/               # Tài liệu mô tả / yêu cầu đồ án (nếu có)
+├── DEVELOPMENT_CHECKLIST.md
+└── EXTERNAL_SERVICES_GUIDE.md
 ```
 
 ## 🛠️ Công nghệ sử dụng
 
 ### Backend
 
-- **Node.js** + **Express.js** - REST API
-- **Prisma ORM** - Database ORM
-- **PostgreSQL** - Database
-- **JWT** - Authentication
-- **Multer** - File upload
-- **bcryptjs** - Password hashing
+- **Node.js** + **Express** — REST API (ES modules)
+- **Prisma** + **PostgreSQL**
+- **JWT** (jsonwebtoken), **bcryptjs**, **cookie-parser**, **CORS**
+- **Socket.IO** — realtime messaging
+- **Cloudinary** + **multer** / **multer-storage-cloudinary** — upload ảnh (sản phẩm, avatar, bài viết, …)
+- **node-cron** — bài viết lên lịch
+- **Nodemailer** — email (quên mật khẩu, thông báo qua SMTP nếu bật)
+- **@google/generative-ai** — Gemini trên server
+- **express-rate-limit**, **express-validator**, **winston**
+- **swagger-jsdoc** + **swagger-ui-express** — tài liệu API (khi bật cấu hình)
 
 ### Frontend
 
-- **React 18** + **TypeScript**
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **Radix UI** - UI components
-- **Lucide React** - Icons
-- **React Hook Form** - Form handling
+- **React 19** + **TypeScript**
+- **Vite 6**
+- **Tailwind CSS 4** (`@tailwindcss/vite`)
+- **react-router-dom** 7
+- **Lucide React**, **Motion**, **Recharts**
+- **@google/genai** — tích hợp phía client (theo tính năng)
 
-## 📦 Cài đặt
+## 📦 Cài đặt nhanh
 
 ### Yêu cầu
 
-- Node.js >= 18
-- PostgreSQL >= 14
-- npm hoặc yarn
+- Node.js **>= 18**
+- PostgreSQL **>= 14**
+- npm (hoặc yarn/pnpm)
 
 ### Backend
 
@@ -68,92 +95,87 @@ social-commerce-platform/
 cd backend
 npm install
 
-# Tạo file .env từ .env.example
+# Sao chép môi trường: Unix/macOS
 cp .env.example .env
+# Windows (CMD/PowerShell): copy .env.example .env
 
-# Cấu hình DATABASE_URL trong .env
-# DATABASE_URL="postgresql://user:password@localhost:5432/social_commerce?schema=public"
+# Điền DATABASE_URL và các biến bắt buộc (xem mục Biến môi trường bên dưới)
 
-# Chạy migrations
+npm run prisma:generate
 npm run prisma:migrate
-
-# Khởi động server
 npm run dev
 ```
 
-Backend sẽ chạy tại `http://localhost:5000`
+API mặc định: `http://localhost:5000` (cổng có thể đổi qua `PORT` trong `.env`).
 
 ### Frontend
 
 ```bash
 cd frontend
 npm install
-
-# Khởi động dev server
 npm run dev
 ```
 
-Frontend sẽ chạy tại `http://localhost:5173`
+Dev server được cấu hình chạy tại **`http://localhost:3000`** (khớp `FRONTEND_URL` trong `backend/.env.example`). Đảm bảo backend cho phép CORS với URL này.
+
+### Dịch vụ ngoài (khuyến nghị)
+
+- **Cloudinary**: cần cho upload ảnh sản phẩm, avatar, bài viết theo luồng hiện tại — xem [EXTERNAL_SERVICES_GUIDE.md](EXTERNAL_SERVICES_GUIDE.md).
+- **Gemini** (`GEMINI_API_KEY`): bật tính năng AI phía server/client tương ứng.
+- **SMTP**: email (ví dụ quên mật khẩu) khi bạn cấu hình Nodemailer.
+
+Thiếu từng loại có thể khiến một số luồng lỗi hoặc bị giới hạn; chi tiết và fallback nằm trong guide và code.
 
 ## 🗄️ Database
 
-Dự án sử dụng PostgreSQL với Prisma ORM. Schema database nằm trong `backend/prisma/schema.prisma`.
+PostgreSQL với Prisma. Schema và migrations: `backend/prisma/`.  
+Chi tiết bảng/quan hệ: mở `schema.prisma` hoặc dùng `npm run prisma:studio` trong thư mục `backend`.
 
-### Các bảng chính:
+Tùy chọn: `npm run prisma:seed` — script trỏ tới `prisma/seed.js` (kiểm tra file có trong repo trước khi chạy).
 
-- Users
-- Posts
-- Products
-- Orders
-- Comments
-- Messages
-- Groups
-- Notifications
-- Reviews
+## 🔐 Biến môi trường (tóm tắt)
 
-## 🔐 Biến môi trường
+Cấu hình đầy đủ: **[backend/.env.example](backend/.env.example)**.
 
-### Backend (.env)
+| Nhóm                         | Gợi ý                                                                                           |
+| ---------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Cốt lõi**                  | `DATABASE_URL`, `PORT`, `NODE_ENV`, `JWT_SECRET`, `JWT_EXPIRE`, `FRONTEND_URL`                  |
+| **Upload / CDN**             | `CLOUDINARY_*`, `MAX_FILE_SIZE`, `UPLOAD_PATH`                                                  |
+| **Bảo mật dữ liệu nhạy cảm** | `SENSITIVE_DATA_KEY` (production nên có; dev có thể để trống theo ghi chú trong `.env.example`) |
+| **Giới hạn request**         | `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX_REQUESTS`                                               |
+| **Email**                    | `SMTP_*`, `SMTP_FROM`                                                                           |
+| **AI**                       | `GEMINI_API_KEY`, `GEMINI_TEMPERATURE`, `GEMINI_MAX_TOKENS`                                     |
 
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
-PORT=5000
-NODE_ENV=development
-JWT_SECRET=your-secret-key
-JWT_EXPIRE=7d
-FRONTEND_URL=http://localhost:5173
-MAX_FILE_SIZE=5242880
-UPLOAD_PATH=./src/uploads
-```
+Hướng dẫn đăng ký tài khoản dịch vụ và best practice: [EXTERNAL_SERVICES_GUIDE.md](EXTERNAL_SERVICES_GUIDE.md).
 
 ## 📝 Scripts
 
-### Backend
+### Backend (`backend/`)
 
 ```bash
-npm start          # Chạy production server
-npm run dev        # Chạy development server với nodemon
-npm run prisma:generate  # Generate Prisma Client
-npm run prisma:migrate   # Chạy database migrations
-npm run prisma:studio    # Mở Prisma Studio GUI
+npm start                 # Production
+npm run dev               # Development (nodemon)
+npm run prisma:generate   # Generate Prisma Client
+npm run prisma:migrate    # Migrations (dev)
+npm run prisma:studio     # Prisma Studio
+npm run prisma:seed       # Seed (nếu có file seed)
 ```
 
-### Frontend
+### Frontend (`frontend/`)
 
 ```bash
-npm run dev        # Chạy development server
-npm run build      # Build production
+npm run dev       # Dev server (cổng 3000)
+npm run build     # Build production
+npm run preview   # Xem bản build
+npm run lint      # tsc --noEmit
 ```
 
 ## 🤝 Đóng góp
 
-Mọi đóng góp đều được chào đón! Vui lòng:
-
-1. Fork dự án
-2. Tạo branch mới (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Tạo Pull Request
+1. Fork repository
+2. Tạo branch (`git checkout -b feature/TenTinhNang`)
+3. Commit và push
+4. Mở Pull Request
 
 ## 📄 License
 
@@ -161,8 +183,8 @@ ISC
 
 ## 👥 Tác giả
 
-Social Commerce Platform Team
+Social Commerce Platform Team — repository: [KeHamTruyen/SoCo-DATN](https://github.com/KeHamTruyen/SoCo-DATN)
 
 ## 📞 Liên hệ
 
-- Repository: [GitHub](https://github.com/yourusername/social-commerce-platform)
+- GitHub: [https://github.com/KeHamTruyen/SoCo-DATN](https://github.com/KeHamTruyen/SoCo-DATN)
