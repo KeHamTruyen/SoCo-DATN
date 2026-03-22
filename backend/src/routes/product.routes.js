@@ -86,7 +86,7 @@ router.get("/", getProductsValidation, validate, productController.getProducts);
 router.get(
     "/seller/me",
     protect,
-    restrictTo("SELLER", "ADMIN"),
+    restrictTo("SELLER"),
     productController.getMyProducts,
 );
 
@@ -162,7 +162,7 @@ router.get("/:id", productIdValidation, validate, productController.getProduct);
 router.post(
     "/",
     protect,
-    restrictTo("SELLER", "ADMIN"),
+    restrictTo("SELLER"),
     createProductValidation,
     validate,
     productController.createProduct,
@@ -195,7 +195,7 @@ router.post(
 router.put(
     "/:id",
     protect,
-    restrictTo("SELLER", "ADMIN"),
+    restrictTo("SELLER"),
     productIdValidation,
     updateProductValidation,
     validate,
@@ -223,7 +223,7 @@ router.put(
 router.delete(
     "/:id",
     protect,
-    restrictTo("SELLER", "ADMIN"),
+    restrictTo("SELLER"),
     productIdValidation,
     validate,
     productController.deleteProduct,
@@ -250,7 +250,7 @@ router.delete(
 router.post(
     "/:id/publish",
     protect,
-    restrictTo("SELLER", "ADMIN"),
+    restrictTo("SELLER"),
     productIdValidation,
     validate,
     productController.publishProduct,
@@ -295,7 +295,7 @@ router.post(
 router.post(
     "/:id/images",
     protect,
-    restrictTo("SELLER", "ADMIN"),
+    restrictTo("SELLER"),
     productIdValidation,
     addImagesValidation,
     validate,
@@ -328,7 +328,7 @@ router.post(
 router.delete(
     "/:id/images/:imageId",
     protect,
-    restrictTo("SELLER", "ADMIN"),
+    restrictTo("SELLER"),
     productIdValidation,
     validate,
     productController.deleteProductImage,

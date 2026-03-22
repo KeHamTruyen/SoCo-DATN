@@ -18,7 +18,6 @@ datasource db {
 enum UserRole {
   BUYER
   SELLER
-  ADMIN
 }
 
 enum VerificationStatus {
@@ -107,6 +106,30 @@ enum SavedItemType {
 // USERS & AUTHENTICATION
 // =====================================================
 
+/// Platform administrators (separate from buyer/seller accounts in `users`).
+model Admin {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  username     String    @unique @db.VarChar(50)
+  passwordHash String    @map("password_hash")
+  fullName     String    @map("full_name")
+  phone        String?   @db.VarChar(20)
+  department   String?   @db.VarChar(100)
+  jobTitle     String?   @map("job_title") @db.VarChar(100)
+  permissions  Json?
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  lastLogin    DateTime? @map("last_login")
+
+  verifiedSellerApplications      SellerVerification[]           @relation("VerificationVerifier")
+  resolvedReports                 Report[]                        @relation("ReportResolver")
+  reviewedSensitiveChangeRequests SellerSensitiveChangeRequest[]  @relation("SensitiveChangeReviewer")
+  sensitiveAuditLogsAsActor       SellerSensitiveAuditLog[]       @relation("AuditLogActorAdmin")
+
+  @@map("admins")
+}
+
 model User {
   id              String    @id @default(uuid())
   email           String    @unique
@@ -153,12 +176,10 @@ model User {
   orderItems               OrderItem[]
   createdGroups            Group[]
   createdConversations     Conversation[]
-  verifiedSellers          SellerVerification[]      @relation("VerifiedBy")
   reports                  Report[]                  @relation("ReporterUser")
-  resolvedReports          Report[]                  @relation("ResolverUser")
   savedItems               SavedItem[]
   sellerSensitiveChangeRequests SellerSensitiveChangeRequest[]
-  sensitiveAuditLogsAsActor     SellerSensitiveAuditLog[]      @relation("SensitiveAuditActor")
+  sensitiveAuditLogsAsActor     SellerSensitiveAuditLog[]      @relation("AuditLogActorUser")
 
   @@map("users")
 }
@@ -234,8 +255,8 @@ model SellerVerification {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  verifier User? @relation("VerifiedBy", fields: [verifiedBy], references: [id])
+  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifierAdmin Admin? @relation("VerificationVerifier", fields: [verifiedBy], references: [id], onDelete: SetNull)
 
   @@map("seller_verifications")
 }
@@ -259,7 +280,8 @@ model SellerSensitiveChangeRequest {
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer Admin? @relation("SensitiveChangeReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
 
   @@index([userId, status])
   @@map("seller_sensitive_change_requests")
@@ -268,14 +290,16 @@ model SellerSensitiveChangeRequest {
 model SellerSensitiveAuditLog {
   id            String   @id @default(uuid())
   subjectUserId String?  @map("subject_user_id")
-  actorId       String   @map("actor_id")
+  actorUserId   String?  @map("actor_user_id")
+  actorAdminId  String?  @map("actor_admin_id")
   action        String   @db.VarChar(120)
   entityType    String   @map("entity_type") @db.VarChar(80)
   entityId      String?  @map("entity_id")
   meta          Json?
   createdAt     DateTime @default(now()) @map("created_at")
 
-  actor User @relation("SensitiveAuditActor", fields: [actorId], references: [id], onDelete: Cascade)
+  actorUser  User?  @relation("AuditLogActorUser", fields: [actorUserId], references: [id], onDelete: Cascade)
+  actorAdmin Admin? @relation("AuditLogActorAdmin", fields: [actorAdminId], references: [id], onDelete: Cascade)
 
   @@index([subjectUserId])
   @@map("seller_sensitive_audit_logs")
@@ -888,8 +912,8 @@ model Report {
   resolution  String?   @db.VarChar(50)
   createdAt   DateTime  @default(now()) @map("created_at")
 
-  reporter User  @relation("ReporterUser", fields: [reporterId], references: [id], onDelete: Cascade)
-  resolver User? @relation("ResolverUser", fields: [resolvedBy], references: [id], onDelete: SetNull)
+  reporter      User   @relation("ReporterUser", fields: [reporterId], references: [id], onDelete: Cascade)
+  resolverAdmin Admin? @relation("ReportResolver", fields: [resolvedBy], references: [id], onDelete: SetNull)
 
   @@map("reports")
 }

@@ -50,7 +50,7 @@ const options = {
             coverImage: { type: 'string', nullable: true },
             bio: { type: 'string', nullable: true },
             address: { type: 'string', nullable: true },
-            role: { type: 'string', enum: ['BUYER', 'SELLER', 'ADMIN'], example: 'BUYER' },
+            role: { type: 'string', enum: ['BUYER', 'SELLER'], example: 'BUYER' },
             isActive: { type: 'boolean', example: true },
             isVerified: { type: 'boolean', example: false },
             createdAt: { type: 'string', format: 'date-time' },

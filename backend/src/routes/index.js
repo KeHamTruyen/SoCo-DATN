@@ -16,11 +16,13 @@ import groupRoutes from './group.routes.js';
 import reportRoutes from './report.routes.js';
 import reviewRoutes from './review.routes.js';
 import savedItemRoutes from './savedItem.routes.js';
+import adminRoutes from './admin.routes.js';
 
 const router = express.Router();
 
 // Core routes
 router.use('/auth', authRoutes);
+router.use('/admin', adminRoutes);
 router.use('/users', userRoutes);
 router.use('/products', productRoutes);
 router.use('/categories', categoryRoutes);
@@ -62,6 +64,7 @@ router.get('/', (req, res) => {
       groups: '/api/groups',
       reports: '/api/reports',
       savedItems: '/api/saved-items',
+      admin: '/api/admin',
     }
   });
 });

@@ -26,7 +26,7 @@ router.use(protect);
 
 router.get(
     "/stats",
-    restrictTo("SELLER", "ADMIN"),
+    restrictTo("SELLER"),
     sellerController.getDashboardStats,
 );
 

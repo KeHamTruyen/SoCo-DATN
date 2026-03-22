@@ -21,7 +21,7 @@ router.post(
 router.post(
     "/:reviewId/reply",
     protect,
-    restrictTo("SELLER", "ADMIN"),
+    restrictTo("SELLER"),
     reviewValidator.validateReplyReview,
     reviewController.replyReview,
 );

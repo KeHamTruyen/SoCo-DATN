@@ -242,12 +242,20 @@ export const updatePost = async (postId, authorId, data) => {
 
 // ─── Delete post ───────────────────────────────────────
 
-export const deletePost = async (postId, authorId, userRole = null) => {
+export const deletePost = async (postId, authorId) => {
   const existingPost = await prisma.post.findUnique({ where: { id: postId } });
   if (!existingPost) throw new Error('Post not found');
-  if (existingPost.authorId !== authorId && userRole !== 'ADMIN') {
+  if (existingPost.authorId !== authorId) {
     throw new Error('Unauthorized to delete this post');
   }
+  await prisma.post.delete({ where: { id: postId } });
+  return { message: 'Post deleted successfully' };
+};
+
+/** Platform admin moderation (JWT via /api/admin) */
+export const deletePostAsModerator = async (postId) => {
+  const existingPost = await prisma.post.findUnique({ where: { id: postId } });
+  if (!existingPost) throw new Error('Post not found');
   await prisma.post.delete({ where: { id: postId } });
   return { message: 'Post deleted successfully' };
 };
@@ -338,12 +346,25 @@ export const updateComment = async (commentId, userId, content) => {
   });
 };
 
-export const deleteComment = async (commentId, userId, userRole = null) => {
+export const deleteComment = async (commentId, userId) => {
   const comment = await prisma.postComment.findUnique({ where: { id: commentId } });
   if (!comment) throw new Error('Comment not found');
-  if (comment.userId !== userId && userRole !== 'ADMIN') {
+  if (comment.userId !== userId) {
     throw new Error('Unauthorized');
   }
+  await prisma.$transaction([
+    prisma.postComment.delete({ where: { id: commentId } }),
+    prisma.post.update({
+      where: { id: comment.postId },
+      data: { commentsCount: { decrement: 1 } },
+    }),
+  ]);
+  return { message: 'Comment deleted' };
+};
+
+export const deleteCommentAsModerator = async (commentId) => {
+  const comment = await prisma.postComment.findUnique({ where: { id: commentId } });
+  if (!comment) throw new Error('Comment not found');
   await prisma.$transaction([
     prisma.postComment.delete({ where: { id: commentId } }),
     prisma.post.update({

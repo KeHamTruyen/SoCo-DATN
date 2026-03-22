@@ -70,7 +70,7 @@ export const updatePost = async (req, res, next) => {
 
 export const deletePost = async (req, res, next) => {
   try {
-    await postService.deletePost(req.params.id, req.user.id, req.user.role);
+    await postService.deletePost(req.params.id, req.user.id);
     res.json({ success: true, message: 'Post deleted successfully' });
   } catch (error) {
     if (error.message === 'Post not found') {
@@ -125,7 +125,7 @@ export const updateComment = async (req, res, next) => {
 
 export const deleteComment = async (req, res, next) => {
   try {
-    await postService.deleteComment(req.params.commentId, req.user.id, req.user.role);
+    await postService.deleteComment(req.params.commentId, req.user.id);
     res.json({ success: true, message: 'Comment deleted' });
   } catch (error) {
     if (error.message === 'Comment not found') {
@@ -195,6 +195,30 @@ export const sharePost = async (req, res, next) => {
   } catch (error) {
     if (error.message === 'Post not found') {
       return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+    next(error);
+  }
+};
+
+export const adminDeletePost = async (req, res, next) => {
+  try {
+    await postService.deletePostAsModerator(req.params.id);
+    res.json({ success: true, message: 'Post deleted successfully' });
+  } catch (error) {
+    if (error.message === 'Post not found') {
+      return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+    next(error);
+  }
+};
+
+export const adminDeleteComment = async (req, res, next) => {
+  try {
+    await postService.deleteCommentAsModerator(req.params.commentId);
+    res.json({ success: true, message: 'Comment deleted' });
+  } catch (error) {
+    if (error.message === 'Comment not found') {
+      return res.status(404).json({ success: false, message: error.message });
     }
     next(error);
   }

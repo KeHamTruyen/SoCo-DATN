@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import prisma from "../config/database.js";
+import { DEFAULT_USER_AVATAR_URL } from "../config/defaultUserAssets.js";
 import emailService from "./email.service.js";
 import { generateOtp, generateSecureToken } from "../utils/otp.js";
 import { blacklistToken } from "../utils/tokenBlacklist.js";
@@ -31,6 +32,20 @@ const USER_SELECT = {
     },
 };
 
+const ADMIN_SELECT = {
+    id: true,
+    email: true,
+    username: true,
+    fullName: true,
+    phone: true,
+    department: true,
+    jobTitle: true,
+    permissions: true,
+    isActive: true,
+    createdAt: true,
+    lastLogin: true,
+};
+
 class AuthService {
     // ─── UC1.1 – Register ───────────────────────────────────────
 
@@ -45,7 +60,7 @@ class AuthService {
         if (role === "ADMIN") {
             throw Object.assign(new Error("Invalid role"), { statusCode: 400 });
         }
-        const safeRole = role === "SELLER" ? "SELLER" : "BUYER";
+        const safeRole = role === "SELLER" ? "SELLER" : "BUYER"; // platform admin uses /api/admin/auth
 
         const existing = await prisma.user.findFirst({
             where: { OR: [{ email }, { username }] },
@@ -70,11 +85,10 @@ class AuthService {
                 passwordHash,
                 fullName,
                 phone,
-                role,
+                role: safeRole,
                 isVerified: false,
                 isActive: true,
-                avatarUrl:
-                    "https://res.cloudinary.com/dqtcggvvu/image/upload/v1773908008/default_avatar_us554i.webp",
+                avatarUrl: DEFAULT_USER_AVATAR_URL,
             },
             select: USER_SELECT,
         });
@@ -112,15 +126,6 @@ class AuthService {
             data: { isVerified: true },
             select: USER_SELECT,
         });
-
-        if (user.role === "ADMIN") {
-            throw Object.assign(
-                new Error(
-                    "Administrator accounts must sign in through the admin portal.",
-                ),
-                { statusCode: 403 },
-            );
-        }
 
         const authToken = this.generateToken(user);
         return { user, accessToken: authToken };
@@ -188,15 +193,6 @@ class AuthService {
             throw Object.assign(new Error("Invalid email or password"), {
                 statusCode: 401,
             });
-
-        if (user.role === "ADMIN") {
-            throw Object.assign(
-                new Error(
-                    "Administrator accounts must sign in through the admin portal.",
-                ),
-                { statusCode: 403 },
-            );
-        }
 
         if (!user.isVerified) {
             const { otp, tempToken } = await this._generateEmailOtp(user.id);
@@ -277,14 +273,6 @@ class AuthService {
         });
 
         const user = await this.getProfile(payload.id);
-        if (user.role === "ADMIN") {
-            throw Object.assign(
-                new Error(
-                    "Administrator accounts must sign in through the admin portal.",
-                ),
-                { statusCode: 403 },
-            );
-        }
         const token = this.generateToken(user);
 
         return { user, accessToken: token };
@@ -580,6 +568,59 @@ class AuthService {
         return { message: "Password changed successfully" };
     }
 
+    // ─── Platform admin (separate table + JWT principal) ─────────
+
+    async getAdminProfile(adminId) {
+        const admin = await prisma.admin.findUnique({
+            where: { id: adminId },
+            select: ADMIN_SELECT,
+        });
+        if (!admin) throw new Error("Admin not found");
+        return admin;
+    }
+
+    async adminLogin({ email, password }) {
+        const admin = await prisma.admin.findFirst({
+            where: { OR: [{ email }, { username: email }] },
+        });
+        if (!admin) {
+            throw Object.assign(new Error("Invalid email or password"), {
+                statusCode: 401,
+            });
+        }
+        if (!admin.isActive) {
+            throw Object.assign(new Error("Account has been deactivated"), {
+                statusCode: 403,
+            });
+        }
+        const valid = await bcrypt.compare(password, admin.passwordHash);
+        if (!valid) {
+            throw Object.assign(new Error("Invalid email or password"), {
+                statusCode: 401,
+            });
+        }
+        await prisma.admin.update({
+            where: { id: admin.id },
+            data: { lastLogin: new Date() },
+        });
+        const { passwordHash, ...safe } = admin;
+        const accessToken = this.generateAdminToken(safe);
+        return { admin: safe, accessToken };
+    }
+
+    generateAdminToken(admin) {
+        return jwt.sign(
+            {
+                id: admin.id,
+                email: admin.email,
+                username: admin.username,
+                principal: "admin",
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRE || "7d" },
+        );
+    }
+
     // ─── Token helpers ──────────────────────────────────────────
 
     generateToken(user) {
@@ -589,6 +630,7 @@ class AuthService {
                 email: user.email,
                 username: user.username,
                 role: user.role,
+                principal: "user",
             },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRE || "7d" },

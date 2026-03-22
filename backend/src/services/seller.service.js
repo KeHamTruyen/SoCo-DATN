@@ -572,7 +572,7 @@ class SellerService {
       },
     });
     await this._appendAuditLog({
-      actorId: userId,
+      actorUserId: userId,
       subjectUserId: userId,
       action: 'SENSITIVE_CHANGE_SUBMITTED',
       entityType: 'SellerSensitiveChangeRequest',
@@ -592,23 +592,7 @@ class SellerService {
     } catch {
       /* optional */
     }
-    try {
-      const admins = await prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } });
-      await Promise.all(
-        admins.map((a) =>
-          notificationService
-            .create({
-              userId: a.id,
-              type: 'SELLER_SENSITIVE',
-              title: 'Seller KYC change pending',
-              message: 'A seller submitted a sensitive information change request.',
-            })
-            .catch(() => {}),
-        ),
-      );
-    } catch {
-      /* optional */
-    }
+    // Platform admins are not `users`; use admin dashboard / email instead of user notifications.
     return row;
   }
 
@@ -674,7 +658,7 @@ class SellerService {
     ]);
 
     await this._appendAuditLog({
-      actorId: adminId,
+      actorAdminId: adminId,
       subjectUserId: reqRow.userId,
       action: 'SENSITIVE_CHANGE_APPROVED',
       entityType: 'SellerSensitiveChangeRequest',
@@ -710,7 +694,7 @@ class SellerService {
       },
     });
     await this._appendAuditLog({
-      actorId: adminId,
+      actorAdminId: adminId,
       subjectUserId: reqRow.userId,
       action: 'SENSITIVE_CHANGE_REJECTED',
       entityType: 'SellerSensitiveChangeRequest',
@@ -730,10 +714,14 @@ class SellerService {
     return { message: 'Change request rejected' };
   }
 
-  async _appendAuditLog({ actorId, subjectUserId, action, entityType, entityId, meta }) {
+  async _appendAuditLog({ actorUserId, actorAdminId, subjectUserId, action, entityType, entityId, meta }) {
+    if (!actorUserId && !actorAdminId) {
+      throw new Error('Audit log requires actorUserId or actorAdminId');
+    }
     await prisma.sellerSensitiveAuditLog.create({
       data: {
-        actorId,
+        actorUserId: actorUserId || null,
+        actorAdminId: actorAdminId || null,
         subjectUserId: subjectUserId || null,
         action,
         entityType,

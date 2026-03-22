@@ -1,6 +1,6 @@
 import express from 'express';
 import prisma from '../config/database.js';
-import { protect } from '../middlewares/auth.middleware.js';
+import { protect, protectUserOrAdmin } from '../middlewares/auth.middleware.js';
 import {
   uploadProduct,
   uploadAvatar,
@@ -252,7 +252,7 @@ router.post('/shop-cover', protect, uploadShopCover.single('image'), (req, res) 
  * Signed URL for authenticated ID uploads (owner or admin).
  * Query: publicId
  */
-router.get('/seller-id-doc/signed', protect, async (req, res, next) => {
+router.get('/seller-id-doc/signed', protectUserOrAdmin, async (req, res, next) => {
   try {
     const publicId = req.query.publicId;
     if (!publicId || typeof publicId !== 'string') {
@@ -260,7 +260,7 @@ router.get('/seller-id-doc/signed', protect, async (req, res, next) => {
     }
 
     let allowed = false;
-    if (req.user.role === 'ADMIN') {
+    if (req.admin) {
       allowed = publicId.includes('seller-id-docs');
     } else {
       const v = await prisma.sellerVerification.findUnique({ where: { userId: req.user.id } });

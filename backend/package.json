@@ -20,6 +20,9 @@
     ],
     "author": "",
     "license": "ISC",
+    "prisma": {
+        "seed": "node prisma/seed.js"
+    },
     "dependencies": {
         "@google/generative-ai": "^0.24.1",
         "@prisma/client": "^5.9.1",
