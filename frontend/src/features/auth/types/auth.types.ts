@@ -7,7 +7,7 @@ export interface UserProfile {
     fullName?: string;
     avatarUrl?: string;
     coverImage?: string;
-    role?: "buyer" | "seller" | "admin";
+    role?: "buyer" | "seller";
     /** Public shop metadata (set when seller registration completes). */
     shopInformation?: ShopInformationSnapshot | null;
 }
@@ -47,4 +47,3 @@ export interface ResendVerificationResponse {
     message: string;
     tempToken?: string;
 }
-

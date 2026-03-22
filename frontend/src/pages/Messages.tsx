@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { messagingApi } from "../features/messaging/api/messagingApi";
 import type { Conversation, Message } from "../features/messaging/types/messaging.types";
 import { useAuthSession } from "../shared/auth/useAuthSession";
+import { DEFAULT_USER_AVATAR_URL } from "../shared/config/defaultAssets";
 import { cn } from "../shared/lib/cn";
 import { UnifiedHeader } from "../shared/ui";
 
@@ -130,11 +131,9 @@ export default function Messages() {
                                         <div className="relative shrink-0">
                                             <div
                                                 className="h-12 w-12 rounded-full bg-neutral-200 bg-cover bg-center dark:bg-neutral-700"
-                                                style={
-                                                    conv.participantAvatarUrl
-                                                        ? { backgroundImage: `url(${conv.participantAvatarUrl})` }
-                                                        : undefined
-                                                }
+                                                style={{
+                                                    backgroundImage: `url(${conv.participantAvatarUrl ?? DEFAULT_USER_AVATAR_URL})`,
+                                                }}
                                             />
                                             {conv.isOnline && (
                                                 <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-success dark:border-neutral-900" />
@@ -192,13 +191,9 @@ export default function Messages() {
                                     <div className="flex items-center gap-3">
                                         <div
                                             className="h-10 w-10 rounded-full bg-neutral-200 bg-cover bg-center dark:bg-neutral-700"
-                                            style={
-                                                activeConversation.participantAvatarUrl
-                                                    ? {
-                                                          backgroundImage: `url(${activeConversation.participantAvatarUrl})`,
-                                                      }
-                                                    : undefined
-                                            }
+                                            style={{
+                                                backgroundImage: `url(${activeConversation.participantAvatarUrl ?? DEFAULT_USER_AVATAR_URL})`,
+                                            }}
                                         />
                                         <div>
                                             <h2 className="text-sm font-bold">

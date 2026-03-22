@@ -15,7 +15,11 @@ interface ApiResponse<T> {
 }
 
 function unwrap<T>(response: ApiResponse<T> | T): T {
-    if (typeof response === "object" && response !== null && "data" in response) {
+    if (
+        typeof response === "object" &&
+        response !== null &&
+        "data" in response
+    ) {
         return (response as ApiResponse<T>).data as T;
     }
     return response as T;
@@ -23,31 +27,27 @@ function unwrap<T>(response: ApiResponse<T> | T): T {
 
 export const authApi = {
     async login(payload: LoginPayload) {
-        const res = await httpClient.post<ApiResponse<AuthResponse> | AuthResponse>(
-            "/auth/login",
-            payload,
-        );
+        const res = await httpClient.post<
+            ApiResponse<AuthResponse> | AuthResponse
+        >("/auth/login", payload);
         return unwrap<AuthResponse>(res);
     },
     async register(payload: RegisterPayload) {
-        const res = await httpClient.post<ApiResponse<RegisterResponse> | RegisterResponse>(
-            "/auth/register",
-            payload,
-        );
+        const res = await httpClient.post<
+            ApiResponse<RegisterResponse> | RegisterResponse
+        >("/auth/register", payload);
         return unwrap<RegisterResponse>(res);
     },
     async verify2fa(payload: VerifyOtpPayload) {
-        const res = await httpClient.post<ApiResponse<AuthResponse> | AuthResponse>(
-            "/auth/verify-2fa",
-            payload,
-        );
+        const res = await httpClient.post<
+            ApiResponse<AuthResponse> | AuthResponse
+        >("/auth/verify-2fa", payload);
         return unwrap<AuthResponse>(res);
     },
     async verifyAccount(payload: VerifyOtpPayload) {
-        const res = await httpClient.post<ApiResponse<AuthResponse> | AuthResponse>(
-            "/auth/verify-email",
-            payload,
-        );
+        const res = await httpClient.post<
+            ApiResponse<AuthResponse> | AuthResponse
+        >("/auth/verify-email", payload);
         return unwrap<AuthResponse>(res);
     },
     async resendVerification(email: string) {
@@ -59,7 +59,11 @@ export const authApi = {
     async forgotPassword(email: string) {
         return httpClient.post("/auth/forgot-password", { email });
     },
-    async resetPassword(token: string, newPassword: string, confirmPassword: string) {
+    async resetPassword(
+        token: string,
+        newPassword: string,
+        confirmPassword: string,
+    ) {
         return httpClient.post("/auth/reset-password", {
             token,
             newPassword,
@@ -67,14 +71,12 @@ export const authApi = {
         });
     },
     async me() {
-        const res = await httpClient.get<ApiResponse<UserProfile> | UserProfile>(
-            "/auth/me",
-            { requiresAuth: true },
-        );
+        const res = await httpClient.get<
+            ApiResponse<UserProfile> | UserProfile
+        >("/auth/me", { requiresAuth: true });
         return unwrap<UserProfile>(res);
     },
     async logout() {
         return httpClient.post("/auth/logout", {}, { requiresAuth: true });
     },
 };
-

@@ -8,4 +8,3 @@ export default function RootRedirect() {
 
     return <Navigate to={isAuthenticated ? "/feed" : "/login"} replace />;
 }
-

@@ -20,7 +20,8 @@ export default function Login() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const msg = (location.state as { authError?: string } | null)?.authError;
+        const msg = (location.state as { authError?: string } | null)
+            ?.authError;
         if (msg) {
             setError(msg);
             navigate(location.pathname, { replace: true, state: {} });
@@ -39,7 +40,10 @@ export default function Login() {
             try {
                 const response = await login({ email, password });
                 if (response.requires2FA) {
-                    sessionStorage.setItem("soco.tempToken", response.accessToken);
+                    sessionStorage.setItem(
+                        "soco.tempToken",
+                        response.accessToken,
+                    );
                     navigate("/verify");
                     return;
                 }
@@ -53,7 +57,10 @@ export default function Login() {
                     const tempToken = details?.data?.tempToken;
                     if (tempToken) {
                         const verifyEmail = details?.data?.email ?? email;
-                        sessionStorage.setItem("soco.pendingEmail", verifyEmail);
+                        sessionStorage.setItem(
+                            "soco.pendingEmail",
+                            verifyEmail,
+                        );
                         sessionStorage.setItem("soco.tempToken", tempToken);
                         navigate("/verify-account");
                         return;
@@ -88,11 +95,17 @@ export default function Login() {
                         </p>
                         <p className="text-xs text-neutral-500 dark:text-neutral-500">
                             By logging in, you agree to our{" "}
-                            <a className="underline hover:text-primary" href="#">
+                            <a
+                                className="underline hover:text-primary"
+                                href="#"
+                            >
                                 Terms of Service
                             </a>{" "}
                             and{" "}
-                            <a className="underline hover:text-primary" href="#">
+                            <a
+                                className="underline hover:text-primary"
+                                href="#"
+                            >
                                 Privacy Policy
                             </a>
                             .

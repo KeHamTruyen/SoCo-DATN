@@ -36,9 +36,6 @@ const defaultNavItems: HeaderNavItem[] = [
     { label: "Marketplace", to: "/marketplace" },
 ];
 
-const avatarFallback =
-    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop";
-
 export function UnifiedHeader({
     navItems = defaultNavItems,
     activePath,
@@ -195,7 +192,7 @@ export function UnifiedHeader({
                             >
                                 <Avatar
                                     wrapperClassName=""
-                                    src={user.avatarUrl ?? avatarFallback}
+                                    src={user.avatarUrl}
                                     alt={user.fullName ?? "User avatar"}
                                 />
                             </button>
@@ -239,11 +236,7 @@ export function UnifiedHeader({
                         </div>
                     ) : (
                         <Link to="/profile" className="shrink-0">
-                            <Avatar
-                                wrapperClassName=""
-                                src={avatarFallback}
-                                alt="User avatar"
-                            />
+                            <Avatar wrapperClassName="" alt="User avatar" />
                         </Link>
                     )}
                     <Button

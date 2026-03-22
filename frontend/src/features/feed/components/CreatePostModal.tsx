@@ -77,7 +77,7 @@ export function CreatePostModal({ onClose, onCreate }: CreatePostModalProps) {
                 <div className="overflow-y-auto">
                     <div className="flex gap-3 px-4 py-4">
                         <Avatar
-                            src={user?.avatarUrl ?? ""}
+                            src={user?.avatarUrl}
                             alt={user?.fullName ?? "You"}
                             wrapperClassName="h-10 w-10 shrink-0"
                         />

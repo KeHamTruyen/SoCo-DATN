@@ -2,7 +2,8 @@ import jwt from "jsonwebtoken";
 import prisma from "../config/database.js";
 
 /**
- * Verify admin JWT (ADMIN_JWT_SECRET) and attach req.user (Prisma User subset).
+ * Verify admin JWT (ADMIN_JWT_SECRET) and attach req.user for restrictTo("ADMIN").
+ * Principal is `admins` table — same source as backend seed (prisma.admin).
  */
 export const protect = async (req, res, next) => {
     try {
@@ -20,9 +21,17 @@ export const protect = async (req, res, next) => {
             });
         }
 
+        const secret = process.env.ADMIN_JWT_SECRET;
+        if (!secret) {
+            return res.status(500).json({
+                success: false,
+                message: "Server misconfiguration",
+            });
+        }
+
         let decoded;
         try {
-            decoded = jwt.verify(token, process.env.ADMIN_JWT_SECRET);
+            decoded = jwt.verify(token, secret);
         } catch {
             return res.status(401).json({
                 success: false,
@@ -30,27 +39,41 @@ export const protect = async (req, res, next) => {
             });
         }
 
-        const user = await prisma.user.findUnique({
+        if (decoded.principal && decoded.principal !== "admin") {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid or expired token",
+            });
+        }
+
+        const admin = await prisma.admin.findUnique({
             where: { id: decoded.id },
             select: {
                 id: true,
                 email: true,
                 username: true,
                 fullName: true,
-                role: true,
+                phone: true,
                 isActive: true,
-                avatarUrl: true,
             },
         });
 
-        if (!user || !user.isActive || user.role !== "ADMIN") {
+        if (!admin || !admin.isActive) {
             return res.status(401).json({
                 success: false,
-                message: "User no longer exists or is not an admin",
+                message: "Admin account no longer exists or is deactivated",
             });
         }
 
-        req.user = user;
+        req.user = {
+            id: admin.id,
+            email: admin.email,
+            username: admin.username,
+            fullName: admin.fullName,
+            role: "ADMIN",
+            avatarUrl: null,
+        };
+
         next();
     } catch (error) {
         next(error);

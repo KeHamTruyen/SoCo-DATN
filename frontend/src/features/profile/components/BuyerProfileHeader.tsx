@@ -49,7 +49,7 @@ export function BuyerProfileHeader({
                     <div className="relative">
                         <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-white bg-neutral-100 shadow-lg dark:border-neutral-900 sm:h-40 sm:w-40">
                             <Avatar
-                                src={profile.avatarUrl ?? ""}
+                                src={profile.avatarUrl}
                                 alt={profile.fullName}
                                 wrapperClassName="h-full w-full"
                             />

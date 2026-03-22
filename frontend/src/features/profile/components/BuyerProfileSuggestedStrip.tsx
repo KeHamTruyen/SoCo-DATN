@@ -1,6 +1,6 @@
-import { User } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { DEFAULT_USER_AVATAR_URL } from "../../../shared/config/defaultAssets";
 import { profileApi } from "../api/profileApi";
 import type { PublicUserProfile } from "../types/profile.types";
 
@@ -52,17 +52,11 @@ export function BuyerProfileSuggestedStrip({ users, loading }: BuyerProfileSugge
                         >
                             <Link to={`/profile/${u.id}`} className="block">
                                 <div className="mx-auto mb-3 h-16 w-16 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
-                                    {u.avatarUrl ? (
-                                        <img
-                                            src={u.avatarUrl}
-                                            alt={u.fullName}
-                                            className="h-full w-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="flex h-full w-full items-center justify-center">
-                                            <User className="h-6 w-6 text-neutral-400" />
-                                        </div>
-                                    )}
+                                    <img
+                                        src={u.avatarUrl ?? DEFAULT_USER_AVATAR_URL}
+                                        alt={u.fullName}
+                                        className="h-full w-full object-cover"
+                                    />
                                 </div>
                                 <p className="truncate text-sm font-semibold dark:text-neutral-100">{u.fullName}</p>
                                 <p className="mb-3 truncate text-xs text-neutral-500 dark:text-neutral-400">

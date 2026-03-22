@@ -20,15 +20,20 @@ export function AuthRoutes() {
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/verify" element={<Verify />} />
                     <Route path="/verify-account" element={<VerifyAccount />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route
+                        path="/forgot-password"
+                        element={<ForgotPassword />}
+                    />
                     <Route path="/reset-password" element={<ResetPassword />} />
                 </Route>
             </Route>
             <Route element={<ProtectedRoute />}>
                 <Route path="/become-seller" element={<SellerRegistration />} />
-                <Route path="/seller-registration/success" element={<SellerRegistrationSuccess />} />
+                <Route
+                    path="/seller-registration/success"
+                    element={<SellerRegistrationSuccess />}
+                />
             </Route>
         </>
     );
 }
-

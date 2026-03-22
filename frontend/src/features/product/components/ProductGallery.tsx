@@ -1,3 +1,4 @@
+import { Package } from "lucide-react";
 import { useState } from "react";
 
 interface ProductGalleryProps {
@@ -6,24 +7,29 @@ interface ProductGalleryProps {
 
 export function ProductGallery({ images }: ProductGalleryProps) {
     const [activeIndex, setActiveIndex] = useState(0);
-    const safeImages =
-        images.length > 0
-            ? images
-            : [
-                  "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=800&h=800&fit=crop",
-              ];
+    const list = images.filter((u) => u && u.trim() !== "");
+
+    if (list.length === 0) {
+        return (
+            <div className="space-y-3">
+                <div className="flex aspect-square items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
+                    <Package className="h-20 w-20 text-neutral-300 dark:text-neutral-600" />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-3">
             <div className="aspect-square overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
                 <img
-                    src={safeImages[activeIndex]}
+                    src={list[activeIndex]}
                     alt="Product"
                     className="h-full w-full object-cover"
                 />
             </div>
             <div className="grid grid-cols-5 gap-2">
-                {safeImages.map((img, idx) => (
+                {list.map((img, idx) => (
                     <button
                         key={`${img}-${idx}`}
                         type="button"

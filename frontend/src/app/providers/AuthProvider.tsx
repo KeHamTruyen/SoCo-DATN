@@ -8,7 +8,10 @@ import {
     type ReactNode,
 } from "react";
 import { authApi } from "../../features/auth/api/authApi";
-import type { AuthResponse, UserProfile } from "../../features/auth/types/auth.types";
+import type {
+    AuthResponse,
+    UserProfile,
+} from "../../features/auth/types/auth.types";
 import {
     clearAuthStorage,
     getAccessToken,
@@ -90,7 +93,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         [completeAuth, isLoading, logout, refreshProfile, user],
     );
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    );
 }
 
 export function useAuthSession() {
@@ -100,4 +105,3 @@ export function useAuthSession() {
     }
     return ctx;
 }
-

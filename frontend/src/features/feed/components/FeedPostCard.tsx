@@ -32,10 +32,7 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
             <div className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
                     <Avatar
-                        src={
-                            post.author.avatarUrl ??
-                            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop"
-                        }
+                        src={post.author.avatarUrl}
                         alt={post.author.fullName ?? post.author.email}
                         wrapperClassName="h-10 w-10 shrink-0 border-2 border-primary"
                     />

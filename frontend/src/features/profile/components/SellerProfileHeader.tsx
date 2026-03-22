@@ -24,7 +24,7 @@ export function SellerProfileHeader({
                     <div className="relative">
                         <div className="h-24 w-24 overflow-hidden rounded-2xl border-4 border-neutral-50 shadow-sm dark:border-neutral-800">
                             <Avatar
-                                src={profile.avatarUrl ?? ""}
+                                src={profile.avatarUrl}
                                 alt={profile.fullName}
                                 wrapperClassName="h-full w-full rounded-2xl"
                             />

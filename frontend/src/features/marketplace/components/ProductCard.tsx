@@ -1,4 +1,4 @@
-import { Bookmark, ShoppingCart, Star } from "lucide-react";
+import { Bookmark, Package, ShoppingCart, Star } from "lucide-react";
 import { type MouseEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { cartApi } from "../../cart/api/cartApi";
@@ -80,14 +80,17 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-all hover:shadow-xl dark:border-neutral-800 dark:bg-neutral-900">
             <div className="relative aspect-4/5 overflow-hidden">
                 <Link to={`/products/${product.id}`} className="block h-full w-full">
-                    <img
-                        src={
-                            product.imageUrl ??
-                            "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=600&h=600&fit=crop"
-                        }
-                        alt={product.name}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
+                    {product.imageUrl ? (
+                        <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                    ) : (
+                        <div className="flex h-full min-h-[200px] w-full items-center justify-center bg-neutral-100 dark:bg-neutral-800">
+                            <Package className="h-16 w-16 text-neutral-300 dark:text-neutral-600" />
+                        </div>
+                    )}
                 </Link>
                 <button
                     type="button"

@@ -99,7 +99,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
             response.status === 401 ||
             (response.status === 403 &&
                 requiresAuth &&
-                /administrator accounts use the admin application/i.test(
+                /(administrator accounts use the admin application|This route is for buyers and sellers only)/i.test(
                     String(message),
                 ))
         ) {

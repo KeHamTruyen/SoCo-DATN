@@ -1,8 +1,9 @@
-import { History, User, UserPlus } from "lucide-react";
+import { History, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { marketplaceApi } from "../../marketplace/api/marketplaceApi";
 import type { ProductListItem } from "../../marketplace/types/marketplace.types";
+import { DEFAULT_USER_AVATAR_URL } from "../../../shared/config/defaultAssets";
 import { profileApi } from "../api/profileApi";
 import type { PublicUserProfile } from "../types/profile.types";
 
@@ -72,17 +73,11 @@ export function BuyerProfileSelfSidebar({ suggestedUsers, suggestedLoading }: Bu
                             <div key={u.id} className="flex items-center justify-between gap-2">
                                 <Link to={`/profile/${u.id}`} className="flex min-w-0 flex-1 items-center gap-3">
                                     <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
-                                        {u.avatarUrl ? (
-                                            <img
-                                                src={u.avatarUrl}
-                                                alt={u.fullName}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="flex h-full w-full items-center justify-center">
-                                                <User className="h-4 w-4 text-neutral-400" />
-                                            </div>
-                                        )}
+                                        <img
+                                            src={u.avatarUrl ?? DEFAULT_USER_AVATAR_URL}
+                                            alt={u.fullName}
+                                            className="h-full w-full object-cover"
+                                        />
                                     </div>
                                     <div className="min-w-0">
                                         <p className="truncate text-sm font-semibold dark:text-neutral-100">

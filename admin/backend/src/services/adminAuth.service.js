@@ -2,22 +2,38 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import prisma from "../config/database.js";
 
-const ADMIN_SAFE_SELECT = {
+/** Fields persisted on `admins` (platform admin table — not `users`). */
+const ADMIN_DB_SELECT = {
     id: true,
     email: true,
     username: true,
     fullName: true,
     phone: true,
-    avatarUrl: true,
-    role: true,
-    isVerified: true,
+    department: true,
+    jobTitle: true,
+    permissions: true,
     isActive: true,
     createdAt: true,
+    lastLogin: true,
 };
+
+/**
+ * Shape expected by admin SPA ([AdminUser]).
+ */
+function toSpaUser(admin) {
+    return {
+        id: admin.id,
+        email: admin.email,
+        username: admin.username,
+        fullName: admin.fullName,
+        role: "ADMIN",
+        avatarUrl: null,
+    };
+}
 
 class AdminAuthService {
     /**
-     * Admin-only login. Issues JWT signed with ADMIN_JWT_SECRET.
+     * Platform admin login (`admins` table). JWT signed with ADMIN_JWT_SECRET.
      */
     async login(email, password) {
         if (!email || !password) {
@@ -26,52 +42,59 @@ class AdminAuthService {
             });
         }
 
-        const user = await prisma.user.findFirst({
-            where: { email: email.trim().toLowerCase() },
-            select: { ...ADMIN_SAFE_SELECT, passwordHash: true },
+        const normalized = email.trim();
+        const admin = await prisma.admin.findFirst({
+            where: {
+                OR: [
+                    { email: normalized.toLowerCase() },
+                    { username: normalized },
+                ],
+            },
+            select: { ...ADMIN_DB_SELECT, passwordHash: true },
         });
 
-        if (!user?.passwordHash) {
+        if (!admin?.passwordHash) {
             throw Object.assign(new Error("Invalid credentials"), {
                 statusCode: 401,
             });
         }
 
-        const ok = await bcrypt.compare(password, user.passwordHash);
+        const ok = await bcrypt.compare(password, admin.passwordHash);
         if (!ok) {
             throw Object.assign(new Error("Invalid credentials"), {
                 statusCode: 401,
             });
         }
 
-        if (user.role !== "ADMIN") {
-            throw Object.assign(
-                new Error(
-                    "This portal is for administrators only. Please sign in on the main application.",
-                ),
-                { statusCode: 403 },
-            );
-        }
-
-        if (!user.isActive) {
+        if (!admin.isActive) {
             throw Object.assign(new Error("Account is deactivated"), {
                 statusCode: 403,
             });
         }
 
-        await prisma.user.update({
-            where: { id: user.id },
+        await prisma.admin.update({
+            where: { id: admin.id },
             data: { lastLogin: new Date() },
         });
 
-        const { passwordHash: _p, ...safeUser } = user;
-        const token = jwt.sign(
-            { id: user.id, role: user.role },
-            process.env.ADMIN_JWT_SECRET,
+        const { passwordHash: _p, ...safe } = admin;
+        const user = toSpaUser(safe);
+
+        const secret = process.env.ADMIN_JWT_SECRET;
+        if (!secret) {
+            throw Object.assign(
+                new Error("Server misconfiguration: ADMIN_JWT_SECRET is not set"),
+                { statusCode: 500 },
+            );
+        }
+
+        const accessToken = jwt.sign(
+            { id: admin.id, role: "ADMIN", principal: "admin" },
+            secret,
             { expiresIn: process.env.ADMIN_JWT_EXPIRE || "7d" },
         );
 
-        return { user: safeUser, accessToken: token };
+        return { user, accessToken };
     }
 }
 

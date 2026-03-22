@@ -179,10 +179,7 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                 <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                     <div className="flex items-center justify-between border-b border-neutral-100 p-4 dark:border-neutral-800">
                         <div className="flex items-center gap-3">
-                            <Avatar
-                                src={post.author.avatarUrl ?? ""}
-                                alt={post.author.fullName}
-                            />
+                            <Avatar src={post.author.avatarUrl} alt={post.author.fullName} />
                             <div>
                                 <p className="font-semibold">{post.author.fullName}</p>
                                 <p className="text-xs text-neutral-500">
@@ -254,7 +251,7 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                             post.comments.map((comment: FeedComment) => (
                                 <div key={comment.id} className="flex gap-3">
                                     <Avatar
-                                        src={comment.author.avatarUrl ?? ""}
+                                        src={comment.author.avatarUrl}
                                         alt={comment.author.fullName}
                                         wrapperClassName="h-8 w-8"
                                     />

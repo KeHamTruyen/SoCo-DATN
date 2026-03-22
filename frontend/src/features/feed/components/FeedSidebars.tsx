@@ -19,6 +19,7 @@ import { orderApi } from "../../order/api/orderApi";
 import type { Order } from "../../order/types/order.types";
 import { profileApi } from "../../profile/api/profileApi";
 import type { PublicUserProfile } from "../../profile/types/profile.types";
+import { DEFAULT_USER_AVATAR_URL } from "../../../shared/config/defaultAssets";
 
 // ─── Left Sidebar ────────────────────────────────────────────────────────────
 
@@ -331,17 +332,11 @@ function PeopleToFollowWidget({
                         <div key={user.id} className="flex items-center justify-between">
                             <Link to={`/profile/${user.id}`} className="flex items-center gap-3">
                                 <div className="h-9 w-9 overflow-hidden rounded-full bg-neutral-200">
-                                    {user.avatarUrl ? (
-                                        <img
-                                            src={user.avatarUrl}
-                                            alt={user.fullName}
-                                            className="h-full w-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="flex h-full w-full items-center justify-center">
-                                            <User className="h-4 w-4 text-neutral-400" />
-                                        </div>
-                                    )}
+                                    <img
+                                        src={user.avatarUrl ?? DEFAULT_USER_AVATAR_URL}
+                                        alt={user.fullName}
+                                        className="h-full w-full object-cover"
+                                    />
                                 </div>
                                 <div>
                                     <p className="text-xs font-bold dark:text-neutral-100">

@@ -1,4 +1,6 @@
 import { Image, Sparkles, Tag } from "lucide-react";
+import { useAuthSession } from "../../../shared/auth/useAuthSession";
+import { Avatar } from "../../../shared/ui/atoms/avatar";
 
 interface PostComposerProps {
     /** When provided the card becomes a click-to-open trigger for a modal. */
@@ -6,10 +8,16 @@ interface PostComposerProps {
 }
 
 export function PostComposer({ onOpen }: PostComposerProps) {
+    const { user } = useAuthSession();
+
     return (
         <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <div className="flex gap-3">
-                <div className="h-10 w-10 shrink-0 rounded-full bg-primary/20" />
+                <Avatar
+                    src={user?.avatarUrl}
+                    alt={user?.fullName ?? "You"}
+                    wrapperClassName="h-10 w-10 shrink-0"
+                />
                 <button
                     type="button"
                     onClick={onOpen}

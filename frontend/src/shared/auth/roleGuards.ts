@@ -1,4 +1,4 @@
-/** Prisma/API roles are uppercase; UI may use lowercase. */
+/** Platform admins use `/api/admin` and are not buyer/seller `User.role`. */
 export function isAdminRole(role: string | undefined | null): boolean {
     return role?.toUpperCase() === "ADMIN";
 }

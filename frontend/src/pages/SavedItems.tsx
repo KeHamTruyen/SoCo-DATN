@@ -319,16 +319,17 @@ export default function SavedItems() {
                                                     to={`/products/${row.product.id}`}
                                                     className="block h-full w-full"
                                                 >
-                                                    <img
-                                                        src={
-                                                            productImageUrl(
-                                                                row,
-                                                            ) ??
-                                                            "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=600&h=600&fit=crop"
-                                                        }
-                                                        alt={row.product.title}
-                                                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                                    />
+                                                    {productImageUrl(row) ? (
+                                                        <img
+                                                            src={productImageUrl(row)!}
+                                                            alt={row.product.title}
+                                                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex h-full min-h-[200px] w-full items-center justify-center bg-neutral-100 dark:bg-neutral-800">
+                                                            <Package className="h-12 w-12 text-neutral-300 dark:text-neutral-600" />
+                                                        </div>
+                                                    )}
                                                 </Link>
                                                 <button
                                                     type="button"
