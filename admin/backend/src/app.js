@@ -1,11 +1,10 @@
+// Must be first: loads `.env` from cwd before any module reads process.env (e.g. email.js via routes).
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
 import routes from "./routes/index.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
-
-dotenv.config();
 
 const app = express();
 
