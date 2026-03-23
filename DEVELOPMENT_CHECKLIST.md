@@ -13,7 +13,7 @@
 - Seller: quản lý sản phẩm trên UI (CRUD), upload giấy tờ lên Cloudinary + đồng bộ `SellerVerification`; endpoint `/seller/stats` (FE đang gọi — cần khớp BE)
 - Realtime: hoàn thiện Socket (typing, notification realtime, v.v.)
 - AI: nối `AiCreativeLab` / nút gợi ý với `/api/ai/*`
-- Production: rate limit & Helmet (package có thể đã cài nhưng chưa gắn app), test, **seed** (`npm run prisma:seed` trỏ `prisma/seed.js` nhưng file chưa có trong repo)
+- Production: rate limit & Helmet (package có thể đã cài nhưng chưa gắn app), test, **seed** (`npm run prisma:seed` từ `backend` chạy `database/prisma/seed.js`)
 
 ---
 
@@ -480,7 +480,7 @@
 
 ### Seed Data
 
-- [ ] **TODO: Thêm `backend/prisma/seed.js` (script `prisma:seed` đang trỏ file chưa tồn tại)**
+- [x] **`database/prisma/seed.js`** (admin seed; `npm run prisma:seed` từ `backend`)
 - [ ] **TODO: Sample categories, products, users, orders, reviews**
 
 ### Migrations
@@ -495,7 +495,7 @@
 
 ### 🔥 HIGH PRIORITY
 
-1. **Sửa / bổ sung `prisma/seed.js`** (hoặc chỉnh script) để test nhanh
+1. **Mở rộng `database/prisma/seed.js`** (hoặc thêm seed khác) để test nhanh (sample categories, users, …)
 2. **Reviews UI** + seller orders UI (nếu thiếu)
 3. **Khớp `/seller/stats` BE ↔ FE**
 4. **Gắn rate limit + Helmet** trước khi public

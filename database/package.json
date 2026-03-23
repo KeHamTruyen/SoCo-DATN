@@ -1,0 +1,24 @@
+{
+    "name": "soco-database",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "generate": "prisma generate",
+        "migrate": "dotenv -e ../backend/.env -- prisma migrate dev",
+        "studio": "dotenv -e ../backend/.env -- prisma studio",
+        "seed": "node prisma/seed.js"
+    },
+    "prisma": {
+        "seed": "node prisma/seed.js"
+    },
+    "dependencies": {
+        "@prisma/client": "^5.9.1",
+        "bcryptjs": "^2.4.3",
+        "dotenv": "^16.4.1"
+    },
+    "devDependencies": {
+        "dotenv-cli": "^7.4.2",
+        "prisma": "5.9.1"
+    }
+}

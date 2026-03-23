@@ -1,11 +1,22 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import dotenv from "dotenv";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, "..", ".env") });
+const require = createRequire(import.meta.url);
+dotenv.config({ path: path.join(__dirname, "..", "..", "backend", ".env") });
 
-const { PrismaClient } = await import("@prisma/client");
+const backendClientPath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "backend",
+    "node_modules",
+    "@prisma",
+    "client",
+);
+const { PrismaClient } = require(backendClientPath);
 const bcrypt = (await import("bcryptjs")).default;
 
 const prisma = new PrismaClient();
@@ -18,7 +29,7 @@ async function main() {
 
     if (!email || !password || !username) {
         throw new Error(
-            "Seed requires SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD, and SEED_ADMIN_USERNAME in backend/.env (see .env.example).",
+            "Seed requires SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD, and SEED_ADMIN_USERNAME in backend/.env (see backend/.env.example).",
         );
     }
 

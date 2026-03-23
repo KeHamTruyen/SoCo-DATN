@@ -1,17 +1,18 @@
 # SoCo Admin (microservice-style)
 
-Standalone admin API and SPA. Uses the **same PostgreSQL database** as the core backend (shared Prisma schema in `backend/prisma`).
+Standalone admin API and SPA. Uses the **same PostgreSQL database** as the core backend (shared Prisma schema in `database/prisma`).
 
 ## Prerequisites
 
-- Core **backend** dependencies installed (`backend/node_modules`) if you use **seller admin** routes (they load `backend/src/services/seller.service.js`).
-- `DATABASE_URL` aligned with the main API.
-- An `ADMIN` user in the database (same `User` table as the main app).
+- **`database/`** — `npm install` in repo root `database/` (Prisma schema: `database/prisma/`).
+- Core **backend** — `npm install` in `backend/` (generated Prisma client is written to `backend/node_modules`; admin reuses it). Required if you use **seller admin** routes (they load `backend/src/services/seller.service.js`).
+- `DATABASE_URL` in `admin/backend/.env` aligned with the main API (`backend/.env`).
+- A row in the **`admins`** table for platform login (seed via `npm run prisma:seed` from `backend`, see `database/prisma/seed.js`).
 
 ## Admin API (`admin/backend`)
 
 1. Copy `admin/backend/.env.example` to `admin/backend/.env` and set `ADMIN_JWT_SECRET`, `DATABASE_URL`, and (for seller KYC) the same Cloudinary / SMTP variables as `backend/.env`.
-2. From `admin/backend`:
+2. From repo root, ensure `database/` and `backend/` dependencies are installed; then from `admin/backend`:
 
 ```bash
 npm install
@@ -19,7 +20,7 @@ npm run prisma:generate
 npm run dev
 ```
 
-`prisma:generate` runs generate in `backend/` (shared schema) and copies `.prisma` into this package.
+`prisma:generate` runs `npm run generate` in `database/` (schema `database/prisma/schema.prisma`, client emitted into `backend/node_modules`). The admin API loads that client from `backend` at runtime — no copy into `admin/backend/node_modules`.
 
 Default URL: `http://localhost:5001` — routes under `/api` (e.g. `POST /api/auth/login`).
 

@@ -7,10 +7,10 @@
     "scripts": {
         "start": "node src/server.js",
         "dev": "nodemon src/server.js",
-        "prisma:generate": "prisma generate",
-        "prisma:migrate": "prisma migrate dev",
-        "prisma:studio": "prisma studio",
-        "prisma:seed": "node prisma/seed.js"
+        "prisma:generate": "npm run generate --prefix ../database",
+        "prisma:migrate": "npm run migrate --prefix ../database",
+        "prisma:studio": "npm run studio --prefix ../database",
+        "prisma:seed": "npm run seed --prefix ../database"
     },
     "keywords": [
         "express",
@@ -20,9 +20,6 @@
     ],
     "author": "",
     "license": "ISC",
-    "prisma": {
-        "seed": "node prisma/seed.js"
-    },
     "dependencies": {
         "@google/generative-ai": "^0.24.1",
         "@prisma/client": "^5.9.1",
@@ -46,7 +43,6 @@
         "winston": "^3.11.0"
     },
     "devDependencies": {
-        "nodemon": "^3.0.3",
-        "prisma": "^5.9.1"
+        "nodemon": "^3.0.3"
     }
 }

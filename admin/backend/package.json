@@ -7,7 +7,7 @@
     "scripts": {
         "start": "node src/server.js",
         "dev": "nodemon src/server.js",
-        "prisma:generate": "npm run prisma:generate --prefix ../../backend && node ./scripts/sync-prisma-from-core.mjs"
+        "prisma:generate": "npm run generate --prefix ../../database"
     },
     "dependencies": {
         "@prisma/client": "5.9.1",
@@ -19,7 +19,6 @@
         "jsonwebtoken": "^9.0.2"
     },
     "devDependencies": {
-        "nodemon": "^3.0.3",
-        "prisma": "5.9.1"
+        "nodemon": "^3.0.3"
     }
 }

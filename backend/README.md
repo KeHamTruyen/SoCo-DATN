@@ -4,10 +4,11 @@ Backend API cho Social Commerce Platform sử dụng Express.js và PostgreSQL (
 
 ## 🚀 Cài đặt
 
-1. Cài dependencies:
+1. Cài dependencies (backend và package Prisma ở thư mục `database/`):
 
 ```bash
 npm install
+cd ../database && npm install && cd ../backend
 ```
 
 2. Tạo file `.env` từ `.env.example`:
@@ -62,22 +63,26 @@ backend/
 │   ├── validators/     # Input validation
 │   ├── utils/          # Utility functions
 │   ├── config/         # Configuration
-│   ├── prisma/         # Database schema & migrations
 │   ├── uploads/        # Uploaded files
 │   ├── app.js          # Express app setup
 │   └── server.js       # Server entry point
-├── .env                # Environment variables
+├── .env                # Environment variables (DATABASE_URL cho Prisma)
 └── package.json
+
+../database/            # Schema Prisma, migrations, seed (package riêng)
+└── prisma/
+    ├── schema.prisma
+    └── seed.js
 ```
 
 ## 🛠️ Scripts
 
 - `npm run dev` - Chạy server ở development mode với nodemon
 - `npm start` - Chạy server ở production mode
-- `npm run prisma:generate` - Generate Prisma Client
-- `npm run prisma:migrate` - Chạy database migrations
+- `npm run prisma:generate` - Generate Prisma Client (chạy package `../database`, output vào `node_modules` của backend)
+- `npm run prisma:migrate` - Chạy database migrations (`DATABASE_URL` đọc từ `backend/.env`)
 - `npm run prisma:studio` - Mở Prisma Studio GUI
-- `npm run prisma:seed` - Seed database với sample data
+- `npm run prisma:seed` - Seed admin (xem `database/prisma/seed.js` và biến `SEED_*` trong `.env`)
 
 ## 📚 API Endpoints
 
@@ -154,7 +159,7 @@ Authorization: Bearer <your-jwt-token>
 
 ## 🗄️ Database Schema
 
-Xem file `src/prisma/schema.prisma` để biết chi tiết về database schema.
+Xem file `../database/prisma/schema.prisma` để biết chi tiết về database schema.
 
 ## 📝 License
 

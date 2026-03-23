@@ -10,7 +10,8 @@ Nền tảng thương mại xã hội kết hợp mua sắm và tương tác xã
 | ------------------------------------------------------------ | ------------------------------------------------------------------- |
 | [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md)         | Tiến độ tính năng FE/BE, TODO, endpoint tổng quan                   |
 | [EXTERNAL_SERVICES_GUIDE.md](EXTERNAL_SERVICES_GUIDE.md)     | Cloudinary, email (SMTP), Gemini AI, dịch vụ ngoài và cách cấu hình |
-| [backend/README.md](backend/README.md)                       | Cài đặt backend, cấu trúc thư mục, script Prisma                    |
+| [backend/README.md](backend/README.md)                       | Cài đặt backend, cấu trúc thư mục, script Prisma (ủy quyền `database/`) |
+| [database/package.json](database/package.json)               | Lệnh Prisma trực tiếp (`npm run generate` / `migrate` / `studio` / `seed`) |
 | [backend/API_TESTING_GUIDE.md](backend/API_TESTING_GUIDE.md) | Gợi ý kiểm thử API                                                  |
 | [backend/.env.example](backend/.env.example)                 | Danh sách biến môi trường đầy đủ (mẫu)                              |
 
@@ -32,7 +33,7 @@ Nền tảng thương mại xã hội kết hợp mua sắm và tương tác xã
 
 ```
 SoCo-DATN/
-├── backend/                 # Node.js (ESM) + Express + Prisma + PostgreSQL
+├── backend/                 # Node.js (ESM) + Express + Prisma Client + PostgreSQL
 │   ├── src/
 │   │   ├── config/
 │   │   ├── controllers/
@@ -41,8 +42,13 @@ SoCo-DATN/
 │   │   ├── services/
 │   │   ├── validators/
 │   │   └── ...
-│   ├── prisma/              # schema.prisma & migrations
 │   └── .env.example
+│
+├── database/                # Prisma schema, migrations, seed (package riêng)
+│   ├── prisma/
+│   │   ├── schema.prisma
+│   │   └── seed.js
+│   └── package.json
 │
 ├── frontend/                # React 19 + TypeScript + Vite + Tailwind CSS
 │   └── src/
@@ -94,6 +100,9 @@ SoCo-DATN/
 ```bash
 cd backend
 npm install
+cd ../database
+npm install
+cd ../backend
 
 # Sao chép môi trường: Unix/macOS
 cp .env.example .env
@@ -128,10 +137,10 @@ Thiếu từng loại có thể khiến một số luồng lỗi hoặc bị gi�
 
 ## 🗄️ Database
 
-PostgreSQL với Prisma. Schema và migrations: `backend/prisma/`.  
-Chi tiết bảng/quan hệ: mở `schema.prisma` hoặc dùng `npm run prisma:studio` trong thư mục `backend`.
+PostgreSQL với Prisma. Schema, migrations và seed: [`database/prisma/`](database/prisma/).  
+Chi tiết bảng/quan hệ: mở `database/prisma/schema.prisma` hoặc từ `backend` chạy `npm run prisma:studio` (lệnh thực thi trong package `database/`, đọc `DATABASE_URL` từ `backend/.env`).
 
-Tùy chọn: `npm run prisma:seed` — script trỏ tới `prisma/seed.js` (kiểm tra file có trong repo trước khi chạy).
+Tùy chọn: từ `backend` chạy `npm run prisma:seed` — thực thi [`database/prisma/seed.js`](database/prisma/seed.js) (biến seed trong `backend/.env`, xem `backend/.env.example`).
 
 ## 🔐 Biến môi trường (tóm tắt)
 
