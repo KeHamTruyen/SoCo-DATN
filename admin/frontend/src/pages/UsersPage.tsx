@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { adminApi, type AdminUserRow } from "@/api/adminApi";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 
 export default function UsersPage() {
     const [users, setUsers] = useState<AdminUserRow[]>([]);

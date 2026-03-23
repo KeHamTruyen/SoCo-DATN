@@ -187,10 +187,20 @@ export default function SellerRegistration() {
         accountHolderName: "",
     });
 
-    /** When true, after successful registration apply uploaded logo/cover to profile avatar/cover. */
+    /** When true, selected logo/cover are uploaded and replace profile avatar/cover for each slot you provide. */
     const [applyShopBrandingToProfile, setApplyShopBrandingToProfile] = useState(true);
 
+    useEffect(() => {
+        if (!applyShopBrandingToProfile) {
+            bindLocalImage("logo", null, setShopLogoFile, setShopLogoPreview);
+            bindLocalImage("cover", null, setShopCoverFile, setShopCoverPreview);
+            if (logoInputRef.current) logoInputRef.current.value = "";
+            if (coverInputRef.current) coverInputRef.current.value = "";
+        }
+    }, [applyShopBrandingToProfile]);
+
     const progress = ((step - 1) / 3) * 100 + 33.33;
+    const brandingLocked = !applyShopBrandingToProfile || isSubmitting;
 
     const handleShopLogoChange = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -254,8 +264,12 @@ export default function SellerRegistration() {
                     {
                         idFront: idFrontFile,
                         idBack: idBackFile,
-                        shopLogo: shopLogoFile ?? undefined,
-                        shopCover: shopCoverFile ?? undefined,
+                        ...(applyShopBrandingToProfile
+                            ? {
+                                  shopLogo: shopLogoFile ?? undefined,
+                                  shopCover: shopCoverFile ?? undefined,
+                              }
+                            : {}),
                     },
                     { applyShopBrandingToProfile },
                 );
@@ -429,7 +443,34 @@ export default function SellerRegistration() {
                     <div className="p-8">
                         {step === 1 && (
                             <div className="space-y-6">
-                                <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 bg-neutral-50/80 p-4 dark:border-neutral-700 dark:bg-neutral-800/40">
+                                    <input
+                                        type="checkbox"
+                                        checked={applyShopBrandingToProfile}
+                                        onChange={(e) => setApplyShopBrandingToProfile(e.target.checked)}
+                                        className="mt-0.5 rounded border-neutral-300 text-primary focus:ring-primary"
+                                    />
+                                    <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                                        <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                                            Replace my profile avatar and/or cover with the shop images below.
+                                        </span>{" "}
+                                        When checked, each image you upload here is sent on submit and replaces
+                                        only that slot (avatar for logo, cover for banner). Uncheck to keep your
+                                        current photos — logo and banner uploads are disabled and nothing is
+                                        uploaded to the server for branding.
+                                        <span className="mt-1 block text-xs text-neutral-500">
+                                            Khi chọn: ảnh gửi lên sẽ thay avatar/bìa tương ứng. Bỏ chọn: không upload
+                                            logo/bìa shop lên Cloudinary.
+                                        </span>
+                                    </span>
+                                </label>
+
+                                <div
+                                    className={cn(
+                                        "grid grid-cols-1 gap-8 md:grid-cols-3",
+                                        brandingLocked && "pointer-events-none opacity-50",
+                                    )}
+                                >
                                     <div className="col-span-1 flex flex-col items-center">
                                         <label className="mb-3 block text-sm font-semibold">Shop Logo</label>
                                         <input
@@ -437,11 +478,12 @@ export default function SellerRegistration() {
                                             type="file"
                                             accept="image/jpeg,image/png,image/webp"
                                             className="hidden"
+                                            disabled={brandingLocked}
                                             onChange={handleShopLogoChange}
                                         />
                                         <button
                                             type="button"
-                                            disabled={isSubmitting}
+                                            disabled={brandingLocked}
                                             onClick={() => logoInputRef.current?.click()}
                                             className="group relative flex h-32 w-32 flex-col items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-neutral-300 bg-neutral-50 transition-colors hover:border-primary disabled:opacity-60 dark:border-neutral-700 dark:bg-neutral-800/50"
                                         >
@@ -471,11 +513,12 @@ export default function SellerRegistration() {
                                             type="file"
                                             accept="image/jpeg,image/png,image/webp"
                                             className="hidden"
+                                            disabled={brandingLocked}
                                             onChange={handleShopCoverChange}
                                         />
                                         <button
                                             type="button"
-                                            disabled={isSubmitting}
+                                            disabled={brandingLocked}
                                             onClick={() => coverInputRef.current?.click()}
                                             className="group relative flex h-32 w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 transition-colors hover:border-primary disabled:opacity-60 dark:border-neutral-700 dark:bg-neutral-800/50"
                                         >
@@ -499,19 +542,6 @@ export default function SellerRegistration() {
                                         </p>
                                     </div>
                                 </div>
-
-                                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 bg-neutral-50/80 p-4 dark:border-neutral-700 dark:bg-neutral-800/40">
-                                    <input
-                                        type="checkbox"
-                                        checked={applyShopBrandingToProfile}
-                                        onChange={(e) => setApplyShopBrandingToProfile(e.target.checked)}
-                                        className="mt-0.5 rounded border-neutral-300 text-primary focus:ring-primary"
-                                    />
-                                    <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                                        After submitting, use shop logo and banner as my profile avatar and cover
-                                        photo (uncheck to keep my current buyer photos).
-                                    </span>
-                                </label>
 
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div className="flex flex-col gap-2">

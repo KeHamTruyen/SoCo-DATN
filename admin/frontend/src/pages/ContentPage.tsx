@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { adminApi, type AdminPostRow, type AdminProductRow } from "@/api/adminApi";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 
 export default function ContentPage() {
     const [tab, setTab] = useState<"posts" | "products">("posts");

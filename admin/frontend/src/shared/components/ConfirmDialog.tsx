@@ -7,7 +7,7 @@ type Props = {
     confirmLabel?: string;
     cancelLabel?: string;
     variant?: "default" | "danger";
-    onConfirm: () => void;
+    onConfirm: () => void | Promise<void>;
     onClose: () => void;
 };
 
@@ -34,7 +34,7 @@ export function ConfirmDialog({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4"
             role="presentation"
             onClick={onClose}
         >
@@ -59,9 +59,13 @@ export function ConfirmDialog({
                     </button>
                     <button
                         type="button"
-                        onClick={() => {
-                            onConfirm();
-                            onClose();
+                        onClick={async () => {
+                            try {
+                                await Promise.resolve(onConfirm());
+                                onClose();
+                            } catch {
+                                /* keep open */
+                            }
                         }}
                         className={
                             variant === "danger"

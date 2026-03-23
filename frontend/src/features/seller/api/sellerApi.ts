@@ -57,8 +57,9 @@ export const sellerApi = {
         );
         fd.append("idFront", files.idFront);
         fd.append("idBack", files.idBack);
-        if (files.shopLogo) fd.append("shopLogo", files.shopLogo);
-        if (files.shopCover) fd.append("shopCover", files.shopCover);
+        const applyBranding = options?.applyShopBrandingToProfile !== false;
+        if (applyBranding && files.shopLogo) fd.append("shopLogo", files.shopLogo);
+        if (applyBranding && files.shopCover) fd.append("shopCover", files.shopCover);
 
         const final = await httpClient.postFormData<{
             data?: { application?: { id?: string } };

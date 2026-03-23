@@ -74,6 +74,9 @@ export const protect = async (req, res, next) => {
             avatarUrl: null,
         };
 
+        /** Same shape as main API `protectAdmin` — shared controllers may use `req.admin.id`. */
+        req.admin = admin;
+
         next();
     } catch (error) {
         next(error);

@@ -160,12 +160,16 @@ class SellerService {
 
     this._validateCompleteRegistrationPayload(payload);
 
+    const applyBrand = payload.applyShopBrandingToProfile !== false;
+
     const files = {
-      shopLogo: multerFiles.shopLogo?.[0],
-      shopCover: multerFiles.shopCover?.[0],
       idFront: multerFiles.idFront?.[0],
       idBack: multerFiles.idBack?.[0],
     };
+    if (applyBrand) {
+      if (multerFiles.shopLogo?.[0]) files.shopLogo = multerFiles.shopLogo[0];
+      if (multerFiles.shopCover?.[0]) files.shopCover = multerFiles.shopCover[0];
+    }
     if (!files.idFront || !files.idBack) {
       throw Object.assign(new Error('ID front and back images are required'), { statusCode: 400 });
     }
@@ -186,9 +190,10 @@ class SellerService {
       shopAddress: payload.shopAddress,
       contactPhone: payload.contactPhone,
     };
-    const shopInformation = this._normalizeShopSnapshot(registrationMeta);
+    const snapshot = this._normalizeShopSnapshot(registrationMeta);
+    const shopInformation = snapshot ? { ...snapshot } : {};
+    const hasShopInformation = Object.keys(shopInformation).length > 0;
     const bankCipher = encryptSensitive(payload.accountNumber);
-    const applyBrand = payload.applyShopBrandingToProfile !== false;
 
     try {
       const updated = await prisma.$transaction(async (tx) => {
@@ -219,7 +224,7 @@ class SellerService {
         });
 
         const userPatch = {};
-        if (shopInformation) userPatch.shopInformation = shopInformation;
+        if (hasShopInformation) userPatch.shopInformation = shopInformation;
         if (applyBrand) {
           if (assets.shopLogo?.url) userPatch.avatarUrl = assets.shopLogo.url;
           if (assets.shopCover?.url) userPatch.coverImage = assets.shopCover.url;
@@ -317,7 +322,18 @@ class SellerService {
       prisma.sellerVerification.findMany({
         where,
         include: {
-          user: { select: { id: true, email: true, username: true, fullName: true, avatarUrl: true } },
+          user: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              fullName: true,
+              avatarUrl: true,
+              coverImage: true,
+              phone: true,
+              shopInformation: true,
+            },
+          },
         },
         orderBy: { createdAt: 'desc' },
         skip,

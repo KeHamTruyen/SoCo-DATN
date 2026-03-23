@@ -1,5 +1,10 @@
 import sellerService from "../services/seller.service.js";
 
+/** Main API sets `req.admin`; admin BFF sets `req.user` (role ADMIN). */
+function adminActorId(req) {
+    return req.admin?.id ?? req.user?.id;
+}
+
 class SellerController {
     // ─── Buyer endpoints ────────────────────────────────────────
 
@@ -130,10 +135,14 @@ class SellerController {
 
     async approve(req, res, next) {
         try {
-            const result = await sellerService.approve(
-                req.params.id,
-                req.admin.id,
-            );
+            const adminId = adminActorId(req);
+            if (!adminId) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Admin authentication required",
+                });
+            }
+            const result = await sellerService.approve(req.params.id, adminId);
             res.json({ success: true, ...result });
         } catch (error) {
             next(error);
@@ -142,10 +151,17 @@ class SellerController {
 
     async reject(req, res, next) {
         try {
+            const adminId = adminActorId(req);
+            if (!adminId) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Admin authentication required",
+                });
+            }
             const { reason } = req.body;
             const result = await sellerService.reject(
                 req.params.id,
-                req.admin.id,
+                adminId,
                 reason,
             );
             res.json({ success: true, ...result });
@@ -227,9 +243,16 @@ class SellerController {
 
     async approveSensitiveChangeRequest(req, res, next) {
         try {
+            const adminId = adminActorId(req);
+            if (!adminId) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Admin authentication required",
+                });
+            }
             const result = await sellerService.approveSensitiveChangeRequest(
                 req.params.id,
-                req.admin.id,
+                adminId,
             );
             res.json({ success: true, ...result });
         } catch (error) {
@@ -239,10 +262,17 @@ class SellerController {
 
     async rejectSensitiveChangeRequest(req, res, next) {
         try {
+            const adminId = adminActorId(req);
+            if (!adminId) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Admin authentication required",
+                });
+            }
             const { reason } = req.body;
             const result = await sellerService.rejectSensitiveChangeRequest(
                 req.params.id,
-                req.admin.id,
+                adminId,
                 reason,
             );
             res.json({ success: true, ...result });

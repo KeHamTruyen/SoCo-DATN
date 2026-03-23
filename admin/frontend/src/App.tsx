@@ -27,7 +27,10 @@ export default function App() {
                         <Route path="/reports" element={<ReportsPage />} />
                         <Route path="/users" element={<UsersPage />} />
                         <Route path="/content" element={<ContentPage />} />
-                        <Route path="/sellers" element={<SellerApplicationsPage />} />
+                        <Route
+                            path="/sellers"
+                            element={<SellerApplicationsPage />}
+                        />
                         <Route path="/settings" element={<SettingsPage />} />
                     </Route>
                     <Route path="*" element={<Navigate to="/" replace />} />
