@@ -228,6 +228,11 @@ model SellerVerification {
   idCardBackUrl       String? @map("id_card_back_url")
   idCardFrontPublicId String? @map("id_card_front_public_id")
   idCardBackPublicId  String? @map("id_card_back_public_id")
+  /// Pending shop branding (applied to User avatar/cover on admin approve, not before).
+  shopLogoUrl       String? @map("shop_logo_url")
+  shopCoverUrl      String? @map("shop_cover_url")
+  shopLogoPublicId  String? @map("shop_logo_public_id")
+  shopCoverPublicId String? @map("shop_cover_public_id")
   dateOfBirth    DateTime? @map("date_of_birth") @db.Date
   address        String?
 

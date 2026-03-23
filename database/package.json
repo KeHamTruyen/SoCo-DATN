@@ -5,7 +5,11 @@
     "type": "module",
     "scripts": {
         "generate": "prisma generate",
+        "db:push": "dotenv -e ../backend/.env -- prisma db push",
+        "db:reset": "dotenv -e ../backend/.env -- prisma db push --force-reset --accept-data-loss",
         "migrate": "dotenv -e ../backend/.env -- prisma migrate dev",
+        "migrate:deploy": "dotenv -e ../backend/.env -- prisma migrate deploy",
+        "migrate:status": "dotenv -e ../backend/.env -- prisma migrate status",
         "studio": "dotenv -e ../backend/.env -- prisma studio",
         "seed": "node prisma/seed.js"
     },
