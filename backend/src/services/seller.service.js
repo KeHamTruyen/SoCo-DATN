@@ -3,8 +3,9 @@ import prisma from '../config/database.js';
 import {
   signedAuthenticatedImageUrl,
   uploadSellerRegistrationBuffers,
-  collectRegistrationPublicIds,
   deleteImage,
+  deleteAuthenticatedImage,
+  getPublicIdFromUrl,
 } from '../config/cloudinary.js';
 import emailService from './email.service.js';
 import notificationService from './notification.service.js';
@@ -180,7 +181,6 @@ class SellerService {
       idFront: files.idFront,
       idBack: files.idBack,
     });
-    const uploadedIds = collectRegistrationPublicIds(assets);
 
     const registrationMeta = {
       idType: payload.idType,
@@ -205,6 +205,10 @@ class SellerService {
             idCardBackUrl: assets.idBack.url,
             idCardFrontPublicId: assets.idFront.publicId,
             idCardBackPublicId: assets.idBack.publicId,
+            shopLogoUrl: applyBrand && assets.shopLogo ? assets.shopLogo.url : null,
+            shopCoverUrl: applyBrand && assets.shopCover ? assets.shopCover.url : null,
+            shopLogoPublicId: applyBrand && assets.shopLogo ? assets.shopLogo.publicId : null,
+            shopCoverPublicId: applyBrand && assets.shopCover ? assets.shopCover.publicId : null,
             dateOfBirth: null,
             address: typeof payload.shopAddress === 'string' ? payload.shopAddress.trim() || null : null,
             step1Completed: true,
@@ -225,10 +229,6 @@ class SellerService {
 
         const userPatch = {};
         if (hasShopInformation) userPatch.shopInformation = shopInformation;
-        if (applyBrand) {
-          if (assets.shopLogo?.url) userPatch.avatarUrl = assets.shopLogo.url;
-          if (assets.shopCover?.url) userPatch.coverImage = assets.shopCover.url;
-        }
         if (Object.keys(userPatch).length) {
           await tx.user.update({ where: { id: userId }, data: userPatch });
         }
@@ -236,11 +236,22 @@ class SellerService {
       });
       return updated;
     } catch (err) {
-      for (const pid of uploadedIds) {
-        try {
-          await deleteImage(pid);
-        } catch {
-          /* ignore */
+      for (const key of ['shopLogo', 'shopCover']) {
+        if (assets[key]?.publicId) {
+          try {
+            await deleteImage(assets[key].publicId);
+          } catch {
+            /* ignore */
+          }
+        }
+      }
+      for (const key of ['idFront', 'idBack']) {
+        if (assets[key]?.publicId) {
+          try {
+            await deleteAuthenticatedImage(assets[key].publicId);
+          } catch {
+            /* ignore */
+          }
         }
       }
       throw err;
@@ -269,7 +280,10 @@ class SellerService {
    * Withdraw a submitted application (REVIEWING only): remove SellerVerification and clear public shop JSON.
    */
   async withdrawReviewingApplication(userId) {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true, avatarUrl: true, coverImage: true },
+    });
     if (!user) throw Object.assign(new Error('User not found'), { statusCode: 404 });
     if (user.role === 'SELLER') {
       throw Object.assign(new Error('Seller accounts cannot withdraw registration'), {
@@ -289,19 +303,50 @@ class SellerService {
       });
     }
 
-    for (const pid of [v.idCardFrontPublicId, v.idCardBackPublicId].filter(Boolean)) {
+    for (const pid of [v.shopLogoPublicId, v.shopCoverPublicId].filter(Boolean)) {
       try {
         await deleteImage(pid);
       } catch {
         /* best-effort */
       }
     }
+    for (const pid of [v.idCardFrontPublicId, v.idCardBackPublicId].filter(Boolean)) {
+      try {
+        await deleteAuthenticatedImage(pid);
+      } catch {
+        /* best-effort */
+      }
+    }
+
+    const userPatch = { shopInformation: null };
+    if (user.avatarUrl?.includes('shop-logos')) {
+      const pid = getPublicIdFromUrl(user.avatarUrl);
+      if (pid) {
+        try {
+          await deleteImage(pid);
+        } catch {
+          /* best-effort */
+        }
+      }
+      userPatch.avatarUrl = null;
+    }
+    if (user.coverImage?.includes('shop-covers')) {
+      const pid = getPublicIdFromUrl(user.coverImage);
+      if (pid) {
+        try {
+          await deleteImage(pid);
+        } catch {
+          /* best-effort */
+        }
+      }
+      userPatch.coverImage = null;
+    }
 
     await prisma.$transaction([
       prisma.sellerVerification.delete({ where: { userId } }),
       prisma.user.update({
         where: { id: userId },
-        data: { shopInformation: null },
+        data: userPatch,
       }),
     ]);
 
@@ -360,6 +405,13 @@ class SellerService {
       throw Object.assign(new Error('Application is not in reviewing state'), { statusCode: 400 });
     }
 
+    const userData = {
+      role: 'SELLER',
+      isVerified: true,
+      ...(verification.shopLogoUrl ? { avatarUrl: verification.shopLogoUrl } : {}),
+      ...(verification.shopCoverUrl ? { coverImage: verification.shopCoverUrl } : {}),
+    };
+
     await prisma.$transaction([
       prisma.sellerVerification.update({
         where: { id: applicationId },
@@ -367,7 +419,7 @@ class SellerService {
       }),
       prisma.user.update({
         where: { id: verification.userId },
-        data: { role: 'SELLER', isVerified: true },
+        data: userData,
       }),
     ]);
 
@@ -385,20 +437,78 @@ class SellerService {
    * Admin – Reject a seller application
    */
   async reject(applicationId, adminId, reason) {
-    const verification = await prisma.sellerVerification.findUnique({ where: { id: applicationId } });
+    const verification = await prisma.sellerVerification.findUnique({
+      where: { id: applicationId },
+      include: { user: { select: { id: true, avatarUrl: true, coverImage: true } } },
+    });
     if (!verification) throw new Error('Application not found');
     if (verification.status !== 'REVIEWING') {
       throw Object.assign(new Error('Application is not in reviewing state'), { statusCode: 400 });
     }
 
-    await prisma.sellerVerification.update({
-      where: { id: applicationId },
-      data: {
-        status: 'REJECTED',
-        rejectionReason: reason || 'Application did not meet requirements',
-        verifiedBy: adminId,
-      },
-    });
+    const v = verification;
+    const tryDelAuth = (pid) => (pid ? deleteAuthenticatedImage(pid).catch(() => {}) : Promise.resolve());
+    const tryDel = (pid) => (pid ? deleteImage(pid).catch(() => {}) : Promise.resolve());
+
+    await Promise.all([
+      tryDelAuth(v.idCardFrontPublicId),
+      tryDelAuth(v.idCardBackPublicId),
+      tryDel(v.shopLogoPublicId),
+      tryDel(v.shopCoverPublicId),
+    ]);
+
+    if (!v.shopLogoPublicId && v.user?.avatarUrl?.includes('shop-logos')) {
+      const pid = getPublicIdFromUrl(v.user.avatarUrl);
+      if (pid) await tryDel(pid);
+    }
+    if (!v.shopCoverPublicId && v.user?.coverImage?.includes('shop-covers')) {
+      const pid = getPublicIdFromUrl(v.user.coverImage);
+      if (pid) await tryDel(pid);
+    }
+
+    const userPatch = {};
+    const u = v.user;
+    if (u?.avatarUrl) {
+      if (
+        (v.shopLogoUrl && u.avatarUrl === v.shopLogoUrl) ||
+        (v.shopLogoPublicId && getPublicIdFromUrl(u.avatarUrl) === v.shopLogoPublicId) ||
+        (!v.shopLogoUrl && u.avatarUrl.includes('social-commerce/shop-logos'))
+      ) {
+        userPatch.avatarUrl = null;
+      }
+    }
+    if (u?.coverImage) {
+      if (
+        (v.shopCoverUrl && u.coverImage === v.shopCoverUrl) ||
+        (v.shopCoverPublicId && getPublicIdFromUrl(u.coverImage) === v.shopCoverPublicId) ||
+        (!v.shopCoverUrl && u.coverImage.includes('social-commerce/shop-covers'))
+      ) {
+        userPatch.coverImage = null;
+      }
+    }
+
+    const ops = [
+      prisma.sellerVerification.update({
+        where: { id: applicationId },
+        data: {
+          status: 'REJECTED',
+          rejectionReason: reason || 'Application did not meet requirements',
+          verifiedBy: adminId,
+          idCardFrontUrl: null,
+          idCardBackUrl: null,
+          idCardFrontPublicId: null,
+          idCardBackPublicId: null,
+          shopLogoUrl: null,
+          shopCoverUrl: null,
+          shopLogoPublicId: null,
+          shopCoverPublicId: null,
+        },
+      }),
+    ];
+    if (Object.keys(userPatch).length) {
+      ops.push(prisma.user.update({ where: { id: v.userId }, data: userPatch }));
+    }
+    await prisma.$transaction(ops);
 
     return { message: 'Application rejected' };
   }

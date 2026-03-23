@@ -8,7 +8,11 @@
         "start": "node src/server.js",
         "dev": "nodemon src/server.js",
         "prisma:generate": "npm run generate --prefix ../database",
+        "prisma:push": "npm run db:push --prefix ../database",
+        "prisma:reset": "npm run db:reset --prefix ../database",
         "prisma:migrate": "npm run migrate --prefix ../database",
+        "prisma:migrate:deploy": "npm run migrate:deploy --prefix ../database",
+        "prisma:migrate:status": "npm run migrate:status --prefix ../database",
         "prisma:studio": "npm run studio --prefix ../database",
         "prisma:seed": "npm run seed --prefix ../database"
     },

@@ -123,8 +123,9 @@ const uploadSellerIdDoc = multer({
 
 // Helper function to delete image from Cloudinary
 const deleteImage = async (publicId) => {
+  if (!publicId) return null;
   try {
-    const result = await cloudinary.uploader.destroy(publicId);
+    const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'image' });
     return result;
   } catch (error) {
     console.error('Error deleting image from Cloudinary:', error);
@@ -132,24 +133,43 @@ const deleteImage = async (publicId) => {
   }
 };
 
+/** KYC ID scans use `type: 'authenticated'` — destroy must match. */
+const deleteAuthenticatedImage = async (publicId) => {
+  if (!publicId) return null;
+  try {
+    const result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: 'image',
+      type: 'authenticated',
+    });
+    return result;
+  } catch (error) {
+    console.error('Error deleting authenticated image from Cloudinary:', error);
+    throw error;
+  }
+};
+
 // Helper function to extract public_id from Cloudinary URL
 const getPublicIdFromUrl = (url) => {
-  if (!url) return null;
-  
-  // Example URL: https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg
-  // Public ID: sample
-  const parts = url.split('/');
-  const filename = parts[parts.length - 1];
-  const publicId = filename.split('.')[0];
-  
-  // Include folder path
-  const folderIndex = parts.indexOf('upload') + 1;
-  if (folderIndex > 0 && folderIndex < parts.length - 1) {
-    const folders = parts.slice(folderIndex + 1, parts.length - 1);
-    return folders.length > 0 ? `${folders.join('/')}/${publicId}` : publicId;
+  if (!url || typeof url !== 'string') return null;
+  try {
+    const pathname = new URL(url).pathname;
+    const marker = '/upload/';
+    const idx = pathname.indexOf(marker);
+    if (idx === -1) return null;
+    const afterUpload = pathname.slice(idx + marker.length).split('/').filter(Boolean);
+    const kept = [];
+    for (const seg of afterUpload) {
+      if (/^v\d+$/.test(seg)) continue;
+      if (seg.includes(',')) continue;
+      kept.push(seg);
+    }
+    if (!kept.length) return null;
+    const last = kept[kept.length - 1].replace(/\.[^/.]+$/, '');
+    kept[kept.length - 1] = last;
+    return kept.join('/') || null;
+  } catch {
+    return null;
   }
-  
-  return publicId;
 };
 
 /**
@@ -159,12 +179,16 @@ const getPublicIdFromUrl = (url) => {
  * @returns {Promise<{ shopLogo?: { url: string; publicId: string }; shopCover?: { url: string; publicId: string }; idFront: { url: string; publicId: string }; idBack: { url: string; publicId: string } }>}
  */
 async function uploadSellerRegistrationBuffers(files) {
-  const uploadedPublicIds = [];
+  const uploadedRollbacks = [];
 
   const rollback = async () => {
-    for (const pid of uploadedPublicIds) {
+    for (const { publicId, authenticated } of uploadedRollbacks) {
       try {
-        await cloudinary.uploader.destroy(pid);
+        if (authenticated) {
+          await deleteAuthenticatedImage(publicId);
+        } else {
+          await deleteImage(publicId);
+        }
       } catch {
         /* best-effort */
       }
@@ -181,7 +205,10 @@ async function uploadSellerRegistrationBuffers(files) {
       resource_type: 'image',
       ...uploadOptions,
     });
-    uploadedPublicIds.push(res.public_id);
+    uploadedRollbacks.push({
+      publicId: res.public_id,
+      authenticated: uploadOptions.type === 'authenticated',
+    });
     return { url: res.secure_url, publicId: res.public_id };
   };
 
@@ -256,6 +283,7 @@ export {
   uploadShopCover,
   uploadSellerIdDoc,
   deleteImage,
+  deleteAuthenticatedImage,
   getPublicIdFromUrl,
   uploadSellerRegistrationBuffers,
   collectRegistrationPublicIds,

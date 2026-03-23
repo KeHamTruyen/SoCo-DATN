@@ -11,7 +11,7 @@ Nền tảng thương mại xã hội kết hợp mua sắm và tương tác xã
 | [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md)         | Tiến độ tính năng FE/BE, TODO, endpoint tổng quan                   |
 | [EXTERNAL_SERVICES_GUIDE.md](EXTERNAL_SERVICES_GUIDE.md)     | Cloudinary, email (SMTP), Gemini AI, dịch vụ ngoài và cách cấu hình |
 | [backend/README.md](backend/README.md)                       | Cài đặt backend, cấu trúc thư mục, script Prisma (ủy quyền `database/`) |
-| [database/package.json](database/package.json)               | Lệnh Prisma trực tiếp (`npm run generate` / `migrate` / `studio` / `seed`) |
+| [database/package.json](database/package.json)               | Lệnh Prisma: `generate`, `db:push`, `db:reset`, `migrate`, `migrate:deploy`, `migrate:status`, `studio`, `seed` |
 | [backend/API_TESTING_GUIDE.md](backend/API_TESTING_GUIDE.md) | Gợi ý kiểm thử API                                                  |
 | [backend/.env.example](backend/.env.example)                 | Danh sách biến môi trường đầy đủ (mẫu)                              |
 
@@ -44,7 +44,7 @@ SoCo-DATN/
 │   │   └── ...
 │   └── .env.example
 │
-├── database/                # Prisma schema, migrations, seed (package riêng)
+├── database/                # Prisma schema + seed (`db push` hoặc `migrate` — xem README)
 │   ├── prisma/
 │   │   ├── schema.prisma
 │   │   └── seed.js
@@ -111,7 +111,8 @@ cp .env.example .env
 # Điền DATABASE_URL và các biến bắt buộc (xem mục Biến môi trường bên dưới)
 
 npm run prisma:generate
-npm run prisma:migrate
+npm run prisma:push
+npm run prisma:seed
 npm run dev
 ```
 
@@ -137,8 +138,18 @@ Thiếu từng loại có thể khiến một số luồng lỗi hoặc bị gi�
 
 ## 🗄️ Database
 
-PostgreSQL với Prisma. Schema, migrations và seed: [`database/prisma/`](database/prisma/).  
+PostgreSQL với Prisma. Schema và seed: [`database/prisma/`](database/prisma/).  
 Chi tiết bảng/quan hệ: mở `database/prisma/schema.prisma` hoặc từ `backend` chạy `npm run prisma:studio` (lệnh thực thi trong package `database/`, đọc `DATABASE_URL` từ `backend/.env`).
+
+**Luồng dev hiện dùng (không bắt buộc file migration):** `npm run prisma:push` — đồng bộ schema trực tiếp; `npm run prisma:reset` — xóa DB rồi tạo lại theo schema (mất dữ liệu).
+
+**Tham khảo Prisma Migrate (khi đã có thư mục `database/prisma/migrations/` hoặc triển khai production có migration):**
+
+| Lệnh (từ `backend/`) | Ý nghĩa ngắn |
+| -------------------- | ------------- |
+| `npm run prisma:migrate` | `prisma migrate dev` — tạo/áp migration trong dev (tương tác) |
+| `npm run prisma:migrate:deploy` | `prisma migrate deploy` — áp các migration đã commit (CI/production) |
+| `npm run prisma:migrate:status` | `prisma migrate status` — trạng thái migration so với DB |
 
 Tùy chọn: từ `backend` chạy `npm run prisma:seed` — thực thi [`database/prisma/seed.js`](database/prisma/seed.js) (biến seed trong `backend/.env`, xem `backend/.env.example`).
 
@@ -165,7 +176,11 @@ Hướng dẫn đăng ký tài khoản dịch vụ và best practice: [EXTERNAL_
 npm start                 # Production
 npm run dev               # Development (nodemon)
 npm run prisma:generate   # Generate Prisma Client
-npm run prisma:migrate    # Migrations (dev)
+npm run prisma:push       # Đồng bộ schema (db push)
+npm run prisma:reset      # Reset DB + push schema (mất dữ liệu)
+npm run prisma:migrate    # migrate dev (tham khảo; cần thư mục migrations)
+npm run prisma:migrate:deploy   # migrate deploy (production/CI)
+npm run prisma:migrate:status   # migrate status
 npm run prisma:studio     # Prisma Studio
 npm run prisma:seed       # Seed (nếu có file seed)
 ```

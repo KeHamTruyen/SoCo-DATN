@@ -25,11 +25,24 @@ cp .env.example .env
 npm run prisma:generate
 ```
 
-5. Chạy migrations:
+5. Đồng bộ schema lên PostgreSQL (luồng dev hiện tại — không bắt buộc file migration):
 
 ```bash
-npm run prisma:migrate
+npm run prisma:push
 ```
+
+Để xóa toàn bộ bảng và tạo lại theo schema (mất dữ liệu):
+
+```bash
+npm run prisma:reset
+npm run prisma:generate
+```
+
+**Tham khảo Prisma Migrate** (khi có thư mục `database/prisma/migrations/` hoặc deploy có migration):
+
+- `npm run prisma:migrate` — `prisma migrate dev` (tạo/áp migration trong dev).
+- `npm run prisma:migrate:deploy` — `prisma migrate deploy` (áp migration đã commit, thường dùng trên server/CI).
+- `npm run prisma:migrate:status` — `prisma migrate status`.
 
 6. (Optional) Seed database:
 
@@ -69,7 +82,7 @@ backend/
 ├── .env                # Environment variables (DATABASE_URL cho Prisma)
 └── package.json
 
-../database/            # Schema Prisma, migrations, seed (package riêng)
+../database/            # Schema Prisma, seed (`db push` hoặc `migrate` — xem mục Scripts)
 └── prisma/
     ├── schema.prisma
     └── seed.js
@@ -80,7 +93,11 @@ backend/
 - `npm run dev` - Chạy server ở development mode với nodemon
 - `npm start` - Chạy server ở production mode
 - `npm run prisma:generate` - Generate Prisma Client (chạy package `../database`, output vào `node_modules` của backend)
-- `npm run prisma:migrate` - Chạy database migrations (`DATABASE_URL` đọc từ `backend/.env`)
+- `npm run prisma:push` - Đồng bộ schema (`prisma db push`, `DATABASE_URL` từ `backend/.env`)
+- `npm run prisma:reset` - Reset DB rồi push schema (xóa hết dữ liệu)
+- `npm run prisma:migrate` - `prisma migrate dev` (tham khảo; cần thư mục migrations)
+- `npm run prisma:migrate:deploy` - `prisma migrate deploy` (production/CI)
+- `npm run prisma:migrate:status` - `prisma migrate status`
 - `npm run prisma:studio` - Mở Prisma Studio GUI
 - `npm run prisma:seed` - Seed admin (xem `database/prisma/seed.js` và biến `SEED_*` trong `.env`)
 
