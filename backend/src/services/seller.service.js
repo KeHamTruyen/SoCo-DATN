@@ -439,7 +439,17 @@ class SellerService {
   async reject(applicationId, adminId, reason) {
     const verification = await prisma.sellerVerification.findUnique({
       where: { id: applicationId },
-      include: { user: { select: { id: true, avatarUrl: true, coverImage: true } } },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            fullName: true,
+            avatarUrl: true,
+            coverImage: true,
+          },
+        },
+      },
     });
     if (!verification) throw new Error('Application not found');
     if (verification.status !== 'REVIEWING') {
@@ -509,6 +519,18 @@ class SellerService {
       ops.push(prisma.user.update({ where: { id: v.userId }, data: userPatch }));
     }
     await prisma.$transaction(ops);
+
+    const resolvedReason = reason || 'Application did not meet requirements';
+    if (v.user?.email) {
+      try {
+        await emailService.sendSellerRejectionEmail(v.user.email, {
+          shopName: v.businessName || v.user.fullName || v.user.email,
+          reason: resolvedReason,
+        });
+      } catch {
+        /* non-blocking */
+      }
+    }
 
     return { message: 'Application rejected' };
   }

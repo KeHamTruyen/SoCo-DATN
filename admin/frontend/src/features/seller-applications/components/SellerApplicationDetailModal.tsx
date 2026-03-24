@@ -60,7 +60,7 @@ export function SellerApplicationDetailModal({
                 <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
                     <div className="space-y-8">
                         <ApplicantSection user={detail.user} />
-                        <ShopBrandingSection user={detail.user} />
+                        <ShopBrandingSection detail={detail} />
                         <ShopProfileSection
                             shopInformation={detail.user?.shopInformation}
                         />

@@ -12,12 +12,12 @@ export interface SellerApplicationUser {
     email: string;
     username: string;
     fullName: string | null;
-    /** During seller application review, this is the submitted shop logo (also user avatar). */
+    /** Current profile avatar; may differ from submitted shop logo while application is REVIEWING. */
     avatarUrl: string | null;
-    /** Shop cover image submitted with seller registration. */
+    /** Current profile cover; may differ from submitted cover while application is REVIEWING. */
     coverImage?: string | null;
     phone?: string | null;
-    /** May include `shopLogoUrl` / `shopCoverUrl` when uploads exist but profile avatar/cover were not updated. */
+    /** Public shop snapshot from registration (name, address, etc.); branding URLs live on the application row. */
     shopInformation?: Record<string, unknown> | null;
 }
 
@@ -52,6 +52,9 @@ export interface SellerApplicationAdmin {
     verifiedBy?: string | null;
     createdAt: string;
     updatedAt?: string;
+    /** Submitted shop assets (SellerVerification); prefer these over user.avatarUrl/coverImage in admin UI. */
+    shopLogoUrl?: string | null;
+    shopCoverUrl?: string | null;
     user?: SellerApplicationUser;
 }
 

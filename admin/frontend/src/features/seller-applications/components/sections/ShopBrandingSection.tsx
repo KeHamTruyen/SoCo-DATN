@@ -1,20 +1,19 @@
-import type { SellerApplicationUser } from "@/features/seller-applications/api/sellerAdminApi";
+import type { SellerApplicationAdmin } from "@/features/seller-applications/api/sellerAdminApi";
 import { Section } from "@/features/seller-applications/components/detail/Section";
 
-function pickBrandingUrl(
-    primary: string | null | undefined,
-    shop: Record<string, unknown> | null | undefined,
-    key: "shopLogoUrl" | "shopCoverUrl",
+function firstNonEmpty(
+    preferred: string | null | undefined,
+    fallback: string | null | undefined,
 ): string | null {
-    if (primary && String(primary).trim()) return primary;
-    const v = shop?.[key];
-    return typeof v === "string" && v.trim() ? v : null;
+    if (preferred && String(preferred).trim()) return String(preferred).trim();
+    if (fallback && String(fallback).trim()) return String(fallback).trim();
+    return null;
 }
 
-export function ShopBrandingSection({ user }: { user?: SellerApplicationUser }) {
-    const shop = user?.shopInformation;
-    const logoUrl = pickBrandingUrl(user?.avatarUrl ?? null, shop, "shopLogoUrl");
-    const coverUrl = pickBrandingUrl(user?.coverImage ?? null, shop, "shopCoverUrl");
+export function ShopBrandingSection({ detail }: { detail: SellerApplicationAdmin }) {
+    const user = detail.user;
+    const logoUrl = firstNonEmpty(detail.shopLogoUrl, user?.avatarUrl ?? null);
+    const coverUrl = firstNonEmpty(detail.shopCoverUrl, user?.coverImage ?? null);
 
     if (!logoUrl && !coverUrl) {
         return (

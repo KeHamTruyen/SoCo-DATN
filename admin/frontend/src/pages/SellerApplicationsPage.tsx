@@ -106,10 +106,7 @@ export default function SellerApplicationsPage() {
                 onClose={() => setRejectId(null)}
                 onConfirm={async () => {
                     if (!rejectId) return;
-                    await sellerAdminApi.reject(
-                        rejectId,
-                        "Rejected by admin",
-                    );
+                    await sellerAdminApi.reject(rejectId, "Rejected by admin");
                     await load();
                     setDetail(null);
                 }}
