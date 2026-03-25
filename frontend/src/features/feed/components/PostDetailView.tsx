@@ -115,16 +115,28 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
         setCommentInput("");
     };
 
+    const primaryMedia = post.imageUrl;
+    const isVideo = post.mediaType === "VIDEO";
+
     return (
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
             <div className="lg:col-span-7">
                 <div className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-neutral-200 shadow-xl dark:bg-neutral-800">
-                    {post.imageUrl ? (
-                        <img
-                            src={post.imageUrl}
-                            alt="Post"
-                            className="h-full w-full object-cover"
-                        />
+                    {primaryMedia ? (
+                        isVideo ? (
+                            <video
+                                src={primaryMedia}
+                                controls
+                                className="h-full w-full object-cover"
+                                playsInline
+                            />
+                        ) : (
+                            <img
+                                src={primaryMedia}
+                                alt="Post"
+                                className="h-full w-full object-cover"
+                            />
+                        )
                     ) : (
                         <div className="flex h-full w-full items-center justify-center text-neutral-400">
                             No image
@@ -188,7 +200,13 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                                         day: "numeric",
                                         year: "numeric",
                                     })}
+                                    {post.location ? ` · ${post.location}` : ""}
                                 </p>
+                                {post.feeling ? (
+                                    <p className="mt-0.5 text-xs font-medium text-primary">
+                                        {post.feeling}
+                                    </p>
+                                ) : null}
                             </div>
                         </div>
                         <Button variant="ghost" size="icon">
@@ -200,6 +218,22 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                         <p className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
                             {post.content}
                         </p>
+                        {post.taggedUsers && post.taggedUsers.length > 0 ? (
+                            <p className="mt-3 text-xs text-neutral-600 dark:text-neutral-400">
+                                <span className="font-semibold">With </span>
+                                {post.taggedUsers.map((u, i) => (
+                                    <span key={u.id}>
+                                        {i > 0 ? ", " : ""}
+                                        <Link
+                                            to={`/profile/${u.id}`}
+                                            className="font-medium text-primary hover:underline"
+                                        >
+                                            {u.fullName ?? u.username ?? "User"}
+                                        </Link>
+                                    </span>
+                                ))}
+                            </p>
+                        ) : null}
                     </div>
 
                     <div className="flex items-center justify-between border-t border-neutral-100 px-4 py-3 dark:border-neutral-800">

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { feedApi } from "../api/feedApi";
-import type { FeedComment, FeedPost } from "../types/feed.types";
+import type { CreatePostPayload, FeedComment, FeedPost } from "../types/feed.types";
 
 export function useFeed() {
     const [posts, setPosts] = useState<FeedPost[]>([]);
@@ -39,8 +39,8 @@ export function useFeed() {
         }
     }, [isLoadingMore, nextCursor]);
 
-    const createPost = useCallback(async (content: string) => {
-        const created = await feedApi.createPost(content);
+    const createPost = useCallback(async (payload: CreatePostPayload) => {
+        const created = await feedApi.createPost(payload);
         setPosts((prev) => [created, ...prev]);
     }, []);
 

@@ -1,6 +1,14 @@
 import prisma from '../config/database.js';
 import notificationService from './notification.service.js';
 
+const MAX_TAGGED_USERS = 10;
+
+function normalizeTaggedUserIds(raw) {
+  if (!Array.isArray(raw)) return [];
+  const uniq = [...new Set(raw.filter((id) => typeof id === 'string' && id.length > 0))];
+  return uniq.slice(0, MAX_TAGGED_USERS);
+}
+
 const AUTHOR_SELECT = {
   id: true,
   username: true,
@@ -30,15 +38,28 @@ const POST_INCLUDE = {
 // ─── Create post (UC2.2) ───────────────────────────────
 
 export const createPost = async (authorId, data) => {
-  const { content, mediaUrls, mediaType, productId, visibility, status } = data;
+  const {
+    content,
+    mediaUrls,
+    mediaType,
+    productId,
+    visibility,
+    status,
+    location,
+    feeling,
+    taggedUserIds,
+  } = data;
 
   const post = await prisma.post.create({
     data: {
       authorId,
-      content,
+      content: content === undefined || content === null ? null : String(content).trim() || null,
       mediaUrls: mediaUrls || [],
       mediaType,
-      productId,
+      productId: productId || null,
+      location: location === undefined || location === null ? null : String(location).trim() || null,
+      feeling: feeling === undefined || feeling === null ? null : String(feeling).trim() || null,
+      taggedUserIds: normalizeTaggedUserIds(taggedUserIds),
       visibility: visibility || 'PUBLIC',
       status: status || 'PUBLISHED',
       publishedAt: status === 'PUBLISHED' || !status ? new Date() : null,
@@ -223,15 +244,34 @@ export const updatePost = async (postId, authorId, data) => {
   if (!existingPost) throw new Error('Post not found');
   if (existingPost.authorId !== authorId) throw new Error('Unauthorized to update this post');
 
-  const { content, mediaUrls, mediaType, productId, visibility, status } = data;
+  const {
+    content,
+    mediaUrls,
+    mediaType,
+    productId,
+    visibility,
+    status,
+    location,
+    feeling,
+    taggedUserIds,
+  } = data;
 
   return prisma.post.update({
     where: { id: postId },
     data: {
-      ...(content !== undefined && { content }),
+      ...(content !== undefined && {
+        content: content === null ? null : String(content).trim() || null,
+      }),
       ...(mediaUrls !== undefined && { mediaUrls }),
       ...(mediaType !== undefined && { mediaType }),
       ...(productId !== undefined && { productId }),
+      ...(location !== undefined && {
+        location: location === null ? null : String(location).trim() || null,
+      }),
+      ...(feeling !== undefined && {
+        feeling: feeling === null ? null : String(feeling).trim() || null,
+      }),
+      ...(taggedUserIds !== undefined && { taggedUserIds: normalizeTaggedUserIds(taggedUserIds) }),
       ...(visibility !== undefined && { visibility }),
       ...(status !== undefined && { status }),
       ...(status === 'PUBLISHED' && !existingPost.publishedAt && { publishedAt: new Date() }),

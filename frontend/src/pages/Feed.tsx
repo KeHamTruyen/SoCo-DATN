@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { feedApi } from "../features/feed/api/feedApi";
+import type { CreatePostPayload } from "../features/feed/types/feed.types";
 import { CreatePostModal } from "../features/feed/components/CreatePostModal";
 import { FeedPostCard } from "../features/feed/components/FeedPostCard";
 import {
@@ -29,11 +30,11 @@ export default function Feed() {
     const isSeller = isSellerRole(user?.role);
     const [showModal, setShowModal] = useState(false);
 
-    const handleCreate = async (content: string, scheduledAt?: string) => {
-        if (scheduledAt) {
-            await feedApi.createScheduledPost(content, scheduledAt);
+    const handleCreate = async (payload: CreatePostPayload) => {
+        if (payload.scheduledAt) {
+            await feedApi.createScheduledPost(payload);
         } else {
-            await createPost(content);
+            await createPost(payload);
         }
     };
 
@@ -100,9 +101,7 @@ export default function Feed() {
             {showModal && (
                 <CreatePostModal
                     onClose={() => setShowModal(false)}
-                    onCreate={(content, scheduled) =>
-                        handleCreate(content, scheduled)
-                    }
+                    onCreate={(payload) => handleCreate(payload)}
                 />
             )}
         </div>

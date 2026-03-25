@@ -1,5 +1,6 @@
 import { MessageSquarePlus, MoreHorizontal, Share2 } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Avatar, Button } from "../../../shared/ui";
 import { CommentList } from "./CommentList";
 import type { FeedPost } from "../types/feed.types";
@@ -25,6 +26,10 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
     };
 
     const hasProducts = (post.taggedProducts?.length ?? 0) > 0;
+    const primaryMedia = post.imageUrl;
+    const extraMedia =
+        (post.mediaUrls?.length ?? 0) > 1 ? (post.mediaUrls!.length - 1) : 0;
+    const isVideo = post.mediaType === "VIDEO";
 
     return (
         <article className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
@@ -44,6 +49,9 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
                             {new Date(post.createdAt).toLocaleString()}
                             {post.location ? ` • ${post.location}` : ""}
                         </p>
+                        {post.feeling ? (
+                            <p className="text-[11px] font-medium text-primary">{post.feeling}</p>
+                        ) : null}
                     </div>
                 </div>
                 <button
@@ -59,16 +67,46 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
                 <p className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
                     {post.content}
                 </p>
+                {post.taggedUsers && post.taggedUsers.length > 0 ? (
+                    <p className="mt-2 text-xs text-neutral-600 dark:text-neutral-400">
+                        <span className="font-semibold text-neutral-500">Cùng với </span>
+                        {post.taggedUsers.map((u, i) => (
+                            <span key={u.id}>
+                                {i > 0 ? ", " : ""}
+                                <Link
+                                    to={`/profile/${u.id}`}
+                                    className="font-medium text-primary hover:underline"
+                                >
+                                    {u.fullName ?? u.username ?? "User"}
+                                </Link>
+                            </span>
+                        ))}
+                    </p>
+                ) : null}
             </div>
 
             {/* Image with shoppable overlays */}
-            {post.imageUrl ? (
+            {primaryMedia ? (
                 <div className="group relative aspect-video bg-neutral-200">
-                    <img
-                        src={post.imageUrl}
-                        alt="Post attachment"
-                        className="h-full w-full object-cover"
-                    />
+                    {isVideo ? (
+                        <video
+                            src={primaryMedia}
+                            controls
+                            className="h-full w-full object-cover"
+                            playsInline
+                        />
+                    ) : (
+                        <img
+                            src={primaryMedia}
+                            alt="Post attachment"
+                            className="h-full w-full object-cover"
+                        />
+                    )}
+                    {extraMedia > 0 ? (
+                        <div className="absolute bottom-2 right-2 rounded-full bg-neutral-900/80 px-2 py-0.5 text-xs font-semibold text-white">
+                            +{extraMedia}
+                        </div>
+                    ) : null}
                     {hasProducts &&
                         post.taggedProducts!.map((tag) => (
                             <div

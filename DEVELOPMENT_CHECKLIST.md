@@ -4,16 +4,17 @@
 
 ### ✅ Đã hoàn thành (cốt lõi)
 
-- **Backend:** Auth, Products, Categories, Cart, Orders, Posts/Feed, Upload/Cloudinary (`/api/upload/*`), Users & follow (`/api/users/*`), Messages (`/api/messages/*` + Socket.IO), Notifications (`/api/notifications/*`), Groups (`/api/groups/*`), Reviews (`/api/reviews/*`), Saved items (`/api/saved-items/*`), Reports (`/api/reports/*`), Scheduled posts (`/api/scheduled-posts/*` + cron), Seller application & admin review (`/api/seller/*`), Admin tối thiểu (`/api/admin/*`), AI Gemini (`/api/ai/*`)
-- **Frontend:** Auth, layout/header, **Feed** (post, like, comment, schedule qua API), Post detail, Cart / Checkout / Orders (buyer), **Marketplace** (tìm kiếm, lọc, sort, phân trang qua `GET /products`), Messages, Notifications (kèm mark read), Groups & Group detail (API list; một phần UI mock), Profile (xem user khác, follow/unfollow, seller stats _nếu backend trả_), Saved items, Admin dashboard (reports API)
+- **Backend:** Auth, Products, Categories, Cart, Orders, Posts/Feed, Upload/Cloudinary (`/api/upload/*`), Users & follow (`/api/users/*`), Messages (`/api/messages/*` + Socket.IO), Notifications (`/api/notifications/*`), Groups (`/api/groups/*`), Reviews (`/api/reviews/*`), Saved items (`/api/saved-items/*`), Reports (`/api/reports/*`), Scheduled posts (`/api/scheduled-posts/*` + cron), Seller (`/api/seller/*`: đăng ký + upload, **`GET /seller/stats`**), Admin (`/api/admin/*`), AI Gemini (`/api/ai/*`)
+- **Frontend:** Auth, **UnifiedHeader** (dropdown thông báo — REST lần đầu), **Feed**, **`/scheduled-posts`** (list + tạo + xóa), Post detail, Cart / Checkout / Orders (buyer), **Seller Center** (`/seller/dashboard`: CRUD sản phẩm, tab đơn bán, stats), **Marketplace**, Messages, Notifications (trang + mark read), Groups (mock sidebar “My groups”), Profile, Saved items
+- **Admin (`admin/frontend`):** Reports, **Users**, **Seller applications**, Categories, Content, v.v.
 
 ### ⏳ Đang làm / tinh chỉnh
 
-- Reviews: UI đầy đủ (form, list trên ProductDetail, seller reply)
-- Seller: quản lý sản phẩm trên UI (CRUD), upload giấy tờ lên Cloudinary + đồng bộ `SellerVerification`; endpoint `/seller/stats` (FE đang gọi — cần khớp BE)
-- Realtime: hoàn thiện Socket (typing, notification realtime, v.v.)
-- AI: nối `AiCreativeLab` / nút gợi ý với `/api/ai/*`
-- Production: rate limit & Helmet (package có thể đã cài nhưng chưa gắn app), test, **seed** (`npm run prisma:seed` từ `backend` chạy `database/prisma/seed.js`)
+- Reviews: form + list trên **ProductDetail**, seller reply (BE có; FE chưa đủ)
+- Scheduled posts: nút **Edit** trên list chưa nối; timezone/preview nâng cao
+- Realtime: Socket.IO **chưa subscribe trên FE** (chat & notifications chủ yếu REST)
+- AI: `AiCreativeLab` vẫn mock — nối `/api/ai/*`
+- Production: **`express-rate-limit` có trong dependencies nhưng chưa gắn `app.js`**; **Helmet chưa thêm dependency**; Winston chưa dùng trong code; test; **seed** chỉ admin (`database/prisma/seed.js`)
 
 ---
 
@@ -72,8 +73,8 @@
 - [x] ProductDetail — hooks + API
 - [x] Marketplace — `marketplaceApi`, query `q` / category / sort / maxPrice, phân trang
 - [x] Feed / post composer — upload media (Cloudinary)
-- [ ] **TODO: Trang/quy trình seller CRUD sản phẩm đầy đủ (nếu chưa gom vào một flow rõ ràng)**
-- [ ] **TODO: Rich text editor cho mô tả sản phẩm**
+- [x] **Seller Center** — `/seller/dashboard`: shop + inventory, form CRUD (`SellerProductFormDialog`), bảng sản phẩm
+- [ ] **TODO: Polish** — rich text mô tả sản phẩm, bulk actions, v.v.
 - [ ] **TODO: Autocomplete tìm kiếm nâng cao (ngoài ô search Marketplace)**
 
 ---
@@ -130,7 +131,8 @@
 - [x] OrderDetailPage — chi tiết đơn
 - [x] Order status badges & filters
 - [x] Order tracking timeline
-- [ ] **TODO: UI quản lý đơn bên seller (nối API seller orders nếu chưa có trên Profile)**
+- [x] Tab **Orders** trên **Seller Center** (`orderApi.listSellerSales` trên `/seller/dashboard?tab=orders`)
+- [ ] **TODO: Chi tiết đơn / cập nhật trạng thái từ UI seller (nếu chưa đủ)**
 
 ---
 
@@ -175,7 +177,7 @@
 
 ---
 
-## 📅 6. SCHEDULED POSTS (✅ Backend xong — ⏳ Frontend một phần)
+## 📅 6. SCHEDULED POSTS (✅ Backend — 🟡 Frontend: trang quản lý cơ bản)
 
 ### Backend
 
@@ -189,7 +191,8 @@
 ### Frontend
 
 - [x] Lên lịch từ Feed/CreatePostModal qua `feedApi.createScheduledPost`
-- [ ] **TODO: Trang quản lý danh sách scheduled posts (list / edit / hủy)**
+- [x] Trang **`/scheduled-posts`** — `feedApi.listScheduledPosts`, xóa (`deletePost`), tạo mới qua modal
+- [ ] **TODO: Sửa lịch (nút Edit trong `ScheduledPostsList` chưa nối)**
 - [ ] **TODO: Timezone selector & preview nâng cao**
 
 ---
@@ -232,8 +235,8 @@
 ### Frontend
 
 - [x] NotificationsPage — `notificationApi`, mark read / mark all read
-- [ ] **TODO: Badge / dropdown thông báo trên header (realtime)**
-- [ ] **TODO: Real-time cập nhật danh sách**
+- [x] **Dropdown header** (`UnifiedHeader` + `NotificationDropdown`) — 5 tin gần nhất + badge unread (load REST khi mount)
+- [ ] **TODO: Real-time** (Socket) + refresh sau khi có sự kiện mới
 - [ ] **TODO: Trang preferences (tắt/bật loại thông báo)**
 
 ---
@@ -271,9 +274,10 @@
 
 ### Frontend
 
-- [ ] **TODO: Review form component**
-- [ ] **TODO: Review list component**
-- [ ] **TODO: Star rating component tái sử dụng**
+- [x] Hiển thị **rating tổng hợp** trên `ProductDetailPanel` (số sao + số review từ API sản phẩm)
+- [ ] **TODO: Review form component** (gửi review)
+- [ ] **TODO: Review list component** (chi tiết từng review)
+- [ ] **TODO: Star rating component tái sử dụng** (tách khỏi inline)
 - [ ] **TODO: Review filters & sorting**
 - [ ] **TODO: Seller response to reviews**
 
@@ -297,23 +301,23 @@
 
 ---
 
-## 🏪 12. SELLER FEATURES (⏳ API application — UI dần gắn)
+## 🏪 12. SELLER FEATURES (🟡 API đủ cốt lõi — UI Seller Center đã dùng)
 
 ### Backend
 
 - [x] SellerVerification model (Prisma schema)
 - [x] SellerStats model (Prisma schema)
-- [x] Seller apply + 3 bước + admin approve/reject (`/api/seller/*`)
+- [x] Seller apply + 3 bước + upload multer + admin approve/reject (`/api/seller/*`)
 - [x] User role update trong luồng duyệt seller
-- [ ] **TODO: Endpoint thống kê dashboard (`GET /seller/stats` hoặc tương đương) khớp frontend**
-- [ ] **TODO: Upload URL giấy tờ lên Cloudinary + lưu field verification**
+- [x] **`GET /api/seller/stats`** — `getDashboardStats` (đơn, view, v.v.)
+- [ ] **TODO: Export / báo cáo nâng cao**
 
 ### Frontend
 
 - [x] SellerRegistration (Become seller) + API
-- [x] Profile seller tab + `profileApi.getSellerStats` (cần backend tương ứng)
-- [ ] **TODO: StorePage / showcase**
-- [ ] **TODO: Revenue charts, sales analytics**
+- [x] `profileApi.getSellerStats` + **Seller Center** (`SellerDashboard`, tab dashboard có stats + charts đơn giản)
+- [ ] **TODO: StorePage / showcase công khai**
+- [ ] **TODO: Revenue / analytics nâng cao (ngoài biểu đồ placeholder trên seller dashboard)**
 
 ---
 
@@ -336,7 +340,7 @@
 
 ---
 
-## 👨‍💼 14. ADMIN FEATURES (⏳ Một phần)
+## 👨‍💼 14. ADMIN FEATURES (🟡 Backend + admin app đã có nhiều màn)
 
 ### Backend
 
@@ -345,10 +349,9 @@
 
 ### Frontend
 
-- [x] AdminDashboard — reports qua `reportApi` (dismiss, delete content, block user)
-- [ ] **TODO: Trang user management đầy đủ (gọi admin users API)**
-- [ ] **TODO: Product moderation UI, seller verification queue UI**
-- [ ] **TODO: Analytics dashboard (charts)**
+- [x] **Admin app** (`admin/frontend`): Reports, **`UsersPage`** (`adminApi.getUsers`), **`SellerApplicationsPage`**, Categories, Content, v.v.
+- [ ] **TODO: Product moderation UI tập trung (nếu tách khỏi Content)**
+- [ ] **TODO: Analytics dashboard (charts) toàn nền tả**
 
 ---
 
@@ -380,8 +383,9 @@
 
 ### Frontend
 
-- [ ] **TODO: Analytics charts (recharts/chart.js)**
-- [ ] **TODO: Sales reports, traffic, conversion**
+- [x] Biểu đồ đơn giản trên **Seller Center** (`SellerDashboardChartsPanel` — theo stats API)
+- [ ] **TODO: Analytics charts** toàn app (recharts/chart.js) — admin + traffic
+- [ ] **TODO: Sales reports, traffic, conversion** nâng cao
 
 ---
 
@@ -393,8 +397,8 @@
 - [x] Password hashing (bcrypt)
 - [x] CORS configuration
 - [x] Input validation (express-validator)
-- [ ] **TODO: Gắn rate limiting (`express-rate-limit` đã có trong dependencies — chưa dùng trong app)**
-- [ ] **TODO: Helmet.js security headers**
+- [ ] **TODO: Gắn rate limiting** — `express-rate-limit` có trong `backend/package.json` nhưng **chưa import trong `app.js`**
+- [ ] **TODO: Helmet** — **chưa có trong dependencies**; cần `npm i helmet` rồi gắn middleware
 - [x] SQL injection prevention (Prisma)
 - [ ] **TODO: XSS / CSRF / caching Redis / tối ưu query & index**
 
@@ -449,7 +453,7 @@
 - [x] Environment variables (dev — `dotenv`)
 - [ ] **TODO: Production database & secrets**
 - [x] File storage dev (Cloudinary)
-- [ ] **TODO: Logging (Winston/Pino), monitoring, CI/CD, Docker, cloud deploy**
+- [ ] **TODO: Logging** — `winston` có trong `package.json` nhưng **chưa dùng trong `src/`**; monitoring, CI/CD, Docker, cloud deploy
 
 ### Frontend
 
@@ -495,21 +499,21 @@
 
 ### 🔥 HIGH PRIORITY
 
-1. **Mở rộng `database/prisma/seed.js`** (hoặc thêm seed khác) để test nhanh (sample categories, users, …)
-2. **Reviews UI** + seller orders UI (nếu thiếu)
-3. **Khớp `/seller/stats` BE ↔ FE**
-4. **Gắn rate limit + Helmet** trước khi public
+1. **Mở rộng `database/prisma/seed.js`** — sample categories, users, orders, reviews (hiện chỉ admin)
+2. **Reviews UI** đầy đủ trên trang sản phẩm (form + list + seller reply)
+3. **Gắn rate limit** (`app.js`) **+ cài Helmet** trước khi public
 
 ### 🟡 MEDIUM PRIORITY
 
-5. **AI frontend** → `/api/ai/*`
-6. **Realtime** notifications + chat polish (Socket trên FE)
-7. **Admin UI** đầy đủ (users, products, seller queue)
-8. **Groups** — bỏ mock, tạo nhóm, member management
+4. **AI frontend** → `/api/ai/*` (`AiCreativeLab`)
+5. **Realtime** — Socket.IO trên FE (chat + notifications)
+6. **Admin** — polish moderation sản phẩm, analytics charts
+7. **Groups** — bỏ mock sidebar, tạo nhóm, quản lý member
+8. **Scheduled posts** — nối nút Edit
 
 ### 🟢 LOW PRIORITY
 
-9. **Analytics** nâng cao + charts
+9. **Analytics** nâng cao (seller + admin)
 10. **Testing & documentation**
 11. **Deployment production**
 
@@ -520,25 +524,25 @@
 | Module             | Backend  | Frontend | Status            |
 | ------------------ | -------- | -------- | ----------------- |
 | Auth               | ✅ 100%  | ✅ 100%  | ✅ Done           |
-| Products/Upload    | ✅ ~95%  | ✅ ~85%  | ⏳ Polish FE      |
+| Products/Upload    | ✅ ~95%  | ✅ ~90%  | ⏳ Polish / reviews |
 | Categories         | ✅ 100%  | ✅ ~100% | ✅ Done           |
 | Cart               | ✅ 100%  | ✅ 100%  | ✅ Done           |
-| Orders             | ✅ 100%  | ✅ ~85%  | ⏳ Seller UI      |
+| Orders             | ✅ 100%  | ✅ ~92%  | ⏳ Seller chi tiết |
 | Posts/Feed         | ✅ 100%  | ✅ 100%  | ✅ Done           |
-| Scheduled posts    | ✅ ~95%  | 🟡 ~40%  | ⏳ Mgmt page      |
+| Scheduled posts    | ✅ ~95%  | 🟡 ~75%  | ⏳ Edit + TZ UX   |
 | Messages           | ✅ ~90%  | 🟡 ~60%  | ⏳ Socket FE      |
-| Notifications      | ✅ ~85%  | 🟡 ~70%  | ⏳ Realtime       |
-| Groups             | ✅ ~90%  | 🟡 ~55%  | ⏳ UI đầy đủ      |
-| Reviews            | ✅ ~90%  | ❌ ~15%  | ⏳ FE chính       |
+| Notifications      | ✅ ~85%  | 🟡 ~80%  | ⏳ Realtime       |
+| Groups             | ✅ ~90%  | 🟡 ~55%  | ⏳ Bỏ mock, CRUD  |
+| Reviews            | ✅ ~90%  | 🟡 ~25%  | ⏳ Form + list    |
 | Search/Marketplace | 🟡 ~70%  | ✅ ~80%  | ⏳ Unified search |
-| Seller             | 🟡 ~75%  | 🟡 ~50%  | ⏳ Stats/CRUD     |
+| Seller             | ✅ ~90%  | ✅ ~80%  | ⏳ Store public   |
 | Profile/Social     | ✅ ~95%  | 🟡 ~80%  | ⏳ Settings       |
-| Admin              | 🟡 ~50%  | 🟡 ~35%  | ⏳ Mở rộng        |
-| AI                 | ✅ ~80%  | ❌ ~25%  | ⏳ Wire FE        |
+| Admin              | 🟡 ~55%  | 🟡 ~60%  | ⏳ Charts, mod    |
+| AI                 | ✅ ~80%  | 🟡 ~25%  | ⏳ Wire FE        |
 | Saved items        | ✅ ~100% | ✅ ~90%  | ✅ Done           |
-| Reports            | ✅ ~90%  | 🟡 ~50%  | ⏳ Admin flow     |
+| Reports            | ✅ ~90%  | 🟡 ~55%  | ⏳ Admin flow     |
 
-**Tổng tiến độ ước tính: ~72%**
+**Tổng tiến độ ước tính: ~78%**
 
 ---
 
@@ -548,9 +552,9 @@
 2. ✅ ~~Phase 2: Cart & Orders~~ (DONE)
 3. ✅ ~~Phase 3: Posts & Social Feed~~ (DONE)
 4. ✅ ~~Phase 3b: Scheduled posts (BE + cron), Marketplace, nhiều API social~~ (DONE cốt lõi)
-5. 🎯 **Tiếp theo:** Reviews FE + seller tooling + seed + hardening (rate limit, Helmet)
-6. 🎯 **Sau đó:** Realtime FE, Admin UI đầy đủ, AI trên FE, test & deploy
+5. 🎯 **Tiếp theo:** Reviews FE + seed dữ liệu mẫu + hardening (rate limit, Helmet, Winston)
+6. 🎯 **Sau đó:** Realtime FE, AI trên FE, admin analytics, test & deploy
 
 ---
 
-_Last updated: March 21, 2026_
+_Last updated: March 25, 2026_

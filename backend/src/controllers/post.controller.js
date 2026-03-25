@@ -1,9 +1,15 @@
 import * as postService from '../services/post.service.js';
+import { formatPostForResponse, formatPostsForResponse } from '../utils/postSerializer.js';
 
 export const createPost = async (req, res, next) => {
   try {
     const post = await postService.createPost(req.user.id, req.body);
-    res.status(201).json({ success: true, message: 'Post created successfully', data: { post } });
+    const formatted = await formatPostForResponse(post);
+    res.status(201).json({
+      success: true,
+      message: 'Post created successfully',
+      data: { post: formatted },
+    });
   } catch (error) {
     next(error);
   }
@@ -15,7 +21,8 @@ export const getPersonalizedFeed = async (req, res, next) => {
       page: parseInt(req.query.page) || 1,
       limit: parseInt(req.query.limit) || 20,
     });
-    res.json({ success: true, data: result.posts, pagination: result.pagination });
+    const data = await formatPostsForResponse(result.posts);
+    res.json({ success: true, data, pagination: result.pagination });
   } catch (error) {
     next(error);
   }
@@ -34,7 +41,8 @@ export const getPosts = async (req, res, next) => {
       userId: req.user?.id,
     };
     const result = await postService.getPosts(filters);
-    res.json({ success: true, data: result.posts, pagination: result.pagination });
+    const data = await formatPostsForResponse(result.posts);
+    res.json({ success: true, data, pagination: result.pagination });
   } catch (error) {
     next(error);
   }
@@ -44,7 +52,8 @@ export const getPostById = async (req, res, next) => {
   try {
     const userId = req.user?.id || null;
     const post = await postService.getPostById(req.params.id, userId);
-    res.json({ success: true, data: { post } });
+    const formatted = await formatPostForResponse(post);
+    res.json({ success: true, data: { post: formatted } });
   } catch (error) {
     if (error.message === 'Post not found') {
       return res.status(404).json({ success: false, message: 'Post not found' });
@@ -56,7 +65,8 @@ export const getPostById = async (req, res, next) => {
 export const updatePost = async (req, res, next) => {
   try {
     const post = await postService.updatePost(req.params.id, req.user.id, req.body);
-    res.json({ success: true, message: 'Post updated successfully', data: { post } });
+    const formatted = await formatPostForResponse(post);
+    res.json({ success: true, message: 'Post updated successfully', data: { post: formatted } });
   } catch (error) {
     if (error.message === 'Post not found') {
       return res.status(404).json({ success: false, message: 'Post not found' });
@@ -182,7 +192,8 @@ export const getMyPosts = async (req, res, next) => {
       status: req.query.status,
     };
     const result = await postService.getUserPosts(req.user.id, filters);
-    res.json({ success: true, data: result.posts, pagination: result.pagination });
+    const data = await formatPostsForResponse(result.posts);
+    res.json({ success: true, data, pagination: result.pagination });
   } catch (error) {
     next(error);
   }

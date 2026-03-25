@@ -19,11 +19,21 @@ export const validate = (req, res, next) => {
  */
 export const createPostValidation = [
     body("content")
+        .optional({ nullable: true })
         .trim()
-        .notEmpty()
-        .withMessage("Content is required")
-        .isLength({ max: 5000 })
-        .withMessage("Content must not exceed 5000 characters"),
+        .custom((value, { req }) => {
+            const urls = req.body.mediaUrls;
+            const hasMedia = Array.isArray(urls) && urls.length > 0;
+            const text =
+                value === undefined || value === null ? "" : String(value).trim();
+            if (!hasMedia && !text) {
+                throw new Error("Content or at least one media URL is required");
+            }
+            if (text.length > 5000) {
+                throw new Error("Content must not exceed 5000 characters");
+            }
+            return true;
+        }),
 
     body("mediaUrls")
         .optional()
@@ -60,6 +70,34 @@ export const createPostValidation = [
         .optional()
         .isIn(["PUBLIC", "FOLLOWERS", "PRIVATE"])
         .withMessage("Visibility must be PUBLIC, FOLLOWERS, or PRIVATE"),
+
+    body("location")
+        .optional({ nullable: true })
+        .trim()
+        .isLength({ max: 500 })
+        .withMessage("Location must not exceed 500 characters"),
+
+    body("feeling")
+        .optional({ nullable: true })
+        .trim()
+        .isLength({ max: 120 })
+        .withMessage("Feeling must not exceed 120 characters"),
+
+    body("taggedUserIds")
+        .optional()
+        .isArray()
+        .withMessage("taggedUserIds must be an array")
+        .custom((arr) => {
+            if (arr.length > 10) {
+                throw new Error("Maximum 10 tagged users allowed");
+            }
+            return true;
+        }),
+
+    body("taggedUserIds.*")
+        .optional()
+        .isUUID()
+        .withMessage("Each tagged user ID must be a valid UUID"),
 ];
 
 /**
@@ -111,6 +149,34 @@ export const updatePostValidation = [
         .optional()
         .isIn(["PUBLIC", "FOLLOWERS", "PRIVATE"])
         .withMessage("Visibility must be PUBLIC, FOLLOWERS, or PRIVATE"),
+
+    body("location")
+        .optional({ nullable: true })
+        .trim()
+        .isLength({ max: 500 })
+        .withMessage("Location must not exceed 500 characters"),
+
+    body("feeling")
+        .optional({ nullable: true })
+        .trim()
+        .isLength({ max: 120 })
+        .withMessage("Feeling must not exceed 120 characters"),
+
+    body("taggedUserIds")
+        .optional()
+        .isArray()
+        .withMessage("taggedUserIds must be an array")
+        .custom((arr) => {
+            if (arr.length > 10) {
+                throw new Error("Maximum 10 tagged users allowed");
+            }
+            return true;
+        }),
+
+    body("taggedUserIds.*")
+        .optional()
+        .isUUID()
+        .withMessage("Each tagged user ID must be a valid UUID"),
 ];
 
 /**

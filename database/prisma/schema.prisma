@@ -555,6 +555,10 @@ model Post {
 
   productId String? @map("product_id")
 
+  location       String?  @db.VarChar(500)
+  feeling        String?  @db.VarChar(120)
+  taggedUserIds  String[] @default([]) @map("tagged_user_ids")
+
   likesCount    Int @default(0) @map("likes_count")
   commentsCount Int @default(0) @map("comments_count")
   sharesCount   Int @default(0) @map("shares_count")
@@ -618,6 +622,10 @@ model ScheduledPost {
   mediaUrls String[] @map("media_urls")
   mediaType String?  @map("media_type") @db.VarChar(20)
   productId String?  @map("product_id")
+
+  location       String?  @db.VarChar(500)
+  feeling        String?  @db.VarChar(120)
+  taggedUserIds  String[] @default([]) @map("tagged_user_ids")
 
   scheduledTime DateTime @map("scheduled_time")
   timezone      String   @default("Asia/Ho_Chi_Minh") @db.VarChar(50)

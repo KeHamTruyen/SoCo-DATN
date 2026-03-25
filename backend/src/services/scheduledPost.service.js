@@ -1,12 +1,30 @@
 import prisma from "../config/database.js";
 
+const MAX_TAGGED_USERS = 10;
+
+function normalizeTaggedUserIds(raw) {
+    if (!Array.isArray(raw)) return [];
+    const uniq = [...new Set(raw.filter((id) => typeof id === "string" && id.length > 0))];
+    return uniq.slice(0, MAX_TAGGED_USERS);
+}
+
 class ScheduledPostService {
     /**
      * UC6.1 – Schedule a post for future publishing
      */
     async schedulePost(
         userId,
-        { content, mediaUrls, mediaType, productId, scheduledTime, timezone },
+        {
+            content,
+            mediaUrls,
+            mediaType,
+            productId,
+            scheduledTime,
+            timezone,
+            location,
+            feeling,
+            taggedUserIds,
+        },
     ) {
         const scheduled = new Date(scheduledTime);
         if (scheduled <= new Date()) {
@@ -20,6 +38,15 @@ class ScheduledPostService {
                 mediaUrls: mediaUrls || [],
                 mediaType: mediaType || null,
                 productId: productId || null,
+                location:
+                    location === undefined || location === null
+                        ? null
+                        : String(location).trim() || null,
+                feeling:
+                    feeling === undefined || feeling === null
+                        ? null
+                        : String(feeling).trim() || null,
+                taggedUserIds: normalizeTaggedUserIds(taggedUserIds),
                 scheduledTime: scheduled,
                 timezone: timezone || "Asia/Ho_Chi_Minh",
                 status: "scheduled",
@@ -64,6 +91,17 @@ class ScheduledPostService {
         if (data.mediaUrls !== undefined) updateData.mediaUrls = data.mediaUrls;
         if (data.mediaType !== undefined) updateData.mediaType = data.mediaType;
         if (data.productId !== undefined) updateData.productId = data.productId;
+        if (data.location !== undefined) {
+            updateData.location =
+                data.location === null ? null : String(data.location).trim() || null;
+        }
+        if (data.feeling !== undefined) {
+            updateData.feeling =
+                data.feeling === null ? null : String(data.feeling).trim() || null;
+        }
+        if (data.taggedUserIds !== undefined) {
+            updateData.taggedUserIds = normalizeTaggedUserIds(data.taggedUserIds);
+        }
         if (data.scheduledTime) {
             const scheduled = new Date(data.scheduledTime);
             if (scheduled <= new Date())
@@ -91,6 +129,9 @@ class ScheduledPostService {
                 mediaUrls: existing.mediaUrls,
                 mediaType: existing.mediaType,
                 productId: existing.productId,
+                location: existing.location,
+                feeling: existing.feeling,
+                taggedUserIds: existing.taggedUserIds || [],
                 status: "PUBLISHED",
                 visibility: "PUBLIC",
                 publishedAt: new Date(),

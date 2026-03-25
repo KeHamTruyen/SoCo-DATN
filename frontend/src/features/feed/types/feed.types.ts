@@ -17,10 +17,21 @@ export interface ShoppableProduct {
     positionY: number;
 }
 
+export type PostMediaType = "IMAGE" | "VIDEO" | "NONE";
+
+export interface TaggedUserBrief {
+    id: string;
+    username?: string;
+    fullName?: string;
+    avatarUrl?: string;
+}
+
 export interface FeedPost {
     id: string;
     content: string;
     imageUrl?: string;
+    mediaUrls?: string[];
+    mediaType?: PostMediaType | null;
     linkUrl?: string;
     createdAt: string;
     likedByMe?: boolean;
@@ -30,9 +41,23 @@ export interface FeedPost {
     author: UserProfile;
     comments?: FeedComment[];
     taggedProducts?: ShoppableProduct[];
+    taggedUsers?: TaggedUserBrief[];
     scheduledAt?: string;
     isScheduled?: boolean;
     location?: string;
+    feeling?: string;
+}
+
+/** Payload for creating or scheduling a post from the composer modal. */
+export interface CreatePostPayload {
+    content: string;
+    mediaUrls?: string[];
+    mediaType?: PostMediaType;
+    productId?: string | null;
+    location?: string | null;
+    feeling?: string | null;
+    taggedUserIds?: string[];
+    scheduledAt?: string;
 }
 
 export interface FeedPageResponse {

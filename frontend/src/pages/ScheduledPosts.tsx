@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { feedApi } from "../features/feed/api/feedApi";
 import { CreatePostModal } from "../features/feed/components/CreatePostModal";
 import { ScheduledPostsList } from "../features/feed/components/ScheduledPostsList";
-import type { FeedPost } from "../features/feed/types/feed.types";
+import type { CreatePostPayload, FeedPost } from "../features/feed/types/feed.types";
 import { Button, UnifiedHeader } from "../shared/ui";
 
 export default function ScheduledPosts() {
@@ -27,14 +27,17 @@ export default function ScheduledPosts() {
         void load();
     }, []);
 
-    const handleCreate = async (content: string, scheduledAt?: string) => {
-        await feedApi.createScheduledPost(content, scheduledAt ?? "");
+    const handleCreate = async (payload: CreatePostPayload) => {
+        if (!payload.scheduledAt) {
+            return;
+        }
+        await feedApi.createScheduledPost(payload);
         void load();
     };
 
-    const handleDelete = async (postId: string) => {
-        await feedApi.deletePost(postId);
-        setPosts((prev) => prev.filter((p) => p.id !== postId));
+    const handleDelete = async (scheduledPostId: string) => {
+        await feedApi.deleteScheduledPost(scheduledPostId);
+        setPosts((prev) => prev.filter((p) => p.id !== scheduledPostId));
     };
 
     return (
@@ -120,8 +123,9 @@ export default function ScheduledPosts() {
 
             {showModal && (
                 <CreatePostModal
+                    defaultScheduleMode
                     onClose={() => setShowModal(false)}
-                    onCreate={(content, scheduled) => handleCreate(content, scheduled)}
+                    onCreate={(payload) => void handleCreate(payload)}
                 />
             )}
         </div>

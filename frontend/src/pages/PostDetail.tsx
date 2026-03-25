@@ -33,11 +33,22 @@ export default function PostDetail() {
 
     const handleLike = async () => {
         if (!post) return;
+        const prev = post;
+        setPost((p) => {
+            if (!p) return p;
+            const nextLiked = !p.likedByMe;
+            return {
+                ...p,
+                likedByMe: nextLiked,
+                likesCount: nextLiked
+                    ? p.likesCount + 1
+                    : Math.max(0, p.likesCount - 1),
+            };
+        });
         try {
-            const updated = await feedApi.likePost(post.id);
-            setPost(updated);
+            await feedApi.likePost(post.id);
         } catch {
-            // silently ignore
+            setPost(prev);
         }
     };
 
