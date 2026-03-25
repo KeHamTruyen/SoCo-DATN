@@ -273,4 +273,7 @@
 
 html {
   font-size: var(--font-size);
+  /* Always show vertical scrollbar + stable gutter so width does not shift between routes */
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }

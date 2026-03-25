@@ -1,9 +1,9 @@
-import { CalendarClock, Rocket, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useSearchParams } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { orderApi } from "../features/order/api/orderApi";
 import type { Order } from "../features/order/types/order.types";
 import { sellerDashboardApi } from "../features/seller-dashboard/api/sellerDashboardApi";
+import { SellerCreativeStudioBanner } from "../features/seller-dashboard/components/SellerCreativeStudioBanner";
 import { SellerDashboardTabBar } from "../features/seller-dashboard/components/SellerDashboardTabBar";
 import { SellerDashboardTabPanels } from "../features/seller-dashboard/components/SellerDashboardTabPanels";
 import type {
@@ -214,97 +214,35 @@ export default function SellerDashboard() {
             />
 
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <div className="grid gap-8 lg:grid-cols-[1fr_18rem] lg:items-start">
-                    <div className="flex min-w-0 flex-col gap-6">
-                        <SellerProfileHeader
-                            profile={profile}
-                            isSelf
-                            onFollow={() => {}}
-                            onUnfollow={() => {}}
+                <div className="flex min-w-0 flex-col gap-6">
+                    <SellerProfileHeader
+                        profile={profile}
+                        isSelf
+                        onFollow={() => {}}
+                        onUnfollow={() => {}}
+                    />
+
+                    <SellerCreativeStudioBanner />
+
+                    <SellerDashboardTabBar tab={tab} onTabChange={setTab} />
+
+                    <div
+                        role="tabpanel"
+                        id="seller-dashboard-tabpanel"
+                        aria-labelledby={`seller-tab-${tab}`}
+                    >
+                        <SellerDashboardTabPanels
+                            tab={tab}
+                            stats={stats}
+                            products={products}
+                            productsLoading={productsLoading}
+                            orders={orders}
+                            ordersLoading={ordersLoading}
+                            shopStatusFilter={shopStatusFilter}
+                            onShopStatusFilterChange={setShopStatusFilter}
+                            onProductsUpdated={reloadProducts}
                         />
-
-                        <SellerDashboardTabBar tab={tab} onTabChange={setTab} />
-
-                        <div
-                            role="tabpanel"
-                            id="seller-dashboard-tabpanel"
-                            aria-labelledby={`seller-tab-${tab}`}
-                        >
-                            <SellerDashboardTabPanels
-                                tab={tab}
-                                stats={stats}
-                                products={products}
-                                productsLoading={productsLoading}
-                                orders={orders}
-                                ordersLoading={ordersLoading}
-                                shopStatusFilter={shopStatusFilter}
-                                onShopStatusFilterChange={setShopStatusFilter}
-                                onProductsUpdated={reloadProducts}
-                            />
-                        </div>
                     </div>
-
-                    <aside className="flex flex-col gap-6 lg:sticky lg:top-24">
-                        <div className="rounded-2xl bg-gradient-to-br from-primary to-orange-600 p-5 text-white shadow-lg shadow-primary/20">
-                            <div className="mb-4 flex items-center gap-2">
-                                <Sparkles className="h-5 w-5" />
-                                <h3 className="font-bold">
-                                    AI Creative Studio
-                                </h3>
-                            </div>
-                            <p className="mb-4 text-xs text-white/80">
-                                Gợi ý nội dung và lên lịch bài đăng nhanh hơn.
-                            </p>
-                            <div className="flex flex-col gap-2">
-                                <Link
-                                    to="/ai-creative-lab"
-                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/20 py-2 text-sm font-semibold backdrop-blur-sm transition-all hover:bg-white/30"
-                                >
-                                    <Rocket className="h-3.5 w-3.5" />
-                                    AI Creative Lab
-                                </Link>
-                                <Link
-                                    to="/scheduled-posts"
-                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-white py-2 text-sm font-bold text-primary transition-all"
-                                >
-                                    <CalendarClock className="h-3.5 w-3.5" />
-                                    Scheduled Posts
-                                </Link>
-                            </div>
-                        </div>
-
-                        <div className="rounded-xl border border-neutral-200 bg-white p-4 text-sm dark:border-neutral-800 dark:bg-neutral-900">
-                            <p className="font-semibold text-neutral-800 dark:text-neutral-100">
-                                Lối tắt
-                            </p>
-                            <ul className="mt-3 space-y-2 text-neutral-600 dark:text-neutral-400">
-                                <li>
-                                    <Link
-                                        to="/feed"
-                                        className="hover:text-primary"
-                                    >
-                                        Home Feed
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        to="/profile"
-                                        className="hover:text-primary"
-                                    >
-                                        Shop công khai (Profile)
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        to="/orders"
-                                        className="hover:text-primary"
-                                    >
-                                        Đơn mua (cá nhân)
-                                    </Link>
-                                </li>
-                            </ul>
-                        </div>
-                    </aside>
                 </div>
             </main>
         </div>
