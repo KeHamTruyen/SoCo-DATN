@@ -163,6 +163,33 @@ class ProductController {
   }
 
   /**
+   * Get one product for current seller (no view increment)
+   * GET /api/products/seller/me/:productId
+   */
+  async getMyProduct(req, res, next) {
+    try {
+      const sellerId = req.user.id;
+      const product = await productService.getSellerProductById(
+        sellerId,
+        req.params.productId
+      );
+
+      res.json({
+        success: true,
+        data: product
+      });
+    } catch (error) {
+      if (error.message === 'Product not found') {
+        return res.status(404).json({
+          success: false,
+          message: error.message
+        });
+      }
+      next(error);
+    }
+  }
+
+  /**
    * Get seller's products
    * GET /api/products/seller/me
    */

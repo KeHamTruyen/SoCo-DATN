@@ -43,6 +43,11 @@ export const createProductValidation = [
         .isInt({ min: 0 })
         .withMessage("Stock quantity must be a non-negative integer"),
 
+    body("lowStockThreshold")
+        .optional()
+        .isInt({ min: 0 })
+        .withMessage("Low stock threshold must be a non-negative integer"),
+
     body("sku")
         .optional()
         .trim()
@@ -112,6 +117,11 @@ export const updateProductValidation = [
         .isInt({ min: 0 })
         .withMessage("Stock quantity must be a non-negative integer"),
 
+    body("lowStockThreshold")
+        .optional()
+        .isInt({ min: 0 })
+        .withMessage("Low stock threshold must be a non-negative integer"),
+
     body("status")
         .optional()
         .isIn(["DRAFT", "ACTIVE", "OUT_OF_STOCK", "ARCHIVED"])
@@ -157,6 +167,10 @@ export const getProductsValidation = [
 
 export const productIdValidation = [
     param("id").notEmpty().withMessage("Product ID is required"),
+];
+
+export const sellerProductIdParamValidation = [
+    param("productId").notEmpty().withMessage("Product ID is required"),
 ];
 
 export const addImagesValidation = [

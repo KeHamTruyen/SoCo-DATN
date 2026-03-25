@@ -70,11 +70,13 @@ export const authApi = {
             confirmPassword,
         });
     },
+    /** Backend: `{ success, data: { user } }` — unwrap yields `{ user }`, not a flat profile. */
     async me() {
         const res = await httpClient.get<
-            ApiResponse<UserProfile> | UserProfile
+            ApiResponse<{ user: UserProfile }> | { user: UserProfile }
         >("/auth/me", { requiresAuth: true });
-        return unwrap<UserProfile>(res);
+        const data = unwrap<{ user: UserProfile }>(res);
+        return data.user;
     },
     async logout() {
         return httpClient.post("/auth/logout", {}, { requiresAuth: true });

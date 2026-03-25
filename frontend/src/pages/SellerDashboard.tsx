@@ -1,19 +1,26 @@
 import { CalendarClock, Rocket, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { orderApi } from "../features/order/api/orderApi";
 import type { Order } from "../features/order/types/order.types";
 import { sellerDashboardApi } from "../features/seller-dashboard/api/sellerDashboardApi";
-import { SellerDashboardChartsPanel } from "../features/seller-dashboard/components/SellerDashboardChartsPanel";
-import { SellerDashboardOrdersPanel } from "../features/seller-dashboard/components/SellerDashboardOrdersPanel";
-import { SellerDashboardProductsPanel } from "../features/seller-dashboard/components/SellerDashboardProductsPanel";
-import type { SellerProductRow } from "../features/seller-dashboard/types/sellerDashboard.types";
+import { SellerDashboardTabBar } from "../features/seller-dashboard/components/SellerDashboardTabBar";
+import { SellerDashboardTabPanels } from "../features/seller-dashboard/components/SellerDashboardTabPanels";
+import type {
+    SellerProductRow,
+    SellerShopStatusFilter,
+} from "../features/seller-dashboard/types/sellerDashboard.types";
+import {
+    parseSellerCenterTab,
+    type SellerCenterTab,
+} from "../features/seller-dashboard/sellerDashboardTabs";
 import { profileApi } from "../features/profile/api/profileApi";
-import { SellerDashboardStats } from "../features/profile/components/SellerDashboardStats";
 import { SellerProfileHeader } from "../features/profile/components/SellerProfileHeader";
-import type { PublicUserProfile, SellerStats } from "../features/profile/types/profile.types";
+import type {
+    PublicUserProfile,
+    SellerStats,
+} from "../features/profile/types/profile.types";
 import { useAuthSession } from "../shared/auth/useAuthSession";
-import { cn } from "../shared/lib/cn";
 import { UnifiedHeader } from "../shared/ui";
 
 const EMPTY_STATS: SellerStats = {
@@ -25,37 +32,60 @@ const EMPTY_STATS: SellerStats = {
     productViewsToday: 0,
 };
 
-type SellerCenterTab =
-    | "dashboard"
-    | "shop"
-    | "inventory"
-    | "orders"
-    | "feedback"
-    | "finances"
-    | "settings";
-
-const TABS: { value: SellerCenterTab; label: string }[] = [
-    { value: "dashboard", label: "Dashboard" },
-    { value: "shop", label: "My Shop" },
-    { value: "inventory", label: "Inventory" },
-    { value: "orders", label: "Customer Orders" },
-    { value: "feedback", label: "Customer Feedback" },
-    { value: "finances", label: "Finances" },
-    { value: "settings", label: "Settings" },
-];
-
 export default function SellerDashboard() {
     const { user } = useAuthSession();
     const role = (user?.role ?? "").toLowerCase();
     const isSeller = role === "seller";
 
-    const [tab, setTab] = useState<SellerCenterTab>("dashboard");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const tab = useMemo(
+        () => parseSellerCenterTab(searchParams.get("tab")),
+        [searchParams],
+    );
+
+    const setTab = useCallback(
+        (next: SellerCenterTab) => {
+            setSearchParams(
+                (prev) => {
+                    const p = new URLSearchParams(prev);
+                    if (next === "dashboard") {
+                        p.delete("tab");
+                    } else {
+                        p.set("tab", next);
+                    }
+                    return p;
+                },
+                { replace: true },
+            );
+        },
+        [setSearchParams],
+    );
+
     const [profile, setProfile] = useState<PublicUserProfile | null>(null);
     const [stats, setStats] = useState<SellerStats>(EMPTY_STATS);
     const [products, setProducts] = useState<SellerProductRow[]>([]);
     const [productsLoading, setProductsLoading] = useState(false);
+    const [shopStatusFilter, setShopStatusFilter] =
+        useState<SellerShopStatusFilter>("");
+    const [productsReloadKey, setProductsReloadKey] = useState(0);
     const [orders, setOrders] = useState<Order[]>([]);
     const [ordersLoading, setOrdersLoading] = useState(false);
+
+    const productListParams = useMemo(() => {
+        if (!isSeller || (tab !== "shop" && tab !== "inventory")) return null;
+        if (tab === "shop") {
+            return {
+                page: 1,
+                limit: 100,
+                ...(shopStatusFilter ? { status: shopStatusFilter } : {}),
+            };
+        }
+        return { page: 1, limit: 100 };
+    }, [isSeller, tab, shopStatusFilter]);
+
+    const reloadProducts = useCallback(() => {
+        setProductsReloadKey((k) => k + 1);
+    }, []);
 
     useEffect(() => {
         if (!user?.id || !isSeller) return;
@@ -104,12 +134,14 @@ export default function SellerDashboard() {
     }, [isSeller]);
 
     useEffect(() => {
-        if (!isSeller || (tab !== "shop" && tab !== "inventory")) return;
+        if (!productListParams) return;
         let mounted = true;
         void (async () => {
             setProductsLoading(true);
             try {
-                const res = await sellerDashboardApi.listMyProducts({ page: 1, limit: 50 });
+                const res = await sellerDashboardApi.listMyProducts(
+                    productListParams,
+                );
                 if (!mounted) return;
                 setProducts(res.items);
             } catch {
@@ -122,7 +154,7 @@ export default function SellerDashboard() {
         return () => {
             mounted = false;
         };
-    }, [isSeller, tab]);
+    }, [productListParams, productsReloadKey]);
 
     useEffect(() => {
         if (!isSeller || tab !== "orders") return;
@@ -130,7 +162,10 @@ export default function SellerDashboard() {
         void (async () => {
             setOrdersLoading(true);
             try {
-                const data = await orderApi.listSellerSales({ page: 1, pageSize: 20 });
+                const data = await orderApi.listSellerSales({
+                    page: 1,
+                    pageSize: 20,
+                });
                 if (!mounted) return;
                 setOrders(data.items);
             } catch {
@@ -188,95 +223,34 @@ export default function SellerDashboard() {
                             onUnfollow={() => {}}
                         />
 
-                        <div className="no-scrollbar flex gap-6 overflow-x-auto border-b border-neutral-200 dark:border-neutral-800">
-                            {TABS.map((t) => (
-                                <button
-                                    key={t.value}
-                                    type="button"
-                                    onClick={() => setTab(t.value)}
-                                    className={cn(
-                                        "whitespace-nowrap border-b-2 pb-4 text-sm transition-colors",
-                                        tab === t.value
-                                            ? "border-primary font-bold text-primary"
-                                            : "border-transparent font-medium text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300",
-                                    )}
-                                >
-                                    {t.label}
-                                </button>
-                            ))}
+                        <SellerDashboardTabBar tab={tab} onTabChange={setTab} />
+
+                        <div
+                            role="tabpanel"
+                            id="seller-dashboard-tabpanel"
+                            aria-labelledby={`seller-tab-${tab}`}
+                        >
+                            <SellerDashboardTabPanels
+                                tab={tab}
+                                stats={stats}
+                                products={products}
+                                productsLoading={productsLoading}
+                                orders={orders}
+                                ordersLoading={ordersLoading}
+                                shopStatusFilter={shopStatusFilter}
+                                onShopStatusFilterChange={setShopStatusFilter}
+                                onProductsUpdated={reloadProducts}
+                            />
                         </div>
-
-                        {tab === "dashboard" && (
-                            <div className="space-y-8">
-                                <SellerDashboardStats stats={stats} />
-                                <SellerDashboardChartsPanel stats={stats} />
-                            </div>
-                        )}
-
-                        {tab === "shop" && (
-                            <SellerDashboardProductsPanel
-                                items={products}
-                                loading={productsLoading}
-                                variant="shop"
-                            />
-                        )}
-
-                        {tab === "inventory" && (
-                            <SellerDashboardProductsPanel
-                                items={products}
-                                loading={productsLoading}
-                                variant="inventory"
-                            />
-                        )}
-
-                        {tab === "orders" && (
-                            <SellerDashboardOrdersPanel orders={orders} loading={ordersLoading} />
-                        )}
-
-                        {tab === "feedback" && (
-                            <div className="rounded-xl border border-dashed border-neutral-200 py-14 text-center text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                Tổng hợp đánh giá theo shop sẽ hiển thị tại đây khi API danh sách review cho
-                                seller sẵn sàng.
-                            </div>
-                        )}
-
-                        {tab === "finances" && (
-                            <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-                                <h3 className="text-lg font-bold">Finances</h3>
-                                <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                                    Doanh thu tháng này (ước tính từ đơn):{" "}
-                                    <span className="font-bold text-neutral-900 dark:text-neutral-100">
-                                        {stats.monthlySales.toLocaleString("vi-VN")} đ
-                                    </span>
-                                </p>
-                                <p className="text-xs text-neutral-500">
-                                    Báo cáo chi tiết, đối soát và rút tiền có thể bổ sung ở phiên bản sau.
-                                </p>
-                            </div>
-                        )}
-
-                        {tab === "settings" && (
-                            <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-                                <h3 className="text-lg font-bold">Settings</h3>
-                                <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                                    Chỉnh sửa thông tin hiển thị công khai (ảnh, bio, cửa hàng) trên trang hồ
-                                    sơ.
-                                </p>
-                                <Link
-                                    to="/profile"
-                                    className="inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:opacity-90"
-                                >
-                                    Mở My Profile
-                                </Link>
-                            </div>
-                        )}
                     </div>
 
                     <aside className="flex flex-col gap-6 lg:sticky lg:top-24">
                         <div className="rounded-2xl bg-gradient-to-br from-primary to-orange-600 p-5 text-white shadow-lg shadow-primary/20">
                             <div className="mb-4 flex items-center gap-2">
                                 <Sparkles className="h-5 w-5" />
-                                <h3 className="font-bold">AI Creative Studio</h3>
+                                <h3 className="font-bold">
+                                    AI Creative Studio
+                                </h3>
                             </div>
                             <p className="mb-4 text-xs text-white/80">
                                 Gợi ý nội dung và lên lịch bài đăng nhanh hơn.
@@ -305,17 +279,26 @@ export default function SellerDashboard() {
                             </p>
                             <ul className="mt-3 space-y-2 text-neutral-600 dark:text-neutral-400">
                                 <li>
-                                    <Link to="/feed" className="hover:text-primary">
+                                    <Link
+                                        to="/feed"
+                                        className="hover:text-primary"
+                                    >
                                         Home Feed
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link to="/profile" className="hover:text-primary">
+                                    <Link
+                                        to="/profile"
+                                        className="hover:text-primary"
+                                    >
                                         Shop công khai (Profile)
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link to="/orders" className="hover:text-primary">
+                                    <Link
+                                        to="/orders"
+                                        className="hover:text-primary"
+                                    >
                                         Đơn mua (cá nhân)
                                     </Link>
                                 </li>

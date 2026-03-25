@@ -9,6 +9,7 @@ import {
 import { PostComposer } from "../features/feed/components/PostComposer";
 import { useFeed } from "../features/feed/hooks/useFeed";
 import { useAuthSession } from "../shared/auth/useAuthSession";
+import { isSellerRole } from "../shared/auth/roleGuards";
 import { Button, UnifiedHeader } from "../shared/ui";
 
 export default function Feed() {
@@ -25,7 +26,7 @@ export default function Feed() {
     } = useFeed();
 
     const { user } = useAuthSession();
-    const isSeller = user?.role === "seller";
+    const isSeller = isSellerRole(user?.role);
     const [showModal, setShowModal] = useState(false);
 
     const handleCreate = async (content: string, scheduledAt?: string) => {

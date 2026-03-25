@@ -1,4 +1,5 @@
 import { getAccessToken } from "../../../shared/auth/tokenStorage";
+import { httpClient } from "../../../shared/api/httpClient";
 
 const API_BASE_URL =
     (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ??
@@ -45,9 +46,49 @@ async function postImage(
     return { url: data.url, publicId: data.publicId ?? "" };
 }
 
+/** Single product image → POST /upload/product (field `image`). */
+export async function uploadProductImage(file: File): Promise<UploadImageResult> {
+    const form = new FormData();
+    form.append("image", file);
+    const body = await httpClient.postFormData<{
+        success?: boolean;
+        data?: { url?: string; publicId?: string };
+    }>("/upload/product", form, { requiresAuth: true });
+    const url = body?.data?.url;
+    if (!url) {
+        throw new Error("Invalid upload response");
+    }
+    return { url, publicId: body.data?.publicId ?? "" };
+}
+
+/** Multiple product images → POST /upload/products (field `images`). */
+export async function uploadProductImages(
+    files: File[],
+): Promise<UploadImageResult[]> {
+    if (files.length === 0) return [];
+    const form = new FormData();
+    for (const f of files) {
+        form.append("images", f);
+    }
+    const res = await httpClient.postFormData<{
+        success?: boolean;
+        data?: { images?: Array<{ url: string; publicId?: string }> };
+    }>("/upload/products", form, { requiresAuth: true });
+    const images = res?.data?.images ?? [];
+    if (!Array.isArray(images) || images.length === 0) {
+        throw new Error("Invalid upload response");
+    }
+    return images.map((img) => ({
+        url: img.url,
+        publicId: img.publicId ?? "",
+    }));
+}
+
 export const uploadApi = {
     uploadShopLogo: (file: File) => postImage("shop-logo", file),
     uploadShopCover: (file: File) => postImage("shop-cover", file),
     /** Seller step 2 — CMND/CCCD/passport (call twice for front + back). */
     uploadSellerIdDoc: (file: File) => postImage("seller-id-doc", file),
+    uploadProductImage,
+    uploadProductImages,
 };

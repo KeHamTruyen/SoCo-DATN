@@ -7,6 +7,7 @@ import {
     updateProductValidation,
     getProductsValidation,
     productIdValidation,
+    sellerProductIdParamValidation,
     addImagesValidation,
 } from "../validators/product.validator.js";
 
@@ -88,6 +89,15 @@ router.get(
     protect,
     restrictTo("SELLER"),
     productController.getMyProducts,
+);
+
+router.get(
+    "/seller/me/:productId",
+    protect,
+    restrictTo("SELLER"),
+    sellerProductIdParamValidation,
+    validate,
+    productController.getMyProduct,
 );
 
 /**

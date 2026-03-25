@@ -77,11 +77,9 @@ export default function SellerApplicationsPage() {
                     onClose={() => setDetail(null)}
                     onRequestApprove={() => {
                         setApproveId(detail.id);
-                        setDetail(null);
                     }}
                     onRequestReject={() => {
                         setRejectId(detail.id);
-                        setDetail(null);
                     }}
                 />
             ) : null}
@@ -89,12 +87,21 @@ export default function SellerApplicationsPage() {
             <ConfirmDialog
                 open={Boolean(approveId)}
                 title="Approve application?"
+                processingLabel="Approving…"
                 onClose={() => setApproveId(null)}
                 onConfirm={async () => {
                     if (!approveId) return;
                     await sellerAdminApi.approve(approveId);
+                    setDetail((prev) =>
+                        prev?.id === approveId
+                            ? {
+                                  ...prev,
+                                  status: "APPROVED",
+                                  verifiedAt: new Date().toISOString(),
+                              }
+                            : prev,
+                    );
                     await load();
-                    setDetail(null);
                 }}
             />
             <ConfirmDialog
@@ -102,13 +109,23 @@ export default function SellerApplicationsPage() {
                 title="Reject application?"
                 description="Optional reason can be added in a future iteration."
                 confirmLabel="Reject"
+                processingLabel="Rejecting…"
                 variant="danger"
                 onClose={() => setRejectId(null)}
                 onConfirm={async () => {
                     if (!rejectId) return;
-                    await sellerAdminApi.reject(rejectId, "Rejected by admin");
+                    const reason = "Rejected by admin";
+                    await sellerAdminApi.reject(rejectId, reason);
+                    setDetail((prev) =>
+                        prev?.id === rejectId
+                            ? {
+                                  ...prev,
+                                  status: "REJECTED",
+                                  rejectionReason: reason,
+                              }
+                            : prev,
+                    );
                     await load();
-                    setDetail(null);
                 }}
             />
         </div>

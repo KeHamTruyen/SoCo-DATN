@@ -378,6 +378,27 @@ class ProductService {
   }
 
   /**
+   * Get one product for seller dashboard (edit form). Does not increment viewsCount.
+   */
+  async getSellerProductById(sellerId, productId) {
+    const product = await prisma.product.findFirst({
+      where: { id: productId, sellerId },
+      include: {
+        images: {
+          orderBy: { displayOrder: 'asc' }
+        },
+        category: true
+      }
+    });
+
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    return product;
+  }
+
+  /**
    * Get seller's products
    */
   async getSellerProducts(sellerId, filters = {}) {
