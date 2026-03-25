@@ -207,6 +207,111 @@ class ProductController {
       next(error);
     }
   }
+
+  /**
+   * GET /api/products/seller/me/:productId/variants
+   */
+  async listMyProductVariants(req, res, next) {
+    try {
+      const sellerId = req.user.id;
+      const variants = await productService.listSellerProductVariants(
+        sellerId,
+        req.params.productId,
+      );
+
+      res.json({
+        success: true,
+        data: variants,
+      });
+    } catch (error) {
+      if (error.message === 'Product not found') {
+        return res.status(404).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/products/seller/me/:productId/variants
+   */
+  async createMyProductVariant(req, res, next) {
+    try {
+      const sellerId = req.user.id;
+      const variant = await productService.createSellerProductVariant(
+        sellerId,
+        req.params.productId,
+        req.body,
+      );
+
+      res.status(201).json({
+        success: true,
+        message: 'Variant created successfully',
+        data: variant,
+      });
+    } catch (error) {
+      if (error.message === 'Product not found') {
+        return res.status(404).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
+
+  /**
+   * PUT /api/products/seller/me/:productId/variants/:variantId
+   */
+  async updateMyProductVariant(req, res, next) {
+    try {
+      const sellerId = req.user.id;
+      const variant = await productService.updateSellerProductVariant(
+        sellerId,
+        req.params.productId,
+        req.params.variantId,
+        req.body,
+      );
+
+      res.json({
+        success: true,
+        message: 'Variant updated successfully',
+        data: variant,
+      });
+    } catch (error) {
+      if (error.message === 'Product not found' || error.message === 'Variant not found') {
+        return res.status(404).json({ success: false, message: error.message });
+      }
+      if (error.message?.includes('Unauthorized')) {
+        return res.status(403).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
+
+  /**
+   * DELETE /api/products/seller/me/:productId/variants/:variantId
+   */
+  async deleteMyProductVariant(req, res, next) {
+    try {
+      const sellerId = req.user.id;
+      const result = await productService.deleteSellerProductVariant(
+        sellerId,
+        req.params.productId,
+        req.params.variantId,
+      );
+
+      res.json({
+        success: true,
+        message: 'Variant removed successfully',
+        data: result,
+      });
+    } catch (error) {
+      if (error.message === 'Product not found' || error.message === 'Variant not found') {
+        return res.status(404).json({ success: false, message: error.message });
+      }
+      if (error.message?.includes('Unauthorized')) {
+        return res.status(403).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
 }
 
 export default new ProductController();

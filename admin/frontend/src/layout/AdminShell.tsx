@@ -6,6 +6,7 @@ const nav = [
     { to: "/reports", label: "Reported Content", icon: "flag" },
     { to: "/users", label: "User Management", icon: "group" },
     { to: "/content", label: "Content", icon: "article" },
+    { to: "/categories", label: "Categories", icon: "category" },
     { to: "/sellers", label: "Seller applications", icon: "storefront" },
     { to: "/settings", label: "Settings", icon: "settings" },
 ];

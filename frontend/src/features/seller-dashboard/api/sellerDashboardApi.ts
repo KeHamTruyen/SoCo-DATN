@@ -3,7 +3,9 @@ import type {
     SellerCategoryOption,
     SellerProductCreatePayload,
     SellerProductDetail,
+    SellerProductDimensions,
     SellerProductImageRow,
+    SellerProductVariantRow,
     SellerProductsListResponse,
     SellerProductRow,
     SellerProductUpdatePayload,
@@ -23,6 +25,62 @@ function num(v: unknown, fallback = 0): number {
         return Number.isNaN(n) ? fallback : n;
     }
     return fallback;
+}
+
+function numOrNull(v: unknown): number | null {
+    if (v === null || v === undefined) return null;
+    const n = num(v, NaN);
+    return Number.isFinite(n) ? n : null;
+}
+
+function mapDimensions(raw: unknown): SellerProductDimensions | null {
+    if (raw === null || raw === undefined) return null;
+    if (typeof raw !== "object" || Array.isArray(raw)) return null;
+    const o = raw as Record<string, unknown>;
+    const length = num(o.length, NaN);
+    const width = num(o.width, NaN);
+    const height = num(o.height, NaN);
+    const unit = typeof o.unit === "string" && o.unit.trim() !== "" ? o.unit.trim() : undefined;
+    const hasNum =
+        Number.isFinite(length) || Number.isFinite(width) || Number.isFinite(height);
+    if (!hasNum && !unit) return null;
+    const out: SellerProductDimensions = {};
+    if (Number.isFinite(length)) out.length = length;
+    if (Number.isFinite(width)) out.width = width;
+    if (Number.isFinite(height)) out.height = height;
+    if (unit) out.unit = unit;
+    return out;
+}
+
+function mapMetaKeywords(raw: unknown): string[] {
+    if (!Array.isArray(raw)) return [];
+    return raw
+        .map((k) => (typeof k === "string" ? k.trim() : String(k)))
+        .filter((k) => k.length > 0);
+}
+
+function mapVariantRow(v: Record<string, unknown>): SellerProductVariantRow {
+    const opts = v.options;
+    const options: Record<string, string> = {};
+    if (opts && typeof opts === "object" && !Array.isArray(opts)) {
+        for (const [k, val] of Object.entries(opts as Record<string, unknown>)) {
+            options[k] = String(val ?? "");
+        }
+    }
+    return {
+        id: String(v.id ?? ""),
+        variantName: String(v.variantName ?? ""),
+        sku: v.sku == null || v.sku === undefined ? null : String(v.sku),
+        price: numOrNull(v.price),
+        stockQuantity: num(v.stockQuantity, 0),
+        options,
+        isActive: v.isActive !== false,
+    };
+}
+
+function mapVariants(raw: unknown): SellerProductVariantRow[] {
+    if (!Array.isArray(raw)) return [];
+    return raw.map((v) => mapVariantRow(v as Record<string, unknown>));
 }
 
 function unwrapList(res: unknown): SellerProductsListResponse {
@@ -76,6 +134,9 @@ function mapProduct(p: Record<string, unknown>): SellerProductRow {
 function mapProductDetail(raw: Record<string, unknown>): SellerProductDetail {
     const imgs = (raw.images as Record<string, unknown>[] | undefined) ?? [];
     const cat = raw.category as { id?: string; name?: string } | null | undefined;
+    const tr = raw.trackInventory;
+    const trackInventory =
+        tr === false || tr === "false" ? false : true;
     return {
         id: String(raw.id),
         title: String(raw.title ?? ""),
@@ -89,6 +150,7 @@ function mapProductDetail(raw: Record<string, unknown>): SellerProductDetail {
             raw.compareAtPrice === null || raw.compareAtPrice === undefined
                 ? null
                 : num(raw.compareAtPrice),
+        costPrice: numOrNull(raw.costPrice),
         categoryId:
             raw.categoryId === null || raw.categoryId === undefined
                 ? null
@@ -99,7 +161,19 @@ function mapProductDetail(raw: Record<string, unknown>): SellerProductDetail {
                 : null,
         stockQuantity: num(raw.stockQuantity, 0),
         lowStockThreshold: num(raw.lowStockThreshold, 10),
+        trackInventory,
         sku: raw.sku === null || raw.sku === undefined ? null : String(raw.sku),
+        weight: numOrNull(raw.weight),
+        dimensions: mapDimensions(raw.dimensions),
+        metaTitle:
+            raw.metaTitle === null || raw.metaTitle === undefined
+                ? null
+                : String(raw.metaTitle),
+        metaDescription:
+            raw.metaDescription === null || raw.metaDescription === undefined
+                ? null
+                : String(raw.metaDescription),
+        metaKeywords: mapMetaKeywords(raw.metaKeywords),
         status: String(raw.status ?? "DRAFT"),
         images: imgs.map((im) => ({
             id: String(im.id),
@@ -108,6 +182,7 @@ function mapProductDetail(raw: Record<string, unknown>): SellerProductDetail {
             displayOrder: typeof im.displayOrder === "number" ? im.displayOrder : 0,
             isPrimary: Boolean(im.isPrimary),
         })),
+        variants: mapVariants(raw.variants),
     };
 }
 
@@ -202,5 +277,62 @@ export const sellerDashboardApi = {
         await httpClient.delete(`/products/${productId}/images/${imageId}`, {
             requiresAuth: true,
         });
+    },
+
+    async listProductVariants(productId: string): Promise<SellerProductVariantRow[]> {
+        const res = await httpClient.get<unknown>(
+            `/products/seller/me/${productId}/variants`,
+            { requiresAuth: true },
+        );
+        const data = unwrapData<Record<string, unknown>[]>(res);
+        return Array.isArray(data) ? data.map((row) => mapVariantRow(row)) : [];
+    },
+
+    async createProductVariant(
+        productId: string,
+        body: {
+            name: string;
+            sku?: string;
+            price?: number;
+            stockQuantity?: number;
+            options?: Record<string, string>;
+            isActive?: boolean;
+        },
+    ): Promise<SellerProductVariantRow> {
+        const res = await httpClient.post<unknown>(
+            `/products/seller/me/${productId}/variants`,
+            body,
+            { requiresAuth: true },
+        );
+        const data = unwrapData<Record<string, unknown>>(res);
+        return mapVariantRow(data);
+    },
+
+    async updateProductVariant(
+        productId: string,
+        variantId: string,
+        body: {
+            name?: string;
+            sku?: string | null;
+            price?: number | null;
+            stockQuantity?: number;
+            options?: Record<string, string>;
+            isActive?: boolean;
+        },
+    ): Promise<SellerProductVariantRow> {
+        const res = await httpClient.put<unknown>(
+            `/products/seller/me/${productId}/variants/${variantId}`,
+            body,
+            { requiresAuth: true },
+        );
+        const data = unwrapData<Record<string, unknown>>(res);
+        return mapVariantRow(data);
+    },
+
+    async deleteProductVariant(productId: string, variantId: string): Promise<void> {
+        await httpClient.delete(
+            `/products/seller/me/${productId}/variants/${variantId}`,
+            { requiresAuth: true },
+        );
     },
 };

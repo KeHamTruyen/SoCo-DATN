@@ -18,6 +18,7 @@ router.get("/", (req, res) => {
         endpoints: {
             auth: "/api/auth/login",
             admin: "/api/admin",
+            categories: "/api/admin/categories",
             reports: "/api/reports",
             sellerAdmin: "/api/seller",
         },

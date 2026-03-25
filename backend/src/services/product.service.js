@@ -24,8 +24,8 @@ class ProductService {
         description,
         price,
         categoryId,
-        status: 'DRAFT',
         ...rest,
+        status: 'DRAFT',
         images: images && images.length > 0 ? {
           create: images.map((img, index) => ({
             imageUrl: img.url,
@@ -387,7 +387,10 @@ class ProductService {
         images: {
           orderBy: { displayOrder: 'asc' }
         },
-        category: true
+        category: true,
+        variants: {
+          orderBy: { createdAt: 'asc' }
+        }
       }
     });
 
@@ -396,6 +399,121 @@ class ProductService {
     }
 
     return product;
+  }
+
+  /**
+   * List variants for seller's product
+   */
+  async listSellerProductVariants(sellerId, productId) {
+    const product = await prisma.product.findFirst({
+      where: { id: productId, sellerId },
+      select: { id: true }
+    });
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    return prisma.productVariant.findMany({
+      where: { productId },
+      orderBy: { createdAt: 'asc' }
+    });
+  }
+
+  /**
+   * Create variant for seller's product
+   */
+  async createSellerProductVariant(sellerId, productId, data) {
+    const product = await prisma.product.findFirst({
+      where: { id: productId, sellerId }
+    });
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    const {
+      name,
+      sku,
+      price,
+      stockQuantity = 0,
+      options = {},
+      isActive = true
+    } = data;
+
+    return prisma.productVariant.create({
+      data: {
+        productId,
+        variantName: name.trim(),
+        sku: sku?.trim() || null,
+        price: price != null ? price : null,
+        stockQuantity,
+        options: typeof options === 'object' && options !== null && !Array.isArray(options) ? options : {},
+        isActive
+      }
+    });
+  }
+
+  /**
+   * Update variant (seller ownership)
+   */
+  async updateSellerProductVariant(sellerId, productId, variantId, data) {
+    const variant = await prisma.productVariant.findFirst({
+      where: { id: variantId, productId },
+      include: { product: { select: { sellerId: true } } }
+    });
+    if (!variant) {
+      throw new Error('Variant not found');
+    }
+    if (variant.product.sellerId !== sellerId) {
+      throw new Error('Unauthorized to update this variant');
+    }
+
+    const patch = {};
+    if (data.name !== undefined) patch.variantName = data.name.trim();
+    if (data.sku !== undefined) patch.sku = data.sku?.trim() || null;
+    if (data.price !== undefined) patch.price = data.price;
+    if (data.stockQuantity !== undefined) patch.stockQuantity = data.stockQuantity;
+    if (data.options !== undefined) {
+      patch.options =
+        typeof data.options === 'object' && data.options !== null && !Array.isArray(data.options)
+          ? data.options
+          : {};
+    }
+    if (data.isActive !== undefined) patch.isActive = data.isActive;
+
+    return prisma.productVariant.update({
+      where: { id: variantId },
+      data: patch
+    });
+  }
+
+  /**
+   * Delete variant or soft-deactivate if referenced by cart/orders
+   */
+  async deleteSellerProductVariant(sellerId, productId, variantId) {
+    const variant = await prisma.productVariant.findFirst({
+      where: { id: variantId, productId },
+      include: { product: { select: { sellerId: true } } }
+    });
+    if (!variant) {
+      throw new Error('Variant not found');
+    }
+    if (variant.product.sellerId !== sellerId) {
+      throw new Error('Unauthorized to delete this variant');
+    }
+
+    const [cartCount, orderCount] = await Promise.all([
+      prisma.cartItem.count({ where: { variantId } }),
+      prisma.orderItem.count({ where: { variantId } })
+    ]);
+
+    if (cartCount + orderCount > 0) {
+      return prisma.productVariant.update({
+        where: { id: variantId },
+        data: { isActive: false }
+      });
+    }
+
+    await prisma.productVariant.delete({ where: { id: variantId } });
+    return { id: variantId, deleted: true };
   }
 
   /**

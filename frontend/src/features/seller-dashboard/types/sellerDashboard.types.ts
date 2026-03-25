@@ -45,6 +45,25 @@ export interface SellerProductImageRow {
     isPrimary?: boolean;
 }
 
+/** Stored as Product.dimensions JSON — matches seller form (cm). */
+export interface SellerProductDimensions {
+    length?: number;
+    width?: number;
+    height?: number;
+    unit?: string;
+}
+
+export interface SellerProductVariantRow {
+    id: string;
+    variantName: string;
+    sku: string | null;
+    price: number | null;
+    stockQuantity: number;
+    /** Attribute map, e.g. { Color: "Red", Size: "M" } */
+    options: Record<string, string>;
+    isActive: boolean;
+}
+
 /** Full product for seller edit form (GET /products/seller/me/:id) */
 export interface SellerProductDetail {
     id: string;
@@ -53,13 +72,21 @@ export interface SellerProductDetail {
     description: string | null;
     price: number;
     compareAtPrice: number | null;
+    costPrice: number | null;
     categoryId: string | null;
     category: { id: string; name: string } | null;
     stockQuantity: number;
     lowStockThreshold: number;
+    trackInventory: boolean;
     sku: string | null;
+    weight: number | null;
+    dimensions: SellerProductDimensions | null;
+    metaTitle: string | null;
+    metaDescription: string | null;
+    metaKeywords: string[];
     status: string;
     images: SellerProductImageRow[];
+    variants: SellerProductVariantRow[];
 }
 
 export interface SellerProductCreatePayload {
@@ -67,11 +94,25 @@ export interface SellerProductCreatePayload {
     description?: string;
     price: number;
     compareAtPrice?: number;
+    costPrice?: number;
     categoryId?: string;
     stockQuantity?: number;
     lowStockThreshold?: number;
+    trackInventory?: boolean;
     sku?: string;
+    weight?: number;
+    dimensions?: SellerProductDimensions | null;
+    metaTitle?: string;
+    metaDescription?: string;
+    metaKeywords?: string[];
     images?: { url: string; altText?: string }[];
+    variants?: Array<{
+        name: string;
+        sku?: string;
+        price?: number;
+        stockQuantity?: number;
+        options?: Record<string, string>;
+    }>;
 }
 
 export interface SellerProductUpdatePayload {
@@ -79,9 +120,16 @@ export interface SellerProductUpdatePayload {
     description?: string;
     price?: number;
     compareAtPrice?: number | null;
+    costPrice?: number | null;
     categoryId?: string | null;
     stockQuantity?: number;
     lowStockThreshold?: number;
+    trackInventory?: boolean;
     sku?: string | null;
+    weight?: number | null;
+    dimensions?: SellerProductDimensions | null;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    metaKeywords?: string[] | null;
     status?: string;
 }

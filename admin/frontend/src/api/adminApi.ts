@@ -154,4 +154,63 @@ export const adminApi = {
     async deleteProduct(productId: string) {
         await http(`/admin/products/${productId}`, { method: "DELETE" });
     },
+
+    async listCategories(includeInactive = false) {
+        const q = includeInactive ? "?includeInactive=true" : "";
+        const res = await http<{ data: AdminCategory[] }>(
+            `/admin/categories${q}`,
+        );
+        return unwrap<AdminCategory[]>(res);
+    },
+
+    async getCategory(id: string) {
+        const res = await http<{ data: AdminCategory }>(`/admin/categories/${id}`);
+        return unwrap<AdminCategory>(res);
+    },
+
+    async createCategory(body: CategoryPayload) {
+        const res = await http<{ data: AdminCategory }>("/admin/categories", {
+            method: "POST",
+            body,
+        });
+        return unwrap<AdminCategory>(res);
+    },
+
+    async updateCategory(id: string, body: Partial<CategoryPayload>) {
+        const res = await http<{ data: AdminCategory }>(`/admin/categories/${id}`, {
+            method: "PUT",
+            body,
+        });
+        return unwrap<AdminCategory>(res);
+    },
+
+    async deactivateCategory(id: string) {
+        await http(`/admin/categories/${id}`, { method: "DELETE" });
+    },
 };
+
+export interface AdminCategory {
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    iconUrl: string | null;
+    parentId: string | null;
+    displayOrder: number;
+    isActive: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+    parent?: AdminCategory | null;
+    children?: AdminCategory[];
+    _count?: { products: number };
+}
+
+export interface CategoryPayload {
+    name: string;
+    slug?: string;
+    description?: string | null;
+    iconUrl?: string | null;
+    parentId?: string | null;
+    displayOrder?: number;
+    isActive?: boolean;
+}

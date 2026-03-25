@@ -9,6 +9,9 @@ import {
     productIdValidation,
     sellerProductIdParamValidation,
     addImagesValidation,
+    sellerProductVariantParams,
+    createSellerVariantValidation,
+    updateSellerVariantValidation,
 } from "../validators/product.validator.js";
 
 const router = express.Router();
@@ -98,6 +101,44 @@ router.get(
     sellerProductIdParamValidation,
     validate,
     productController.getMyProduct,
+);
+
+router.get(
+    "/seller/me/:productId/variants",
+    protect,
+    restrictTo("SELLER"),
+    sellerProductIdParamValidation,
+    validate,
+    productController.listMyProductVariants,
+);
+
+router.post(
+    "/seller/me/:productId/variants",
+    protect,
+    restrictTo("SELLER"),
+    sellerProductIdParamValidation,
+    createSellerVariantValidation,
+    validate,
+    productController.createMyProductVariant,
+);
+
+router.put(
+    "/seller/me/:productId/variants/:variantId",
+    protect,
+    restrictTo("SELLER"),
+    sellerProductVariantParams,
+    updateSellerVariantValidation,
+    validate,
+    productController.updateMyProductVariant,
+);
+
+router.delete(
+    "/seller/me/:productId/variants/:variantId",
+    protect,
+    restrictTo("SELLER"),
+    sellerProductVariantParams,
+    validate,
+    productController.deleteMyProductVariant,
 );
 
 /**

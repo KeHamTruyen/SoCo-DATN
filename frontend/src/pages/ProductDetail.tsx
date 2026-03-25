@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { cartApi } from "../features/cart/api/cartApi";
 import { productApi } from "../features/product/api/productApi";
 import { ProductDetailPanel } from "../features/product/components/ProductDetailPanel";
 import { ProductGallery } from "../features/product/components/ProductGallery";
@@ -12,6 +13,7 @@ export default function ProductDetail() {
     const [product, setProduct] = useState<ProductDetailType | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [cartMsg, setCartMsg] = useState<string | null>(null);
 
     useEffect(() => {
         if (!id) return;
@@ -34,6 +36,25 @@ export default function ProductDetail() {
             mounted = false;
         };
     }, [id]);
+
+    async function handleAddToCart(variantId?: string) {
+        if (!product) return;
+        if (product.variants?.length && !variantId) return;
+        setCartMsg(null);
+        try {
+            await cartApi.addItem(product.id, 1, variantId);
+            setCartMsg("Added to cart.");
+        } catch {
+            setCartMsg("Could not add to cart. Sign in and try again.");
+        }
+    }
+
+    function handleBuyNow(variantId?: string) {
+        void (async () => {
+            await handleAddToCart(variantId);
+            navigate("/cart");
+        })();
+    }
 
     return (
         <div className="flex min-h-0 flex-1 flex-col">
@@ -59,7 +80,18 @@ export default function ProductDetail() {
                 ) : product ? (
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                         <ProductGallery images={product.images} />
-                        <ProductDetailPanel product={product} />
+                        <div className="space-y-2">
+                            {cartMsg ? (
+                                <p className="text-sm text-muted-foreground">
+                                    {cartMsg}
+                                </p>
+                            ) : null}
+                            <ProductDetailPanel
+                                product={product}
+                                onAddToCart={handleAddToCart}
+                                onBuyNow={handleBuyNow}
+                            />
+                        </div>
                     </div>
                 ) : null}
             </main>

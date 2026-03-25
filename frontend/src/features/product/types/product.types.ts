@@ -3,6 +3,16 @@ export interface ProductReviewSummary {
     total: number;
 }
 
+/** Storefront row mapped from ProductVariant */
+export interface ProductVariantRow {
+    id: string;
+    name: string;
+    value: string;
+    price: number | null;
+    stockQuantity: number;
+    isActive?: boolean;
+}
+
 export interface ProductDetail {
     id: string;
     name: string;
@@ -16,10 +26,6 @@ export interface ProductDetail {
         name: string;
         avatarUrl?: string;
     };
-    variants?: Array<{
-        id: string;
-        name: string;
-        value: string;
-    }>;
+    variants?: ProductVariantRow[];
 }
 
