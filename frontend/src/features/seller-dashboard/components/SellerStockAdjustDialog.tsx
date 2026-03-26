@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { SellerProductRow } from "../types/sellerDashboard.types";
 import { cn } from "../../../shared/lib/cn";
 
@@ -19,6 +20,7 @@ export function SellerStockAdjustDialog({
     onClose,
     onSave,
 }: SellerStockAdjustDialogProps) {
+    const { t } = useTranslation();
     const [value, setValue] = useState("");
     const [threshold, setThreshold] = useState("");
 
@@ -39,7 +41,7 @@ export function SellerStockAdjustDialog({
             <button
                 type="button"
                 className="absolute inset-0 bg-black/50"
-                aria-label="Đóng"
+                aria-label={t("sellerDashboard.stockAdjust.close", "Đóng")}
                 onClick={onClose}
             />
             <div
@@ -52,7 +54,7 @@ export function SellerStockAdjustDialog({
                     id="stock-dialog-title"
                     className="text-lg font-bold text-neutral-900 dark:text-neutral-100"
                 >
-                    Cập nhật tồn kho
+                    {t("sellerDashboard.stockAdjust.title", "Cập nhật tồn kho")}
                 </h2>
                 {product ? (
                     <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
@@ -61,7 +63,7 @@ export function SellerStockAdjustDialog({
                 ) : null}
 
                 <label className="mt-4 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    Số lượng tồn
+                    {t("sellerDashboard.stockAdjust.stockQuantity", "Số lượng tồn")}
                     <input
                         type="number"
                         min={0}
@@ -73,7 +75,7 @@ export function SellerStockAdjustDialog({
                 </label>
 
                 <label className="mt-4 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    Ngưỡng cảnh báo tồn thấp
+                    {t("sellerDashboard.stockAdjust.lowStockThreshold", "Ngưỡng cảnh báo tồn thấp")}
                     <input
                         type="number"
                         min={0}
@@ -84,7 +86,7 @@ export function SellerStockAdjustDialog({
                     />
                 </label>
                 <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-500">
-                    Cảnh báo khi tồn kho nhỏ hơn hoặc bằng ngưỡng này.
+                    {t("sellerDashboard.stockAdjust.warningNote", "Cảnh báo khi tồn kho nhỏ hơn hoặc bằng ngưỡng này.")}
                 </p>
 
                 {error ? (
@@ -98,7 +100,7 @@ export function SellerStockAdjustDialog({
                         disabled={saving}
                         className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800"
                     >
-                        Hủy
+                        {t("common.cancel", "Hủy")}
                     </button>
                     <button
                         type="button"
@@ -114,7 +116,7 @@ export function SellerStockAdjustDialog({
                             "rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:opacity-90 disabled:opacity-50",
                         )}
                     >
-                        {saving ? "Đang lưu…" : "Lưu"}
+                        {saving ? t("common.saving", "Đang lưu…") : t("common.save", "Lưu")}
                     </button>
                 </div>
             </div>

@@ -6,6 +6,7 @@ import type { ProductListItem } from "../../marketplace/types/marketplace.types"
 import { DEFAULT_USER_AVATAR_URL } from "../../../shared/config/defaultAssets";
 import { profileApi } from "../api/profileApi";
 import type { PublicUserProfile } from "../types/profile.types";
+import { useTranslation } from "react-i18next";
 
 interface BuyerProfileSelfSidebarProps {
     suggestedUsers: PublicUserProfile[];
@@ -16,6 +17,7 @@ export function BuyerProfileSelfSidebar({ suggestedUsers, suggestedLoading }: Bu
     const [followed, setFollowed] = useState<Set<string>>(new Set());
     const [products, setProducts] = useState<ProductListItem[]>([]);
     const [productsLoading, setProductsLoading] = useState(true);
+    const { t } = useTranslation();
 
     useEffect(() => {
         void (async () => {
@@ -51,7 +53,7 @@ export function BuyerProfileSelfSidebar({ suggestedUsers, suggestedLoading }: Bu
             <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                 <h3 className="mb-4 flex items-center gap-2 text-lg font-bold dark:text-white">
                     <UserPlus className="h-5 w-5 text-primary" />
-                    Gợi ý bạn bè
+                    {t("profile.friendSuggestions")}
                 </h3>
                 {suggestedLoading ? (
                     <div className="space-y-4">
@@ -66,7 +68,7 @@ export function BuyerProfileSelfSidebar({ suggestedUsers, suggestedLoading }: Bu
                         ))}
                     </div>
                 ) : displayUsers.length === 0 ? (
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400">Chưa có gợi ý.</p>
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400">{t("profile.noSuggestions")}</p>
                 ) : (
                     <div className="space-y-4">
                         {displayUsers.map((u) => (
@@ -84,7 +86,7 @@ export function BuyerProfileSelfSidebar({ suggestedUsers, suggestedLoading }: Bu
                                             {u.fullName}
                                         </p>
                                         <p className="truncate text-xs text-neutral-500 dark:text-neutral-400">
-                                            {u.username ? `@${u.username}` : "Thành viên"}
+                                            {u.username ? `@${u.username}` : t("profile.member")}
                                         </p>
                                     </div>
                                 </Link>
@@ -95,7 +97,7 @@ export function BuyerProfileSelfSidebar({ suggestedUsers, suggestedLoading }: Bu
                                         followed.has(u.id) ? "text-neutral-400" : "text-primary"
                                     }`}
                                 >
-                                    {followed.has(u.id) ? "Đang theo" : "Theo dõi"}
+                                    {followed.has(u.id) ? t("profile.following") : t("profile.follow")}
                                 </button>
                             </div>
                         ))}
@@ -105,14 +107,14 @@ export function BuyerProfileSelfSidebar({ suggestedUsers, suggestedLoading }: Bu
                     type="button"
                     className="mt-4 w-full py-2 text-center text-sm font-medium text-neutral-500 transition-colors hover:text-primary dark:text-neutral-400"
                 >
-                    Xem tất cả gợi ý
+                    {t("profile.seeAllSuggestions")}
                 </button>
             </div>
 
             <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                 <h3 className="mb-4 flex items-center gap-2 text-lg font-bold dark:text-white">
                     <History className="h-5 w-5 text-primary" />
-                    Đã xem gần đây
+                    {t("profile.recentlyViewed")}
                 </h3>
                 {productsLoading ? (
                     <div className="grid grid-cols-2 gap-3">
@@ -124,7 +126,7 @@ export function BuyerProfileSelfSidebar({ suggestedUsers, suggestedLoading }: Bu
                         ))}
                     </div>
                 ) : products.length === 0 ? (
-                    <p className="text-sm text-neutral-500 dark:text-neutral-400">Chưa có sản phẩm.</p>
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400">{t("profile.noProducts")}</p>
                 ) : (
                     <div className="grid grid-cols-2 gap-3">
                         {products.map((p) => (
@@ -138,7 +140,7 @@ export function BuyerProfileSelfSidebar({ suggestedUsers, suggestedLoading }: Bu
                                         />
                                     ) : (
                                         <div className="flex h-full w-full items-center justify-center text-xs text-neutral-400">
-                                            Sản phẩm
+                                            {t("profile.product")}
                                         </div>
                                     )}
                                 </div>

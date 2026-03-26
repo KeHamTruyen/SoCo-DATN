@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { DEFAULT_USER_AVATAR_URL } from "../../../shared/config/defaultAssets";
 import { profileApi } from "../api/profileApi";
 import type { PublicUserProfile } from "../types/profile.types";
+import { useTranslation } from "react-i18next";
 
 interface BuyerProfileSuggestedStripProps {
     users: PublicUserProfile[];
@@ -11,6 +12,7 @@ interface BuyerProfileSuggestedStripProps {
 
 export function BuyerProfileSuggestedStrip({ users, loading }: BuyerProfileSuggestedStripProps) {
     const [followed, setFollowed] = useState<Set<string>>(new Set());
+    const { t } = useTranslation();
 
     const handleFollow = (userId: string) => {
         setFollowed((prev) => {
@@ -31,8 +33,8 @@ export function BuyerProfileSuggestedStrip({ users, loading }: BuyerProfileSugge
     return (
         <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <div className="mb-4 flex items-center justify-between">
-                <h3 className="flex items-center gap-2 text-lg font-bold dark:text-white">Gợi ý cho bạn</h3>
-                <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Xem thêm</span>
+                <h3 className="flex items-center gap-2 text-lg font-bold dark:text-white">{t("profile.suggestedForYou")}</h3>
+                <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">{t("profile.seeMore")}</span>
             </div>
             {loading ? (
                 <div className="flex gap-4 overflow-x-auto pb-2">
@@ -60,7 +62,7 @@ export function BuyerProfileSuggestedStrip({ users, loading }: BuyerProfileSugge
                                 </div>
                                 <p className="truncate text-sm font-semibold dark:text-neutral-100">{u.fullName}</p>
                                 <p className="mb-3 truncate text-xs text-neutral-500 dark:text-neutral-400">
-                                    {u.username ? `@${u.username}` : u.role === "seller" ? "Shop" : "Người mua"}
+                                    {u.username ? `@${u.username}` : u.role === "seller" ? t("profile.shopRole") : t("profile.buyerRole")}
                                 </p>
                             </Link>
                             <button
@@ -72,7 +74,7 @@ export function BuyerProfileSuggestedStrip({ users, loading }: BuyerProfileSugge
                                         : "border-primary text-primary hover:bg-primary hover:text-white dark:border-primary"
                                 }`}
                             >
-                                {followed.has(u.id) ? "Đang theo dõi" : "Theo dõi"}
+                                {followed.has(u.id) ? t("profile.following") : t("profile.follow")}
                             </button>
                         </div>
                     ))}

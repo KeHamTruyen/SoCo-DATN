@@ -152,7 +152,8 @@ export const getComments = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
-    const result = await postService.getComments(req.params.id, page, limit);
+    const offset = req.query.offset ? parseInt(req.query.offset) : undefined;
+    const result = await postService.getComments(req.params.id, page, limit, offset);
     res.json({ success: true, data: result.comments, pagination: result.pagination });
   } catch (error) {
     next(error);

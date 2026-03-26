@@ -1,5 +1,6 @@
 import {
     Bell,
+    Globe,
     LogOut,
     Menu,
     MessageCircle,
@@ -15,6 +16,7 @@ import { notificationApi } from "../../../../features/notification/api/notificat
 import { NotificationDropdown } from "../../../../features/notification/components/NotificationDropdown";
 import type { Notification } from "../../../../features/notification/types/notification.types";
 import { useAuthSession } from "../../../auth/useAuthSession";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../../lib/cn";
 import { ThemePickerModal } from "../../molecules/theme-picker-modal/ThemePickerModal";
 import { Avatar, Button, Input } from "../../atoms";
@@ -53,6 +55,12 @@ export function UnifiedHeader({
     const profileRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
     const { user, logout } = useAuthSession();
+    const { t, i18n } = useTranslation();
+
+    const toggleLanguage = () => {
+        const newLang = i18n.language === "vi" ? "en" : "vi";
+        void i18n.changeLanguage(newLang);
+    };
 
     useEffect(() => {
         void notificationApi
@@ -125,7 +133,7 @@ export function UnifiedHeader({
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                         <Input
                             className="h-10 pl-9"
-                            placeholder="Search products, sellers, or hashtags..."
+                            placeholder={t("header.searchPlaceholder")}
                             {...(searchValue !== undefined
                                 ? {
                                       value: searchValue,
@@ -181,6 +189,7 @@ export function UnifiedHeader({
                             <ShoppingCart className="h-5 w-5" />
                         </Button>
                     </Link>
+
                     {user ? (
                         <div ref={profileRef} className="relative shrink-0">
                             <button
@@ -208,7 +217,7 @@ export function UnifiedHeader({
                                         onClick={() => setProfileOpen(false)}
                                     >
                                         <User className="h-4 w-4 shrink-0 text-neutral-500" />
-                                        Trang cá nhân
+                                        {t("header.profileSettings")}
                                     </Link>
                                     <button
                                         type="button"
@@ -217,7 +226,19 @@ export function UnifiedHeader({
                                         onClick={openThemeModal}
                                     >
                                         <Monitor className="h-4 w-4 shrink-0 text-neutral-500" />
-                                        Màn hình
+                                        {t("theme.title")}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        role="menuitem"
+                                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                                        onClick={() => {
+                                            toggleLanguage();
+                                            setProfileOpen(false);
+                                        }}
+                                    >
+                                        <Globe className="h-4 w-4 shrink-0 text-neutral-500" />
+                                        {t("header.language", "Language")} &middot; <span className="ml-1 font-semibold uppercase">{i18n.language}</span>
                                     </button>
                                     <button
                                         type="button"
@@ -228,8 +249,8 @@ export function UnifiedHeader({
                                     >
                                         <LogOut className="h-4 w-4 shrink-0 text-neutral-500" />
                                         {loggingOut
-                                            ? "Đang đăng xuất..."
-                                            : "Đăng xuất"}
+                                            ? t("header.loggingOut")
+                                            : t("header.logout")}
                                     </button>
                                 </div>
                             ) : null}
@@ -261,7 +282,7 @@ export function UnifiedHeader({
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                         <Input
                             className="h-10 pl-9"
-                            placeholder="Search..."
+                            placeholder={t("header.searchPlaceholder")}
                             {...(searchValue !== undefined
                                 ? {
                                       value: searchValue,
@@ -295,7 +316,7 @@ export function UnifiedHeader({
                     {user ? (
                         <div className="border-t border-neutral-200 pt-3 dark:border-neutral-800">
                             <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                Tài khoản
+                                {t("header.profileSettings")}
                             </p>
                             <Link
                                 to="/profile"
@@ -303,7 +324,7 @@ export function UnifiedHeader({
                                 onClick={() => setMobileOpen(false)}
                             >
                                 <User className="h-4 w-4" />
-                                Trang cá nhân
+                                {t("header.profileSettings")}
                             </Link>
                             <button
                                 type="button"
@@ -314,7 +335,18 @@ export function UnifiedHeader({
                                 }}
                             >
                                 <Monitor className="h-4 w-4" />
-                                Màn hình
+                                {t("theme.title")}
+                            </button>
+                            <button
+                                type="button"
+                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                                onClick={() => {
+                                    setMobileOpen(false);
+                                    toggleLanguage();
+                                }}
+                            >
+                                <Globe className="h-4 w-4" />
+                                {t("header.language", "Language")} &middot; <span className="ml-1 font-semibold uppercase">{i18n.language}</span>
                             </button>
                             <button
                                 type="button"
@@ -326,7 +358,7 @@ export function UnifiedHeader({
                                 }}
                             >
                                 <LogOut className="h-4 w-4" />
-                                Đăng xuất
+                                {t("header.logout")}
                             </button>
                         </div>
                     ) : null}

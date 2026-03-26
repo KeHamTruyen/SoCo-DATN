@@ -8,6 +8,7 @@ import type {
     SellerProductImageRow,
     SellerProductVariantRow,
 } from "../types/sellerDashboard.types";
+import { useTranslation } from "react-i18next";
 import { HttpError } from "../../../shared/api/httpClient";
 import { cn } from "../../../shared/lib/cn";
 
@@ -21,12 +22,15 @@ interface SellerProductFormDialogProps {
     onSuccess: () => void;
 }
 
-const PRODUCT_STATUS_OPTIONS = [
-    { value: "DRAFT", label: "Nháp" },
-    { value: "ACTIVE", label: "Đang bán" },
-    { value: "OUT_OF_STOCK", label: "Hết hàng" },
-    { value: "ARCHIVED", label: "Lưu trữ" },
-] as const;
+function useProductStatusOptions() {
+    const { t } = useTranslation();
+    return [
+        { value: "DRAFT", label: t("sellerDashboard.productForm.statusDraft", "Nháp") },
+        { value: "ACTIVE", label: t("sellerDashboard.productForm.statusActive", "Đang bán") },
+        { value: "OUT_OF_STOCK", label: t("sellerDashboard.productForm.statusOutOfStock", "Hết hàng") },
+        { value: "ARCHIVED", label: t("sellerDashboard.productForm.statusArchived", "Lưu trữ") },
+    ] as const;
+}
 
 function parseOptionalNonNegNumber(s: string): number | undefined {
     const t = s.trim();
@@ -145,6 +149,8 @@ export function SellerProductFormDialog({
     onClose,
     onSuccess,
 }: SellerProductFormDialogProps) {
+    const { t } = useTranslation();
+    const PRODUCT_STATUS_OPTIONS = useProductStatusOptions();
     const [categories, setCategories] = useState<SellerCategoryOption[]>([]);
     const [form, setForm] = useState(emptyForm);
     const [existingImages, setExistingImages] = useState<SellerProductImageRow[]>([]);
@@ -233,7 +239,7 @@ export function SellerProductFormDialog({
                     setError(
                         e instanceof HttpError
                             ? e.message
-                            : "Không tải được sản phẩm.",
+                            : t("sellerDashboard.productForm.loadError", "Không tải được sản phẩm."),
                     );
                 } finally {
                     setLoading(false);
@@ -261,35 +267,35 @@ export function SellerProductFormDialog({
         const title = form.title.trim();
         const price = parsePrice(form.price);
         if (!title) {
-            setError("Vui lòng nhập tên sản phẩm.");
+            setError(t("sellerDashboard.productForm.errNameRequired", "Vui lòng nhập tên sản phẩm."));
             return;
         }
         if (price === undefined) {
-            setError("Giá không hợp lệ.");
+            setError(t("sellerDashboard.productForm.errPriceInvalid", "Giá không hợp lệ."));
             return;
         }
 
         if (!dimensionInputsValid(form.dimLength, form.dimWidth, form.dimHeight)) {
-            setError("Kích thước (dài / rộng / cao) không hợp lệ.");
+            setError(t("sellerDashboard.productForm.errDimInvalid", "Kích thước (dài / rộng / cao) không hợp lệ."));
             return;
         }
 
         const description = form.description.trim();
         const compareRaw = parsePrice(form.compareAtPrice);
         if (form.compareAtPrice.trim() !== "" && compareRaw === undefined) {
-            setError("Giá so sánh không hợp lệ.");
+            setError(t("sellerDashboard.productForm.errComparePriceInvalid", "Giá so sánh không hợp lệ."));
             return;
         }
 
         const costParsed = parseOptionalFieldNumber(form.costPrice);
         if (!costParsed.ok) {
-            setError("Giá vốn không hợp lệ.");
+            setError(t("sellerDashboard.productForm.errCostPriceInvalid", "Giá vốn không hợp lệ."));
             return;
         }
 
         const weightParsed = parseOptionalFieldNumber(form.weight);
         if (!weightParsed.ok) {
-            setError("Trọng lượng không hợp lệ.");
+            setError(t("sellerDashboard.productForm.errWeightInvalid", "Trọng lượng không hợp lệ."));
             return;
         }
 
@@ -306,7 +312,7 @@ export function SellerProductFormDialog({
 
         for (const d of draftVariants.filter((x) => x.name.trim())) {
             if (d.price.trim() !== "" && parsePrice(d.price) === undefined) {
-                setError("Giá biến thể không hợp lệ.");
+                setError(t("sellerDashboard.productForm.errVariantPriceInvalid", "Giá biến thể không hợp lệ."));
                 return;
             }
             const oj = d.optionsJson.trim();
@@ -314,7 +320,7 @@ export function SellerProductFormDialog({
                 try {
                     JSON.parse(oj);
                 } catch {
-                    setError("Options JSON của biến thể không hợp lệ.");
+                    setError(t("sellerDashboard.productForm.errVariantOptionsInvalid", "Options JSON của biến thể không hợp lệ."));
                     return;
                 }
             }
@@ -405,7 +411,7 @@ export function SellerProductFormDialog({
             const msg =
                 e instanceof HttpError
                     ? e.message
-                    : "Không lưu được. Thử lại sau.";
+                    : t("sellerDashboard.productForm.errSaveFailed", "Không lưu được. Thử lại sau.");
             setError(msg);
         } finally {
             setSaving(false);
@@ -416,12 +422,12 @@ export function SellerProductFormDialog({
         if (!productId || mode !== "edit") return;
         const name = newVariant.name.trim();
         if (!name) {
-            setError("Nhập tên biến thể.");
+            setError(t("sellerDashboard.productForm.errVariantNameRequired", "Nhập tên biến thể."));
             return;
         }
         const pr = parsePrice(newVariant.price);
         if (newVariant.price.trim() !== "" && pr === undefined) {
-            setError("Giá biến thể không hợp lệ.");
+            setError(t("sellerDashboard.productForm.errVariantPriceInvalid", "Giá biến thể không hợp lệ."));
             return;
         }
         setSaving(true);
@@ -444,7 +450,7 @@ export function SellerProductFormDialog({
             });
         } catch (e) {
             setError(
-                e instanceof HttpError ? e.message : "Không thêm được biến thể.",
+                e instanceof HttpError ? e.message : t("sellerDashboard.productForm.errAddVariantFailed", "Không thêm được biến thể."),
             );
         } finally {
             setSaving(false);
@@ -453,7 +459,7 @@ export function SellerProductFormDialog({
 
     async function handleDeleteVariant(variantId: string) {
         if (!productId) return;
-        if (!window.confirm("Xóa biến thể này?")) return;
+        if (!window.confirm(t("sellerDashboard.productForm.confirmDeleteVariant", "Xóa biến thể này?"))) return;
         setSaving(true);
         setError(null);
         try {
@@ -461,7 +467,7 @@ export function SellerProductFormDialog({
             setVariantsList((v) => v.filter((x) => x.id !== variantId));
         } catch (e) {
             setError(
-                e instanceof HttpError ? e.message : "Không xóa được biến thể.",
+                e instanceof HttpError ? e.message : t("sellerDashboard.productForm.errDeleteVariantFailed", "Không xóa được biến thể."),
             );
         } finally {
             setSaving(false);
@@ -651,7 +657,7 @@ export function SellerProductFormDialog({
                                     disabled={saving}
                                     className="h-4 w-4 rounded border-border"
                                 />
-                                Theo dõi tồn kho
+                                {t("sellerDashboard.productForm.trackInventory", "Theo dõi tồn kho")}
                             </label>
                             <label className="block text-sm font-medium">
                                 SKU
@@ -669,10 +675,10 @@ export function SellerProductFormDialog({
 
                         <section className="space-y-4">
                             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                Vận chuyển
+                                {t("sellerDashboard.productForm.shippingSection", "Vận chuyển")}
                             </h3>
                             <label className="block text-sm font-medium">
-                                Trọng lượng (kg)
+                                {t("sellerDashboard.productForm.weightLabel", "Trọng lượng (kg)")}
                                 <input
                                     type="text"
                                     inputMode="decimal"
@@ -686,7 +692,7 @@ export function SellerProductFormDialog({
                             </label>
                             <div>
                                 <p className="text-sm font-medium">
-                                    Kích thước (cm): dài × rộng × cao
+                                    {t("sellerDashboard.productForm.dimensionsLabel", "Kích thước (cm): dài × rộng × cao")}
                                 </p>
                                 <div className="mt-1 grid grid-cols-3 gap-2">
                                     <input
@@ -740,7 +746,7 @@ export function SellerProductFormDialog({
                                 SEO
                             </h3>
                             <label className="block text-sm font-medium">
-                                Meta title
+                                {t("sellerDashboard.productForm.metaTitle", "Meta title")}
                                 <input
                                     type="text"
                                     value={form.metaTitle}
@@ -767,7 +773,7 @@ export function SellerProductFormDialog({
                                 />
                             </label>
                             <label className="block text-sm font-medium">
-                                Từ khóa (phân cách bằng dấu phẩy)
+                                {t("sellerDashboard.productForm.metaKeywords", "Từ khóa (phân cách bằng dấu phẩy)")}
                                 <input
                                     type="text"
                                     value={form.metaKeywords}
@@ -785,10 +791,11 @@ export function SellerProductFormDialog({
 
                         <section className="space-y-4">
                             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                Biến thể (SKU / size / màu)
+                                {t("sellerDashboard.productForm.variantsSection", "Biến thể (SKU / size / màu)")}
                             </h3>
                             <p className="text-xs text-muted-foreground">
-                                Thêm từng dòng. Trường options là JSON object, ví dụ{" "}
+                                {t("sellerDashboard.productForm.variantsNote", "Thêm từng dòng. Trường options là JSON object, ví dụ")}
+                                {" "}
                                 <code className="rounded bg-muted px-1">
                                     {`{"Màu":"Đỏ","Size":"M"}`}
                                 </code>
@@ -802,7 +809,7 @@ export function SellerProductFormDialog({
                                             className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-2"
                                         >
                                             <input
-                                                placeholder="Tên hiển thị *"
+                                                placeholder={t("sellerDashboard.productForm.variantNamePlaceholder", "Tên hiển thị *")}
                                                 className="rounded border border-border bg-background px-2 py-1.5 text-sm"
                                                 value={row.name}
                                                 onChange={(e) =>
@@ -832,7 +839,7 @@ export function SellerProductFormDialog({
                                                 disabled={saving}
                                             />
                                             <input
-                                                placeholder="Giá (đ)"
+                                                placeholder={t("sellerDashboard.productForm.variantPricePlaceholder", "Giá (đ)")}
                                                 inputMode="decimal"
                                                 className="rounded border border-border bg-background px-2 py-1.5 text-sm"
                                                 value={row.price}
@@ -848,7 +855,7 @@ export function SellerProductFormDialog({
                                                 disabled={saving}
                                             />
                                             <input
-                                                placeholder="Tồn"
+                                                placeholder={t("sellerDashboard.productForm.variantStockPlaceholder", "Tồn")}
                                                 type="number"
                                                 min={0}
                                                 className="rounded border border-border bg-background px-2 py-1.5 text-sm"
@@ -894,7 +901,7 @@ export function SellerProductFormDialog({
                                                         )
                                                     }
                                                 >
-                                                    Xóa dòng
+                                                    {t("sellerDashboard.productForm.removeVariantRow", "Xóa dòng")}
                                                 </button>
                                             </div>
                                         </div>
@@ -907,7 +914,7 @@ export function SellerProductFormDialog({
                                             setDraftVariants((v) => [...v, newDraftVariant()])
                                         }
                                     >
-                                        + Thêm biến thể (khi tạo mới)
+                                        + {t("sellerDashboard.productForm.addVariantBtn", "Thêm biến thể (khi tạo mới)")}
                                     </button>
                                 </div>
                             ) : (
@@ -932,12 +939,12 @@ export function SellerProductFormDialog({
                                                         {v.price != null ? (
                                                             <span className="text-primary">
                                                                 {" "}
-                                                                · {v.price} đ
+                                                                · {v.price} {t("common.currency", "đ")}
                                                             </span>
                                                         ) : null}
                                                         <span className="text-muted-foreground">
                                                             {" "}
-                                                            · Tồn {v.stockQuantity}
+                                                            · {t("sellerDashboard.productForm.stockLabelInfo", "Tồn")} {v.stockQuantity}
                                                         </span>
                                                     </div>
                                                     <button
@@ -948,19 +955,19 @@ export function SellerProductFormDialog({
                                                             void handleDeleteVariant(v.id)
                                                         }
                                                     >
-                                                        Xóa
+                                                        {t("common.delete", "Xóa")}
                                                     </button>
                                                 </li>
                                             ))}
                                         </ul>
                                     ) : (
                                         <p className="text-sm text-muted-foreground">
-                                            Chưa có biến thể.
+                                            {t("sellerDashboard.productForm.noVariants", "Chưa có biến thể.")}
                                         </p>
                                     )}
                                     <div className="grid gap-2 rounded-lg border border-dashed border-border p-3 sm:grid-cols-2">
                                         <input
-                                            placeholder="Tên biến thể *"
+                                            placeholder={t("sellerDashboard.productForm.variantNamePlaceholder", "Tên biến thể *")}
                                             className="rounded border border-border bg-background px-2 py-1.5 text-sm"
                                             value={newVariant.name}
                                             onChange={(e) =>
@@ -984,7 +991,7 @@ export function SellerProductFormDialog({
                                             disabled={saving}
                                         />
                                         <input
-                                            placeholder="Giá (đ)"
+                                            placeholder={t("sellerDashboard.productForm.variantPricePlaceholder", "Giá (đ)")}
                                             inputMode="decimal"
                                             className="rounded border border-border bg-background px-2 py-1.5 text-sm"
                                             value={newVariant.price}
@@ -997,7 +1004,7 @@ export function SellerProductFormDialog({
                                             disabled={saving}
                                         />
                                         <input
-                                            placeholder="Tồn"
+                                            placeholder={t("sellerDashboard.productForm.variantStockPlaceholder", "Tồn")}
                                             type="number"
                                             min={0}
                                             className="rounded border border-border bg-background px-2 py-1.5 text-sm"
@@ -1030,7 +1037,7 @@ export function SellerProductFormDialog({
                                                 disabled={saving}
                                                 onClick={() => void handleAddVariantEdit()}
                                             >
-                                                Thêm biến thể
+                                                {t("sellerDashboard.productForm.addVariantAction", "Thêm biến thể")}
                                             </button>
                                         </div>
                                     </div>
@@ -1041,10 +1048,10 @@ export function SellerProductFormDialog({
                         {mode === "edit" ? (
                             <section className="space-y-4">
                                 <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                    Trạng thái
+                                    {t("sellerDashboard.productForm.statusSection", "Trạng thái")}
                                 </h3>
                                 <label className="block text-sm font-medium">
-                                    Trạng thái hiển thị
+                                    {t("sellerDashboard.productForm.displayStatus", "Trạng thái hiển thị")}
                                     <select
                                         value={form.status}
                                         onChange={(e) =>
@@ -1064,7 +1071,7 @@ export function SellerProductFormDialog({
                         ) : null}
 
                         <div>
-                            <p className="text-sm font-medium">Ảnh sản phẩm</p>
+                            <p className="text-sm font-medium">{t("sellerDashboard.productForm.productImages", "Ảnh sản phẩm")}</p>
                             {mode === "edit" && visibleExisting.length > 0 ? (
                                 <ul className="mt-2 flex flex-wrap gap-2">
                                     {visibleExisting.map((im) => (
@@ -1079,7 +1086,7 @@ export function SellerProductFormDialog({
                                             />
                                             <button
                                                 type="button"
-                                                title="Gỡ ảnh"
+                                                title={t("sellerDashboard.productForm.removeImage", "Gỡ ảnh")}
                                                 className="absolute right-0 top-0 rounded-bl bg-destructive px-1 text-xs text-destructive-foreground"
                                                 disabled={saving}
                                                 onClick={() =>
@@ -1112,7 +1119,7 @@ export function SellerProductFormDialog({
                             />
                             {pendingFiles.length > 0 ? (
                                 <p className="mt-1 text-xs text-muted-foreground">
-                                    Đã chọn {pendingFiles.length} ảnh mới để tải lên khi lưu.
+                                    {t("sellerDashboard.productForm.pendingImagesCount", "Đã chọn {{count}} ảnh mới để tải lên khi lưu.", { count: pendingFiles.length })}
                                 </p>
                             ) : null}
                         </div>
@@ -1132,7 +1139,7 @@ export function SellerProductFormDialog({
                             "rounded-lg border border-border px-4 py-2 text-sm font-semibold hover:bg-muted disabled:opacity-50",
                         )}
                     >
-                        Hủy
+                        {t("common.cancel", "Hủy")}
                     </button>
                     <button
                         type="button"
@@ -1140,7 +1147,7 @@ export function SellerProductFormDialog({
                         onClick={() => void handleSubmit()}
                         className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:opacity-90 disabled:opacity-50"
                     >
-                        {saving ? "Đang lưu…" : "Lưu"}
+                        {saving ? t("common.saving", "Đang lưu…") : t("common.save", "Lưu")}
                     </button>
                 </div>
             </div>

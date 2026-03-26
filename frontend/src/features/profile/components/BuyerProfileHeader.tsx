@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { Avatar } from "../../../shared/ui/atoms/avatar";
 import { Button } from "../../../shared/ui/atoms/button";
 import type { PublicUserProfile } from "../types/profile.types";
+import { useTranslation } from "react-i18next";
 
 interface BuyerProfileHeaderProps {
     profile: PublicUserProfile;
@@ -25,6 +26,7 @@ export function BuyerProfileHeader({
     onUnfollow,
 }: BuyerProfileHeaderProps) {
     const cover = profile.coverUrl ?? profile.coverImage;
+    const { t } = useTranslation();
 
     return (
         <div className="mb-6 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
@@ -40,7 +42,7 @@ export function BuyerProfileHeader({
                         className="absolute bottom-4 right-4 flex items-center gap-2 rounded-lg bg-black/40 px-3 py-2 text-sm text-white backdrop-blur-sm transition-all hover:bg-black/60"
                     >
                         <Camera className="h-4 w-4" />
-                        <span className="hidden sm:inline">Đổi ảnh bìa</span>
+                        <span className="hidden sm:inline">{t("profile.changeCover")}</span>
                     </button>
                 ) : null}
             </div>
@@ -66,29 +68,29 @@ export function BuyerProfileHeader({
                                         onClick={onUnfollow}
                                     >
                                         <UserCheck className="h-4 w-4" />
-                                        Đang theo dõi
+                                        {t("profile.following")}
                                     </Button>
                                 ) : (
                                     <Button className="flex-1 gap-2 sm:flex-none px-6 sm:px-8" onClick={onFollow}>
                                         <UserPlus className="h-4 w-4" />
-                                        Theo dõi
+                                        {t("profile.follow")}
                                     </Button>
                                 )}
                                 <Link to={`/messages?userId=${profile.id}`} className="flex-1 sm:flex-none">
                                     <Button variant="outline" className="w-full gap-2 px-6 sm:px-8">
                                         <MessageCircle className="h-4 w-4" />
-                                        Nhắn tin
+                                        {t("profile.message")}
                                     </Button>
                                 </Link>
                             </>
                         ) : (
                             <>
                                 <Button type="button" className="flex-1 sm:flex-none px-6">
-                                    Chỉnh sửa hồ sơ
+                                    {t("profile.editProfile")}
                                 </Button>
                                 <Button type="button" variant="outline" className="flex-1 gap-2 sm:flex-none px-6">
                                     <Shield className="h-4 w-4" />
-                                    Quyền riêng tư
+                                    {t("profile.privacy")}
                                 </Button>
                             </>
                         )}
@@ -117,19 +119,19 @@ export function BuyerProfileHeader({
                             <span className="font-bold dark:text-white">
                                 {profile.followersCount.toLocaleString()}
                             </span>
-                            <span className="text-sm text-neutral-500 dark:text-neutral-400">Người theo dõi</span>
+                            <span className="text-sm text-neutral-500 dark:text-neutral-400">{t("profile.followersLabel")}</span>
                         </div>
                         <div className="flex cursor-pointer items-center gap-1.5 transition-colors hover:text-primary">
                             <span className="font-bold dark:text-white">
                                 {profile.followingCount.toLocaleString()}
                             </span>
-                            <span className="text-sm text-neutral-500 dark:text-neutral-400">Đang theo dõi</span>
+                            <span className="text-sm text-neutral-500 dark:text-neutral-400">{t("profile.followingLabel")}</span>
                         </div>
                         <div className="flex cursor-pointer items-center gap-1.5 transition-colors hover:text-primary">
                             <span className="font-bold dark:text-white">
                                 {profile.postsCount.toLocaleString()}
                             </span>
-                            <span className="text-sm text-neutral-500 dark:text-neutral-400">Bài viết</span>
+                            <span className="text-sm text-neutral-500 dark:text-neutral-400">{t("profile.posts")}</span>
                         </div>
                     </div>
                 </div>

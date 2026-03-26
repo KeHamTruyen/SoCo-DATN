@@ -25,6 +25,7 @@ import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { Avatar } from "../../../shared/ui/atoms/avatar";
 import { Button } from "../../../shared/ui/atoms/button";
 import type { CreatePostPayload, PostMediaType, TaggedUserBrief } from "../types/feed.types";
+import { useTranslation } from "react-i18next";
 
 interface CreatePostModalProps {
     onClose: () => void;
@@ -48,21 +49,6 @@ const FEATURE_CARD_CLASS =
 const FEATURE_ICON_CLASS =
     "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md shadow-primary/25";
 
-const FEELING_PRESETS: { emoji: string; label: string; value: string }[] = [
-    { emoji: "😊", label: "Vui vẻ", value: "😊 Vui vẻ" },
-    { emoji: "🥰", label: "Biết ơn", value: "🥰 Biết ơn" },
-    { emoji: "😎", label: "Tuyệt", value: "😎 Tuyệt" },
-    { emoji: "🤩", label: "Phấn khích", value: "🤩 Phấn khích" },
-    { emoji: "😌", label: "Thư giãn", value: "😌 Thư giãn" },
-    { emoji: "💪", label: "Đầy năng lượng", value: "💪 Đầy năng lượng" },
-    { emoji: "❤️", label: "Yêu đời", value: "❤️ Yêu đời" },
-    { emoji: "🎉", label: "Ăn mừng", value: "🎉 Ăn mừng" },
-    { emoji: "☕", label: "Cà phê", value: "☕ Đang uống cà phê" },
-    { emoji: "✈️", label: "Đang đi", value: "✈️ Đang đi du lịch" },
-    { emoji: "📦", label: "Mua sắm", value: "📦 Đang mua sắm" },
-    { emoji: "🛍️", label: "Sale", value: "🛍️ Săn sale" },
-];
-
 type ToolPanel = "none" | "product" | "friends" | "feeling" | "location";
 
 function mediaTypeFromFile(file: File): PostMediaType {
@@ -76,6 +62,7 @@ export function CreatePostModal({
     defaultScheduleMode = false,
 }: CreatePostModalProps) {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const { user } = useAuthSession();
     const [content, setContent] = useState("");
     const [scheduleDate, setScheduleDate] = useState<Date | undefined>(() =>
@@ -96,6 +83,21 @@ export function CreatePostModal({
     const [feeling, setFeeling] = useState<string | null>(null);
     const [location, setLocation] = useState("");
     const [toolPanel, setToolPanel] = useState<ToolPanel>("none");
+
+    const FEELING_PRESETS = useMemo(() => [
+        { emoji: "😊", label: t("createPost.feelings.happy"), value: t("createPost.feelings.happyVal") },
+        { emoji: "🥰", label: t("createPost.feelings.grateful"), value: t("createPost.feelings.gratefulVal") },
+        { emoji: "😎", label: t("createPost.feelings.cool"), value: t("createPost.feelings.coolVal") },
+        { emoji: "🤩", label: t("createPost.feelings.excited"), value: t("createPost.feelings.excitedVal") },
+        { emoji: "😌", label: t("createPost.feelings.relaxed"), value: t("createPost.feelings.relaxedVal") },
+        { emoji: "💪", label: t("createPost.feelings.energetic"), value: t("createPost.feelings.energeticVal") },
+        { emoji: "❤️", label: t("createPost.feelings.loved"), value: t("createPost.feelings.lovedVal") },
+        { emoji: "🎉", label: t("createPost.feelings.celebrating"), value: t("createPost.feelings.celebratingVal") },
+        { emoji: "☕", label: t("createPost.feelings.coffee"), value: t("createPost.feelings.coffeeVal") },
+        { emoji: "✈️", label: t("createPost.feelings.traveling"), value: t("createPost.feelings.travelingVal") },
+        { emoji: "📦", label: t("createPost.feelings.shopping"), value: t("createPost.feelings.shoppingVal") },
+        { emoji: "🛍️", label: t("createPost.feelings.sale"), value: t("createPost.feelings.saleVal") },
+    ], [t]);
 
     const [productQuery, setProductQuery] = useState("");
     const [productHits, setProductHits] = useState<ProductListItem[]>([]);
@@ -262,14 +264,14 @@ export function CreatePostModal({
                     <Button variant="ghost" size="icon" onClick={onClose}>
                         <X className="h-5 w-5" />
                     </Button>
-                    <h2 className="text-lg font-semibold">Create Post</h2>
+                    <h2 className="text-lg font-semibold">{t("createPost.title")}</h2>
                     <Button
                         size="sm"
                         className="rounded-full px-5"
                         onClick={() => void handlePost()}
                         disabled={!canSubmit}
                     >
-                        {isScheduleMode ? "Schedule" : "Post"}
+                        {isScheduleMode ? t("createPost.schedule") : t("createPost.post")}
                     </Button>
                 </div>
 
@@ -283,7 +285,7 @@ export function CreatePostModal({
                         <textarea
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            placeholder="What are you sharing today? Describe your product or mood..."
+                            placeholder={t("createPost.placeholder")}
                             rows={4}
                             className="flex-1 resize-none border-none bg-transparent p-0 text-base placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:placeholder:text-neutral-500"
                         />
@@ -323,7 +325,7 @@ export function CreatePostModal({
                         <div className="flex flex-wrap gap-2 px-4 pb-2 text-xs">
                             {productLabel ? (
                                 <span className="rounded-full bg-success/15 px-2 py-1 font-medium text-success">
-                                    Sản phẩm: {productLabel}
+                                    {t("createPost.productLabel")}: {productLabel}
                                 </span>
                             ) : null}
                             {taggedUsers.map((t) => (
@@ -358,11 +360,11 @@ export function CreatePostModal({
                     <div className="px-4 pb-4">
                         <div
                             role="toolbar"
-                            aria-label="Add to your post"
+                            aria-label={t("createPost.addToPost")}
                             className="flex min-h-11 items-center gap-3 rounded-xl border border-border bg-muted/30 px-3 py-2.5 dark:bg-muted/20"
                         >
                             <span className="shrink-0 text-sm font-medium text-muted-foreground">
-                                Add to your post
+                                {t("createPost.addToPost")}
                             </span>
                             <div className="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2">
                                 <input
@@ -394,7 +396,7 @@ export function CreatePostModal({
                                     type="button"
                                     onClick={() => togglePanel("product")}
                                     className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground ${toolPanel === "product" ? "ring-2 ring-primary/30" : ""}`}
-                                    aria-label="Tag products"
+                                    aria-label={t("createPost.tagProducts")}
                                 >
                                     <Tag className="h-4 w-4" />
                                 </button>
@@ -402,7 +404,7 @@ export function CreatePostModal({
                                     type="button"
                                     onClick={() => togglePanel("friends")}
                                     className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground ${toolPanel === "friends" ? "ring-2 ring-primary/30" : ""}`}
-                                    aria-label="Tag friends"
+                                    aria-label={t("createPost.tagFriends")}
                                 >
                                     <Users className="h-4 w-4" />
                                 </button>
@@ -410,7 +412,7 @@ export function CreatePostModal({
                                     type="button"
                                     onClick={() => togglePanel("feeling")}
                                     className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground ${toolPanel === "feeling" ? "ring-2 ring-primary/30" : ""}`}
-                                    aria-label="Icons or feelings"
+                                    aria-label={t("createPost.feelingActivity")}
                                 >
                                     <Smile className="h-4 w-4" />
                                 </button>
@@ -418,7 +420,7 @@ export function CreatePostModal({
                                     type="button"
                                     onClick={() => togglePanel("location")}
                                     className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground ${toolPanel === "location" ? "ring-2 ring-primary/30" : ""}`}
-                                    aria-label="Location"
+                                    aria-label={t("createPost.location")}
                                 >
                                     <MapPin className="h-4 w-4" />
                                 </button>
@@ -427,15 +429,15 @@ export function CreatePostModal({
 
                         {toolPanel === "product" ? (
                             <div className="mt-3 space-y-2 rounded-xl border border-border bg-card p-3">
-                                <p className="text-sm font-semibold text-foreground">Gắn sản phẩm</p>
+                                <p className="text-sm font-semibold text-foreground">{t("createPost.tagProducts")}</p>
                                 <input
                                     value={productQuery}
                                     onChange={(e) => setProductQuery(e.target.value)}
-                                    placeholder="Tìm theo tên sản phẩm..."
+                                    placeholder={t("createPost.searchProduct")}
                                     className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm"
                                 />
                                 {productSearching ? (
-                                    <p className="text-xs text-muted-foreground">Đang tìm...</p>
+                                    <p className="text-xs text-muted-foreground">{t("createPost.searching")}</p>
                                 ) : null}
                                 <ul className="max-h-40 space-y-1 overflow-y-auto">
                                     {productHits.map((p) => (
@@ -472,7 +474,7 @@ export function CreatePostModal({
                                             setProductLabel(null);
                                         }}
                                     >
-                                        Xóa sản phẩm đã gắn
+                                        {t("createPost.removeProduct")}
                                     </button>
                                 ) : null}
                             </div>
@@ -480,15 +482,15 @@ export function CreatePostModal({
 
                         {toolPanel === "friends" ? (
                             <div className="mt-3 space-y-2 rounded-xl border border-border bg-card p-3">
-                                <p className="text-sm font-semibold text-foreground">Gắn bạn bè</p>
+                                <p className="text-sm font-semibold text-foreground">{t("createPost.tagFriends")}</p>
                                 <input
                                     value={friendQuery}
                                     onChange={(e) => setFriendQuery(e.target.value)}
-                                    placeholder="Tìm @username hoặc tên..."
+                                    placeholder={t("createPost.searchFriend")}
                                     className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm"
                                 />
                                 {friendSearching ? (
-                                    <p className="text-xs text-muted-foreground">Đang tìm...</p>
+                                    <p className="text-xs text-muted-foreground">{t("createPost.searching")}</p>
                                 ) : null}
                                 <ul className="max-h-40 space-y-1 overflow-y-auto">
                                     {friendHits.map((u) => (
@@ -524,7 +526,7 @@ export function CreatePostModal({
 
                         {toolPanel === "feeling" ? (
                             <div className="mt-3 rounded-xl border border-border bg-card p-3">
-                                <p className="mb-2 text-sm font-semibold text-foreground">Cảm xúc / hoạt động</p>
+                                <p className="mb-2 text-sm font-semibold text-foreground">{t("createPost.feelingActivity")}</p>
                                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                                     {FEELING_PRESETS.map((f) => (
                                         <button
@@ -547,7 +549,7 @@ export function CreatePostModal({
                                         className="mt-2 text-xs font-medium text-primary hover:underline"
                                         onClick={() => setFeeling(null)}
                                     >
-                                        Xóa cảm xúc
+                                        {t("createPost.removeFeeling")}
                                     </button>
                                 ) : null}
                             </div>
@@ -555,11 +557,11 @@ export function CreatePostModal({
 
                         {toolPanel === "location" ? (
                             <div className="mt-3 space-y-2 rounded-xl border border-border bg-card p-3">
-                                <p className="text-sm font-semibold text-foreground">Vị trí</p>
+                                <p className="text-sm font-semibold text-foreground">{t("createPost.location")}</p>
                                 <input
                                     value={location}
                                     onChange={(e) => setLocation(e.target.value)}
-                                    placeholder="Địa điểm hoặc địa chỉ..."
+                                    placeholder={t("createPost.searchLocation")}
                                     className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm"
                                 />
                                 <button
@@ -567,7 +569,7 @@ export function CreatePostModal({
                                     className="text-xs font-medium text-primary hover:underline"
                                     onClick={() => fillLocationFromGeo()}
                                 >
-                                    Dùng vị trí hiện tại (GPS)
+                                    {t("createPost.useGPS")}
                                 </button>
                             </div>
                         ) : null}
@@ -586,9 +588,9 @@ export function CreatePostModal({
                                 <ChevronRight className="h-5 w-5 shrink-0 text-primary opacity-70 transition-transform group-hover:translate-x-0.5" />
                             </div>
                             <div>
-                                <p className="font-semibold text-foreground">AI Creative Lab</p>
+                                <p className="font-semibold text-foreground">{t("createPost.aiCreativeLab")}</p>
                                 <p className="mt-1 text-xs text-muted-foreground">
-                                    Full studio for captions, images, and creative tools
+                                    {t("createPost.aiCreativeLabDesc")}
                                 </p>
                             </div>
                         </button>
@@ -605,9 +607,9 @@ export function CreatePostModal({
                                 <ChevronRight className="h-5 w-5 shrink-0 text-primary opacity-70 transition-transform group-hover:translate-x-0.5" />
                             </div>
                             <div>
-                                <p className="font-semibold text-foreground">Schedule post</p>
+                                <p className="font-semibold text-foreground">{t("createPost.schedulePost")}</p>
                                 <p className="mt-1 text-xs text-muted-foreground">
-                                    Pick a date and time to publish automatically
+                                    {t("createPost.schedulePostDesc")}
                                 </p>
                             </div>
                         </button>
@@ -616,7 +618,7 @@ export function CreatePostModal({
                     {isScheduleMode ? (
                         <div ref={schedulePanelRef} className="space-y-3 px-4 py-3">
                             <label className="block text-center text-sm font-semibold text-foreground">
-                                Schedule date &amp; time
+                                {t("createPost.scheduleDateTime")}
                             </label>
                             <div className="flex w-full justify-center">
                                 <div className="inline-flex max-w-full rounded-xl border border-border bg-card p-3 text-card-foreground">
@@ -636,7 +638,7 @@ export function CreatePostModal({
                                     htmlFor="create-post-schedule-time"
                                     className="shrink-0 text-sm font-medium text-foreground"
                                 >
-                                    Time
+                                    {t("createPost.time")}
                                 </label>
                                 <input
                                     id="create-post-schedule-time"
@@ -656,7 +658,7 @@ export function CreatePostModal({
                                         setScheduleTime(format(new Date(), "HH:mm"));
                                     }}
                                 >
-                                    Post now instead
+                                    {t("createPost.postNowInstead")}
                                 </button>
                             </div>
                         </div>

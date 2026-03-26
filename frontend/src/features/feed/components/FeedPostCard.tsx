@@ -3,6 +3,9 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Avatar, Button } from "../../../shared/ui";
 import { CommentList } from "./CommentList";
+import { PostDetailModal } from "./PostDetailModal";
+import { formatTimeAgo } from "../../../shared/lib/formatTimeAgo";
+import { useTranslation } from "react-i18next";
 import type { FeedPost } from "../types/feed.types";
 
 interface FeedPostCardProps {
@@ -14,6 +17,8 @@ interface FeedPostCardProps {
 export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
     const [newComment, setNewComment] = useState("");
     const [isCommenting, setIsCommenting] = useState(false);
+    const [showPostModal, setShowPostModal] = useState(false);
+    const { t } = useTranslation();
 
     const handleComment = () => {
         if (!newComment.trim()) return;
@@ -23,6 +28,10 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
             setNewComment("");
             setIsCommenting(false);
         })();
+    };
+
+    const handleCommentFromModal = (content: string) => {
+        void onComment(content);
     };
 
     const hasProducts = (post.taggedProducts?.length ?? 0) > 0;
@@ -46,7 +55,7 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
                             {post.author.fullName ?? post.author.username ?? "User"}
                         </p>
                         <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                            {new Date(post.createdAt).toLocaleString()}
+                            {formatTimeAgo(post.createdAt)}
                             {post.location ? ` • ${post.location}` : ""}
                         </p>
                         {post.feeling ? (
@@ -69,7 +78,7 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
                 </p>
                 {post.taggedUsers && post.taggedUsers.length > 0 ? (
                     <p className="mt-2 text-xs text-neutral-600 dark:text-neutral-400">
-                        <span className="font-semibold text-neutral-500">Cùng với </span>
+                        <span className="font-semibold text-neutral-500">{t("feed.with")}</span>
                         {post.taggedUsers.map((u, i) => (
                             <span key={u.id}>
                                 {i > 0 ? ", " : ""}
@@ -204,7 +213,11 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
 
             {/* Comment input */}
             <div className="border-t border-neutral-100 px-4 pb-4 pt-2 dark:border-neutral-800">
-                <CommentList comments={post.comments ?? []} />
+                <CommentList 
+                    comments={post.comments ?? []} 
+                    totalCount={post.commentsCount} 
+                    onViewMore={() => setShowPostModal(true)} 
+                />
                 <div className="mt-3 flex items-center gap-2">
                     <input
                         value={newComment}
@@ -215,7 +228,7 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
                                 handleComment();
                             }
                         }}
-                        placeholder="Write a comment..."
+                        placeholder={t("feed.writeComment")}
                         className="h-9 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-neutral-700 dark:bg-neutral-800"
                     />
                     <Button
@@ -229,6 +242,15 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
                     </Button>
                 </div>
             </div>
+
+            {showPostModal && (
+                <PostDetailModal
+                    post={post}
+                    onClose={() => setShowPostModal(false)}
+                    onLike={onLike}
+                    onComment={handleCommentFromModal}
+                />
+            )}
         </article>
     );
 }

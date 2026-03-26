@@ -13,6 +13,8 @@ import { savedItemsApi } from "../../saved-items/api/savedItemsApi";
 import { Avatar } from "../../../shared/ui/atoms/avatar";
 import { Button } from "../../../shared/ui/atoms/button";
 import { cn } from "../../../shared/lib/cn";
+import { formatTimeAgo } from "../../../shared/lib/formatTimeAgo";
+import { feedApi } from "../api/feedApi";
 import type { FeedComment, FeedPost, ShoppableProduct } from "../types/feed.types";
 
 interface ShoppableHotspotProps {
@@ -72,6 +74,35 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
     const [commentInput, setCommentInput] = useState("");
     const [savedId, setSavedId] = useState<string | null>(null);
     const [saveBusy, setSaveBusy] = useState(false);
+
+    const [olderComments, setOlderComments] = useState<FeedComment[]>([]);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(post.commentsCount > (post.comments?.length || 0));
+    const [loadingMore, setLoadingMore] = useState(false);
+
+    useEffect(() => {
+        setHasMore(post.commentsCount > ((post.comments?.length || 0) + olderComments.length));
+    }, [post.commentsCount, post.comments?.length, olderComments.length]);
+
+    const loadMoreComments = async () => {
+        if (loadingMore || !hasMore) return;
+        setLoadingMore(true);
+        try {
+            const nextPage = page + 1;
+            const currentOffset = (post.comments?.length || 0) + olderComments.length;
+            const res = await feedApi.getComments(post.id, nextPage, 5, currentOffset);
+            const newOlder = [...res.items].reverse();
+            setOlderComments((prev) => [...newOlder, ...prev]);
+            setPage(nextPage);
+            setHasMore(res.pagination ? res.pagination.page * res.pagination.limit < res.pagination.total : false);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
+
+    const displayComments = [...olderComments, ...[...(post.comments || [])].reverse()];
 
     useEffect(() => {
         let cancelled = false;
@@ -195,11 +226,7 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                             <div>
                                 <p className="font-semibold">{post.author.fullName}</p>
                                 <p className="text-xs text-neutral-500">
-                                    {new Date(post.createdAt).toLocaleDateString("en-US", {
-                                        month: "short",
-                                        day: "numeric",
-                                        year: "numeric",
-                                    })}
+                                    {formatTimeAgo(post.createdAt)}
                                     {post.location ? ` · ${post.location}` : ""}
                                 </p>
                                 {post.feeling ? (
@@ -276,24 +303,41 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                    <div className="border-b border-neutral-100 p-4 dark:border-neutral-800">
+                <div className="flex-1 overflow-y-auto rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 flex flex-col">
+                    <div className="border-b border-neutral-100 p-4 shrink-0 dark:border-neutral-800">
                         <h3 className="font-bold">Comments ({post.commentsCount})</h3>
                     </div>
-                    <div className="max-h-80 space-y-4 overflow-y-auto p-4">
-                        {post.comments && post.comments.length > 0 ? (
-                            post.comments.map((comment: FeedComment) => (
+                    <div className="flex-1 space-y-4 overflow-y-auto p-4">
+                        {hasMore && (
+                            <div className="flex justify-center pb-2">
+                                <button
+                                    type="button"
+                                    onClick={loadMoreComments}
+                                    disabled={loadingMore}
+                                    className="text-sm font-semibold text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+                                >
+                                    {loadingMore ? "Loading..." : "View more comments"}
+                                </button>
+                            </div>
+                        )}
+                        {displayComments.length > 0 ? (
+                            displayComments.map((comment: FeedComment) => (
                                 <div key={comment.id} className="flex gap-3">
                                     <Avatar
                                         src={comment.user?.avatarUrl}
                                         alt={comment.user?.fullName}
-                                        wrapperClassName="h-8 w-8"
+                                        wrapperClassName="h-8 w-8 shrink-0"
                                     />
-                                    <div className="flex-1 rounded-xl bg-neutral-50 px-3 py-2 dark:bg-neutral-800">
-                                        <p className="text-xs font-semibold">
-                                            {comment.user?.fullName}
-                                        </p>
-                                        <p className="mt-0.5 text-sm text-neutral-700 dark:text-neutral-300">
+                                    <div className="rounded-2xl bg-neutral-100 px-3 py-2 text-sm dark:bg-neutral-800">
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-semibold text-neutral-900 dark:text-neutral-100">
+                                                {comment.user?.fullName ?? comment.user?.username ?? "User"}
+                                            </p>
+                                            <span className="text-xs text-neutral-500 shrink-0">
+                                                {comment.createdAt ? formatTimeAgo(comment.createdAt) : ""}
+                                            </span>
+                                        </div>
+                                        <p className="mt-0.5 text-neutral-800 dark:text-neutral-200">
                                             {comment.content}
                                         </p>
                                     </div>
@@ -305,7 +349,7 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                             </p>
                         )}
                     </div>
-                    <div className="flex items-center gap-3 border-t border-neutral-100 p-4 dark:border-neutral-800">
+                    <div className="flex items-center gap-3 border-t border-neutral-100 p-4 shrink-0 dark:border-neutral-800">
                         <input
                             type="text"
                             value={commentInput}

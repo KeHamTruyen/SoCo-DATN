@@ -111,6 +111,16 @@ export const feedApi = {
         throw new Error("Invalid comment response");
     },
 
+    async getComments(postId: string, page = 1, limit = 5, offset?: number) {
+        let url = `/posts/${postId}/comments?page=${page}&limit=${limit}`;
+        if (offset !== undefined) url += `&offset=${offset}`;
+        const res = await httpClient.get<BackendListResponse>(url);
+        return {
+            items: (res.data as unknown as FeedComment[]) ?? [],
+            pagination: res.pagination,
+        };
+    },
+
     async getPost(postId: string) {
         const res = await httpClient.get<ApiResponse<PostEnvelope> | PostEnvelope>(
             `/posts/${postId}`,

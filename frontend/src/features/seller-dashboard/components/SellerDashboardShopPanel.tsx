@@ -1,4 +1,5 @@
 import { PackagePlus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useMemo, useState } from "react";
 import { sellerDashboardApi } from "../api/sellerDashboardApi";
 import type {
@@ -11,13 +12,16 @@ import { Button, Card, Separator } from "../../../shared/ui";
 import { SellerDashboardProductTable } from "./SellerDashboardProductTable";
 import { SellerProductFormDialog } from "./SellerProductFormDialog";
 
-const STATUS_FILTERS: { value: SellerShopStatusFilter; label: string }[] = [
-    { value: "", label: "Tất cả" },
-    { value: "ACTIVE", label: "Đang bán" },
-    { value: "DRAFT", label: "Bản nháp" },
-    { value: "OUT_OF_STOCK", label: "Hết hàng" },
-    { value: "ARCHIVED", label: "Lưu trữ" },
-];
+function useStatusFilters() {
+    const { t } = useTranslation();
+    return [
+        { value: "", label: t("sellerDashboard.shop.filterAll", "Tất cả") },
+        { value: "ACTIVE", label: t("sellerDashboard.shop.filterActive", "Đang bán") },
+        { value: "DRAFT", label: t("sellerDashboard.shop.filterDraft", "Bản nháp") },
+        { value: "OUT_OF_STOCK", label: t("sellerDashboard.shop.filterOutOfStock", "Hết hàng") },
+        { value: "ARCHIVED", label: t("sellerDashboard.shop.filterArchived", "Lưu trữ") },
+    ] as { value: SellerShopStatusFilter; label: string }[];
+}
 
 type ShopSort = "newest" | "priceAsc" | "priceDesc" | "title";
 
@@ -36,6 +40,8 @@ export function SellerDashboardShopPanel({
     onStatusFilterChange,
     onProductsUpdated,
 }: SellerDashboardShopPanelProps) {
+    const { t } = useTranslation();
+    const STATUS_FILTERS = useStatusFilters();
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState<ShopSort>("newest");
     const [formOpen, setFormOpen] = useState(false);
@@ -81,7 +87,7 @@ export function SellerDashboardShopPanel({
 
     async function handleArchive(p: SellerProductRow) {
         const ok = window.confirm(
-            `Lưu trữ sản phẩm "${p.title}"? Sản phẩm sẽ chuyển sang trạng thái lưu trữ.`,
+            t("sellerDashboard.shop.archiveConfirm", 'Lưu trữ sản phẩm "{{title}}"? Sản phẩm sẽ chuyển sang trạng thái lưu trữ.', { title: p.title }),
         );
         if (!ok) return;
         setActionError(null);
@@ -91,7 +97,7 @@ export function SellerDashboardShopPanel({
             onProductsUpdated();
         } catch (e) {
             setActionError(
-                e instanceof HttpError ? e.message : "Không lưu trữ được.",
+                e instanceof HttpError ? e.message : t("sellerDashboard.shop.archiveError", "Không lưu trữ được."),
             );
         } finally {
             setBusyProductId(null);
@@ -108,7 +114,7 @@ export function SellerDashboardShopPanel({
             setActionError(
                 e instanceof HttpError
                     ? e.message
-                    : "Không đăng bán được. Cần ít nhất một ảnh và mô tả.",
+                    : t("sellerDashboard.shop.publishError", "Không đăng bán được. Cần ít nhất một ảnh và mô tả."),
             );
         } finally {
             setBusyProductId(null);
@@ -116,18 +122,17 @@ export function SellerDashboardShopPanel({
     }
 
     const statusLabel =
-        STATUS_FILTERS.find((x) => x.value === statusFilter)?.label ?? "Tất cả";
+        STATUS_FILTERS.find((x) => x.value === statusFilter)?.label ?? t("sellerDashboard.shop.filterAll", "Tất cả");
 
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 space-y-1">
                     <h2 className="text-xl font-bold tracking-tight text-foreground">
-                        My Shop
+                        {t("sellerDashboard.shop.title", "My Shop")}
                     </h2>
                     <p className="max-w-2xl text-sm text-muted-foreground">
-                        Quản lý sản phẩm hiển thị với khách: lọc theo trạng thái, tìm
-                        nhanh và xem lượt xem / đơn đã bán (theo dữ liệu shop).
+                        {t("sellerDashboard.shop.description", "Quản lý sản phẩm hiển thị với khách: lọc theo trạng thái, tìm nhanh và xem lượt xem / đơn đã bán (theo dữ liệu shop).")}
                     </p>
                 </div>
                 <Button
@@ -138,7 +143,7 @@ export function SellerDashboardShopPanel({
                     onClick={openCreate}
                 >
                     <PackagePlus className="h-4 w-4" aria-hidden />
-                    Thêm sản phẩm
+                    {t("sellerDashboard.shop.addProduct", "Thêm sản phẩm")}
                 </Button>
             </div>
 
@@ -155,12 +160,12 @@ export function SellerDashboardShopPanel({
                 <div className="space-y-4">
                     <div>
                         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Trạng thái
+                            {t("sellerDashboard.shop.status", "Trạng thái")}
                         </p>
                         <div
                             className="no-scrollbar flex flex-wrap gap-2"
                             role="group"
-                            aria-label="Lọc trạng thái sản phẩm"
+                            aria-label={t("sellerDashboard.shop.filterStatusLabel", "Lọc trạng thái sản phẩm")}
                         >
                             {STATUS_FILTERS.map((f) => (
                                 <button
@@ -179,8 +184,7 @@ export function SellerDashboardShopPanel({
                             ))}
                         </div>
                         <p className="mt-2 text-xs text-muted-foreground">
-                            Lọc trên máy chủ. Tìm kiếm và sắp xếp chỉ áp dụng trên danh
-                            sách đã tải.
+                            {t("sellerDashboard.shop.filterNotice", "Lọc trên máy chủ. Tìm kiếm và sắp xếp chỉ áp dụng trên danh sách đã tải.")}
                         </p>
                     </div>
 
@@ -192,12 +196,12 @@ export function SellerDashboardShopPanel({
                                 htmlFor="seller-shop-search"
                                 className="text-xs font-medium text-muted-foreground"
                             >
-                                Tìm theo tên
+                                {t("sellerDashboard.shop.searchName", "Tìm theo tên")}
                             </label>
                             <input
                                 id="seller-shop-search"
                                 type="search"
-                                placeholder="Nhập tên sản phẩm…"
+                                placeholder={t("sellerDashboard.shop.searchPlaceholder", "Nhập tên sản phẩm…")}
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
@@ -208,7 +212,7 @@ export function SellerDashboardShopPanel({
                                 htmlFor="seller-shop-sort"
                                 className="text-xs font-medium text-muted-foreground"
                             >
-                                Sắp xếp
+                                {t("sellerDashboard.shop.sort", "Sắp xếp")}
                             </label>
                             <select
                                 id="seller-shop-sort"
@@ -218,10 +222,10 @@ export function SellerDashboardShopPanel({
                                 }
                                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
                             >
-                                <option value="newest">Mới nhất</option>
-                                <option value="priceAsc">Giá tăng dần</option>
-                                <option value="priceDesc">Giá giảm dần</option>
-                                <option value="title">Tên A–Z</option>
+                                <option value="newest">{t("sellerDashboard.shop.sortNewest", "Mới nhất")}</option>
+                                <option value="priceAsc">{t("sellerDashboard.shop.sortPriceAsc", "Giá tăng dần")}</option>
+                                <option value="priceDesc">{t("sellerDashboard.shop.sortPriceDesc", "Giá giảm dần")}</option>
+                                <option value="title">{t("sellerDashboard.shop.sortTitle", "Tên A–Z")}</option>
                             </select>
                         </div>
                     </div>
@@ -231,26 +235,24 @@ export function SellerDashboardShopPanel({
             <div className="space-y-3">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                     <h3 className="text-sm font-semibold text-foreground">
-                        Danh sách sản phẩm
+                        {t("sellerDashboard.shop.productList", "Danh sách sản phẩm")}
                     </h3>
                     {!loading && items.length > 0 ? (
                         <p className="text-xs text-muted-foreground">
-                            Hiển thị{" "}
+                            {t("sellerDashboard.shop.showing", "Hiển thị")}{" "}
                             <span className="font-medium text-foreground tabular-nums">
                                 {filtered.length}
                             </span>{" "}
                             /{" "}
-                            <span className="tabular-nums">{items.length}</span> · Lọc
-                            API: {statusLabel}
-                            {items.length >= 100 ? " · Tối đa 100 mỗi lần tải" : ""}
+                            <span className="tabular-nums">{items.length}</span> · {t("sellerDashboard.shop.apiFilter", "Lọc API")}: {statusLabel}
+                            {items.length >= 100 ? ` · ${t("sellerDashboard.shop.maxLoad", "Tối đa 100 mỗi lần tải")}` : ""}
                         </p>
                     ) : null}
                 </div>
 
                 {!loading && items.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border bg-muted/30 py-12 text-center text-sm text-muted-foreground">
-                        Chưa có sản phẩm. Dùng “Thêm sản phẩm”, sau đó đăng bán khi đã có
-                        ảnh và mô tả.
+                        {t("sellerDashboard.shop.emptyList", "Chưa có sản phẩm. Dùng “Thêm sản phẩm”, sau đó đăng bán khi đã có ảnh và mô tả.")}
                     </div>
                 ) : (
                     <SellerDashboardProductTable

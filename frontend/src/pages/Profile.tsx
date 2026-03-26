@@ -14,6 +14,7 @@ import type { PublicUserProfile } from "../features/profile/types/profile.types"
 import { useAuthSession } from "../shared/auth/useAuthSession";
 import { cn } from "../shared/lib/cn";
 import { UnifiedHeader } from "../shared/ui";
+import { useTranslation } from "react-i18next";
 
 type BuyerVisitorTab = "posts" | "reviews";
 type BuyerSelfTab = "posts" | "orders" | "groups" | "reviews";
@@ -31,6 +32,7 @@ export default function Profile() {
         [],
     );
     const [suggestedLoading, setSuggestedLoading] = useState(false);
+    const { t } = useTranslation();
 
     const isSelf = !id || id === user?.id;
 
@@ -120,40 +122,40 @@ export default function Profile() {
 
     const BUYER_VISITOR_TABS: {
         value: BuyerVisitorTab;
-        label: string;
+        labelKey: string;
         icon: ReactNode;
     }[] = [
         {
             value: "posts",
-            label: "Bài viết",
+            labelKey: "profile.posts",
             icon: <Grid3X3 className="h-4 w-4" />,
         },
         {
             value: "reviews",
-            label: "Đánh giá",
+            labelKey: "profile.reviews",
             icon: <Star className="h-4 w-4" />,
         },
     ];
 
     const BUYER_SELF_TABS: {
         value: BuyerSelfTab;
-        label: string;
+        labelKey: string;
         icon: ReactNode;
     }[] = [
         {
             value: "posts",
-            label: "Bài viết",
+            labelKey: "profile.posts",
             icon: <Grid3X3 className="h-4 w-4" />,
         },
         {
             value: "orders",
-            label: "Đơn hàng",
+            labelKey: "profile.orders",
             icon: <ShoppingBag className="h-4 w-4" />,
         },
-        { value: "groups", label: "Nhóm", icon: <Users className="h-4 w-4" /> },
+        { value: "groups", labelKey: "profile.groups", icon: <Users className="h-4 w-4" /> },
         {
             value: "reviews",
-            label: "Đánh giá",
+            labelKey: "profile.reviews",
             icon: <Star className="h-4 w-4" />,
         },
     ];
@@ -189,14 +191,13 @@ export default function Profile() {
                             <>
                                 <div className="rounded-xl border border-primary/25 bg-primary/5 p-4 dark:border-primary-900/50 dark:bg-primary-950/25">
                                     <p className="mb-3 text-sm text-neutral-600 dark:text-neutral-300">
-                                        Quản lý sản phẩm, đơn hàng, tồn kho và
-                                        thống kê tại trung tâm người bán.
+                                        {t("profile.sellerDesc")}
                                     </p>
                                     <Link
                                         to="/seller/dashboard"
                                         className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold text-white shadow-md shadow-primary/25 transition-opacity hover:opacity-90"
                                     >
-                                        Mở Seller Dashboard
+                                        {t("profile.openSellerDashboard")}
                                     </Link>
                                 </div>
                                 <ProfilePostsGrid
@@ -242,7 +243,7 @@ export default function Profile() {
                                         )}
                                     >
                                         {tab.icon}
-                                        {tab.label}
+                                        {t(tab.labelKey)}
                                     </button>
                                 ))}
                             </div>
@@ -254,7 +255,7 @@ export default function Profile() {
                                     />
                                 ) : (
                                     <div className="py-8 text-center text-neutral-400">
-                                        Chưa có đánh giá.
+                                        {t("profile.noReviews")}
                                     </div>
                                 )}
                             </div>
@@ -293,7 +294,7 @@ export default function Profile() {
                                                 )}
                                             >
                                                 {tab.icon}
-                                                {tab.label}
+                                                {t(tab.labelKey)}
                                             </button>
                                         ))}
                                     </div>
@@ -306,32 +307,30 @@ export default function Profile() {
                                         ) : buyerSelfTab === "orders" ? (
                                             <div className="space-y-4 py-4 text-center">
                                                 <p className="text-neutral-600 dark:text-neutral-300">
-                                                    Xem và quản lý đơn hàng của
-                                                    bạn.
+                                                    {t("profile.ordersDesc")}
                                                 </p>
                                                 <Link
                                                     to="/orders"
                                                     className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-700"
                                                 >
-                                                    Đến trang đơn hàng
+                                                    {t("profile.goToOrders")}
                                                 </Link>
                                             </div>
                                         ) : buyerSelfTab === "groups" ? (
                                             <div className="space-y-4 py-4 text-center">
                                                 <p className="text-neutral-600 dark:text-neutral-300">
-                                                    Khám phá và tham gia các
-                                                    nhóm.
+                                                    {t("profile.groupsDesc")}
                                                 </p>
                                                 <Link
                                                     to="/groups"
                                                     className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-700"
                                                 >
-                                                    Đến trang nhóm
+                                                    {t("profile.goToGroups")}
                                                 </Link>
                                             </div>
                                         ) : (
                                             <div className="py-8 text-center text-neutral-400">
-                                                Chưa có đánh giá.
+                                                {t("profile.noReviews")}
                                             </div>
                                         )}
                                     </div>

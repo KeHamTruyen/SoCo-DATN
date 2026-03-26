@@ -428,8 +428,8 @@ export const deleteCommentAsModerator = async (commentId) => {
 
 // ─── Get comments ──────────────────────────────────────
 
-export const getComments = async (postId, page = 1, limit = 20) => {
-  const skip = (page - 1) * limit;
+export const getComments = async (postId, page = 1, limit = 20, offset) => {
+  const skip = offset !== undefined ? offset : (page - 1) * limit;
   const [comments, total] = await Promise.all([
     prisma.postComment.findMany({
       where: { postId, parentId: null },

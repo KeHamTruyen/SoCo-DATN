@@ -4,6 +4,7 @@ import { Monitor, Moon, Sun, X } from "lucide-react";
 import { Button } from "../../atoms/button";
 import { cn } from "../../../lib/cn";
 import { useThemePreference, type ThemePreference } from "../../../theme/ThemePreferenceProvider";
+import { useTranslation } from "react-i18next";
 
 interface ThemePickerModalProps {
     onClose: () => void;
@@ -11,32 +12,33 @@ interface ThemePickerModalProps {
 
 const OPTIONS: {
     value: ThemePreference;
-    label: string;
-    description: string;
+    labelKey: string;
+    descriptionKey: string;
     icon: ReactNode;
 }[] = [
     {
         value: "light",
-        label: "Sáng",
-        description: "Luôn dùng giao diện sáng",
+        labelKey: "theme.light",
+        descriptionKey: "theme.lightDesc",
         icon: <Sun className="h-5 w-5" />,
     },
     {
         value: "dark",
-        label: "Tối",
-        description: "Luôn dùng giao diện tối",
+        labelKey: "theme.dark",
+        descriptionKey: "theme.darkDesc",
         icon: <Moon className="h-5 w-5" />,
     },
     {
         value: "system",
-        label: "Theo hệ thống",
-        description: "Khớp với cài đặt thiết bị",
+        labelKey: "theme.system",
+        descriptionKey: "theme.systemDesc",
         icon: <Monitor className="h-5 w-5" />,
     },
 ];
 
 export function ThemePickerModal({ onClose }: ThemePickerModalProps) {
     const { preference, setPreference } = useThemePreference();
+    const { t } = useTranslation();
 
     const handleSelect = (p: ThemePreference) => {
         setPreference(p);
@@ -61,9 +63,9 @@ export function ThemePickerModal({ onClose }: ThemePickerModalProps) {
                         id="theme-modal-title"
                         className="text-base font-semibold text-neutral-900 dark:text-neutral-100"
                     >
-                        Giao diện màn hình
+                        {t("theme.title")}
                     </h2>
-                    <Button variant="ghost" size="icon" onClick={onClose} aria-label="Đóng">
+                    <Button variant="ghost" size="icon" onClick={onClose} aria-label={t("theme.close")}>
                         <X className="h-5 w-5 text-neutral-600 dark:text-neutral-300" />
                     </Button>
                 </div>
@@ -91,7 +93,7 @@ export function ThemePickerModal({ onClose }: ThemePickerModalProps) {
                                 {opt.icon}
                             </span>
                             <span>
-                                <span className="block font-semibold text-inherit">{opt.label}</span>
+                                <span className="block font-semibold text-inherit">{t(opt.labelKey)}</span>
                                 <span
                                     className={cn(
                                         "mt-0.5 block text-xs",
@@ -100,7 +102,7 @@ export function ThemePickerModal({ onClose }: ThemePickerModalProps) {
                                             : "text-neutral-500 dark:text-neutral-400",
                                     )}
                                 >
-                                    {opt.description}
+                                    {t(opt.descriptionKey)}
                                 </span>
                             </span>
                         </button>
