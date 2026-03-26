@@ -285,13 +285,13 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                             post.comments.map((comment: FeedComment) => (
                                 <div key={comment.id} className="flex gap-3">
                                     <Avatar
-                                        src={comment.author.avatarUrl}
-                                        alt={comment.author.fullName}
+                                        src={comment.user?.avatarUrl}
+                                        alt={comment.user?.fullName}
                                         wrapperClassName="h-8 w-8"
                                     />
                                     <div className="flex-1 rounded-xl bg-neutral-50 px-3 py-2 dark:bg-neutral-800">
                                         <p className="text-xs font-semibold">
-                                            {comment.author.fullName}
+                                            {comment.user?.fullName}
                                         </p>
                                         <p className="mt-0.5 text-sm text-neutral-700 dark:text-neutral-300">
                                             {comment.content}

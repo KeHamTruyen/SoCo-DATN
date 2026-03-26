@@ -21,7 +21,7 @@ export function CommentList({ comments }: CommentListProps) {
                     className="rounded-lg bg-neutral-50 px-3 py-2 text-sm dark:bg-neutral-800"
                 >
                     <p className="font-semibold text-neutral-700 dark:text-neutral-300">
-                        {comment.author.fullName ?? comment.author.username ?? "User"}
+                        {comment.user?.fullName ?? comment.user?.username ?? "User"}
                     </p>
                     <p className="mt-0.5 text-neutral-600 dark:text-neutral-400">
                         {comment.content}

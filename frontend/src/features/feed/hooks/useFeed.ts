@@ -86,7 +86,7 @@ export function useFeed() {
             id: `temp-${Date.now()}`,
             content,
             createdAt: new Date().toISOString(),
-            author: {
+            user: {
                 id: "me",
                 email: "me@local",
                 fullName: "You",
@@ -99,7 +99,7 @@ export function useFeed() {
                     ? {
                           ...post,
                           commentsCount: post.commentsCount + 1,
-                          comments: [...(post.comments ?? []), optimistic],
+                          comments: [optimistic, ...(post.comments ?? [])],
                       }
                     : post,
             ),

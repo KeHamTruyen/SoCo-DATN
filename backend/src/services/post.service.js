@@ -33,6 +33,17 @@ const POST_INCLUDE = {
     },
   },
   _count: { select: { likes: true, comments: true } },
+  comments: {
+    where: { parentId: null },
+    orderBy: { createdAt: 'desc' },
+    take: 3,
+    include: {
+      user: {
+        select: { id: true, username: true, fullName: true, avatarUrl: true, isVerified: true },
+      },
+      _count: { select: { replies: true } },
+    },
+  },
 };
 
 // ─── Create post (UC2.2) ───────────────────────────────

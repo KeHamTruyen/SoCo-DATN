@@ -25,7 +25,8 @@ async function main() {
     const email = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
     const password = process.env.SEED_ADMIN_PASSWORD;
     const username = process.env.SEED_ADMIN_USERNAME?.trim();
-    const fullName = process.env.SEED_ADMIN_FULL_NAME?.trim() || "Administrator";
+    const fullName =
+        process.env.SEED_ADMIN_FULL_NAME?.trim() || "Administrator";
 
     if (!email || !password || !username) {
         throw new Error(

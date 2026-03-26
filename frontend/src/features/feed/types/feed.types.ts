@@ -4,7 +4,7 @@ export interface FeedComment {
     id: string;
     content: string;
     createdAt: string;
-    author: UserProfile;
+    user: UserProfile;
 }
 
 export interface ShoppableProduct {

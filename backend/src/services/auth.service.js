@@ -180,19 +180,22 @@ class AuthService {
         });
 
         if (!user)
-            throw Object.assign(new Error("Invalid email or password"), {
+            throw Object.assign(new Error("User not found"), {
                 statusCode: 401,
             });
         if (!user.isActive)
-            throw Object.assign(new Error("Account has been deactivated"), {
+            throw Object.assign(new Error("User has been deactivated"), {
                 statusCode: 403,
             });
 
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid)
-            throw Object.assign(new Error("Invalid email or password"), {
-                statusCode: 401,
-            });
+            throw Object.assign(
+                new Error("Invalid email (or username) or password"),
+                {
+                    statusCode: 401,
+                },
+            );
 
         if (!user.isVerified) {
             const { otp, tempToken } = await this._generateEmailOtp(user.id);
