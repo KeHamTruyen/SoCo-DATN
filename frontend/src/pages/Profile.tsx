@@ -202,11 +202,12 @@ export default function Profile() {
             try {
                 let loadedProfile: PublicUserProfile | null = null;
                 if (isSelf) {
-                    if (!user) {
+                    const selfId = user?.id;
+                    if (!selfId) {
                         if (mounted) setProfile(null);
                         return;
                     }
-                    loadedProfile = await profileApi.getProfile(user.id);
+                    loadedProfile = await profileApi.getProfile(selfId);
                 } else if (id) {
                     loadedProfile = await profileApi.getProfile(id);
                 }
@@ -250,7 +251,7 @@ export default function Profile() {
         return () => {
             mounted = false;
         };
-    }, [id, isSelf, user]);
+    }, [id, isSelf, user?.id, user?.role]);
 
     const loadMorePosts = useCallback(async () => {
         if (!profile || !postsHasMore || postsLoadingMore) return;

@@ -47,13 +47,14 @@ export function AccountSettingsPanel({
     const [privacyErr, setPrivacyErr] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!user) return;
+        if (!user?.id) return;
+        const uid = user.id;
         let cancelled = false;
         void (async () => {
             setProfileLoading(true);
             setProfileErr(null);
             try {
-                const p = await profileApi.getProfile(user.id);
+                const p = await profileApi.getProfile(uid);
                 if (cancelled) return;
                 setFullName(p.fullName ?? "");
                 setUsername(p.username ?? "");
@@ -68,10 +69,10 @@ export function AccountSettingsPanel({
         return () => {
             cancelled = true;
         };
-    }, [user, t]);
+    }, [user?.id, t]);
 
     useEffect(() => {
-        if (tab !== "privacy" || !user) return;
+        if (tab !== "privacy" || !user?.id) return;
         let cancelled = false;
         void (async () => {
             setPrivacyLoading(true);
@@ -88,7 +89,7 @@ export function AccountSettingsPanel({
         return () => {
             cancelled = true;
         };
-    }, [tab, user, t]);
+    }, [tab, user?.id, t]);
 
     const saveProfile = async () => {
         if (!user) return;
