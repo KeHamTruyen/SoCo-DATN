@@ -2,10 +2,14 @@ import { CalendarClock, Grid3X3, Package, ShoppingBag, Star, Users } from "lucid
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import { feedApi } from "../features/feed/api/feedApi";
-import type { FeedPost } from "../features/feed/types/feed.types";
+import { PostDetailModal } from "../features/feed/components/PostDetailModal";
+import type { FeedComment, FeedPost } from "../features/feed/types/feed.types";
 import { marketplaceApi } from "../features/marketplace/api/marketplaceApi";
+import { uploadApi } from "../features/upload/api/uploadApi";
 import type { ProductListItem } from "../features/marketplace/types/marketplace.types";
 import { profileApi } from "../features/profile/api/profileApi";
+import { AccountSettingsModal } from "../features/profile/components/AccountSettingsModal";
+import type { AccountSettingsTab } from "../features/profile/components/AccountSettingsPanel";
 import { BuyerProfileHeader } from "../features/profile/components/BuyerProfileHeader";
 import { BuyerProfilePostGrid } from "../features/profile/components/BuyerProfilePostGrid";
 import { BuyerProfileSelfSidebar } from "../features/profile/components/BuyerProfileSelfSidebar";
@@ -29,7 +33,7 @@ type SellerSelfTab = "posts" | "shop" | "reviews" | "scheduled";
 
 export default function Profile() {
     const { id } = useParams<{ id: string }>();
-    const { user } = useAuthSession();
+    const { user, refreshProfile } = useAuthSession();
     const [profile, setProfile] = useState<PublicUserProfile | null>(null);
     const [posts, setPosts] = useState<FeedPost[]>([]);
     const [postsPage, setPostsPage] = useState(1);
@@ -45,7 +49,143 @@ export default function Profile() {
     const [shopProducts, setShopProducts] = useState<ProductListItem[]>([]);
     const [shopProductsLoading, setShopProductsLoading] = useState(false);
     const [productCategory, setProductCategory] = useState<string | null>(null);
+    const [profileMediaBusy, setProfileMediaBusy] = useState(false);
+    const [profileMediaError, setProfileMediaError] = useState<string | null>(null);
+    const [accountSettingsOpen, setAccountSettingsOpen] = useState(false);
+    const [accountSettingsTab, setAccountSettingsTab] = useState<AccountSettingsTab>("profile");
     const { t } = useTranslation();
+
+    const openAccountSettings = useCallback((tab: AccountSettingsTab) => {
+        setAccountSettingsTab(tab);
+        setAccountSettingsOpen(true);
+    }, []);
+
+    const handleAccountSettingsProfileSaved = useCallback(async () => {
+        if (!user) return;
+        try {
+            const p = await profileApi.getProfile(user.id);
+            setProfile(p);
+        } catch {
+            /* keep existing profile */
+        }
+    }, [user]);
+
+    const [postDetailModalId, setPostDetailModalId] = useState<string | null>(null);
+
+    const profileModalPost = useMemo(
+        () =>
+            postDetailModalId ? posts.find((p) => p.id === postDetailModalId) ?? null : null,
+        [postDetailModalId, posts],
+    );
+
+    const openProfilePostModal = useCallback((post: FeedPost) => {
+        setPostDetailModalId(post.id);
+    }, []);
+
+    useEffect(() => {
+        setPostDetailModalId(null);
+    }, [id]);
+
+    const handleProfileModalLike = useCallback(async () => {
+        if (!postDetailModalId) return;
+        const postId = postDetailModalId;
+        setPosts((prev) =>
+            prev.map((post) =>
+                post.id === postId
+                    ? {
+                          ...post,
+                          likedByMe: !post.likedByMe,
+                          likesCount: post.likedByMe
+                              ? Math.max(0, post.likesCount - 1)
+                              : post.likesCount + 1,
+                      }
+                    : post,
+            ),
+        );
+        try {
+            const updated = await feedApi.likePost(postId);
+            setPosts((prev) =>
+                prev.map((post) => (post.id === postId ? { ...post, ...updated } : post)),
+            );
+        } catch {
+            setPosts((prev) =>
+                prev.map((post) =>
+                    post.id === postId
+                        ? {
+                              ...post,
+                              likedByMe: !post.likedByMe,
+                              likesCount: post.likedByMe
+                                  ? post.likesCount + 1
+                                  : Math.max(0, post.likesCount - 1),
+                          }
+                        : post,
+                ),
+            );
+        }
+    }, [postDetailModalId]);
+
+    const handleProfileModalComment = useCallback(
+        async (content: string) => {
+            if (!postDetailModalId) return;
+            const postId = postDetailModalId;
+            const optimistic: FeedComment = {
+                id: `temp-${Date.now()}`,
+                content,
+                createdAt: new Date().toISOString(),
+                user: {
+                    id: user?.id ?? "me",
+                    email: user?.email ?? "me@local",
+                    fullName: user?.fullName,
+                    username: user?.username,
+                    avatarUrl: user?.avatarUrl,
+                    role: user?.role,
+                },
+            };
+
+            setPosts((prev) =>
+                prev.map((post) =>
+                    post.id === postId
+                        ? {
+                              ...post,
+                              commentsCount: post.commentsCount + 1,
+                              comments: [optimistic, ...(post.comments ?? [])],
+                          }
+                        : post,
+                ),
+            );
+
+            try {
+                const created = await feedApi.addComment(postId, content);
+                setPosts((prev) =>
+                    prev.map((post) =>
+                        post.id === postId
+                            ? {
+                                  ...post,
+                                  comments: (post.comments ?? []).map((comment) =>
+                                      comment.id === optimistic.id ? created : comment,
+                                  ),
+                              }
+                            : post,
+                    ),
+                );
+            } catch {
+                setPosts((prev) =>
+                    prev.map((post) =>
+                        post.id === postId
+                            ? {
+                                  ...post,
+                                  commentsCount: Math.max(0, post.commentsCount - 1),
+                                  comments: (post.comments ?? []).filter(
+                                      (comment) => comment.id !== optimistic.id,
+                                  ),
+                              }
+                            : post,
+                    ),
+                );
+            }
+        },
+        [postDetailModalId, user],
+    );
 
     const isSelf = !id || id === user?.id;
 
@@ -169,6 +309,48 @@ export default function Profile() {
         });
     };
 
+    const handleAvatarFile = useCallback(
+        async (file: File) => {
+            if (!profile) return;
+            setProfileMediaError(null);
+            setProfileMediaBusy(true);
+            try {
+                const { url } = await uploadApi.uploadAvatar(file);
+                await profileApi.updateProfile({ avatarUrl: url });
+                await refreshProfile();
+                setProfile((p) => (p ? { ...p, avatarUrl: url } : p));
+            } catch (e) {
+                setProfileMediaError(
+                    e instanceof Error ? e.message : t("profile.uploadError"),
+                );
+            } finally {
+                setProfileMediaBusy(false);
+            }
+        },
+        [profile, refreshProfile, t],
+    );
+
+    const handleCoverFile = useCallback(
+        async (file: File) => {
+            if (!profile) return;
+            setProfileMediaError(null);
+            setProfileMediaBusy(true);
+            try {
+                const { url } = await uploadApi.uploadPostMedia(file);
+                await profileApi.updateProfile({ coverImage: url });
+                await refreshProfile();
+                setProfile((p) => (p ? { ...p, coverImage: url, coverUrl: url } : p));
+            } catch (e) {
+                setProfileMediaError(
+                    e instanceof Error ? e.message : t("profile.uploadError"),
+                );
+            } finally {
+                setProfileMediaBusy(false);
+            }
+        },
+        [profile, refreshProfile, t],
+    );
+
     const isSeller = profile?.role === "seller";
 
     const BUYER_VISITOR_TABS: {
@@ -249,6 +431,14 @@ export default function Profile() {
                             totalSold={!isSelf ? totalSoldAggregate : undefined}
                             onFollow={() => void handleFollow()}
                             onUnfollow={() => void handleUnfollow()}
+                            onAvatarFile={isSelf ? handleAvatarFile : undefined}
+                            onCoverFile={isSelf ? handleCoverFile : undefined}
+                            profileMediaBusy={profileMediaBusy}
+                            profileMediaError={profileMediaError}
+                            onOpenEditProfile={
+                                isSelf ? () => openAccountSettings("profile") : undefined
+                            }
+                            onOpenPrivacy={isSelf ? () => openAccountSettings("privacy") : undefined}
                         />
 
                         <div
@@ -320,6 +510,7 @@ export default function Profile() {
                                                 posts={posts}
                                                 isLoading={false}
                                                 columns={3}
+                                                onPostClick={openProfilePostModal}
                                             />
                                         ) : (
                                             <div className="py-12 text-center text-sm text-muted-foreground">
@@ -348,6 +539,7 @@ export default function Profile() {
                                                     posts={posts}
                                                     isLoading={false}
                                                     columns={2}
+                                                    onPostClick={openProfilePostModal}
                                                 />
                                                 {postsHasMore ? (
                                                     <div className="mt-6 flex justify-center">
@@ -454,6 +646,7 @@ export default function Profile() {
                                         hasMore={postsHasMore}
                                         loadingMore={postsLoadingMore}
                                         onLoadMore={() => void loadMorePosts()}
+                                        onPostClick={openProfilePostModal}
                                     />
                                 ) : (
                                     <div className="py-8 text-center text-sm text-muted-foreground">
@@ -470,6 +663,12 @@ export default function Profile() {
                             isSelf
                             onFollow={() => void handleFollow()}
                             onUnfollow={() => void handleUnfollow()}
+                            onAvatarFile={handleAvatarFile}
+                            onCoverFile={handleCoverFile}
+                            profileMediaBusy={profileMediaBusy}
+                            profileMediaError={profileMediaError}
+                            onOpenEditProfile={() => openAccountSettings("profile")}
+                            onOpenPrivacy={() => openAccountSettings("privacy")}
                         />
                         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                             <aside className="order-2 lg:order-1 lg:col-span-4">
@@ -501,6 +700,7 @@ export default function Profile() {
                                                 hasMore={postsHasMore}
                                                 loadingMore={postsLoadingMore}
                                                 onLoadMore={() => void loadMorePosts()}
+                                                onPostClick={openProfilePostModal}
                                             />
                                         ) : buyerSelfTab === "orders" ? (
                                             <div className="space-y-4 py-4 text-center">
@@ -534,6 +734,20 @@ export default function Profile() {
                     </div>
                 )}
             </main>
+            <AccountSettingsModal
+                open={Boolean(isSelf && user && accountSettingsOpen)}
+                onClose={() => setAccountSettingsOpen(false)}
+                initialTab={accountSettingsTab}
+                onProfileSaveSuccess={handleAccountSettingsProfileSaved}
+            />
+            {profileModalPost ? (
+                <PostDetailModal
+                    post={profileModalPost}
+                    onClose={() => setPostDetailModalId(null)}
+                    onLike={() => void handleProfileModalLike()}
+                    onComment={(c) => void handleProfileModalComment(c)}
+                />
+            ) : null}
         </div>
     );
 }

@@ -47,3 +47,12 @@ export interface ResendVerificationResponse {
     message: string;
     tempToken?: string;
 }
+
+/** UC1.7 — matches backend auth.service privacy settings */
+export interface PrivacySettings {
+    profileVisibility: "public" | "followers" | "private";
+    postVisibility: "public" | "followers" | "private";
+    messagePermission: "everyone" | "followers" | "nobody";
+}
+
+export type PrivacySettingsPatch = Partial<PrivacySettings>;

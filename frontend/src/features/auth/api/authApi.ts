@@ -2,6 +2,8 @@ import { httpClient } from "../../../shared/api/httpClient";
 import type {
     AuthResponse,
     LoginPayload,
+    PrivacySettings,
+    PrivacySettingsPatch,
     RegisterPayload,
     RegisterResponse,
     ResendVerificationResponse,
@@ -80,5 +82,19 @@ export const authApi = {
     },
     async logout() {
         return httpClient.post("/auth/logout", {}, { requiresAuth: true });
+    },
+
+    async getPrivacy() {
+        const res = await httpClient.get<
+            ApiResponse<PrivacySettings> | { success?: boolean; data?: PrivacySettings }
+        >("/auth/privacy", { requiresAuth: true });
+        return unwrap<PrivacySettings>(res as ApiResponse<PrivacySettings>);
+    },
+
+    async updatePrivacy(payload: PrivacySettingsPatch) {
+        const res = await httpClient.put<
+            ApiResponse<PrivacySettings> | { success?: boolean; data?: PrivacySettings }
+        >("/auth/privacy", payload, { requiresAuth: true });
+        return unwrap<PrivacySettings>(res as ApiResponse<PrivacySettings>);
     },
 };

@@ -21,6 +21,8 @@ interface BuyerProfilePostGridProps {
     hasMore?: boolean;
     loadingMore?: boolean;
     onLoadMore?: () => void;
+    /** Opens post detail in a modal instead of navigating to `/posts/:id` */
+    onPostClick?: (post: FeedPost) => void;
 }
 
 export function BuyerProfilePostGrid({
@@ -29,6 +31,7 @@ export function BuyerProfilePostGrid({
     hasMore = false,
     loadingMore = false,
     onLoadMore,
+    onPostClick,
 }: BuyerProfilePostGridProps) {
     const { t } = useTranslation();
 
@@ -60,45 +63,59 @@ export function BuyerProfilePostGrid({
     return (
         <>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                {posts.map((post) => (
-                    <Link
-                        key={post.id}
-                        to={`/posts/${post.id}`}
-                        className="group overflow-hidden rounded-xl border border-border bg-muted/40 transition-shadow hover:shadow-md dark:bg-muted/20"
-                    >
-                        <div className="aspect-video overflow-hidden bg-muted">
-                            {post.imageUrl ? (
-                                <img
-                                    src={post.imageUrl}
-                                    alt=""
-                                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                                />
-                            ) : (
-                                <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">
-                                    {post.content}
-                                </div>
-                            )}
-                        </div>
-                        <div className="p-4">
-                            <p className="mb-3 line-clamp-2 text-sm text-foreground/90">
-                                {post.content}
-                            </p>
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <div className="flex gap-3">
-                                    <span className="flex items-center gap-1">
-                                        <Heart className="h-3.5 w-3.5" />
-                                        {post.likesCount}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                        <MessageCircle className="h-3.5 w-3.5" />
-                                        {post.commentsCount}
-                                    </span>
-                                </div>
-                                <span>{formatPostAge(post.createdAt, t)}</span>
+                {posts.map((post) => {
+                    const cardClass =
+                        "group block w-full overflow-hidden rounded-xl border border-border bg-muted/40 text-left transition-shadow hover:shadow-md dark:bg-muted/20";
+                    const inner = (
+                        <>
+                            <div className="aspect-video overflow-hidden bg-muted">
+                                {post.imageUrl ? (
+                                    <img
+                                        src={post.imageUrl}
+                                        alt=""
+                                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                                    />
+                                ) : (
+                                    <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">
+                                        {post.content}
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    </Link>
-                ))}
+                            <div className="p-4">
+                                <p className="mb-3 line-clamp-2 text-sm text-foreground/90">
+                                    {post.content}
+                                </p>
+                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                    <div className="flex gap-3">
+                                        <span className="flex items-center gap-1">
+                                            <Heart className="h-3.5 w-3.5" />
+                                            {post.likesCount}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <MessageCircle className="h-3.5 w-3.5" />
+                                            {post.commentsCount}
+                                        </span>
+                                    </div>
+                                    <span>{formatPostAge(post.createdAt, t)}</span>
+                                </div>
+                            </div>
+                        </>
+                    );
+                    return onPostClick ? (
+                        <button
+                            key={post.id}
+                            type="button"
+                            className={cardClass}
+                            onClick={() => onPostClick(post)}
+                        >
+                            {inner}
+                        </button>
+                    ) : (
+                        <Link key={post.id} to={`/posts/${post.id}`} className={cardClass}>
+                            {inner}
+                        </Link>
+                    );
+                })}
             </div>
             {hasMore && onLoadMore ? (
                 <div className="mt-8 flex justify-center">

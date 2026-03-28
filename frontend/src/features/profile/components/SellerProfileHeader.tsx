@@ -1,13 +1,17 @@
 import {
     BadgeCheck,
+    Camera,
     CirclePlus,
+    LayoutDashboard,
     MessageCircle,
     Pencil,
     Share2,
+    Shield,
     Star,
     UserPlus,
     UserCheck,
 } from "lucide-react";
+import { useRef, type ChangeEvent } from "react";
 import { Link } from "react-router-dom";
 import { Avatar } from "../../../shared/ui/atoms/avatar";
 import { Button } from "../../../shared/ui/atoms/button";
@@ -20,8 +24,13 @@ interface SellerProfileHeaderProps {
     isSelf: boolean;
     onFollow?: () => void;
     onUnfollow?: () => void;
-    /** Optional aggregate sold count for visitor metrics row */
     totalSold?: number;
+    onAvatarFile?: (file: File) => void | Promise<void>;
+    onCoverFile?: (file: File) => void | Promise<void>;
+    profileMediaBusy?: boolean;
+    profileMediaError?: string | null;
+    onOpenEditProfile?: () => void;
+    onOpenPrivacy?: () => void;
 }
 
 export function SellerProfileHeader({
@@ -30,10 +39,30 @@ export function SellerProfileHeader({
     onFollow,
     onUnfollow,
     totalSold,
+    onAvatarFile,
+    onCoverFile,
+    profileMediaBusy = false,
+    profileMediaError = null,
+    onOpenEditProfile,
+    onOpenPrivacy,
 }: SellerProfileHeaderProps) {
     const { t } = useTranslation();
     const cover = profile.coverUrl ?? profile.coverImage;
     const displayName = profile.shopName ?? profile.fullName;
+    const avatarInputRef = useRef<HTMLInputElement>(null);
+    const coverInputRef = useRef<HTMLInputElement>(null);
+
+    const handleAvatarInput = (e: ChangeEvent<HTMLInputElement>) => {
+        const f = e.target.files?.[0];
+        e.target.value = "";
+        if (f && onAvatarFile) void onAvatarFile(f);
+    };
+
+    const handleCoverInput = (e: ChangeEvent<HTMLInputElement>) => {
+        const f = e.target.files?.[0];
+        e.target.value = "";
+        if (f && onCoverFile) void onCoverFile(f);
+    };
 
     return (
         <section
@@ -42,6 +71,25 @@ export function SellerProfileHeader({
                 isSelf ? "rounded-3xl" : "sm:rounded-2xl",
             )}
         >
+            {isSelf && onCoverFile ? (
+                <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleCoverInput}
+                />
+            ) : null}
+            {isSelf && onAvatarFile ? (
+                <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarInput}
+                />
+            ) : null}
+
             <div
                 className={cn(
                     "relative h-48 w-full md:h-64",
@@ -58,9 +106,23 @@ export function SellerProfileHeader({
                         )}
                     </>
                 ) : null}
+                {isSelf && onCoverFile ? (
+                    <button
+                        type="button"
+                        disabled={profileMediaBusy}
+                        onClick={() => coverInputRef.current?.click()}
+                        className="absolute bottom-4 right-4 z-10 flex items-center gap-2 rounded-lg bg-black/40 px-3 py-2 text-sm text-white backdrop-blur-sm transition-all hover:bg-black/60 disabled:opacity-50"
+                    >
+                        <Camera className="h-4 w-4" />
+                        <span className="hidden sm:inline">{t("profile.changeCover")}</span>
+                    </button>
+                ) : null}
             </div>
 
             <div className="relative px-4 pb-6 pt-2 sm:px-6">
+                {profileMediaError ? (
+                    <p className="mb-2 text-sm text-destructive">{profileMediaError}</p>
+                ) : null}
                 <div
                     className={cn(
                         "flex flex-col gap-6 md:flex-row md:items-end md:justify-between",
@@ -70,15 +132,45 @@ export function SellerProfileHeader({
                     <div className="flex flex-col gap-4 md:flex-row md:items-end">
                         <div
                             className={cn(
-                                "relative shrink-0 overflow-hidden rounded-full border-4 border-background bg-muted shadow-lg",
+                                "group relative shrink-0 overflow-hidden rounded-full border-4 border-background bg-muted shadow-lg",
                                 isSelf ? "h-28 w-28 md:h-32 md:w-32" : "h-28 w-28 md:h-32 md:w-32",
+                                isSelf && onAvatarFile && "cursor-pointer",
                             )}
+                            onClick={() => {
+                                if (isSelf && onAvatarFile && !profileMediaBusy) {
+                                    avatarInputRef.current?.click();
+                                }
+                            }}
+                            onKeyDown={(e) => {
+                                if (
+                                    isSelf &&
+                                    onAvatarFile &&
+                                    !profileMediaBusy &&
+                                    (e.key === "Enter" || e.key === " ")
+                                ) {
+                                    e.preventDefault();
+                                    avatarInputRef.current?.click();
+                                }
+                            }}
+                            role={isSelf && onAvatarFile ? "button" : undefined}
+                            tabIndex={isSelf && onAvatarFile ? 0 : undefined}
                         >
                             <Avatar
                                 src={profile.avatarUrl}
                                 alt={displayName}
                                 wrapperClassName="h-full w-full"
                             />
+                            {isSelf && onAvatarFile ? (
+                                <div
+                                    className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
+                                    aria-hidden
+                                >
+                                    <Camera className="h-6 w-6 text-white" />
+                                    <span className="px-2 text-center text-xs font-semibold text-white">
+                                        {t("profile.changeAvatar")}
+                                    </span>
+                                </div>
+                            ) : null}
                         </div>
                         <div className="pb-1 md:pb-2">
                             <div className="flex flex-wrap items-center gap-2">
@@ -118,19 +210,43 @@ export function SellerProfileHeader({
                     <div className="flex w-full flex-wrap gap-3 md:w-auto md:justify-end">
                         {isSelf ? (
                             <>
-                                <Link
-                                    to="/seller/dashboard"
+                                <button
+                                    type="button"
+                                    disabled={profileMediaBusy || !onOpenEditProfile}
+                                    onClick={() => onOpenEditProfile?.()}
                                     className={cn(
-                                        "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98]",
+                                        "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
                                     )}
                                 >
                                     <Pencil className="h-4 w-4" />
                                     {t("profile.editProfile")}
+                                </button>
+                                <Link
+                                    to="/seller/dashboard"
+                                    className={cn(
+                                        "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98]",
+                                        profileMediaBusy && "pointer-events-none opacity-50",
+                                    )}
+                                >
+                                    <LayoutDashboard className="h-4 w-4" />
+                                    {t("profile.sellerDashboardShort")}
                                 </Link>
+                                <button
+                                    type="button"
+                                    disabled={profileMediaBusy || !onOpenPrivacy}
+                                    onClick={() => onOpenPrivacy?.()}
+                                    className={cn(
+                                        "inline-flex h-10 min-w-0 max-w-full items-center justify-center gap-2 whitespace-normal rounded-xl border border-border bg-background px-4 text-center text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 sm:whitespace-nowrap",
+                                    )}
+                                >
+                                    <Shield className="h-4 w-4 shrink-0" aria-hidden />
+                                    {t("profile.privacy")}
+                                </button>
                                 <Link
                                     to="/feed"
                                     className={cn(
                                         "inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-700 active:scale-[0.98]",
+                                        profileMediaBusy && "pointer-events-none opacity-50",
                                     )}
                                 >
                                     <CirclePlus className="h-4 w-4" />
@@ -156,7 +272,7 @@ export function SellerProfileHeader({
                                 </Button>
                             </Link>
                         ) : (
-                            <Button variant="outline" className="gap-2 rounded-xl">
+                            <Button variant="outline" className="gap-2 rounded-xl" type="button">
                                 <Share2 className="h-4 w-4" />
                                 {t("profile.shareShop")}
                             </Button>

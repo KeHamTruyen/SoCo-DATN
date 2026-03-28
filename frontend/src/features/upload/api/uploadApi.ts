@@ -84,6 +84,33 @@ export async function uploadProductImages(
     }));
 }
 
+/** User profile avatar — POST /upload/avatar (field `image`). */
+export async function uploadAvatar(file: File): Promise<UploadImageResult> {
+    const token = getAccessToken();
+    if (!token) {
+        throw new Error("Not authenticated");
+    }
+    const form = new FormData();
+    form.append("image", file);
+    const res = await fetch(`${API_BASE_URL}/upload/avatar`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+        credentials: "include",
+    });
+    const body = await parseJsonSafe(res);
+    if (!res.ok) {
+        const msg =
+            (body?.message as string | undefined) ?? `Upload failed (${res.status})`;
+        throw new Error(msg);
+    }
+    const data = body?.data as { url?: string; publicId?: string } | undefined;
+    if (!data?.url) {
+        throw new Error("Invalid upload response");
+    }
+    return { url: data.url, publicId: data.publicId ?? "" };
+}
+
 /** Feed post attachment — POST /upload/post (field `media`). */
 export async function uploadPostMedia(file: File): Promise<UploadImageResult> {
     const token = getAccessToken();
@@ -116,6 +143,7 @@ export const uploadApi = {
     uploadShopCover: (file: File) => postImage("shop-cover", file),
     /** Seller step 2 — CMND/CCCD/passport (call twice for front + back). */
     uploadSellerIdDoc: (file: File) => postImage("seller-id-doc", file),
+    uploadAvatar,
     uploadProductImage,
     uploadProductImages,
     uploadPostMedia,

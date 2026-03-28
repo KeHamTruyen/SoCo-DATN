@@ -6,6 +6,7 @@ import {
 import AiCreativeLab from "../../pages/AiCreativeLab";
 import Feed from "../../pages/Feed";
 import PostDetail from "../../pages/PostDetail";
+import AccountSettings from "../../pages/AccountSettings";
 import Profile from "../../pages/Profile";
 import SavedItems from "../../pages/SavedItems";
 import ScheduledPosts from "../../pages/ScheduledPosts";
@@ -22,6 +23,7 @@ export function FeedRoutes() {
                 <Route path="/seller/dashboard" element={<SellerDashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:id" element={<Profile />} />
+                <Route path="/account/settings" element={<AccountSettings />} />
             </Route>
             <Route element={<AppShellWithFooterLayout />}>
                 <Route path="/saved-items" element={<SavedItems />} />

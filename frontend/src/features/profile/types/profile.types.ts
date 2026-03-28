@@ -11,6 +11,7 @@ export interface PublicUserProfile {
     /** API trả `coverImage` (Prisma); ưu tiên `coverUrl` nếu có */
     coverImage?: string;
     bio?: string;
+    phone?: string;
     role: ProfileRole;
     /** Backend có thể bỏ qua — UI coi như 0 */
     followersCount?: number;
