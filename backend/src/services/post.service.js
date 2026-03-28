@@ -32,6 +32,9 @@ const POST_INCLUDE = {
       },
     },
   },
+  group: {
+    select: { id: true, name: true, avatarUrl: true, coverImageUrl: true },
+  },
   _count: { select: { likes: true, comments: true } },
   comments: {
     where: { parentId: null },
@@ -54,6 +57,7 @@ export const createPost = async (authorId, data) => {
     mediaUrls,
     mediaType,
     productId,
+    groupId,
     visibility,
     status,
     location,
@@ -68,6 +72,7 @@ export const createPost = async (authorId, data) => {
       mediaUrls: mediaUrls || [],
       mediaType,
       productId: productId || null,
+      groupId: groupId || null,
       location: location === undefined || location === null ? null : String(location).trim() || null,
       feeling: feeling === undefined || feeling === null ? null : String(feeling).trim() || null,
       taggedUserIds: normalizeTaggedUserIds(taggedUserIds),
@@ -214,6 +219,9 @@ export const getPostById = async (postId, userId = null) => {
           category: true,
           seller: { select: AUTHOR_SELECT },
         },
+      },
+      group: {
+        select: { id: true, name: true, avatarUrl: true, coverImageUrl: true },
       },
       likes: userId ? { where: { userId }, select: { id: true } } : false,
       comments: {

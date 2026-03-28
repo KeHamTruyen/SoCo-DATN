@@ -24,7 +24,9 @@
     "comments": "Comments",
     "viewMoreComments": "View more comments",
     "writeComment": "Write a comment...",
-    "noComments": "No comments yet. Be the first!"
+    "noComments": "No comments yet. Be the first!",
+    "copyPostLink": "Copy link",
+    "linkCopied": "Copied!"
   },
   "createPost": {
     "title": "Create Post",

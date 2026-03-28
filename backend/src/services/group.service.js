@@ -28,7 +28,7 @@ class GroupService {
         name,
         slug: slugify(name),
         description,
-        privacy: privacy || 'PUBLIC',
+        privacy: (privacy || 'PUBLIC').toUpperCase(),
         coverImageUrl,
         avatarUrl,
         isApprovedPosts: isApprovedPosts || false,
@@ -202,7 +202,7 @@ class GroupService {
     const updateData = {};
     if (name !== undefined) { updateData.name = name; updateData.slug = slugify(name); }
     if (description !== undefined) updateData.description = description;
-    if (privacy !== undefined) updateData.privacy = privacy;
+    if (privacy !== undefined) updateData.privacy = privacy.toUpperCase();
     if (coverImageUrl !== undefined) updateData.coverImageUrl = coverImageUrl;
     if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
     if (isApprovedPosts !== undefined) updateData.isApprovedPosts = isApprovedPosts;
@@ -294,6 +294,72 @@ class GroupService {
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
+
+  async getGroupPosts(groupId, userId = null, { page = 1, limit = 20 } = {}) {
+    const skip = (page - 1) * limit;
+    const include = {
+      author: { select: MEMBER_USER_SELECT },
+      product: {
+        select: {
+          id: true, title: true, price: true,
+          images: { where: { isPrimary: true }, take: 1, select: { imageUrl: true, altText: true } },
+        },
+      },
+      group: { select: { id: true, name: true, avatarUrl: true, coverImageUrl: true } },
+      _count: { select: { likes: true, comments: true } },
+      comments: {
+        where: { parentId: null },
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+        include: {
+          user: { select: { id: true, username: true, fullName: true, avatarUrl: true, isVerified: true } },
+          _count: { select: { replies: true } },
+        },
+      },
+    };
+
+    if (userId) {
+      include.likes = { where: { userId }, select: { id: true } };
+    }
+
+    const where = { groupId, status: 'PUBLISHED' };
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({ where, skip, take: limit, orderBy: { createdAt: 'desc' }, include }),
+      prisma.post.count({ where }),
+    ]);
+
+    const result = userId
+      ? posts.map((p) => { p.isLiked = p.likes?.length > 0; delete p.likes; return p; })
+      : posts;
+
+    return {
+      posts: result,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async createGroupPost(groupId, userId, data) {
+    const group = await prisma.group.findUnique({ where: { id: groupId } });
+    if (!group) throw new Error('Group not found');
+
+    const membership = await prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+    if (!membership) throw new Error('Must be a group member to post');
+
+    // Delegate to post creation with groupId
+    const { createPost } = await import('./post.service.js');
+    const post = await createPost(userId, { ...data, groupId });
+
+    // Increment group post count
+    await prisma.group.update({
+      where: { id: groupId },
+      data: { postsCount: { increment: 1 } },
+    });
+
+    return post;
+  }
 }
 
 export default new GroupService();
+

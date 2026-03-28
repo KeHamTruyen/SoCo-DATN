@@ -1,19 +1,33 @@
 import {
+    Check,
     ChevronDown,
-    Edit3,
     Globe,
     Image,
+    Link2,
+    Lock,
+    MessageSquarePlus,
+    Plus,
+    Settings,
+    ShieldCheck,
+    ShoppingBag,
+    ShoppingCart,
     Sparkles,
     Tag,
-    UserPlus,
     Users,
+    XCircle,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import type { CreatePostPayload, FeedPost } from "../features/feed/types/feed.types";
+import { CreatePostModal } from "../features/feed/components/CreatePostModal";
+import { FeedPostCard } from "../features/feed/components/FeedPostCard";
+import { feedApi } from "../features/feed/api/feedApi";
 import { groupApi } from "../features/group/api/groupApi";
 import type { Group } from "../features/group/types/group.types";
+import { UpdateGroupModal } from "../features/group/components/UpdateGroupModal";
+import { useAuthSession } from "../shared/auth/useAuthSession";
 import { cn } from "../shared/lib/cn";
-import { Button, UnifiedHeader } from "../shared/ui";
+import { Avatar, UnifiedHeader } from "../shared/ui";
 
 type GroupTab = "discussion" | "members" | "products" | "media";
 
@@ -24,13 +38,78 @@ const TABS: { value: GroupTab; label: string }[] = [
     { value: "media", label: "Media" },
 ];
 
+// Seeded gradient backgrounds for groups without covers
+const GRADIENT_PAIRS = [
+    "from-orange-400 to-rose-500",
+    "from-blue-500 to-purple-600",
+    "from-emerald-400 to-teal-600",
+    "from-pink-400 to-violet-500",
+    "from-amber-400 to-orange-600",
+    "from-cyan-400 to-blue-600",
+    "from-lime-400 to-emerald-600",
+    "from-fuchsia-400 to-pink-600",
+];
+
+const AVATAR_COLORS = [
+    "bg-blue-600",
+    "bg-primary",
+    "bg-emerald-600",
+    "bg-red-600",
+    "bg-yellow-600",
+    "bg-violet-600",
+];
+
+function getGradient(name: string) {
+    return GRADIENT_PAIRS[name.charCodeAt(0) % GRADIENT_PAIRS.length];
+}
+
+function getAvatarColor(name: string) {
+    return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+}
+
+function getInitials(name: string) {
+    return name
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((w) => w[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 3);
+}
+
+async function copyToClipboard(text: string) {
+    if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+}
+
 export default function GroupDetail() {
     const { id } = useParams<{ id: string }>();
+    const { user } = useAuthSession();
     const [group, setGroup] = useState<Group | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<GroupTab>("discussion");
-    const [postContent, setPostContent] = useState("");
 
+    // Post state
+    const [posts, setPosts] = useState<FeedPost[]>([]);
+    const [postsLoading, setPostsLoading] = useState(false);
+    const [showPostModal, setShowPostModal] = useState(false);
+
+    // UI state
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
+    const [inviteCopied, setInviteCopied] = useState(false);
+
+    // ── Fetch group data ──
     useEffect(() => {
         if (!id) return;
         let mounted = true;
@@ -49,20 +128,84 @@ export default function GroupDetail() {
         return () => { mounted = false; };
     }, [id]);
 
+    // ── Fetch group posts when group is loaded or tab changes ──
+    const fetchPosts = useCallback(async () => {
+        if (!id || activeTab !== "discussion") return;
+        setPostsLoading(true);
+        try {
+            const res = await groupApi.getGroupPosts(id);
+            setPosts(res.items);
+        } catch {
+            setPosts([]);
+        } finally {
+            setPostsLoading(false);
+        }
+    }, [id, activeTab]);
+
+    useEffect(() => {
+        void fetchPosts();
+    }, [fetchPosts]);
+
+    // ── Handlers ──
     const handleToggleMembership = async () => {
         if (!group || !id) return;
         try {
             if (group.isMember) {
                 await groupApi.leaveGroup(id);
-                setGroup((g) => g ? { ...g, isMember: false, membersCount: g.membersCount - 1 } : g);
+                setGroup((g) => g ? { ...g, isMember: false, memberRole: null, membersCount: g.membersCount - 1 } : g);
             } else {
                 await groupApi.joinGroup(id);
-                setGroup((g) => g ? { ...g, isMember: true, membersCount: g.membersCount + 1 } : g);
+                setGroup((g) => g ? { ...g, isMember: true, memberRole: "MEMBER", membersCount: g.membersCount + 1 } : g);
             }
-        } catch {
-            // silently ignore
-        }
+        } catch { /* silently ignore */ }
     };
+
+    const handleCreatePost = async (payload: CreatePostPayload) => {
+        if (!id) return;
+        await groupApi.createGroupPost(id, payload);
+        void fetchPosts();
+    };
+
+    const handleLike = async (postId: string) => {
+        await feedApi.likePost(postId);
+        setPosts((prev) =>
+            prev.map((p) =>
+                p.id === postId
+                    ? { ...p, likedByMe: !p.likedByMe, likesCount: p.likesCount + (p.likedByMe ? -1 : 1) }
+                    : p,
+            ),
+        );
+    };
+
+    const handleComment = async (postId: string, content: string) => {
+        await feedApi.addComment(postId, content);
+        setPosts((prev) =>
+            prev.map((p) =>
+                p.id === postId ? { ...p, commentsCount: p.commentsCount + 1 } : p,
+            ),
+        );
+    };
+
+    const handleInvite = () => {
+        const link = `${window.location.origin}/groups/${id}`;
+        void copyToClipboard(link).then(() => {
+            setInviteCopied(true);
+            setTimeout(() => setInviteCopied(false), 2000);
+        });
+    };
+
+    const handleGroupUpdated = (updated: Group) => {
+        setGroup(updated);
+        setShowUpdateModal(false);
+    };
+
+    const isPublic = group?.privacy?.toUpperCase() === "PUBLIC";
+    const isAdmin = group?.memberRole === "ADMIN";
+    const avatarColor = group ? getAvatarColor(group.name) : "bg-primary";
+    const gradient = group ? getGradient(group.name) : GRADIENT_PAIRS[0];
+
+    // Admin members from the group.members array
+    const adminMembers = group?.members?.filter((m) => m.role === "ADMIN") ?? [];
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark">
@@ -74,165 +217,419 @@ export default function GroupDetail() {
                 activePath="/feed"
             />
 
+            {/* ── Loading skeleton ── */}
             {isLoading ? (
-                <div className="mx-auto max-w-[1440px] space-y-6 px-4 py-8">
-                    <div className="h-48 animate-pulse rounded-2xl bg-neutral-200 dark:bg-neutral-800" />
+                <div className="mx-auto max-w-360 space-y-6 px-4 py-8 sm:px-6">
+                    <div className="h-64 animate-pulse rounded-2xl bg-neutral-200 dark:bg-neutral-800" />
                     <div className="h-24 animate-pulse rounded-2xl bg-neutral-200 dark:bg-neutral-800" />
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+                        <div className="space-y-4 lg:col-span-3">
+                            <div className="h-40 animate-pulse rounded-2xl bg-neutral-200 dark:bg-neutral-800" />
+                        </div>
+                        <div className="h-48 animate-pulse rounded-2xl bg-neutral-200 dark:bg-neutral-800" />
+                    </div>
                 </div>
             ) : !group ? (
-                <div className="mx-auto max-w-[1440px] px-4 py-8">
-                    <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center text-red-600 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-400">
-                        Group not found.
+                /* ── Not found ── */
+                <div className="mx-auto max-w-360 px-4 py-8">
+                    <div className="flex flex-col items-center gap-4 rounded-xl border border-red-200 bg-red-50 p-12 text-center dark:border-red-900/40 dark:bg-red-900/20">
+                        <XCircle className="h-12 w-12 text-red-400" />
+                        <p className="text-red-600 dark:text-red-400">Không tìm thấy nhóm.</p>
                     </div>
                 </div>
             ) : (
-                <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6">
-                    <div className="relative mb-6 rounded-b-2xl bg-white shadow-sm dark:bg-neutral-900">
-                        <div className="h-48 overflow-hidden rounded-b-2xl bg-neutral-200 dark:bg-neutral-800 sm:h-64">
-                            {group.coverImageUrl && (
+                /* ── Main content ── */
+                <main className="mx-auto w-full max-w-360 px-4 py-6 sm:px-6">
+                    {/* ── Group Header Card ── */}
+                    <div className="mb-6 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                        {/* Cover image */}
+                        <div className="relative h-56 w-full sm:h-64">
+                            {group.coverImageUrl ? (
                                 <img
                                     src={group.coverImageUrl}
                                     alt={group.name}
                                     className="h-full w-full object-cover"
                                 />
+                            ) : (
+                                <div className={cn("h-full w-full bg-linear-to-br", gradient)} />
                             )}
-                        </div>
-                        <div className="flex flex-col gap-4 px-6 pb-4 pt-4 sm:flex-row sm:items-end sm:justify-between">
-                            <div className="flex flex-1 gap-4 pb-2">
-                                <h1 className="text-3xl font-bold">{group.name}</h1>
-                                <div className="flex items-center gap-3 mt-1 text-sm font-medium text-neutral-500">
-                                    <span className="flex items-center gap-1">
-                                        <Globe className="h-4 w-4" />
-                                        {group.privacy === "public" ? "Public Group" : "Private Group"}
-                                    </span>
-                                    <span className="h-1 w-1 rounded-full bg-neutral-300" />
-                                    <span>{group.membersCount.toLocaleString()} Members</span>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2 pb-2">
-                                {group.isMember ? (
-                                    <Button
-                                        variant="outline"
-                                        className="gap-2"
-                                        onClick={() => void handleToggleMembership()}
-                                    >
-                                        Joined <ChevronDown className="h-4 w-4" />
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        className="gap-2"
-                                        onClick={() => void handleToggleMembership()}
-                                    >
-                                        <Users className="h-4 w-4" />
-                                        Join Group
-                                    </Button>
-                                )}
-                                <Button variant="outline" className="gap-2">
-                                    <UserPlus className="h-4 w-4" />
-                                    Invite
-                                </Button>
-                                <Button className="gap-2">
-                                    <Edit3 className="h-4 w-4" />
-                                    Write Post
-                                </Button>
-                            </div>
+                            <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
                         </div>
 
-                        <div className="flex gap-8 border-t border-neutral-100 px-6 pt-4 dark:border-neutral-800">
-                            {TABS.map((tab) => (
-                                <button
-                                    key={tab.value}
-                                    type="button"
-                                    onClick={() => setActiveTab(tab.value)}
-                                    className={cn(
-                                        "relative pb-4 text-sm font-semibold transition-colors",
-                                        activeTab === tab.value
-                                            ? "text-primary"
-                                            : "text-neutral-500 hover:text-neutral-900 dark:hover:text-white",
-                                    )}
-                                >
-                                    {tab.label}
-                                    {activeTab === tab.value && (
-                                        <div className="absolute bottom-0 left-0 h-0.5 w-full bg-primary" />
-                                    )}
-                                </button>
-                            ))}
+                        {/* Info + actions */}
+                        <div className="px-6 pb-0">
+                            <div className="relative z-10 -mt-12 flex flex-col gap-6 md:flex-row md:items-end">
+                                {/* Group avatar overlapping cover */}
+                                {group.avatarUrl ? (
+                                    <img
+                                        src={group.avatarUrl}
+                                        alt={group.name}
+                                        className="h-32 w-32 shrink-0 rounded-xl border-4 border-white object-cover shadow-lg dark:border-neutral-900"
+                                    />
+                                ) : (
+                                    <div
+                                        className={cn(
+                                            "flex h-32 w-32 shrink-0 items-center justify-center rounded-xl border-4 border-white text-3xl font-bold text-white shadow-lg dark:border-neutral-900",
+                                            avatarColor,
+                                        )}
+                                    >
+                                        {getInitials(group.name)}
+                                    </div>
+                                )}
+
+                                {/* Name + meta + buttons */}
+                                <div className="flex flex-1 flex-col gap-1 pb-2 md:flex-row md:items-end md:justify-between">
+                                    <div>
+                                        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
+                                            {group.name}
+                                        </h1>
+                                        <div className="mt-1 flex flex-wrap items-center gap-3 text-sm font-medium text-neutral-500 dark:text-neutral-400">
+                                            <span className="flex items-center gap-1">
+                                                {isPublic ? (
+                                                    <Globe className="h-4 w-4" />
+                                                ) : (
+                                                    <Lock className="h-4 w-4" />
+                                                )}
+                                                {isPublic ? "Public Group" : "Private Group"}
+                                            </span>
+                                            <span className="h-1 w-1 rounded-full bg-neutral-300 dark:bg-neutral-600" />
+                                            <span>{group.membersCount.toLocaleString()} Members</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Action buttons */}
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        {group.isMember ? (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    id="group-joined-btn"
+                                                    onClick={() => void handleToggleMembership()}
+                                                    className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-2 text-sm font-semibold transition-colors hover:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+                                                >
+                                                    Joined <ChevronDown className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    id="group-invite-btn"
+                                                    onClick={handleInvite}
+                                                    className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-2 text-sm font-semibold transition-colors hover:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+                                                >
+                                                    {inviteCopied ? (
+                                                        <><Check className="h-4 w-4 text-green-500" /> Copied!</>
+                                                    ) : (
+                                                        <><Link2 className="h-4 w-4" /> Invite</>
+                                                    )}
+                                                </button>
+                                                {isAdmin && (
+                                                    <button
+                                                        type="button"
+                                                        id="group-settings-btn"
+                                                        onClick={() => setShowUpdateModal(true)}
+                                                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
+                                                    >
+                                                        <Settings className="h-4 w-4" />
+                                                        Settings
+                                                    </button>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                id="group-join-btn"
+                                                onClick={() => void handleToggleMembership()}
+                                                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
+                                            >
+                                                <Users className="h-4 w-4" />
+                                                Join Group
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Tabs */}
+                            <div className="mt-6 flex gap-8 border-t border-neutral-100 pt-1 dark:border-neutral-800">
+                                {TABS.map((tab) => (
+                                    <button
+                                        key={tab.value}
+                                        type="button"
+                                        id={`group-tab-${tab.value}`}
+                                        onClick={() => setActiveTab(tab.value)}
+                                        className={cn(
+                                            "relative pb-4 text-sm font-semibold transition-colors",
+                                            activeTab === tab.value
+                                                ? "text-primary"
+                                                : "text-neutral-500 hover:text-neutral-900 dark:hover:text-white",
+                                        )}
+                                    >
+                                        {tab.label}
+                                        {activeTab === tab.value && (
+                                            <div className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-primary" />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
+                    {/* ── 2-column layout ── */}
                     <div className="grid grid-cols-1 gap-6 pb-8 lg:grid-cols-4">
+                        {/* ── Main column (3/4) ── */}
                         <div className="space-y-6 lg:col-span-3">
                             {activeTab === "discussion" && (
                                 <>
-                                    <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                        <div className="flex gap-4">
-                                            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800" />
-                                            <textarea
-                                                value={postContent}
-                                                onChange={(e) => setPostContent(e.target.value)}
-                                                placeholder="Share something with the group..."
-                                                className="w-full min-h-[80px] resize-none rounded-xl border-none bg-neutral-100 p-3 text-sm outline-none focus:ring-1 focus:ring-primary/30 dark:bg-neutral-800"
-                                            />
-                                        </div>
-                                        <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-4 dark:border-neutral-800">
-                                            <div className="flex items-center gap-1">
+                                    {/* Create Post Box — opens CreatePostModal */}
+                                    {group.isMember && (
+                                        <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                                            <div className="flex gap-3">
+                                                <Avatar
+                                                    src={user?.avatarUrl}
+                                                    alt={user?.fullName ?? "You"}
+                                                    wrapperClassName="h-10 w-10 shrink-0"
+                                                />
                                                 <button
                                                     type="button"
-                                                    className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                                                    onClick={() => setShowPostModal(true)}
+                                                    className="flex-1 rounded-xl bg-neutral-100 px-4 py-2.5 text-left text-sm text-neutral-500 transition-colors hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
                                                 >
-                                                    <Image className="h-4 w-4 text-primary" />
-                                                    Photo/Video
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
-                                                >
-                                                    <Tag className="h-4 w-4 text-primary" />
-                                                    Tag Product
+                                                    Share something with the group...
                                                 </button>
                                             </div>
-                                            <button
-                                                type="button"
-                                                className="flex items-center gap-2 rounded-lg bg-primary-50 px-4 py-1.5 text-sm font-bold text-primary transition-colors hover:bg-primary-100 dark:bg-primary-950/30 dark:text-primary"
-                                            >
-                                                <Sparkles className="h-3.5 w-3.5" />
-                                                AI Assistant
-                                            </button>
-                                        </div>
-                                    </div>
 
-                                    <div className="rounded-xl border border-neutral-200 bg-white p-6 text-center text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900">
-                                        No posts yet. Start the discussion!
-                                    </div>
+                                            <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-4 dark:border-neutral-800">
+                                                <div className="flex gap-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPostModal(true)}
+                                                        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                                                    >
+                                                        <Image className="h-4 w-4 text-primary" />
+                                                        Photo/Video
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPostModal(true)}
+                                                        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                                                    >
+                                                        <Tag className="h-4 w-4 text-primary" />
+                                                        Tag Product
+                                                    </button>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPostModal(true)}
+                                                    className="flex items-center gap-2 rounded-lg bg-primary/10 px-4 py-1.5 text-sm font-bold text-primary transition-all hover:bg-primary/20"
+                                                >
+                                                    <Sparkles className="h-4 w-4" />
+                                                    AI Assistant
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Post Feed */}
+                                    {postsLoading ? (
+                                        <div className="rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
+                                            Loading posts...
+                                        </div>
+                                    ) : posts.length > 0 ? (
+                                        posts.map((post) => (
+                                            <FeedPostCard
+                                                key={post.id}
+                                                post={{
+                                                    ...post,
+                                                    // Inside group detail, don't show group badge overlay
+                                                    group: undefined,
+                                                }}
+                                                onLike={() => void handleLike(post.id)}
+                                                onComment={(content) => handleComment(post.id, content)}
+                                            />
+                                        ))
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-neutral-200 bg-white p-12 text-center dark:border-neutral-700 dark:bg-neutral-900">
+                                            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                                                <MessageSquarePlus className="h-7 w-7 text-primary" />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-neutral-700 dark:text-neutral-200">
+                                                    Chưa có bài viết nào.
+                                                </p>
+                                                <p className="mt-1 text-sm text-neutral-400">
+                                                    Hãy là người đầu tiên chia sẻ điều gì đó với nhóm!
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </>
                             )}
+
+                            {/* Other tabs */}
                             {activeTab !== "discussion" && (
-                                <div className="rounded-xl border border-neutral-200 bg-white p-8 text-center text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900">
-                                    {TABS.find((t) => t.value === activeTab)?.label} content coming soon.
+                                <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900">
+                                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800">
+                                        {activeTab === "members" && <Users className="h-7 w-7" />}
+                                        {activeTab === "products" && <ShoppingBag className="h-7 w-7" />}
+                                        {activeTab === "media" && <Image className="h-7 w-7" />}
+                                    </div>
+                                    <p className="font-semibold text-neutral-500">
+                                        {TABS.find((t) => t.value === activeTab)?.label} — coming soon.
+                                    </p>
                                 </div>
                             )}
                         </div>
 
-                        <div className="space-y-4">
-                            <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                <h3 className="mb-3 font-bold">About Group</h3>
-                                {group.description && (
-                                    <p className="text-sm text-neutral-500">{group.description}</p>
+                        {/* ── Sidebar (1/4) ── */}
+                        <aside className="space-y-5">
+                            {/* About Group */}
+                            <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                                <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-neutral-400">
+                                    About Group
+                                </h3>
+                                {group.description ? (
+                                    <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-300">
+                                        {group.description}
+                                    </p>
+                                ) : (
+                                    <p className="text-sm italic text-neutral-400">
+                                        Chưa có mô tả.
+                                    </p>
                                 )}
-                                <div className="mt-3 space-y-2 text-sm">
-                                    <div className="flex items-center gap-2 text-neutral-500">
+                                <div className="mt-4 space-y-3">
+                                    <div className="flex items-center gap-3 text-sm text-neutral-500">
+                                        <ShieldCheck className="h-5 w-5 text-primary" />
+                                        <span>Be respectful and helpful</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-sm text-neutral-500">
+                                        <XCircle className="h-5 w-5 text-primary" />
+                                        <span>No spam or self-promotion</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-sm text-neutral-500">
+                                        <ShoppingCart className="h-5 w-5 text-primary" />
+                                        <span>Tag products in setup posts</span>
+                                    </div>
+                                </div>
+                                <div className="mt-4 space-y-2 border-t border-neutral-100 pt-4 dark:border-neutral-800">
+                                    <div className="flex items-center gap-3 text-sm text-neutral-500">
                                         <Users className="h-4 w-4" />
                                         {group.membersCount.toLocaleString()} members
                                     </div>
-                                    <div className="flex items-center gap-2 text-neutral-500">
-                                        <Globe className="h-4 w-4" />
-                                        {group.privacy === "public" ? "Public" : "Private"} group
+                                    <div className="flex items-center gap-3 text-sm text-neutral-500">
+                                        {isPublic ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                                        {isPublic ? "Public" : "Private"} group
                                     </div>
                                 </div>
                             </div>
-                        </div>
+
+                            {/* Admins */}
+                            <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                                <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-neutral-400">
+                                    Admins
+                                </h3>
+                                <div className="space-y-3">
+                                    {adminMembers.length > 0 ? (
+                                        adminMembers.map((m) => (
+                                            <Link
+                                                key={m.userId}
+                                                to={`/profile/${m.userId}`}
+                                                className="flex items-center gap-3 rounded-lg p-1 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                                            >
+                                                <Avatar
+                                                    src={m.user.avatarUrl}
+                                                    alt={m.user.fullName ?? m.user.username ?? "Admin"}
+                                                    wrapperClassName="h-8 w-8 shrink-0"
+                                                />
+                                                <div>
+                                                    <p className="text-sm font-bold">
+                                                        {m.user.fullName ?? m.user.username ?? "Admin"}
+                                                    </p>
+                                                    <p className="text-[10px] font-bold uppercase tracking-tighter text-neutral-400">
+                                                        {m.userId === group.createdBy ? "Founder" : "Admin"}
+                                                    </p>
+                                                </div>
+                                            </Link>
+                                        ))
+                                    ) : group.creator ? (
+                                        <Link
+                                            to={`/profile/${group.creator.id}`}
+                                            className="flex items-center gap-3 rounded-lg p-1 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                                        >
+                                            <Avatar
+                                                src={group.creator.avatarUrl}
+                                                alt={group.creator.fullName ?? group.creator.username ?? "Founder"}
+                                                wrapperClassName="h-8 w-8 shrink-0"
+                                            />
+                                            <div>
+                                                <p className="text-sm font-bold">
+                                                    {group.creator.fullName ?? group.creator.username ?? "Founder"}
+                                                </p>
+                                                <p className="text-[10px] font-bold uppercase tracking-tighter text-neutral-400">
+                                                    Founder
+                                                </p>
+                                            </div>
+                                        </Link>
+                                    ) : null}
+                                </div>
+                            </div>
+
+                            {/* Featured Products */}
+                            <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                                <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-neutral-400">
+                                    Featured Products
+                                </h3>
+                                <div className="flex flex-col items-center gap-3 py-4 text-center text-neutral-400">
+                                    <ShoppingBag className="h-8 w-8 opacity-40" />
+                                    <p className="text-xs">Chưa có sản phẩm nào.</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="mt-3 w-full rounded-lg border border-primary/30 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-primary/5"
+                                >
+                                    View All Products
+                                </button>
+                            </div>
+
+                            {/* Join CTA */}
+                            {!group.isMember && (
+                                <div
+                                    className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 border-dashed border-neutral-300 p-6 text-center transition-all hover:border-primary/40 hover:bg-primary/5 dark:border-neutral-700"
+                                    onClick={() => void handleToggleMembership()}
+                                >
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                        <Plus className="h-5 w-5" />
+                                    </div>
+                                    <p className="text-sm font-semibold text-neutral-600 dark:text-neutral-300">
+                                        Join to post in this group
+                                    </p>
+                                    <button
+                                        type="button"
+                                        className="text-sm font-bold text-primary hover:underline"
+                                    >
+                                        Join Group
+                                    </button>
+                                </div>
+                            )}
+                        </aside>
                     </div>
-                </div>
+                </main>
+            )}
+
+            {/* ── CreatePostModal ── */}
+            {showPostModal && id && (
+                <CreatePostModal
+                    onClose={() => setShowPostModal(false)}
+                    onCreate={handleCreatePost}
+                    groupId={id}
+                />
+            )}
+
+            {/* ── UpdateGroupModal ── */}
+            {showUpdateModal && group && id && (
+                <UpdateGroupModal
+                    group={group}
+                    onClose={() => setShowUpdateModal(false)}
+                    onUpdated={handleGroupUpdated}
+                />
             )}
         </div>
     );

@@ -32,4 +32,9 @@ router.get('/:groupId/members', groupController.getMembers);
 router.patch('/:groupId/members/:userId/role', protect, groupController.updateMemberRole);
 router.delete('/:groupId/members/:userId', protect, groupController.removeMember);
 
+// Group Posts
+router.get('/:groupId/posts', optionalAuth, groupController.getGroupPosts);
+router.post('/:groupId/posts', protect, groupController.createGroupPost);
+
 export default router;
+

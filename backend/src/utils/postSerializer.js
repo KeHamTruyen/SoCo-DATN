@@ -22,13 +22,19 @@ function enrichSingle(post, usersById) {
   const taggedUsers = ids.map((id) => usersById.get(id)).filter(Boolean);
   // Omit `product` — it contains Prisma.Decimal `price` which can break JSON serialization;
   // clients use `taggedProducts` instead.
-  const { likes, _count, isLiked, product: _product, ...rest } = post;
+  const { likes, _count, isLiked, product: _product, group: rawGroup, ...rest } = post;
+
+  const group = rawGroup
+    ? { id: rawGroup.id, name: rawGroup.name, avatarUrl: rawGroup.avatarUrl || null, coverImageUrl: rawGroup.coverImageUrl || null }
+    : undefined;
+
   return {
     ...rest,
     imageUrl: post.mediaUrls?.[0] || undefined,
     likedByMe: Boolean(isLiked),
     taggedProducts: deriveTaggedProducts(post),
     taggedUsers,
+    group,
   };
 }
 

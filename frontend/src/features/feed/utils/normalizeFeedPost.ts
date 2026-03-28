@@ -62,5 +62,7 @@ export function normalizeFeedPost(raw: Record<string, unknown> | null | undefine
         isScheduled: raw.isScheduled as boolean | undefined,
         location: raw.location != null ? String(raw.location) : undefined,
         feeling: raw.feeling != null ? String(raw.feeling) : undefined,
+        groupId: raw.groupId != null ? String(raw.groupId) : undefined,
+        group: raw.group as FeedPost["group"],
     };
 }

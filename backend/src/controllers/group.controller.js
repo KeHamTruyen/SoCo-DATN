@@ -155,6 +155,46 @@ class GroupController {
       next(error);
     }
   }
+
+  async getGroupPosts(req, res, next) {
+    try {
+      const { formatPostsForResponse } = await import('../utils/postSerializer.js');
+      const result = await groupService.getGroupPosts(
+        req.params.groupId,
+        req.user?.id || null,
+        {
+          page: parseInt(req.query.page) || 1,
+          limit: parseInt(req.query.limit) || 20,
+        },
+      );
+      const data = await formatPostsForResponse(result.posts);
+      res.json({ success: true, data, pagination: result.pagination });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async createGroupPost(req, res, next) {
+    try {
+      const { formatPostForResponse } = await import('../utils/postSerializer.js');
+      const post = await groupService.createGroupPost(
+        req.params.groupId,
+        req.user.id,
+        req.body,
+      );
+      const formatted = await formatPostForResponse(post);
+      res.status(201).json({ success: true, message: 'Group post created', data: { post: formatted } });
+    } catch (error) {
+      if (error.message === 'Group not found') {
+        return res.status(404).json({ success: false, message: error.message });
+      }
+      if (error.message.includes('Must be a group member')) {
+        return res.status(403).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
 }
 
 export default new GroupController();
+

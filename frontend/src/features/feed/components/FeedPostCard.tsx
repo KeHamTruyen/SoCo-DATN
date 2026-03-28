@@ -1,5 +1,5 @@
-import { MessageSquarePlus, MoreHorizontal, Share2 } from "lucide-react";
-import { useState } from "react";
+import { Link2, MessageSquarePlus, MoreHorizontal, Share2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Avatar, Button } from "../../../shared/ui";
 import { CommentList } from "./CommentList";
@@ -14,11 +14,50 @@ interface FeedPostCardProps {
     onComment: (content: string) => Promise<void> | void;
 }
 
+async function copyTextToClipboard(text: string) {
+    if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+}
+
 export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
     const [newComment, setNewComment] = useState("");
     const [isCommenting, setIsCommenting] = useState(false);
     const [showPostModal, setShowPostModal] = useState(false);
+    const [shareMenuOpen, setShareMenuOpen] = useState(false);
+    const [linkJustCopied, setLinkJustCopied] = useState(false);
+    const shareMenuRef = useRef<HTMLDivElement>(null);
     const { t } = useTranslation();
+
+    const closeShareMenu = useCallback(() => {
+        setShareMenuOpen(false);
+    }, []);
+
+    useEffect(() => {
+        if (!shareMenuOpen) return;
+        const onDoc = (e: MouseEvent) => {
+            if (!shareMenuRef.current?.contains(e.target as Node)) closeShareMenu();
+        };
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") closeShareMenu();
+        };
+        document.addEventListener("mousedown", onDoc);
+        document.addEventListener("keydown", onKey);
+        return () => {
+            document.removeEventListener("mousedown", onDoc);
+            document.removeEventListener("keydown", onKey);
+        };
+    }, [shareMenuOpen, closeShareMenu]);
 
     const handleComment = () => {
         if (!newComment.trim()) return;
@@ -34,6 +73,23 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
         void onComment(content);
     };
 
+    const postPermalink = `${window.location.origin}/posts/${post.id}`;
+
+    const handleCopyPostLink = () => {
+        void (async () => {
+            try {
+                await copyTextToClipboard(postPermalink);
+                setLinkJustCopied(true);
+                window.setTimeout(() => {
+                    setLinkJustCopied(false);
+                    closeShareMenu();
+                }, 1200);
+            } catch {
+                setLinkJustCopied(false);
+            }
+        })();
+    };
+
     const hasProducts = (post.taggedProducts?.length ?? 0) > 0;
     const primaryMedia = post.imageUrl;
     const extraMedia =
@@ -42,26 +98,63 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
 
     return (
         <article className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            {/* Author header */}
+            {/* Author header — with optional group badge */}
             <div className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
-                    <Avatar
-                        src={post.author.avatarUrl}
-                        alt={post.author.fullName ?? post.author.email}
-                        wrapperClassName="h-10 w-10 shrink-0 border-2 border-primary"
-                    />
-                    <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-neutral-900 dark:text-neutral-100">
-                            {post.author.fullName ?? post.author.username ?? "User"}
-                        </p>
-                        <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                            {formatTimeAgo(post.createdAt)}
-                            {post.location ? ` • ${post.location}` : ""}
-                        </p>
-                        {post.feeling ? (
-                            <p className="text-[11px] font-medium text-primary">{post.feeling}</p>
-                        ) : null}
-                    </div>
+                    {post.group ? (
+                        /* ─ Group post: stacked avatar + group name above author ─ */
+                        <>
+                            <div className="relative h-10 w-10 shrink-0">
+                                {/* Group avatar (background) */}
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-xs font-bold text-white">
+                                    {post.group.avatarUrl ? (
+                                        <img src={post.group.avatarUrl} alt="" className="h-full w-full rounded-lg object-cover" />
+                                    ) : (
+                                        post.group.name.slice(0, 2).toUpperCase()
+                                    )}
+                                </div>
+                                {/* User avatar (overlapping bottom-right) */}
+                                <Avatar
+                                    src={post.author.avatarUrl}
+                                    alt={post.author.fullName ?? post.author.email}
+                                    wrapperClassName="absolute -bottom-1 -right-1 h-6 w-6 border-2 border-white dark:border-neutral-900"
+                                />
+                            </div>
+                            <div className="min-w-0">
+                                <Link to={`/groups/${post.group.id}`} className="block truncate text-sm font-bold text-neutral-900 hover:text-primary dark:text-neutral-100">
+                                    {post.group.name}
+                                </Link>
+                                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                                    {post.author.fullName ?? post.author.username ?? "User"} • {formatTimeAgo(post.createdAt)}
+                                    {post.location ? ` • ${post.location}` : ""}
+                                </p>
+                                {post.feeling ? (
+                                    <p className="text-[11px] font-medium text-primary">{post.feeling}</p>
+                                ) : null}
+                            </div>
+                        </>
+                    ) : (
+                        /* ─ Normal post: regular author header ─ */
+                        <>
+                            <Avatar
+                                src={post.author.avatarUrl}
+                                alt={post.author.fullName ?? post.author.email}
+                                wrapperClassName="h-10 w-10 shrink-0 border-2 border-primary"
+                            />
+                            <div className="min-w-0">
+                                <p className="truncate text-sm font-bold text-neutral-900 dark:text-neutral-100">
+                                    {post.author.fullName ?? post.author.username ?? "User"}
+                                </p>
+                                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                                    {formatTimeAgo(post.createdAt)}
+                                    {post.location ? ` • ${post.location}` : ""}
+                                </p>
+                                {post.feeling ? (
+                                    <p className="text-[11px] font-medium text-primary">{post.feeling}</p>
+                                ) : null}
+                            </div>
+                        </>
+                    )}
                 </div>
                 <button
                     type="button"
@@ -180,15 +273,43 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
                     </button>
 
                     {/* Share */}
-                    <button
-                        type="button"
-                        className="flex items-center gap-1.5 text-sm text-neutral-600 transition-colors hover:text-primary dark:text-neutral-400"
-                    >
-                        <Share2 className="h-4 w-4" />
-                        {post.sharesCount ? (
-                            <span className="text-xs font-semibold">{post.sharesCount}</span>
+                    <div ref={shareMenuRef} className="relative">
+                        <button
+                            type="button"
+                            aria-expanded={shareMenuOpen}
+                            aria-haspopup="menu"
+                            onClick={() => {
+                                setShareMenuOpen((v) => !v);
+                                setLinkJustCopied(false);
+                            }}
+                            className={`flex items-center gap-1.5 text-sm transition-colors hover:text-primary ${
+                                shareMenuOpen
+                                    ? "text-primary"
+                                    : "text-neutral-600 dark:text-neutral-400"
+                            }`}
+                        >
+                            <Share2 className="h-4 w-4" />
+                            {post.sharesCount ? (
+                                <span className="text-xs font-semibold">{post.sharesCount}</span>
+                            ) : null}
+                        </button>
+                        {shareMenuOpen ? (
+                            <div
+                                role="menu"
+                                className="absolute bottom-full left-0 z-50 mb-1 min-w-44 overflow-hidden rounded-lg border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+                            >
+                                <button
+                                    type="button"
+                                    role="menuitem"
+                                    onClick={handleCopyPostLink}
+                                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-neutral-800 transition-colors hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                                >
+                                    <Link2 className="h-4 w-4 shrink-0 opacity-70" />
+                                    {linkJustCopied ? t("feed.linkCopied") : t("feed.copyPostLink")}
+                                </button>
+                            </div>
                         ) : null}
-                    </button>
+                    </div>
                 </div>
 
                 {/* Conditional CTA */}

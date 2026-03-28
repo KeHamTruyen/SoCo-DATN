@@ -26,6 +26,13 @@ export interface TaggedUserBrief {
     avatarUrl?: string;
 }
 
+export interface FeedPostGroup {
+    id: string;
+    name: string;
+    avatarUrl?: string | null;
+    coverImageUrl?: string | null;
+}
+
 export interface FeedPost {
     id: string;
     content: string;
@@ -46,6 +53,8 @@ export interface FeedPost {
     isScheduled?: boolean;
     location?: string;
     feeling?: string;
+    groupId?: string;
+    group?: FeedPostGroup;
 }
 
 /** Payload for creating or scheduling a post from the composer modal. */
@@ -58,6 +67,7 @@ export interface CreatePostPayload {
     feeling?: string | null;
     taggedUserIds?: string[];
     scheduledAt?: string;
+    groupId?: string;
 }
 
 export interface FeedPageResponse {

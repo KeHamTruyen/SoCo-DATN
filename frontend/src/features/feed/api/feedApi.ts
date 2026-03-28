@@ -61,6 +61,7 @@ function buildCreateBody(payload: CreatePostPayload): Record<string, unknown> {
         location: payload.location?.trim() || undefined,
         feeling: payload.feeling?.trim() || undefined,
         taggedUserIds: payload.taggedUserIds?.length ? payload.taggedUserIds : undefined,
+        groupId: payload.groupId || undefined,
     };
     return body;
 }

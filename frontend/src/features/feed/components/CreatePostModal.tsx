@@ -32,6 +32,8 @@ interface CreatePostModalProps {
     onCreate: (payload: CreatePostPayload) => Promise<void>;
     /** Open with schedule picker expanded (e.g. on /scheduled-posts). */
     defaultScheduleMode?: boolean;
+    /** When set, the post is created inside a group. */
+    groupId?: string;
 }
 
 function toDatetimeLocalValue(date: Date | undefined, timeStr: string): string {
@@ -60,6 +62,7 @@ export function CreatePostModal({
     onClose,
     onCreate,
     defaultScheduleMode = false,
+    groupId,
 }: CreatePostModalProps) {
     const navigate = useNavigate();
     const { t } = useTranslation();
@@ -221,6 +224,7 @@ export function CreatePostModal({
                 feeling: feeling || undefined,
                 taggedUserIds: taggedUsers.length ? taggedUsers.map((t) => t.id) : undefined,
                 scheduledAt: isScheduleMode ? scheduledAt : undefined,
+                groupId: groupId || undefined,
             };
             await onCreate(payload);
             onClose();

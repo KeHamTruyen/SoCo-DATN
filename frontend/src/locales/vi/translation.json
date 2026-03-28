@@ -24,7 +24,9 @@
     "comments": "Bình luận",
     "viewMoreComments": "Xem thêm bình luận",
     "writeComment": "Viết bình luận...",
-    "noComments": "Chưa có bình luận nào. Hãy là người đầu tiên!"
+    "noComments": "Chưa có bình luận nào. Hãy là người đầu tiên!",
+    "copyPostLink": "Sao chép liên kết",
+    "linkCopied": "Đã sao chép!"
   },
   "createPost": {
     "title": "Tạo bài viết",

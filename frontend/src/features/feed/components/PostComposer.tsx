@@ -34,7 +34,7 @@ export function PostComposer({ onOpen }: PostComposerProps) {
                         onClick={onOpen}
                         className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
                     >
-                        <Image className="h-4 w-4 text-info" />
+                        <Image className="h-4 w-4 text-primary" />
                         Photo
                     </button>
                     <button
@@ -42,7 +42,7 @@ export function PostComposer({ onOpen }: PostComposerProps) {
                         onClick={onOpen}
                         className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
                     >
-                        <Tag className="h-4 w-4 text-success" />
+                        <Tag className="h-4 w-4 text-primary" />
                         Tag Product
                     </button>
                 </div>
