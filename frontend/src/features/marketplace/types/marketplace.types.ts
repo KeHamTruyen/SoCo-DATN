@@ -24,5 +24,7 @@ export interface ProductQueryParams {
     maxPrice?: number;
     page?: number;
     pageSize?: number;
+    /** Filter public catalog by seller (user id). */
+    sellerId?: string;
 }
 

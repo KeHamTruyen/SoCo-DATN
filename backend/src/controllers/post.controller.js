@@ -179,7 +179,8 @@ export const getUserPosts = async (req, res, next) => {
       status: req.query.status || 'PUBLISHED',
     };
     const result = await postService.getUserPosts(req.params.userId, filters);
-    res.json({ success: true, data: result.posts, pagination: result.pagination });
+    const data = await formatPostsForResponse(result.posts);
+    res.json({ success: true, data, pagination: result.pagination });
   } catch (error) {
     next(error);
   }

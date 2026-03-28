@@ -29,12 +29,12 @@ export function BuyerProfileHeader({
     const { t } = useTranslation();
 
     return (
-        <div className="mb-6 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <div className="relative h-48 w-full bg-neutral-200 dark:bg-neutral-800 sm:h-64">
+        <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+            <div className="relative h-48 w-full bg-muted sm:h-64">
                 {cover ? (
                     <img src={cover} alt="" className="h-full w-full object-cover" />
                 ) : (
-                    <div className="h-full w-full bg-gradient-to-br from-primary/40 via-primary/20 to-neutral-800 dark:from-primary/30 dark:to-neutral-950" />
+                    <div className="h-full w-full bg-linear-to-br from-primary/40 via-primary/20 to-muted" />
                 )}
                 {isSelf ? (
                     <button
@@ -49,14 +49,14 @@ export function BuyerProfileHeader({
             <div className="px-6 pb-6">
                 <div className="mb-4 flex flex-col justify-between gap-4 sm:-mt-20 sm:flex-row sm:items-end">
                     <div className="relative">
-                        <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-white bg-neutral-100 shadow-lg dark:border-neutral-900 sm:h-40 sm:w-40">
+                        <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-background bg-muted shadow-lg sm:h-40 sm:w-40">
                             <Avatar
                                 src={profile.avatarUrl}
                                 alt={profile.fullName}
                                 wrapperClassName="h-full w-full"
                             />
                         </div>
-                        <div className="absolute bottom-2 right-2 h-6 w-6 rounded-full border-4 border-white bg-success dark:border-neutral-900" />
+                        <div className="absolute bottom-2 right-2 h-6 w-6 rounded-full border-4 border-background bg-success" />
                     </div>
                     <div className="flex w-full gap-3 sm:w-auto">
                         {!isSelf ? (
@@ -98,40 +98,40 @@ export function BuyerProfileHeader({
                 </div>
                 <div className="space-y-4">
                     <div>
-                        <h1 className="text-2xl font-bold dark:text-white">{profile.fullName}</h1>
+                        <h1 className="text-2xl font-bold text-foreground">{profile.fullName}</h1>
                         {profile.username ? (
-                            <p className="text-neutral-500 dark:text-neutral-400">@{profile.username}</p>
+                            <p className="text-muted-foreground">@{profile.username}</p>
                         ) : null}
                     </div>
                     {profile.bio ? (
-                        <p className="max-w-2xl leading-relaxed text-neutral-600 dark:text-neutral-300">
+                        <p className="max-w-2xl leading-relaxed text-muted-foreground">
                             {profile.bio}
                         </p>
                     ) : null}
                     {profile.location ? (
-                        <div className="flex items-center gap-1 text-sm text-neutral-500 dark:text-neutral-400">
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
                             <MapPin className="h-4 w-4" />
                             {profile.location}
                         </div>
                     ) : null}
                     <div className="flex flex-wrap items-center gap-6">
                         <div className="flex cursor-pointer items-center gap-1.5 transition-colors hover:text-primary">
-                            <span className="font-bold dark:text-white">
-                                {profile.followersCount.toLocaleString()}
+                            <span className="font-bold text-foreground">
+                                {(profile.followersCount ?? 0).toLocaleString()}
                             </span>
-                            <span className="text-sm text-neutral-500 dark:text-neutral-400">{t("profile.followersLabel")}</span>
+                            <span className="text-sm text-muted-foreground">{t("profile.followersLabel")}</span>
                         </div>
                         <div className="flex cursor-pointer items-center gap-1.5 transition-colors hover:text-primary">
-                            <span className="font-bold dark:text-white">
-                                {profile.followingCount.toLocaleString()}
+                            <span className="font-bold text-foreground">
+                                {(profile.followingCount ?? 0).toLocaleString()}
                             </span>
-                            <span className="text-sm text-neutral-500 dark:text-neutral-400">{t("profile.followingLabel")}</span>
+                            <span className="text-sm text-muted-foreground">{t("profile.followingLabel")}</span>
                         </div>
                         <div className="flex cursor-pointer items-center gap-1.5 transition-colors hover:text-primary">
-                            <span className="font-bold dark:text-white">
-                                {profile.postsCount.toLocaleString()}
+                            <span className="font-bold text-foreground">
+                                {(profile.postsCount ?? 0).toLocaleString()}
                             </span>
-                            <span className="text-sm text-neutral-500 dark:text-neutral-400">{t("profile.posts")}</span>
+                            <span className="text-sm text-muted-foreground">{t("profile.posts")}</span>
                         </div>
                     </div>
                 </div>

@@ -12,9 +12,10 @@ export interface PublicUserProfile {
     coverImage?: string;
     bio?: string;
     role: ProfileRole;
-    followersCount: number;
-    followingCount: number;
-    postsCount: number;
+    /** Backend có thể bỏ qua — UI coi như 0 */
+    followersCount?: number;
+    followingCount?: number;
+    postsCount?: number;
     isFollowing?: boolean;
     isSelf?: boolean;
     createdAt?: string;

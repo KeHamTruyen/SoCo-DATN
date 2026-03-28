@@ -53,12 +53,12 @@ export function SellerDashboardProductTable({
 
     return (
         <div className="overflow-x-auto rounded-xl border border-neutral-200 dark:border-neutral-800">
-            <table className="w-full min-w-180 text-left text-sm">
+            <table className="w-full min-w-225 text-left text-sm">
                 <thead className="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-900/80">
                     <tr>
-                        <th className="px-4 py-3 font-semibold">{t("sellerDashboard.shop.productName", "Sản phẩm")}</th>
-                        <th className="px-4 py-3 font-semibold">{t("sellerDashboard.shop.price", "Giá")}</th>
-                        <th className="px-4 py-3 font-semibold">{t("sellerDashboard.shop.status", "Trạng thái")}</th>
+                        <th className="px-4 py-3 font-semibold min-w-70 w-2/5">{t("sellerDashboard.shop.productName", "Sản phẩm")}</th>
+                        <th className="px-4 py-3 font-semibold text-right">{t("sellerDashboard.shop.price", "Giá")}</th>
+                        <th className="px-4 py-3 font-semibold text-center">{t("sellerDashboard.shop.status", "Trạng thái")}</th>
                         {mode === "shop" && (
                             <>
                                 <th className="px-4 py-3 font-semibold text-right">
@@ -71,8 +71,8 @@ export function SellerDashboardProductTable({
                         )}
                         {mode === "inventory" && (
                             <>
-                                <th className="px-4 py-3 font-semibold">{t("sellerDashboard.shop.stock", "Tồn kho")}</th>
-                                <th className="px-4 py-3 font-semibold">{t("sellerDashboard.shop.lowThreshold", "Ngưỡng cảnh báo")}</th>
+                                <th className="px-4 py-3 font-semibold text-right">{t("sellerDashboard.shop.stock", "Tồn kho")}</th>
+                                <th className="px-4 py-3 font-semibold text-right">{t("sellerDashboard.shop.lowThreshold", "Ngưỡng cảnh báo")}</th>
                             </>
                         )}
                         <th className="px-4 py-3 font-semibold text-right">{t("sellerDashboard.shop.actions", "Thao tác")}</th>
@@ -87,8 +87,11 @@ export function SellerDashboardProductTable({
                                 className="border-b border-neutral-100 dark:border-neutral-800"
                             >
                                 <td className="px-4 py-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800">
+                                    <Link 
+                                        to={`/products/${p.id}`}
+                                        className="group flex items-center gap-3 transition-opacity hover:opacity-90"
+                                    >
+                                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-neutral-100 ring-1 ring-transparent transition-all group-hover:ring-primary dark:bg-neutral-800">
                                             {p.primaryImageUrl ? (
                                                 <img
                                                     src={p.primaryImageUrl}
@@ -97,8 +100,8 @@ export function SellerDashboardProductTable({
                                                 />
                                             ) : null}
                                         </div>
-                                        <div>
-                                            <p className="font-medium text-neutral-900 dark:text-neutral-100">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-neutral-900 transition-colors group-hover:text-primary dark:text-neutral-100 line-clamp-2" title={p.title}>
                                                 {p.title}
                                             </p>
                                             {p.categoryName ? (
@@ -107,13 +110,13 @@ export function SellerDashboardProductTable({
                                                 </p>
                                             ) : null}
                                         </div>
-                                    </div>
+                                    </Link>
                                 </td>
-                                <td className="px-4 py-3 font-semibold">
+                                <td className="px-4 py-3 font-semibold text-right tabular-nums whitespace-nowrap">
                                     {p.price.toLocaleString("vi-VN")} đ
                                 </td>
-                                <td className="px-4 py-3">
-                                    <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium dark:bg-neutral-800">
+                                <td className="px-4 py-3 text-center">
+                                    <span className="inline-flex rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium dark:bg-neutral-800 whitespace-nowrap">
                                         {formatSellerProductStatus(p.status)}
                                     </span>
                                 </td>
@@ -129,7 +132,7 @@ export function SellerDashboardProductTable({
                                 )}
                                 {mode === "inventory" && (
                                     <>
-                                        <td className="px-4 py-3">
+                                        <td className="px-4 py-3 text-right">
                                             <span
                                                 className={cn(
                                                     "font-semibold tabular-nums",
@@ -141,30 +144,24 @@ export function SellerDashboardProductTable({
                                                 {p.stockQuantity}
                                             </span>
                                             {low ? (
-                                                <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
+                                                <span className="ml-2 text-xs text-amber-600 dark:text-amber-400 whitespace-nowrap">
                                                     ({t("sellerDashboard.shop.low", "thấp")})
                                                 </span>
                                             ) : null}
                                         </td>
-                                        <td className="px-4 py-3 tabular-nums text-neutral-600 dark:text-neutral-400">
+                                        <td className="px-4 py-3 text-right tabular-nums text-neutral-600 dark:text-neutral-400">
                                             {p.lowStockThreshold}
                                         </td>
                                     </>
                                 )}
                                 <td className="px-4 py-3 text-right">
-                                    <div className="flex flex-wrap items-center justify-end gap-2">
-                                        <Link
-                                            to={`/products/${p.id}`}
-                                            className="text-sm font-semibold text-primary hover:underline"
-                                        >
-                                            {t("sellerDashboard.shop.viewShop", "Xem shop")}
-                                        </Link>
+                                    <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
                                         {mode === "shop" && onEditProduct ? (
                                             <button
                                                 type="button"
                                                 disabled={busyProductId === p.id}
                                                 onClick={() => onEditProduct(p)}
-                                                className="text-sm font-semibold text-neutral-700 hover:underline disabled:opacity-50 dark:text-neutral-300"
+                                                className="inline-flex items-center justify-center rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
                                             >
                                                 {t("common.edit", "Sửa")}
                                             </button>
@@ -176,7 +173,7 @@ export function SellerDashboardProductTable({
                                                 type="button"
                                                 disabled={busyProductId === p.id}
                                                 onClick={() => onArchiveProduct(p)}
-                                                className="text-sm font-semibold text-neutral-600 hover:underline disabled:opacity-50 dark:text-neutral-400"
+                                                className="inline-flex items-center justify-center rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 shadow-sm transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-rose-400 dark:hover:border-rose-800 dark:hover:bg-rose-950/30"
                                             >
                                                 {t("sellerDashboard.shop.archive", "Lưu trữ")}
                                             </button>
@@ -188,7 +185,7 @@ export function SellerDashboardProductTable({
                                                 type="button"
                                                 disabled={busyProductId === p.id}
                                                 onClick={() => onPublishProduct(p)}
-                                                className="text-sm font-semibold text-emerald-700 hover:underline disabled:opacity-50 dark:text-emerald-400"
+                                                className="inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
                                             >
                                                 {t("sellerDashboard.shop.publish", "Đăng bán")}
                                             </button>
@@ -197,7 +194,7 @@ export function SellerDashboardProductTable({
                                             <button
                                                 type="button"
                                                 onClick={() => onAdjustStock(p)}
-                                                className="text-sm font-semibold text-neutral-700 hover:underline dark:text-neutral-300"
+                                                className="inline-flex items-center justify-center rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
                                             >
                                                 {t("sellerDashboard.shop.adjustStock", "Sửa tồn")}
                                             </button>

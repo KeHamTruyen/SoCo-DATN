@@ -80,6 +80,21 @@ export const feedApi = {
         } satisfies FeedPageResponse;
     },
 
+    /** Posts published by a specific user (profile page). */
+    async listUserPosts(userId: string, page = 1, limit = 20): Promise<FeedPageResponse> {
+        const res = await httpClient.get<BackendListResponse>(
+            `/posts/user/${encodeURIComponent(userId)}?page=${page}&limit=${limit}`,
+            { requiresAuth: true },
+        );
+        const rows = res.data ?? [];
+        const p = res.pagination;
+        const hasMore = p ? p.page * p.limit < p.total : false;
+        return {
+            items: rows.map((row) => normalizeFeedPost(row)),
+            nextCursor: hasMore ? String(p!.page + 1) : null,
+        } satisfies FeedPageResponse;
+    },
+
     async createPost(payload: CreatePostPayload) {
         const res = await httpClient.post<ApiResponse<PostEnvelope> | PostEnvelope>(
             "/posts",

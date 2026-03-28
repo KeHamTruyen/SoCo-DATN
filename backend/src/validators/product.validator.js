@@ -285,6 +285,12 @@ export const getProductsValidation = [
         .optional()
         .isIn(["DRAFT", "ACTIVE", "OUT_OF_STOCK", "ARCHIVED"])
         .withMessage("Invalid status"),
+
+    query("sellerId")
+        .optional()
+        .trim()
+        .notEmpty()
+        .withMessage("sellerId must be a non-empty string"),
 ];
 
 export const productIdValidation = [

@@ -68,6 +68,10 @@ export const marketplaceApi = {
         searchParams.set("sortOrder", sortOrder);
         searchParams.set("page", String(params.page ?? 1));
         searchParams.set("limit", String(params.pageSize ?? 12));
+        if (params.sellerId?.trim()) {
+            searchParams.set("sellerId", params.sellerId.trim());
+            searchParams.set("status", "ACTIVE");
+        }
 
         const res = await httpClient.get<ProductsListEnvelope>(
             `/products?${searchParams.toString()}`,
