@@ -12,23 +12,99 @@ function unwrap<T>(res: ApiResponse<T> | T): T {
     return res as T;
 }
 
+interface BackendNotification {
+    id: string;
+    type: string;
+    title?: string;
+    message: string;
+    isRead: boolean;
+    createdAt: string;
+    actionUrl?: string | null;
+    relatedUser?: {
+        fullName?: string | null;
+        username?: string | null;
+        avatarUrl?: string | null;
+    } | null;
+}
+
+interface BackendNotificationsListResponse {
+    notifications: BackendNotification[];
+    total: number;
+    unreadCount: number;
+}
+
+function mapType(rawType: string): Notification["type"] {
+    if (rawType.includes("order")) return "order";
+    if (rawType.startsWith("post_") || rawType === "new_follower") return "social";
+    if (rawType === "new_message") return "system";
+    return "system";
+}
+
+function mapIconType(rawType: string): Notification["iconType"] {
+    switch (rawType) {
+        case "post_comment":
+            return "comment";
+        case "post_like":
+            return "like";
+        case "new_follower":
+            return "follow";
+        case "new_order":
+        case "order_status":
+            return "order";
+        case "new_message":
+            return "message";
+        default:
+            return "system";
+    }
+}
+
+function toNotification(raw: BackendNotification): Notification {
+    const actorName = raw.relatedUser?.fullName || raw.relatedUser?.username || undefined;
+    return {
+        id: raw.id,
+        type: mapType(raw.type),
+        title: raw.title,
+        content: raw.message,
+        actorName,
+        actorAvatarUrl: raw.relatedUser?.avatarUrl || undefined,
+        isRead: raw.isRead,
+        createdAt: raw.createdAt,
+        link: raw.actionUrl || undefined,
+        iconType: mapIconType(raw.type),
+    };
+}
+
+function normalizeListResponse(
+    res: ApiResponse<BackendNotificationsListResponse> | BackendNotificationsListResponse,
+): NotificationsListResponse {
+    const data = unwrap<BackendNotificationsListResponse>(res);
+    return {
+        items: data.notifications.map(toNotification),
+        total: data.total,
+        unreadCount: data.unreadCount,
+    };
+}
+
 export const notificationApi = {
     async listNotifications(type?: "all" | "social" | "order" | "system") {
         const query = type && type !== "all" ? `?type=${type}` : "";
         const res = await httpClient.get<
-            ApiResponse<NotificationsListResponse> | NotificationsListResponse
+            ApiResponse<BackendNotificationsListResponse> | BackendNotificationsListResponse
         >(`/notifications${query}`, { requiresAuth: true });
-        return unwrap<NotificationsListResponse>(res);
+        return normalizeListResponse(res);
     },
     async markAllRead() {
         return httpClient.patch("/notifications/read-all", {}, { requiresAuth: true });
     },
     async markRead(notificationId: string) {
-        const res = await httpClient.patch<ApiResponse<Notification> | Notification>(
+        const res = await httpClient.patch<ApiResponse<unknown> | unknown>(
             `/notifications/${notificationId}/read`,
             {},
             { requiresAuth: true },
         );
-        return unwrap<Notification>(res);
+        return unwrap<unknown>(res);
+    },
+    mapRealtimeNotification(raw: unknown) {
+        return toNotification(raw as BackendNotification);
     },
 };

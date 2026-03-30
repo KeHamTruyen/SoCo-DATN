@@ -1,4 +1,4 @@
-import { Bell, MessageSquare, Package, Tag } from "lucide-react";
+import { Bell, MessageSquare, Package, Send, Tag } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Notification } from "../types/notification.types";
 
@@ -24,6 +24,10 @@ const TYPE_ICON: Record<string, { icon: React.ReactNode; bgClass: string }> = {
     order: {
         icon: <Package className="h-5 w-5" />,
         bgClass: "bg-primary-100 text-primary dark:bg-primary-950/40",
+    },
+    message: {
+        icon: <Send className="h-5 w-5" />,
+        bgClass: "bg-info/10 text-info dark:bg-info/20",
     },
     system: {
         icon: <Tag className="h-5 w-5" />,
@@ -70,11 +74,8 @@ export function NotificationDropdown({
                 ) : (
                     notifications.slice(0, 5).map((n) => {
                         const iconConf = TYPE_ICON[n.iconType ?? n.type] ?? TYPE_ICON.system;
-                        return (
-                            <div
-                                key={n.id}
-                                className="group relative flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
-                            >
+                        const body = (
+                            <div className="group relative flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
                                 <div className="shrink-0">
                                     <div
                                         className={`flex h-10 w-10 items-center justify-center rounded-full ${iconConf.bgClass}`}
@@ -99,6 +100,14 @@ export function NotificationDropdown({
                                     </div>
                                 )}
                             </div>
+                        );
+
+                        return n.link ? (
+                            <Link key={n.id} to={n.link} onClick={onClose}>
+                                {body}
+                            </Link>
+                        ) : (
+                            <div key={n.id}>{body}</div>
                         );
                     })
                 )}

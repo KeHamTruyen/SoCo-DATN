@@ -1,4 +1,11 @@
 export type NotificationType = "social" | "order" | "system";
+export type NotificationIconType =
+    | "comment"
+    | "like"
+    | "follow"
+    | "order"
+    | "message"
+    | "system";
 
 export interface Notification {
     id: string;
@@ -10,7 +17,7 @@ export interface Notification {
     isRead: boolean;
     createdAt: string;
     link?: string;
-    iconType?: "comment" | "like" | "follow" | "order" | "system";
+    iconType?: NotificationIconType;
 }
 
 export interface NotificationsListResponse {
