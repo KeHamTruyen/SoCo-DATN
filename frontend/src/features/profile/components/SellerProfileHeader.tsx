@@ -2,10 +2,8 @@ import {
     BadgeCheck,
     Camera,
     CirclePlus,
-    LayoutDashboard,
     MessageCircle,
     Pencil,
-    Share2,
     Shield,
     Star,
     UserPlus,
@@ -31,6 +29,7 @@ interface SellerProfileHeaderProps {
     profileMediaError?: string | null;
     onOpenEditProfile?: () => void;
     onOpenPrivacy?: () => void;
+    onOpenCreatePost?: () => void;
 }
 
 export function SellerProfileHeader({
@@ -43,9 +42,10 @@ export function SellerProfileHeader({
     onCoverFile,
     profileMediaBusy = false,
     profileMediaError = null,
-    onOpenEditProfile,
-    onOpenPrivacy,
-}: SellerProfileHeaderProps) {
+                      onOpenEditProfile,
+                      onOpenPrivacy,
+                      onOpenCreatePost,
+                  }: SellerProfileHeaderProps) {
     const { t } = useTranslation();
     const cover = profile.coverUrl ?? profile.coverImage;
     const displayName = profile.shopName ?? profile.fullName;
@@ -93,12 +93,17 @@ export function SellerProfileHeader({
             <div
                 className={cn(
                     "relative h-48 w-full md:h-64",
-                    !cover && "bg-linear-to-r from-primary/25 to-primary/5 dark:from-primary/15",
+                    !cover &&
+                        "bg-linear-to-r from-primary/25 to-primary/5 dark:from-primary/15",
                 )}
             >
                 {cover ? (
                     <>
-                        <img src={cover} alt="" className="h-full w-full object-cover" />
+                        <img
+                            src={cover}
+                            alt=""
+                            className="h-full w-full object-cover"
+                        />
                         {isSelf ? (
                             <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
                         ) : (
@@ -114,30 +119,42 @@ export function SellerProfileHeader({
                         className="absolute bottom-4 right-4 z-10 flex items-center gap-2 rounded-lg bg-black/40 px-3 py-2 text-sm text-white backdrop-blur-sm transition-all hover:bg-black/60 disabled:opacity-50"
                     >
                         <Camera className="h-4 w-4" />
-                        <span className="hidden sm:inline">{t("profile.changeCover")}</span>
+                        <span className="hidden sm:inline">
+                            {t("profile.changeCover")}
+                        </span>
                     </button>
                 ) : null}
             </div>
 
             <div className="relative px-4 pb-6 pt-2 sm:px-6">
                 {profileMediaError ? (
-                    <p className="mb-2 text-sm text-destructive">{profileMediaError}</p>
+                    <p className="mb-2 text-sm text-destructive">
+                        {profileMediaError}
+                    </p>
                 ) : null}
                 <div
                     className={cn(
                         "flex flex-col gap-6 md:flex-row md:items-end md:justify-between",
-                        isSelf ? "-mt-16 md:-mt-20" : "-mt-14 sm:-mt-16 md:-mt-20",
+                        isSelf
+                            ? "-mt-12 md:-mt-16"
+                            : "-mt-10 sm:-mt-12 md:-mt-16",
                     )}
                 >
                     <div className="flex flex-col gap-4 md:flex-row md:items-end">
                         <div
                             className={cn(
                                 "group relative shrink-0 overflow-hidden rounded-full border-4 border-background bg-muted shadow-lg",
-                                isSelf ? "h-28 w-28 md:h-32 md:w-32" : "h-28 w-28 md:h-32 md:w-32",
+                                isSelf
+                                    ? "h-28 w-28 md:h-32 md:w-32"
+                                    : "h-28 w-28 md:h-32 md:w-32",
                                 isSelf && onAvatarFile && "cursor-pointer",
                             )}
                             onClick={() => {
-                                if (isSelf && onAvatarFile && !profileMediaBusy) {
+                                if (
+                                    isSelf &&
+                                    onAvatarFile &&
+                                    !profileMediaBusy
+                                ) {
                                     avatarInputRef.current?.click();
                                 }
                             }}
@@ -174,7 +191,9 @@ export function SellerProfileHeader({
                         </div>
                         <div className="pb-1 md:pb-2">
                             <div className="flex flex-wrap items-center gap-2">
-                                <h1 className="text-2xl font-bold text-foreground md:text-3xl">{displayName}</h1>
+                                <h1 className="text-2xl font-bold text-foreground md:text-3xl">
+                                    {displayName}
+                                </h1>
                                 {profile.isVerified ? (
                                     <BadgeCheck
                                         className="h-6 w-6 shrink-0 text-blue-500"
@@ -197,7 +216,9 @@ export function SellerProfileHeader({
                                     profile.shopInformation?.shopDescription ??
                                     (profile.createdAt
                                         ? t("profile.joinedPreview", {
-                                              date: new Date(profile.createdAt).toLocaleDateString(undefined, {
+                                              date: new Date(
+                                                  profile.createdAt,
+                                              ).toLocaleDateString(undefined, {
                                                   month: "short",
                                                   year: "numeric",
                                               }),
@@ -212,7 +233,9 @@ export function SellerProfileHeader({
                             <>
                                 <button
                                     type="button"
-                                    disabled={profileMediaBusy || !onOpenEditProfile}
+                                    disabled={
+                                        profileMediaBusy || !onOpenEditProfile
+                                    }
                                     onClick={() => onOpenEditProfile?.()}
                                     className={cn(
                                         "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
@@ -221,62 +244,68 @@ export function SellerProfileHeader({
                                     <Pencil className="h-4 w-4" />
                                     {t("profile.editProfile")}
                                 </button>
-                                <Link
-                                    to="/seller/dashboard"
-                                    className={cn(
-                                        "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98]",
-                                        profileMediaBusy && "pointer-events-none opacity-50",
-                                    )}
-                                >
-                                    <LayoutDashboard className="h-4 w-4" />
-                                    {t("profile.sellerDashboardShort")}
-                                </Link>
                                 <button
                                     type="button"
-                                    disabled={profileMediaBusy || !onOpenPrivacy}
+                                    disabled={
+                                        profileMediaBusy || !onOpenPrivacy
+                                    }
                                     onClick={() => onOpenPrivacy?.()}
                                     className={cn(
                                         "inline-flex h-10 min-w-0 max-w-full items-center justify-center gap-2 whitespace-normal rounded-xl border border-border bg-background px-4 text-center text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 sm:whitespace-nowrap",
                                     )}
                                 >
-                                    <Shield className="h-4 w-4 shrink-0" aria-hidden />
+                                    <Shield
+                                        className="h-4 w-4 shrink-0"
+                                        aria-hidden
+                                    />
                                     {t("profile.privacy")}
                                 </button>
-                                <Link
-                                    to="/feed"
+                                <button
+                                    type="button"
+                                    disabled={
+                                        profileMediaBusy || !onOpenCreatePost
+                                    }
+                                    onClick={() => onOpenCreatePost?.()}
                                     className={cn(
-                                        "inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-700 active:scale-[0.98]",
-                                        profileMediaBusy && "pointer-events-none opacity-50",
+                                        "inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-700 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
                                     )}
                                 >
                                     <CirclePlus className="h-4 w-4" />
                                     {t("profile.createContent")}
-                                </Link>
+                                </button>
                             </>
                         ) : profile.isFollowing ? (
-                            <Button variant="outline" className="gap-2 rounded-xl" onClick={onUnfollow}>
+                            <Button
+                                variant="outline"
+                                className="gap-2 rounded-xl"
+                                onClick={onUnfollow}
+                            >
                                 <UserCheck className="h-4 w-4" />
                                 {t("profile.following")}
                             </Button>
                         ) : (
-                            <Button className="gap-2 rounded-xl" onClick={onFollow}>
+                            <Button
+                                className="gap-2 rounded-xl"
+                                onClick={onFollow}
+                            >
                                 <UserPlus className="h-4 w-4" />
                                 {t("profile.followShop")}
                             </Button>
                         )}
                         {!isSelf ? (
-                            <Link to={`/messages?userId=${profile.id}`} className="flex-1 sm:flex-none">
-                                <Button variant="outline" className="w-full gap-2 rounded-xl sm:w-auto">
+                            <Link
+                                to={`/messages?userId=${profile.id}`}
+                                className="flex-1 sm:flex-none"
+                            >
+                                <Button
+                                    variant="outline"
+                                    className="w-full gap-2 rounded-xl sm:w-auto"
+                                >
                                     <MessageCircle className="h-4 w-4" />
                                     {t("profile.message")}
                                 </Button>
                             </Link>
-                        ) : (
-                            <Button variant="outline" className="gap-2 rounded-xl" type="button">
-                                <Share2 className="h-4 w-4" />
-                                {t("profile.shareShop")}
-                            </Button>
-                        )}
+                        ) : null}
                     </div>
                 </div>
 
@@ -284,9 +313,13 @@ export function SellerProfileHeader({
                     {profile.shopRating != null ? (
                         <div className="flex flex-col gap-0.5">
                             <div className="flex items-center gap-1">
-                                <span className="text-xl font-bold text-foreground">{profile.shopRating}</span>
+                                <span className="text-xl font-bold text-foreground">
+                                    {profile.shopRating}
+                                </span>
                                 <Star className="h-4 w-4 fill-primary text-primary" />
-                                <span className="text-sm text-muted-foreground">/ 5</span>
+                                <span className="text-sm text-muted-foreground">
+                                    / 5
+                                </span>
                             </div>
                             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 {t("profile.starRatingShort")}
@@ -295,7 +328,9 @@ export function SellerProfileHeader({
                     ) : null}
                     {profile.shopResponseRate != null ? (
                         <div className="flex flex-col gap-0.5">
-                            <span className="text-xl font-bold text-foreground">{profile.shopResponseRate}%</span>
+                            <span className="text-xl font-bold text-foreground">
+                                {profile.shopResponseRate}%
+                            </span>
                             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                 {t("profile.chatResponse")}
                             </p>

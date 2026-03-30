@@ -105,7 +105,7 @@ class UserService {
 
   // ─── Follow (UC2.5) ───────────────────────────────────
 
-  async toggleFollow(followerId, followingId) {
+  async follow(followerId, followingId) {
     if (followerId === followingId) {
       throw new Error('Cannot follow yourself');
     }
@@ -118,8 +118,7 @@ class UserService {
     });
 
     if (existing) {
-      await prisma.follow.delete({ where: { id: existing.id } });
-      return { followed: false };
+      return { followed: true };
     }
 
     await prisma.follow.create({ data: { followerId, followingId } });
@@ -131,6 +130,23 @@ class UserService {
     notificationService.notifyFollow(followingId, follower).catch(() => {});
 
     return { followed: true };
+  }
+
+  async unfollow(followerId, followingId) {
+    if (followerId === followingId) {
+      throw new Error('Cannot follow yourself');
+    }
+
+    const existing = await prisma.follow.findUnique({
+      where: { followerId_followingId: { followerId, followingId } },
+    });
+
+    if (!existing) {
+      return { followed: false };
+    }
+
+    await prisma.follow.delete({ where: { id: existing.id } });
+    return { followed: false };
   }
 
   async isFollowing(followerId, followingId) {

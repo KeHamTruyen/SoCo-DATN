@@ -80,17 +80,14 @@ class UserController {
 
     // ─── Follow (UC2.5) ───────────────────────────────────
 
-    async toggleFollow(req, res, next) {
+    async follow(req, res, next) {
         try {
-            const result = await userService.toggleFollow(
-                req.user.id,
-                req.params.userId,
-            );
+            const result = await userService.follow(req.user.id, req.params.userId);
             res.json({
                 success: true,
                 message: result.followed
                     ? "Followed successfully"
-                    : "Unfollowed successfully",
+                    : "Already following",
                 data: result,
             });
         } catch (error) {
@@ -102,6 +99,27 @@ class UserController {
             if (error.message === "User not found") {
                 return res
                     .status(404)
+                    .json({ success: false, message: error.message });
+            }
+            next(error);
+        }
+    }
+
+    async unfollow(req, res, next) {
+        try {
+            const result = await userService.unfollow(
+                req.user.id,
+                req.params.userId,
+            );
+            res.json({
+                success: true,
+                message: "Unfollowed successfully",
+                data: result,
+            });
+        } catch (error) {
+            if (error.message === "Cannot follow yourself") {
+                return res
+                    .status(400)
                     .json({ success: false, message: error.message });
             }
             next(error);

@@ -10,8 +10,8 @@ router.put('/me', protect, userController.updateProfile);
 router.get('/suggested', protect, userController.getSuggestedUsers);
 router.get('/search', userController.searchUsers);
 
-// Follow toggle
-router.post('/:userId/follow', protect, userController.toggleFollow);
+router.post('/:userId/follow', protect, userController.follow);
+router.delete('/:userId/follow', protect, userController.unfollow);
 
 // Follow lists
 router.get('/:userId/followers', userController.getFollowers);

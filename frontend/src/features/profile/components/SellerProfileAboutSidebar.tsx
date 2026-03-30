@@ -1,5 +1,4 @@
-import { Briefcase, Info, Link2, Share2 } from "lucide-react";
-import { Button } from "../../../shared/ui/atoms/button";
+import { Briefcase, Info } from "lucide-react";
 import type { PublicUserProfile } from "../types/profile.types";
 import { useTranslation } from "react-i18next";
 
@@ -33,14 +32,6 @@ export function SellerProfileAboutSidebar({ profile }: SellerProfileAboutSidebar
                 {shop?.contactPhone ? (
                     <p className="tabular-nums">{shop.contactPhone}</p>
                 ) : null}
-                <div className="flex gap-2 pt-2">
-                    <Button type="button" variant="outline" size="icon" className="rounded-lg" disabled>
-                        <Share2 className="h-4 w-4" />
-                    </Button>
-                    <Button type="button" variant="outline" size="icon" className="rounded-lg" disabled>
-                        <Link2 className="h-4 w-4" />
-                    </Button>
-                </div>
             </div>
         </div>
     );

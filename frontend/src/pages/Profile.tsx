@@ -1,9 +1,29 @@
-import { CalendarClock, Grid3X3, Package, ShoppingBag, Star, Users } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+    CalendarClock,
+    Grid3X3,
+    LayoutDashboard,
+    Package,
+    Share2,
+    ShoppingBag,
+    Star,
+    Users,
+} from "lucide-react";
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+    type ReactNode,
+} from "react";
 import { Link, useParams } from "react-router-dom";
 import { feedApi } from "../features/feed/api/feedApi";
+import { CreatePostModal } from "../features/feed/components/CreatePostModal";
 import { PostDetailModal } from "../features/feed/components/PostDetailModal";
-import type { FeedComment, FeedPost } from "../features/feed/types/feed.types";
+import type {
+    CreatePostPayload,
+    FeedComment,
+    FeedPost,
+} from "../features/feed/types/feed.types";
 import { marketplaceApi } from "../features/marketplace/api/marketplaceApi";
 import { uploadApi } from "../features/upload/api/uploadApi";
 import type { ProductListItem } from "../features/marketplace/types/marketplace.types";
@@ -40,19 +60,26 @@ export default function Profile() {
     const [postsHasMore, setPostsHasMore] = useState(false);
     const [postsLoadingMore, setPostsLoadingMore] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [buyerVisitorTab, setBuyerVisitorTab] = useState<BuyerVisitorTab>("posts");
+    const [buyerVisitorTab, setBuyerVisitorTab] =
+        useState<BuyerVisitorTab>("posts");
     const [buyerSelfTab, setBuyerSelfTab] = useState<BuyerSelfTab>("posts");
-    const [sellerVisitorTab, setSellerVisitorTab] = useState<SellerVisitorTab>("products");
+    const [sellerVisitorTab, setSellerVisitorTab] =
+        useState<SellerVisitorTab>("products");
     const [sellerSelfTab, setSellerSelfTab] = useState<SellerSelfTab>("posts");
-    const [suggestedUsers, setSuggestedUsers] = useState<PublicUserProfile[]>([]);
+    const [suggestedUsers, setSuggestedUsers] = useState<PublicUserProfile[]>(
+        [],
+    );
     const [suggestedLoading, setSuggestedLoading] = useState(false);
     const [shopProducts, setShopProducts] = useState<ProductListItem[]>([]);
     const [shopProductsLoading, setShopProductsLoading] = useState(false);
     const [productCategory, setProductCategory] = useState<string | null>(null);
     const [profileMediaBusy, setProfileMediaBusy] = useState(false);
-    const [profileMediaError, setProfileMediaError] = useState<string | null>(null);
+    const [profileMediaError, setProfileMediaError] = useState<string | null>(
+        null,
+    );
     const [accountSettingsOpen, setAccountSettingsOpen] = useState(false);
-    const [accountSettingsTab, setAccountSettingsTab] = useState<AccountSettingsTab>("profile");
+    const [accountSettingsTab, setAccountSettingsTab] =
+        useState<AccountSettingsTab>("profile");
     const { t } = useTranslation();
 
     const openAccountSettings = useCallback((tab: AccountSettingsTab) => {
@@ -70,11 +97,19 @@ export default function Profile() {
         }
     }, [user]);
 
-    const [postDetailModalId, setPostDetailModalId] = useState<string | null>(null);
+    const [postDetailModalId, setPostDetailModalId] = useState<string | null>(
+        null,
+    );
+    const [createPostModalOpen, setCreatePostModalOpen] = useState(false);
+    const [shopShareNotice, setShopShareNotice] = useState<string | null>(
+        null,
+    );
 
     const profileModalPost = useMemo(
         () =>
-            postDetailModalId ? posts.find((p) => p.id === postDetailModalId) ?? null : null,
+            postDetailModalId
+                ? (posts.find((p) => p.id === postDetailModalId) ?? null)
+                : null,
         [postDetailModalId, posts],
     );
 
@@ -82,8 +117,43 @@ export default function Profile() {
         setPostDetailModalId(post.id);
     }, []);
 
+    const handleProfileCreatePost = useCallback(
+        async (payload: CreatePostPayload) => {
+            if (payload.scheduledAt) {
+                await feedApi.createScheduledPost(payload);
+            } else {
+                const created = await feedApi.createPost(payload);
+                if (profile && user?.id === profile.id) {
+                    setPosts((prev) => [created, ...prev]);
+                    setProfile((p) =>
+                        p
+                            ? {
+                                  ...p,
+                                  postsCount: (p.postsCount ?? 0) + 1,
+                              }
+                            : p,
+                    );
+                }
+            }
+        },
+        [profile, user?.id],
+    );
+
+    const handleShareShop = useCallback(async () => {
+        if (!profile) return;
+        const url = `${window.location.origin}/profile/${profile.id}`;
+        try {
+            await navigator.clipboard.writeText(url);
+            setShopShareNotice(t("feed.linkCopied"));
+            window.setTimeout(() => setShopShareNotice(null), 2500);
+        } catch {
+            setShopShareNotice(null);
+        }
+    }, [profile, t]);
+
     useEffect(() => {
         setPostDetailModalId(null);
+        setCreatePostModalOpen(false);
     }, [id]);
 
     const handleProfileModalLike = useCallback(async () => {
@@ -105,7 +175,9 @@ export default function Profile() {
         try {
             const updated = await feedApi.likePost(postId);
             setPosts((prev) =>
-                prev.map((post) => (post.id === postId ? { ...post, ...updated } : post)),
+                prev.map((post) =>
+                    post.id === postId ? { ...post, ...updated } : post,
+                ),
             );
         } catch {
             setPosts((prev) =>
@@ -161,8 +233,11 @@ export default function Profile() {
                         post.id === postId
                             ? {
                                   ...post,
-                                  comments: (post.comments ?? []).map((comment) =>
-                                      comment.id === optimistic.id ? created : comment,
+                                  comments: (post.comments ?? []).map(
+                                      (comment) =>
+                                          comment.id === optimistic.id
+                                              ? created
+                                              : comment,
                                   ),
                               }
                             : post,
@@ -174,7 +249,10 @@ export default function Profile() {
                         post.id === postId
                             ? {
                                   ...post,
-                                  commentsCount: Math.max(0, post.commentsCount - 1),
+                                  commentsCount: Math.max(
+                                      0,
+                                      post.commentsCount - 1,
+                                  ),
                                   comments: (post.comments ?? []).filter(
                                       (comment) => comment.id !== optimistic.id,
                                   ),
@@ -215,15 +293,24 @@ export default function Profile() {
                 setProfile(loadedProfile);
                 if (!loadedProfile) return;
 
-                const postsPromise = feedApi.listUserPosts(loadedProfile.id, 1, POST_PAGE_SIZE);
+                const postsPromise = feedApi.listUserPosts(
+                    loadedProfile.id,
+                    1,
+                    POST_PAGE_SIZE,
+                );
                 const suggestedPromise =
                     loadedProfile.role === "buyer"
-                        ? profileApi.listSuggestedUsers().catch(() => [] as PublicUserProfile[])
+                        ? profileApi
+                              .listSuggestedUsers()
+                              .catch(() => [] as PublicUserProfile[])
                         : Promise.resolve([] as PublicUserProfile[]);
                 const shopPromise =
                     loadedProfile.role === "seller"
                         ? marketplaceApi
-                              .listProducts({ sellerId: loadedProfile.id, pageSize: 48 })
+                              .listProducts({
+                                  sellerId: loadedProfile.id,
+                                  pageSize: 48,
+                              })
                               .catch(() => ({ items: [] as ProductListItem[] }))
                         : Promise.resolve({ items: [] as ProductListItem[] });
 
@@ -258,7 +345,11 @@ export default function Profile() {
         setPostsLoadingMore(true);
         try {
             const nextPage = postsPage + 1;
-            const res = await feedApi.listUserPosts(profile.id, nextPage, POST_PAGE_SIZE);
+            const res = await feedApi.listUserPosts(
+                profile.id,
+                nextPage,
+                POST_PAGE_SIZE,
+            );
             setPosts((prev) => [...prev, ...res.items]);
             setPostsPage(nextPage);
             setPostsHasMore(Boolean(res.nextCursor));
@@ -288,11 +379,12 @@ export default function Profile() {
         setProfile((p) => {
             if (!p) return p;
             const wasFollowing = Boolean(p.isFollowing);
-            const nowFollowing = Boolean(res.following);
+            const nowFollowing = Boolean(res.followed);
             let followersCount = p.followersCount ?? 0;
             if (nowFollowing && !wasFollowing) followersCount += 1;
-            if (!nowFollowing && wasFollowing) followersCount = Math.max(0, followersCount - 1);
-            return { ...p, isFollowing: res.following, followersCount };
+            if (!nowFollowing && wasFollowing)
+                followersCount = Math.max(0, followersCount - 1);
+            return { ...p, isFollowing: res.followed, followersCount };
         });
     };
 
@@ -302,11 +394,12 @@ export default function Profile() {
         setProfile((p) => {
             if (!p) return p;
             const wasFollowing = Boolean(p.isFollowing);
-            const nowFollowing = Boolean(res.following);
+            const nowFollowing = Boolean(res.followed);
             let followersCount = p.followersCount ?? 0;
             if (nowFollowing && !wasFollowing) followersCount += 1;
-            if (!nowFollowing && wasFollowing) followersCount = Math.max(0, followersCount - 1);
-            return { ...p, isFollowing: res.following, followersCount };
+            if (!nowFollowing && wasFollowing)
+                followersCount = Math.max(0, followersCount - 1);
+            return { ...p, isFollowing: res.followed, followersCount };
         });
     };
 
@@ -340,7 +433,9 @@ export default function Profile() {
                 const { url } = await uploadApi.uploadPostMedia(file);
                 await profileApi.updateProfile({ coverImage: url });
                 await refreshProfile();
-                setProfile((p) => (p ? { ...p, coverImage: url, coverUrl: url } : p));
+                setProfile((p) =>
+                    p ? { ...p, coverImage: url, coverUrl: url } : p,
+                );
             } catch (e) {
                 setProfileMediaError(
                     e instanceof Error ? e.message : t("profile.uploadError"),
@@ -359,8 +454,16 @@ export default function Profile() {
         labelKey: string;
         icon: ReactNode;
     }[] = [
-        { value: "posts", labelKey: "profile.posts", icon: <Grid3X3 className="h-4 w-4" /> },
-        { value: "reviews", labelKey: "profile.reviews", icon: <Star className="h-4 w-4" /> },
+        {
+            value: "posts",
+            labelKey: "profile.posts",
+            icon: <Grid3X3 className="h-4 w-4" />,
+        },
+        {
+            value: "reviews",
+            labelKey: "profile.reviews",
+            icon: <Star className="h-4 w-4" />,
+        },
     ];
 
     const BUYER_SELF_TABS: {
@@ -368,10 +471,26 @@ export default function Profile() {
         labelKey: string;
         icon: ReactNode;
     }[] = [
-        { value: "posts", labelKey: "profile.posts", icon: <Grid3X3 className="h-4 w-4" /> },
-        { value: "orders", labelKey: "profile.orders", icon: <ShoppingBag className="h-4 w-4" /> },
-        { value: "groups", labelKey: "profile.groups", icon: <Users className="h-4 w-4" /> },
-        { value: "reviews", labelKey: "profile.reviews", icon: <Star className="h-4 w-4" /> },
+        {
+            value: "posts",
+            labelKey: "profile.posts",
+            icon: <Grid3X3 className="h-4 w-4" />,
+        },
+        {
+            value: "orders",
+            labelKey: "profile.orders",
+            icon: <ShoppingBag className="h-4 w-4" />,
+        },
+        {
+            value: "groups",
+            labelKey: "profile.groups",
+            icon: <Users className="h-4 w-4" />,
+        },
+        {
+            value: "reviews",
+            labelKey: "profile.reviews",
+            icon: <Star className="h-4 w-4" />,
+        },
     ];
 
     const SELLER_VISITOR_TABS: {
@@ -379,9 +498,21 @@ export default function Profile() {
         labelKey: string;
         icon: ReactNode;
     }[] = [
-        { value: "products", labelKey: "profile.products", icon: <Package className="h-4 w-4" /> },
-        { value: "posts", labelKey: "profile.posts", icon: <Grid3X3 className="h-4 w-4" /> },
-        { value: "reviews", labelKey: "profile.reviews", icon: <Star className="h-4 w-4" /> },
+        {
+            value: "products",
+            labelKey: "profile.products",
+            icon: <Package className="h-4 w-4" />,
+        },
+        {
+            value: "posts",
+            labelKey: "profile.posts",
+            icon: <Grid3X3 className="h-4 w-4" />,
+        },
+        {
+            value: "reviews",
+            labelKey: "profile.reviews",
+            icon: <Star className="h-4 w-4" />,
+        },
     ];
 
     const SELLER_SELF_TABS: {
@@ -389,10 +520,26 @@ export default function Profile() {
         labelKey: string;
         icon: ReactNode;
     }[] = [
-        { value: "posts", labelKey: "profile.posts", icon: <Grid3X3 className="h-4 w-4" /> },
-        { value: "shop", labelKey: "profile.shop", icon: <Package className="h-4 w-4" /> },
-        { value: "reviews", labelKey: "profile.reviews", icon: <Star className="h-4 w-4" /> },
-        { value: "scheduled", labelKey: "profile.scheduled", icon: <CalendarClock className="h-4 w-4" /> },
+        {
+            value: "posts",
+            labelKey: "profile.posts",
+            icon: <Grid3X3 className="h-4 w-4" />,
+        },
+        {
+            value: "shop",
+            labelKey: "profile.shop",
+            icon: <Package className="h-4 w-4" />,
+        },
+        {
+            value: "reviews",
+            labelKey: "profile.reviews",
+            icon: <Star className="h-4 w-4" />,
+        },
+        {
+            value: "scheduled",
+            labelKey: "profile.scheduled",
+            icon: <CalendarClock className="h-4 w-4" />,
+        },
     ];
 
     const tabBarClass =
@@ -437,9 +584,20 @@ export default function Profile() {
                             profileMediaBusy={profileMediaBusy}
                             profileMediaError={profileMediaError}
                             onOpenEditProfile={
-                                isSelf ? () => openAccountSettings("profile") : undefined
+                                isSelf
+                                    ? () => openAccountSettings("profile")
+                                    : undefined
                             }
-                            onOpenPrivacy={isSelf ? () => openAccountSettings("privacy") : undefined}
+                            onOpenPrivacy={
+                                isSelf
+                                    ? () => openAccountSettings("privacy")
+                                    : undefined
+                            }
+                            onOpenCreatePost={
+                                isSelf
+                                    ? () => setCreatePostModalOpen(true)
+                                    : undefined
+                            }
                         />
 
                         <div
@@ -450,20 +608,66 @@ export default function Profile() {
                         >
                             {isSelf ? (
                                 <aside className="space-y-6 lg:col-span-3">
-                                    <SellerProfileAboutSidebar profile={profile} />
+                                    <SellerProfileAboutSidebar
+                                        profile={profile}
+                                    />
+                                    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+                                        <div className="flex flex-col gap-2">
+                                            <Link
+                                                to="/seller/dashboard"
+                                                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+                                            >
+                                                <LayoutDashboard className="h-4 w-4 shrink-0" />
+                                                {t(
+                                                    "profile.sellerDashboardShort",
+                                                )}
+                                            </Link>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    void handleShareShop()
+                                                }
+                                                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+                                            >
+                                                <Share2 className="h-4 w-4 shrink-0" />
+                                                {t("profile.shareShop")}
+                                            </button>
+                                        </div>
+                                        {shopShareNotice ? (
+                                            <p className="mt-3 text-center text-xs text-muted-foreground">
+                                                {shopShareNotice}
+                                            </p>
+                                        ) : null}
+                                    </div>
                                 </aside>
                             ) : null}
 
-                            <div className={cn(isSelf ? "lg:col-span-9" : "lg:col-span-12")}>
+                            <div
+                                className={cn(
+                                    isSelf ? "lg:col-span-9" : "lg:col-span-12",
+                                )}
+                            >
                                 {!isSelf ? (
                                     <>
-                                        <div className={cn("mb-6 overflow-hidden rounded-2xl border border-border shadow-sm", tabBarClass)}>
+                                        <div
+                                            className={cn(
+                                                "mb-6 overflow-hidden rounded-2xl border border-border shadow-sm",
+                                                tabBarClass,
+                                            )}
+                                        >
                                             {SELLER_VISITOR_TABS.map((tab) => (
                                                 <button
                                                     key={tab.value}
                                                     type="button"
-                                                    onClick={() => setSellerVisitorTab(tab.value)}
-                                                    className={tabBtnClass(sellerVisitorTab === tab.value)}
+                                                    onClick={() =>
+                                                        setSellerVisitorTab(
+                                                            tab.value,
+                                                        )
+                                                    }
+                                                    className={tabBtnClass(
+                                                        sellerVisitorTab ===
+                                                            tab.value,
+                                                    )}
                                                 >
                                                     {tab.icon}
                                                     {t(tab.labelKey)}
@@ -475,35 +679,64 @@ export default function Profile() {
                                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                                     <div className="flex flex-wrap items-center gap-2">
                                                         <span className="text-sm font-semibold text-foreground">
-                                                            {t("profile.categoryLabel")}
+                                                            {t(
+                                                                "profile.categoryLabel",
+                                                            )}
                                                         </span>
                                                         <select
-                                                            value={productCategory ?? ""}
+                                                            value={
+                                                                productCategory ??
+                                                                ""
+                                                            }
                                                             onChange={(e) =>
                                                                 setProductCategory(
-                                                                    e.target.value === ""
+                                                                    e.target
+                                                                        .value ===
+                                                                        ""
                                                                         ? null
-                                                                        : e.target.value,
+                                                                        : e
+                                                                              .target
+                                                                              .value,
                                                                 )
                                                             }
                                                             className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground"
                                                         >
-                                                            <option value="">{t("profile.allCategories")}</option>
-                                                            {productCategories.map((c) => (
-                                                                <option key={c} value={c}>
-                                                                    {c}
-                                                                </option>
-                                                            ))}
+                                                            <option value="">
+                                                                {t(
+                                                                    "profile.allCategories",
+                                                                )}
+                                                            </option>
+                                                            {productCategories.map(
+                                                                (c) => (
+                                                                    <option
+                                                                        key={c}
+                                                                        value={
+                                                                            c
+                                                                        }
+                                                                    >
+                                                                        {c}
+                                                                    </option>
+                                                                ),
+                                                            )}
                                                         </select>
                                                     </div>
                                                     <p className="text-sm text-muted-foreground">
-                                                        {t("profile.itemsCount", { count: shopProducts.length })}
+                                                        {t(
+                                                            "profile.itemsCount",
+                                                            {
+                                                                count: shopProducts.length,
+                                                            },
+                                                        )}
                                                     </p>
                                                 </div>
                                                 <SellerProfileProductGrid
                                                     products={shopProducts}
-                                                    isLoading={shopProductsLoading}
-                                                    categoryFilter={productCategory}
+                                                    isLoading={
+                                                        shopProductsLoading
+                                                    }
+                                                    categoryFilter={
+                                                        productCategory
+                                                    }
                                                 />
                                             </div>
                                         ) : sellerVisitorTab === "posts" ? (
@@ -511,7 +744,9 @@ export default function Profile() {
                                                 posts={posts}
                                                 isLoading={false}
                                                 columns={3}
-                                                onPostClick={openProfilePostModal}
+                                                onPostClick={
+                                                    openProfilePostModal
+                                                }
                                             />
                                         ) : (
                                             <div className="py-12 text-center text-sm text-muted-foreground">
@@ -521,13 +756,25 @@ export default function Profile() {
                                     </>
                                 ) : (
                                     <>
-                                        <div className={cn("mb-6 overflow-hidden rounded-2xl border border-border shadow-sm", tabBarClass)}>
+                                        <div
+                                            className={cn(
+                                                "mb-6 overflow-hidden rounded-2xl border border-border shadow-sm",
+                                                tabBarClass,
+                                            )}
+                                        >
                                             {SELLER_SELF_TABS.map((tab) => (
                                                 <button
                                                     key={tab.value}
                                                     type="button"
-                                                    onClick={() => setSellerSelfTab(tab.value)}
-                                                    className={tabBtnClass(sellerSelfTab === tab.value)}
+                                                    onClick={() =>
+                                                        setSellerSelfTab(
+                                                            tab.value,
+                                                        )
+                                                    }
+                                                    className={tabBtnClass(
+                                                        sellerSelfTab ===
+                                                            tab.value,
+                                                    )}
                                                 >
                                                     {tab.icon}
                                                     {t(tab.labelKey)}
@@ -540,19 +787,29 @@ export default function Profile() {
                                                     posts={posts}
                                                     isLoading={false}
                                                     columns={2}
-                                                    onPostClick={openProfilePostModal}
+                                                    onPostClick={
+                                                        openProfilePostModal
+                                                    }
                                                 />
                                                 {postsHasMore ? (
                                                     <div className="mt-6 flex justify-center">
                                                         <button
                                                             type="button"
-                                                            disabled={postsLoadingMore}
-                                                            onClick={() => void loadMorePosts()}
+                                                            disabled={
+                                                                postsLoadingMore
+                                                            }
+                                                            onClick={() =>
+                                                                void loadMorePosts()
+                                                            }
                                                             className="rounded-xl border border-border bg-background px-8 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted disabled:opacity-50"
                                                         >
                                                             {postsLoadingMore
-                                                                ? t("profile.loadingMore")
-                                                                : t("profile.loadMorePosts")}
+                                                                ? t(
+                                                                      "profile.loadingMore",
+                                                                  )
+                                                                : t(
+                                                                      "profile.loadMorePosts",
+                                                                  )}
                                                         </button>
                                                     </div>
                                                 ) : null}
@@ -562,38 +819,64 @@ export default function Profile() {
                                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                                     <div className="flex flex-wrap items-center gap-2">
                                                         <span className="text-sm font-semibold text-foreground">
-                                                            {t("profile.categoryLabel")}
+                                                            {t(
+                                                                "profile.categoryLabel",
+                                                            )}
                                                         </span>
                                                         <select
-                                                            value={productCategory ?? ""}
+                                                            value={
+                                                                productCategory ??
+                                                                ""
+                                                            }
                                                             onChange={(e) =>
                                                                 setProductCategory(
-                                                                    e.target.value === ""
+                                                                    e.target
+                                                                        .value ===
+                                                                        ""
                                                                         ? null
-                                                                        : e.target.value,
+                                                                        : e
+                                                                              .target
+                                                                              .value,
                                                                 )
                                                             }
                                                             className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground"
                                                         >
-                                                            <option value="">{t("profile.allCategories")}</option>
-                                                            {productCategories.map((c) => (
-                                                                <option key={c} value={c}>
-                                                                    {c}
-                                                                </option>
-                                                            ))}
+                                                            <option value="">
+                                                                {t(
+                                                                    "profile.allCategories",
+                                                                )}
+                                                            </option>
+                                                            {productCategories.map(
+                                                                (c) => (
+                                                                    <option
+                                                                        key={c}
+                                                                        value={
+                                                                            c
+                                                                        }
+                                                                    >
+                                                                        {c}
+                                                                    </option>
+                                                                ),
+                                                            )}
                                                         </select>
                                                     </div>
                                                     <Link
                                                         to="/seller/dashboard"
                                                         className="text-sm font-semibold text-primary hover:underline"
                                                     >
-                                                        {t("profile.openSellerDashboard")}
+                                                        {t(
+                                                            "profile.openSellerDashboard",
+                                                        )}
                                                     </Link>
                                                 </div>
                                                 <SellerProfileProductGrid
                                                     products={shopProducts}
-                                                    isLoading={shopProductsLoading}
-                                                    categoryFilter={productCategory}
+                                                    isLoading={
+                                                        shopProductsLoading
+                                                    }
+                                                    categoryFilter={
+                                                        productCategory
+                                                    }
                                                 />
                                             </div>
                                         ) : sellerSelfTab === "reviews" ? (
@@ -602,12 +885,16 @@ export default function Profile() {
                                             </div>
                                         ) : (
                                             <div className="space-y-4 py-8 text-center">
-                                                <p className="text-muted-foreground">{t("profile.scheduledHint")}</p>
+                                                <p className="text-muted-foreground">
+                                                    {t("profile.scheduledHint")}
+                                                </p>
                                                 <Link
                                                     to="/scheduled-posts"
                                                     className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-700"
                                                 >
-                                                    {t("profile.goToScheduledPosts")}
+                                                    {t(
+                                                        "profile.goToScheduledPosts",
+                                                    )}
                                                 </Link>
                                             </div>
                                         )}
@@ -624,15 +911,22 @@ export default function Profile() {
                             onFollow={() => void handleFollow()}
                             onUnfollow={() => void handleUnfollow()}
                         />
-                        <BuyerProfileSuggestedStrip users={suggestedUsers} loading={suggestedLoading} />
+                        <BuyerProfileSuggestedStrip
+                            users={suggestedUsers}
+                            loading={suggestedLoading}
+                        />
                         <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
                             <div className={tabBarClass}>
                                 {BUYER_VISITOR_TABS.map((tab) => (
                                     <button
                                         key={tab.value}
                                         type="button"
-                                        onClick={() => setBuyerVisitorTab(tab.value)}
-                                        className={tabBtnClass(buyerVisitorTab === tab.value)}
+                                        onClick={() =>
+                                            setBuyerVisitorTab(tab.value)
+                                        }
+                                        className={tabBtnClass(
+                                            buyerVisitorTab === tab.value,
+                                        )}
                                     >
                                         {tab.icon}
                                         {t(tab.labelKey)}
@@ -668,8 +962,13 @@ export default function Profile() {
                             onCoverFile={handleCoverFile}
                             profileMediaBusy={profileMediaBusy}
                             profileMediaError={profileMediaError}
-                            onOpenEditProfile={() => openAccountSettings("profile")}
+                            onOpenEditProfile={() =>
+                                openAccountSettings("profile")
+                            }
                             onOpenPrivacy={() => openAccountSettings("privacy")}
+                            onOpenCreatePost={() =>
+                                setCreatePostModalOpen(true)
+                            }
                         />
                         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                             <aside className="order-2 lg:order-1 lg:col-span-4">
@@ -685,8 +984,12 @@ export default function Profile() {
                                             <button
                                                 key={tab.value}
                                                 type="button"
-                                                onClick={() => setBuyerSelfTab(tab.value)}
-                                                className={tabBtnClass(buyerSelfTab === tab.value)}
+                                                onClick={() =>
+                                                    setBuyerSelfTab(tab.value)
+                                                }
+                                                className={tabBtnClass(
+                                                    buyerSelfTab === tab.value,
+                                                )}
                                             >
                                                 {tab.icon}
                                                 {t(tab.labelKey)}
@@ -700,12 +1003,18 @@ export default function Profile() {
                                                 isLoading={false}
                                                 hasMore={postsHasMore}
                                                 loadingMore={postsLoadingMore}
-                                                onLoadMore={() => void loadMorePosts()}
-                                                onPostClick={openProfilePostModal}
+                                                onLoadMore={() =>
+                                                    void loadMorePosts()
+                                                }
+                                                onPostClick={
+                                                    openProfilePostModal
+                                                }
                                             />
                                         ) : buyerSelfTab === "orders" ? (
                                             <div className="space-y-4 py-4 text-center">
-                                                <p className="text-muted-foreground">{t("profile.ordersDesc")}</p>
+                                                <p className="text-muted-foreground">
+                                                    {t("profile.ordersDesc")}
+                                                </p>
                                                 <Link
                                                     to="/orders"
                                                     className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-700"
@@ -715,7 +1024,9 @@ export default function Profile() {
                                             </div>
                                         ) : buyerSelfTab === "groups" ? (
                                             <div className="space-y-4 py-4 text-center">
-                                                <p className="text-muted-foreground">{t("profile.groupsDesc")}</p>
+                                                <p className="text-muted-foreground">
+                                                    {t("profile.groupsDesc")}
+                                                </p>
                                                 <Link
                                                     to="/groups"
                                                     className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-700"
@@ -747,6 +1058,12 @@ export default function Profile() {
                     onClose={() => setPostDetailModalId(null)}
                     onLike={() => void handleProfileModalLike()}
                     onComment={(c) => void handleProfileModalComment(c)}
+                />
+            ) : null}
+            {createPostModalOpen && isSelf && user ? (
+                <CreatePostModal
+                    onClose={() => setCreatePostModalOpen(false)}
+                    onCreate={(payload) => handleProfileCreatePost(payload)}
                 />
             ) : null}
         </div>

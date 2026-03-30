@@ -1,5 +1,6 @@
 import {
     Camera,
+    CirclePlus,
     MapPin,
     MessageCircle,
     Shield,
@@ -28,6 +29,7 @@ interface BuyerProfileHeaderProps {
     onOpenEditProfile?: () => void;
     /** Self: open account settings (privacy tab) */
     onOpenPrivacy?: () => void;
+    onOpenCreatePost?: () => void;
 }
 
 export function BuyerProfileHeader({
@@ -39,9 +41,10 @@ export function BuyerProfileHeader({
     onCoverFile,
     profileMediaBusy = false,
     profileMediaError = null,
-    onOpenEditProfile,
-    onOpenPrivacy,
-}: BuyerProfileHeaderProps) {
+                      onOpenEditProfile,
+                      onOpenPrivacy,
+                      onOpenCreatePost,
+                  }: BuyerProfileHeaderProps) {
     const cover = profile.coverUrl ?? profile.coverImage;
     const { t } = useTranslation();
     const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -102,7 +105,7 @@ export function BuyerProfileHeader({
                 {profileMediaError ? (
                     <p className="mt-2 text-sm text-destructive">{profileMediaError}</p>
                 ) : null}
-                <div className="mb-4 flex flex-col justify-between gap-4 sm:-mt-20 sm:flex-row sm:items-end">
+                <div className="mb-4 flex flex-col justify-between gap-4 sm:-mt-16 sm:flex-row sm:items-end">
                     <div className="relative">
                         <div
                             className={cn(
@@ -176,6 +179,7 @@ export function BuyerProfileHeader({
                             <>
                                 <Button
                                     type="button"
+                                    variant="outline"
                                     className="h-10 w-full min-w-0 flex-1 justify-center px-6 sm:w-auto sm:flex-none"
                                     disabled={profileMediaBusy || !onOpenEditProfile}
                                     onClick={() => onOpenEditProfile?.()}
@@ -191,6 +195,15 @@ export function BuyerProfileHeader({
                                 >
                                     <Shield className="h-4 w-4 shrink-0" aria-hidden />
                                     {t("profile.privacy")}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    className="h-10 w-full min-w-0 flex-1 justify-center gap-2 px-6 shadow-lg shadow-primary/20 sm:w-auto sm:flex-none"
+                                    disabled={profileMediaBusy || !onOpenCreatePost}
+                                    onClick={() => onOpenCreatePost?.()}
+                                >
+                                    <CirclePlus className="h-4 w-4 shrink-0" aria-hidden />
+                                    {t("profile.createContent")}
                                 </Button>
                             </>
                         )}
