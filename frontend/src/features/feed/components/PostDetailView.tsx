@@ -148,30 +148,25 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
 
     const primaryMedia = post.imageUrl;
     const isVideo = post.mediaType === "VIDEO";
+    const hasPrimaryMedia = Boolean(primaryMedia);
 
     return (
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-            <div className="lg:col-span-7">
+            {hasPrimaryMedia ? <div className="lg:col-span-7">
                 <div className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-neutral-200 shadow-xl dark:bg-neutral-800">
-                    {primaryMedia ? (
-                        isVideo ? (
-                            <video
-                                src={primaryMedia}
-                                controls
-                                className="h-full w-full object-cover"
-                                playsInline
-                            />
-                        ) : (
-                            <img
-                                src={primaryMedia}
-                                alt="Post"
-                                className="h-full w-full object-cover"
-                            />
-                        )
+                    {isVideo ? (
+                        <video
+                            src={primaryMedia}
+                            controls
+                            className="h-full w-full object-cover"
+                            playsInline
+                        />
                     ) : (
-                        <div className="flex h-full w-full items-center justify-center text-neutral-400">
-                            No image
-                        </div>
+                        <img
+                            src={primaryMedia}
+                            alt="Post"
+                            className="h-full w-full object-cover"
+                        />
                     )}
                     {post.taggedProducts?.map((product) => (
                         <ShoppableHotspot key={product.id} product={product} />
@@ -216,9 +211,9 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                         </div>
                     </div>
                 )}
-            </div>
+            </div> : null}
 
-            <div className="flex flex-col gap-4 lg:col-span-5">
+            <div className={cn("flex flex-col gap-4", hasPrimaryMedia ? "lg:col-span-5" : "lg:col-span-12")}>
                 <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                     <div className="flex items-center justify-between border-b border-neutral-100 p-4 dark:border-neutral-800">
                         <div className="flex items-center gap-3">
@@ -303,11 +298,18 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 flex flex-col">
+                <div className="flex min-h-[24rem] flex-1 flex-col overflow-y-auto rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                     <div className="border-b border-neutral-100 p-4 shrink-0 dark:border-neutral-800">
                         <h3 className="font-bold">Comments ({post.commentsCount})</h3>
                     </div>
-                    <div className="flex-1 space-y-4 overflow-y-auto p-4">
+                    <div
+                        className={cn(
+                            "min-h-[16rem] flex-1 overflow-y-auto p-4",
+                            displayComments.length > 0 || hasMore
+                                ? "space-y-4"
+                                : "flex items-center justify-center",
+                        )}
+                    >
                         {hasMore && (
                             <div className="flex justify-center pb-2">
                                 <button

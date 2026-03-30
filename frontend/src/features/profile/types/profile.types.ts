@@ -17,6 +17,7 @@ export interface PublicUserProfile {
     followersCount?: number;
     followingCount?: number;
     postsCount?: number;
+    reviewsCount?: number;
     isFollowing?: boolean;
     isSelf?: boolean;
     createdAt?: string;

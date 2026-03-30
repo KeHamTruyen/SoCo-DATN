@@ -22,6 +22,7 @@ type ApiUserCount = {
     followers?: number;
     following?: number;
     posts?: number;
+    reviews?: number;
 };
 
 /** Backend returns Prisma `_count`; UI expects `followersCount` / `followingCount`. */
@@ -40,6 +41,7 @@ function normalizePublicUserProfile(raw: Record<string, unknown>): PublicUserPro
         followersCount: counts?.followers ?? base.followersCount,
         followingCount: counts?.following ?? base.followingCount,
         postsCount: counts?.posts ?? base.postsCount,
+        reviewsCount: counts?.reviews ?? base.reviewsCount,
     };
 }
 

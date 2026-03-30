@@ -22,7 +22,6 @@ interface SellerProfileHeaderProps {
     isSelf: boolean;
     onFollow?: () => void;
     onUnfollow?: () => void;
-    totalSold?: number;
     onAvatarFile?: (file: File) => void | Promise<void>;
     onCoverFile?: (file: File) => void | Promise<void>;
     profileMediaBusy?: boolean;
@@ -37,7 +36,6 @@ export function SellerProfileHeader({
     isSelf,
     onFollow,
     onUnfollow,
-    totalSold,
     onAvatarFile,
     onCoverFile,
     profileMediaBusy = false,
@@ -310,32 +308,22 @@ export function SellerProfileHeader({
                 </div>
 
                 <div className="mt-8 flex flex-wrap gap-x-10 gap-y-6 border-t border-border pt-6">
-                    {profile.shopRating != null ? (
-                        <div className="flex flex-col gap-0.5">
-                            <div className="flex items-center gap-1">
-                                <span className="text-xl font-bold text-foreground">
-                                    {profile.shopRating}
-                                </span>
-                                <Star className="h-4 w-4 fill-primary text-primary" />
-                                <span className="text-sm text-muted-foreground">
-                                    / 5
-                                </span>
-                            </div>
-                            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                {t("profile.starRatingShort")}
-                            </p>
-                        </div>
-                    ) : null}
-                    {profile.shopResponseRate != null ? (
-                        <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-1">
                             <span className="text-xl font-bold text-foreground">
-                                {profile.shopResponseRate}%
+                                {(profile.shopRating ?? 0).toFixed(1)}
                             </span>
-                            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                {t("profile.chatResponse")}
-                            </p>
+                            <Star className="h-4 w-4 fill-primary text-primary" />
+                            <span className="text-sm text-muted-foreground">
+                                / 5
+                            </span>
                         </div>
-                    ) : null}
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            {`${t("profile.reviews")} (${(
+                                profile.reviewsCount ?? 0
+                            ).toLocaleString()})`}
+                        </p>
+                    </div>
                     <div className="flex flex-col gap-0.5">
                         <span className="text-xl font-bold text-foreground">
                             {(profile.followersCount ?? 0).toLocaleString()}
@@ -344,16 +332,14 @@ export function SellerProfileHeader({
                             {t("profile.followersLabel")}
                         </p>
                     </div>
-                    {!isSelf && totalSold != null && totalSold > 0 ? (
-                        <div className="flex flex-col gap-0.5">
-                            <span className="text-xl font-bold text-foreground">
-                                {totalSold.toLocaleString()}
-                            </span>
-                            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                {t("profile.totalSold")}
-                            </p>
-                        </div>
-                    ) : null}
+                    <div className="flex flex-col gap-0.5">
+                        <span className="text-xl font-bold text-foreground">
+                            {(profile.followingCount ?? 0).toLocaleString()}
+                        </span>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            {t("profile.followingLabel")}
+                        </p>
+                    </div>
                 </div>
             </div>
         </section>

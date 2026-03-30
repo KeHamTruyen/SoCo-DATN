@@ -238,12 +238,6 @@ export function BuyerProfileHeader({
                             </span>
                             <span className="text-sm text-muted-foreground">{t("profile.followingLabel")}</span>
                         </div>
-                        <div className="flex cursor-pointer items-center gap-1.5 transition-colors hover:text-primary">
-                            <span className="font-bold text-foreground">
-                                {(profile.postsCount ?? 0).toLocaleString()}
-                            </span>
-                            <span className="text-sm text-muted-foreground">{t("profile.posts")}</span>
-                        </div>
                     </div>
                 </div>
             </div>

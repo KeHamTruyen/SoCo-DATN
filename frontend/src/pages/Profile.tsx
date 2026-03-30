@@ -368,11 +368,6 @@ export default function Profile() {
         return Array.from(s).sort();
     }, [shopProducts]);
 
-    const totalSoldAggregate = useMemo(
-        () => shopProducts.reduce((acc, p) => acc + (p.soldCount ?? 0), 0),
-        [shopProducts],
-    );
-
     const handleFollow = async () => {
         if (!profile) return;
         const res = await profileApi.followUser(profile.id);
@@ -576,7 +571,6 @@ export default function Profile() {
                         <SellerProfileHeader
                             profile={profile}
                             isSelf={isSelf}
-                            totalSold={!isSelf ? totalSoldAggregate : undefined}
                             onFollow={() => void handleFollow()}
                             onUnfollow={() => void handleUnfollow()}
                             onAvatarFile={isSelf ? handleAvatarFile : undefined}
