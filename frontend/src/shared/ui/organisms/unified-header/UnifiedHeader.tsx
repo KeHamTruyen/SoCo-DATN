@@ -13,6 +13,7 @@ import {
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { NotificationDropdown } from "../../../../features/notification/components/NotificationDropdown";
+import { NotificationToastStack } from "../../../../features/notification/components/NotificationToastStack";
 import { useNotificationCenter } from "../../../../features/notification/context/NotificationContext";
 import { useAuthSession } from "../../../auth/useAuthSession";
 import { useTranslation } from "react-i18next";
@@ -59,6 +60,8 @@ export function UnifiedHeader({
         unreadCount,
         liveToasts,
         dismissToast,
+        markRead,
+        markAllRead,
     } = useNotificationCenter();
 
     const toggleLanguage = () => {
@@ -100,8 +103,9 @@ export function UnifiedHeader({
     };
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/90 backdrop-blur-md dark:border-neutral-800 dark:bg-background-dark/90">
-            <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6">
+        <>
+            <header className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/90 backdrop-blur-md dark:border-neutral-800 dark:bg-background-dark/90">
+                <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6">
                 <div className="flex items-center gap-4 lg:gap-8">
                     <BrandLogo className="[&>span]:hidden sm:[&>span]:inline" />
                     <nav className="hidden items-center gap-6 md:flex">
@@ -159,9 +163,10 @@ export function UnifiedHeader({
                         </Button>
                         {notifOpen && (
                             <NotificationDropdown
-                                notifications={notifications.slice(0, 5)}
+                                notifications={notifications}
                                 unreadCount={unreadCount}
                                 onClose={() => setNotifOpen(false)}
+                                onMarkAllRead={() => void markAllRead()}
                             />
                         )}
                     </div>
@@ -268,10 +273,10 @@ export function UnifiedHeader({
                         )}
                     </Button>
                 </div>
-            </div>
+                </div>
 
-            {mobileOpen ? (
-                <div className="space-y-3 border-t border-neutral-200 px-4 py-4 dark:border-neutral-800 md:hidden">
+                {mobileOpen ? (
+                    <div className="space-y-3 border-t border-neutral-200 px-4 py-4 dark:border-neutral-800 md:hidden">
                     <div className="relative">
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                         <Input
@@ -356,31 +361,18 @@ export function UnifiedHeader({
                             </button>
                         </div>
                     ) : null}
-                </div>
-            ) : null}
+                    </div>
+                ) : null}
 
-            {themeModalOpen ? (
-                <ThemePickerModal onClose={() => setThemeModalOpen(false)} />
-            ) : null}
-
-            <div className="pointer-events-none fixed bottom-4 left-4 z-60 flex w-[360px] max-w-[calc(100vw-2rem)] flex-col gap-2">
-                {liveToasts.map((notification) => (
-                    <Link
-                        key={notification.id}
-                        to={notification.link ?? "/notifications"}
-                        className="pointer-events-auto rounded-xl border border-border bg-card p-3 text-card-foreground shadow-lg transition hover:bg-muted/60"
-                        onClick={() => dismissToast(notification.id)}
-                    >
-                        <p className="line-clamp-1 text-sm font-semibold">
-                            {notification.title ?? "Thong bao moi"}
-                        </p>
-                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                            {notification.actorName ? `${notification.actorName} ` : ""}
-                            {notification.content}
-                        </p>
-                    </Link>
-                ))}
-            </div>
-        </header>
+                {themeModalOpen ? (
+                    <ThemePickerModal onClose={() => setThemeModalOpen(false)} />
+                ) : null}
+            </header>
+            <NotificationToastStack
+                items={liveToasts}
+                onDismiss={dismissToast}
+                onOpen={(id) => void markRead(id)}
+            />
+        </>
     );
 }

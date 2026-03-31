@@ -149,11 +149,12 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
     const primaryMedia = post.imageUrl;
     const isVideo = post.mediaType === "VIDEO";
     const hasPrimaryMedia = Boolean(primaryMedia);
+    const hasProducts = (post.taggedProducts?.length ?? 0) > 0;
 
     return (
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
             {hasPrimaryMedia ? <div className="lg:col-span-7">
-                <div className="group relative aspect-[4/5] overflow-hidden rounded-2xl bg-neutral-200 shadow-xl dark:bg-neutral-800">
+                <div className="group relative aspect-4/5 overflow-hidden rounded-2xl bg-neutral-200 shadow-xl dark:bg-neutral-800">
                     {isVideo ? (
                         <video
                             src={primaryMedia}
@@ -217,19 +218,86 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                 <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                     <div className="flex items-center justify-between border-b border-neutral-100 p-4 dark:border-neutral-800">
                         <div className="flex items-center gap-3">
-                            <Avatar src={post.author.avatarUrl} alt={post.author.fullName} />
-                            <div>
-                                <p className="font-semibold">{post.author.fullName}</p>
-                                <p className="text-xs text-neutral-500">
-                                    {formatTimeAgo(post.createdAt)}
-                                    {post.location ? ` · ${post.location}` : ""}
-                                </p>
-                                {post.feeling ? (
-                                    <p className="mt-0.5 text-xs font-medium text-primary">
-                                        {post.feeling}
-                                    </p>
-                                ) : null}
-                            </div>
+                            {post.group ? (
+                                <>
+                                    <div className="relative h-11 w-11 shrink-0">
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-xs font-bold text-white">
+                                            {post.group.avatarUrl ? (
+                                                <img
+                                                    src={post.group.avatarUrl}
+                                                    alt={post.group.name}
+                                                    className="h-full w-full rounded-lg object-cover"
+                                                />
+                                            ) : (
+                                                post.group.name.slice(0, 2).toUpperCase()
+                                            )}
+                                        </div>
+                                        <Avatar
+                                            src={post.author.avatarUrl}
+                                            alt={post.author.fullName}
+                                            wrapperClassName="absolute -bottom-1 -right-1 h-6 w-6 border-2 border-white dark:border-neutral-900"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Link
+                                            to={`/groups/${post.group.id}`}
+                                            className="block font-semibold text-neutral-900 hover:text-primary hover:underline dark:text-neutral-100"
+                                        >
+                                            {post.group.name}
+                                        </Link>
+                                        <p className="text-xs text-neutral-500">
+                                            <Link
+                                                to={`/profile/${post.author.id}`}
+                                                className="font-medium text-neutral-700 hover:text-primary hover:underline dark:text-neutral-300"
+                                            >
+                                                {post.author.fullName ??
+                                                    post.author.username ??
+                                                    "User"}
+                                            </Link>
+                                            {post.author.username &&
+                                            post.author.fullName &&
+                                            post.author.username !== post.author.fullName
+                                                ? ` · @${post.author.username}`
+                                                : ""}
+                                        </p>
+                                        <p className="text-xs text-neutral-500">
+                                            {formatTimeAgo(post.createdAt)}
+                                            {post.location ? ` · ${post.location}` : ""}
+                                        </p>
+                                        {post.feeling ? (
+                                            <p className="mt-0.5 text-xs font-medium text-primary">
+                                                {post.feeling}
+                                            </p>
+                                        ) : null}
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <Avatar
+                                        src={post.author.avatarUrl}
+                                        alt={post.author.fullName}
+                                    />
+                                    <div>
+                                        <Link
+                                            to={`/profile/${post.author.id}`}
+                                            className="font-semibold text-neutral-900 hover:text-primary hover:underline dark:text-neutral-100"
+                                        >
+                                            {post.author.fullName ??
+                                                post.author.username ??
+                                                "User"}
+                                        </Link>
+                                        <p className="text-xs text-neutral-500">
+                                            {formatTimeAgo(post.createdAt)}
+                                            {post.location ? ` · ${post.location}` : ""}
+                                        </p>
+                                        {post.feeling ? (
+                                            <p className="mt-0.5 text-xs font-medium text-primary">
+                                                {post.feeling}
+                                            </p>
+                                        ) : null}
+                                    </div>
+                                </>
+                            )}
                         </div>
                         <Button variant="ghost" size="icon">
                             <MoreHorizontal className="h-5 w-5" />
@@ -259,52 +327,77 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                     </div>
 
                     <div className="flex items-center justify-between border-t border-neutral-100 px-4 py-3 dark:border-neutral-800">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             <button
                                 type="button"
                                 onClick={onLike}
                                 className={cn(
-                                    "flex items-center gap-1.5 text-sm font-medium transition-colors",
-                                    post.likedByMe ? "text-destructive" : "text-neutral-500 hover:text-destructive",
+                                    "flex items-center gap-1.5 text-sm transition-colors hover:text-primary",
+                                    post.likedByMe
+                                        ? "font-semibold text-primary"
+                                        : "text-neutral-600 dark:text-neutral-400",
                                 )}
                             >
-                                <Heart
-                                    className={cn("h-5 w-5", post.likedByMe && "fill-current")}
-                                />
-                                {post.likesCount}
+                                <Heart className={cn("h-5 w-5", post.likedByMe && "fill-current")} />
+                                <span className="text-xs font-semibold">{post.likesCount}</span>
                             </button>
-                            <span className="flex items-center gap-1.5 text-sm font-medium text-neutral-500">
+                            <button
+                                type="button"
+                                className="flex items-center gap-1.5 text-sm text-neutral-600 transition-colors hover:text-primary dark:text-neutral-400"
+                            >
                                 <MessageCircle className="h-5 w-5" />
-                                {post.commentsCount}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="icon">
+                                <span className="text-xs font-semibold">{post.commentsCount}</span>
+                            </button>
+                            <button
+                                type="button"
+                                className="flex items-center gap-1.5 text-sm text-neutral-600 transition-colors hover:text-primary dark:text-neutral-400"
+                            >
                                 <Send className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="icon"
+                            </button>
+                            <button
                                 type="button"
                                 disabled={saveBusy}
                                 onClick={toggleSave}
                                 aria-label={savedId ? "Remove from saved" : "Save post"}
                                 aria-pressed={!!savedId}
-                                className={savedId ? "text-primary" : undefined}
+                                className={cn(
+                                    "flex items-center gap-1.5 text-sm transition-colors hover:text-primary disabled:opacity-60",
+                                    savedId
+                                        ? "font-semibold text-primary"
+                                        : "text-neutral-600 dark:text-neutral-400",
+                                )}
                             >
                                 <Bookmark className={cn("h-4 w-4", savedId && "fill-current")} />
-                            </Button>
+                            </button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {hasProducts ? (
+                                <button
+                                    type="button"
+                                    className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:bg-primary-700"
+                                >
+                                    Buy Now
+                                </button>
+                            ) : post.linkUrl ? (
+                                <a
+                                    href={post.linkUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="rounded-lg border border-primary px-4 py-2 text-xs font-bold text-primary transition-all hover:bg-primary/5"
+                                >
+                                    Learn More
+                                </a>
+                            ) : null}
                         </div>
                     </div>
                 </div>
-
-                <div className="flex min-h-[24rem] flex-1 flex-col overflow-y-auto rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="flex min-h-96 flex-1 flex-col overflow-y-auto rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                     <div className="border-b border-neutral-100 p-4 shrink-0 dark:border-neutral-800">
                         <h3 className="font-bold">Comments ({post.commentsCount})</h3>
                     </div>
                     <div
                         className={cn(
-                            "min-h-[16rem] flex-1 overflow-y-auto p-4",
+                            "min-h-64 flex-1 overflow-y-auto p-4",
                             displayComments.length > 0 || hasMore
                                 ? "space-y-4"
                                 : "flex items-center justify-center",

@@ -1,4 +1,6 @@
 import type { FeedComment } from "../types/feed.types";
+import { Link } from "react-router-dom";
+import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { Avatar } from "../../../shared/ui";
 import { formatTimeAgo } from "../../../shared/lib/formatTimeAgo";
 import { useTranslation } from "react-i18next";
@@ -10,6 +12,7 @@ interface CommentListProps {
 }
 
 export function CommentList({ comments, totalCount = 0, onViewMore }: CommentListProps) {
+    const { user } = useAuthSession();
     if (comments.length === 0) {
         return null; // Do not render anything if no comments
     }
@@ -39,7 +42,16 @@ export function CommentList({ comments, totalCount = 0, onViewMore }: CommentLis
                     <div className="rounded-2xl bg-neutral-100 px-3 py-2 text-sm dark:bg-neutral-800">
                         <div className="flex items-center gap-2">
                             <p className="font-semibold text-neutral-900 dark:text-neutral-100">
-                                {comment.user?.fullName ?? comment.user?.username ?? "User"}
+                                <Link
+                                    to={
+                                        user?.id && user.id === comment.user?.id
+                                            ? "/profile"
+                                            : `/profile/${comment.user?.id}`
+                                    }
+                                    className="transition-colors hover:text-primary"
+                                >
+                                    {comment.user?.fullName ?? comment.user?.username ?? "User"}
+                                </Link>
                             </p>
                             <span className="text-xs text-neutral-500 shrink-0">
                                 {formatTimeAgo(comment.createdAt)}

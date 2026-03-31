@@ -1,4 +1,5 @@
 import { Bell, MessageSquare, Package, Send, Tag } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Notification } from "../types/notification.types";
 
@@ -39,13 +40,24 @@ interface NotificationDropdownProps {
     notifications: Notification[];
     unreadCount: number;
     onClose: () => void;
+    onMarkAllRead: () => void;
 }
 
 export function NotificationDropdown({
     notifications,
     unreadCount,
     onClose,
+    onMarkAllRead,
 }: NotificationDropdownProps) {
+    const [visibleCount, setVisibleCount] = useState(5);
+
+    useEffect(() => {
+        setVisibleCount(5);
+    }, [notifications.length]);
+
+    const visibleNotifications = notifications.slice(0, visibleCount);
+    const hasMoreNotifications = notifications.length > visibleNotifications.length;
+
     return (
         <div className="absolute right-0 z-50 mt-3 flex w-96 flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl dark:border-neutral-800 dark:bg-background-dark">
             <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
@@ -57,13 +69,24 @@ export function NotificationDropdown({
                         </span>
                     )}
                 </h3>
-                <Link
-                    to="/notifications"
-                    className="text-sm font-medium text-primary hover:underline"
-                    onClick={onClose}
-                >
-                    See all
-                </Link>
+                <div className="flex items-center gap-3">
+                    {unreadCount > 0 ? (
+                        <button
+                            type="button"
+                            onClick={onMarkAllRead}
+                            className="text-sm font-medium text-primary hover:underline"
+                        >
+                            Mark all as read
+                        </button>
+                    ) : null}
+                    <Link
+                        to="/notifications"
+                        className="text-sm font-medium text-primary hover:underline"
+                        onClick={onClose}
+                    >
+                        See all
+                    </Link>
+                </div>
             </div>
 
             <div className="max-h-96 overflow-y-auto">
@@ -72,7 +95,7 @@ export function NotificationDropdown({
                         No notifications
                     </div>
                 ) : (
-                    notifications.slice(0, 5).map((n) => {
+                    visibleNotifications.map((n) => {
                         const iconConf = TYPE_ICON[n.iconType ?? n.type] ?? TYPE_ICON.system;
                         const body = (
                             <div className="group relative flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
@@ -114,13 +137,23 @@ export function NotificationDropdown({
             </div>
 
             <div className="border-t border-neutral-100 p-3 dark:border-neutral-800">
-                <Link
-                    to="/notifications"
-                    onClick={onClose}
-                    className="block rounded-lg py-2 text-center text-sm font-semibold text-primary hover:bg-primary/5 transition-colors"
-                >
-                    View all notifications
-                </Link>
+                {hasMoreNotifications ? (
+                    <button
+                        type="button"
+                        onClick={() => setVisibleCount((count) => count + 5)}
+                        className="block w-full rounded-lg py-2 text-center text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
+                    >
+                        View more notifications
+                    </button>
+                ) : (
+                    <Link
+                        to="/notifications"
+                        onClick={onClose}
+                        className="block rounded-lg py-2 text-center text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
+                    >
+                        View all notifications
+                    </Link>
+                )}
             </div>
         </div>
     );

@@ -83,7 +83,7 @@ export function ProfilePostsGrid({
                         {inner}
                     </button>
                 ) : (
-                    <Link key={post.id} to={`/posts/${post.id}`} className={tileClass}>
+                    <Link key={post.id} to={`/post/${post.id}`} className={tileClass}>
                         {inner}
                     </Link>
                 );

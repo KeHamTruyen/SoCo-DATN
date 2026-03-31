@@ -26,7 +26,8 @@
         "writeComment": "Viết bình luận...",
         "noComments": "Chưa có bình luận nào. Hãy là người đầu tiên!",
         "copyPostLink": "Sao chép liên kết",
-        "linkCopied": "Đã sao chép!"
+        "linkCopied": "Đã sao chép!",
+        "reportPost": "Báo cáo bài viết"
     },
     "createPost": {
         "title": "Tạo bài viết",

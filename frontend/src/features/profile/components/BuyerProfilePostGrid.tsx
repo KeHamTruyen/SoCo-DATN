@@ -21,7 +21,7 @@ interface BuyerProfilePostGridProps {
     hasMore?: boolean;
     loadingMore?: boolean;
     onLoadMore?: () => void;
-    /** Opens post detail in a modal instead of navigating to `/posts/:id` */
+    /** Opens post detail in a modal instead of navigating to `/post/:id` */
     onPostClick?: (post: FeedPost) => void;
 }
 
@@ -111,7 +111,7 @@ export function BuyerProfilePostGrid({
                             {inner}
                         </button>
                     ) : (
-                        <Link key={post.id} to={`/posts/${post.id}`} className={cardClass}>
+                        <Link key={post.id} to={`/post/${post.id}`} className={cardClass}>
                             {inner}
                         </Link>
                     );

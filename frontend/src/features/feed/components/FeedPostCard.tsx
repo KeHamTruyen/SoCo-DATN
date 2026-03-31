@@ -1,17 +1,22 @@
-import { Link2, MessageSquarePlus, MoreHorizontal, Share2 } from "lucide-react";
+import { Bookmark, Flag, Link2, MessageSquarePlus, MoreHorizontal, Share2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { Avatar, Button } from "../../../shared/ui";
+import { ReportModal } from "../../report/components/ReportModal";
+import { savedItemsApi } from "../../saved-items/api/savedItemsApi";
 import { CommentList } from "./CommentList";
 import { PostDetailModal } from "./PostDetailModal";
 import { formatTimeAgo } from "../../../shared/lib/formatTimeAgo";
 import { useTranslation } from "react-i18next";
-import type { FeedPost } from "../types/feed.types";
+import { feedApi } from "../api/feedApi";
+import type { FeedComment, FeedPost } from "../types/feed.types";
 
 interface FeedPostCardProps {
     post: FeedPost;
     onLike: () => void;
     onComment: (content: string) => Promise<void> | void;
+    mode?: "feed" | "detail";
 }
 
 async function copyTextToClipboard(text: string) {
@@ -30,26 +35,48 @@ async function copyTextToClipboard(text: string) {
     document.body.removeChild(ta);
 }
 
-export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
+export function FeedPostCard({
+    post,
+    onLike,
+    onComment,
+    mode = "feed",
+}: FeedPostCardProps) {
+    const { user } = useAuthSession();
     const [newComment, setNewComment] = useState("");
     const [isCommenting, setIsCommenting] = useState(false);
     const [showPostModal, setShowPostModal] = useState(false);
     const [shareMenuOpen, setShareMenuOpen] = useState(false);
+    const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+    const [reportModalOpen, setReportModalOpen] = useState(false);
     const [linkJustCopied, setLinkJustCopied] = useState(false);
+    const [savedId, setSavedId] = useState<string | null>(null);
+    const [saveBusy, setSaveBusy] = useState(false);
+    const [olderComments, setOlderComments] = useState<FeedComment[]>([]);
+    const [commentsPage, setCommentsPage] = useState(1);
+    const [loadingMoreComments, setLoadingMoreComments] = useState(false);
     const shareMenuRef = useRef<HTMLDivElement>(null);
+    const moreMenuRef = useRef<HTMLDivElement>(null);
     const { t } = useTranslation();
 
     const closeShareMenu = useCallback(() => {
         setShareMenuOpen(false);
     }, []);
 
+    const closeMoreMenu = useCallback(() => {
+        setMoreMenuOpen(false);
+    }, []);
+
     useEffect(() => {
-        if (!shareMenuOpen) return;
+        if (!shareMenuOpen && !moreMenuOpen) return;
         const onDoc = (e: MouseEvent) => {
             if (!shareMenuRef.current?.contains(e.target as Node)) closeShareMenu();
+            if (!moreMenuRef.current?.contains(e.target as Node)) closeMoreMenu();
         };
         const onKey = (e: KeyboardEvent) => {
-            if (e.key === "Escape") closeShareMenu();
+            if (e.key === "Escape") {
+                closeShareMenu();
+                closeMoreMenu();
+            }
         };
         document.addEventListener("mousedown", onDoc);
         document.addEventListener("keydown", onKey);
@@ -57,7 +84,22 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
             document.removeEventListener("mousedown", onDoc);
             document.removeEventListener("keydown", onKey);
         };
-    }, [shareMenuOpen, closeShareMenu]);
+    }, [shareMenuOpen, moreMenuOpen, closeShareMenu, closeMoreMenu]);
+
+    useEffect(() => {
+        let cancelled = false;
+        void (async () => {
+            try {
+                const id = await savedItemsApi.lookup("POST", post.id);
+                if (!cancelled) setSavedId(id);
+            } catch {
+                if (!cancelled) setSavedId(null);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [post.id]);
 
     const handleComment = () => {
         if (!newComment.trim()) return;
@@ -73,7 +115,34 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
         void onComment(content);
     };
 
-    const postPermalink = `${window.location.origin}/posts/${post.id}`;
+    const displayComments =
+        mode === "detail"
+            ? [...olderComments, ...[...(post.comments ?? [])].reverse()]
+            : post.comments ?? [];
+
+    const hasMoreComments =
+        mode === "detail"
+            ? post.commentsCount > ((post.comments?.length || 0) + olderComments.length)
+            : post.commentsCount > (post.comments?.length || 0);
+
+    const loadMoreComments = async () => {
+        if (mode !== "detail" || loadingMoreComments || !hasMoreComments) return;
+        setLoadingMoreComments(true);
+        try {
+            const nextPage = commentsPage + 1;
+            const currentOffset = (post.comments?.length || 0) + olderComments.length;
+            const res = await feedApi.getComments(post.id, nextPage, 5, currentOffset);
+            const newOlder = [...res.items].reverse();
+            setOlderComments((prev) => [...newOlder, ...prev]);
+            setCommentsPage(nextPage);
+        } catch {
+            // Ignore transient pagination errors in detail mode.
+        } finally {
+            setLoadingMoreComments(false);
+        }
+    };
+
+    const postPermalink = `${window.location.origin}/post/${post.id}`;
 
     const handleCopyPostLink = () => {
         void (async () => {
@@ -90,11 +159,33 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
         })();
     };
 
+    const toggleSave = () => {
+        if (saveBusy) return;
+        setSaveBusy(true);
+        void (async () => {
+            try {
+                if (savedId) {
+                    await savedItemsApi.remove(savedId);
+                    setSavedId(null);
+                } else {
+                    const row = await savedItemsApi.save("POST", post.id);
+                    setSavedId(row.id);
+                }
+            } catch {
+                /* ignore */
+            } finally {
+                setSaveBusy(false);
+            }
+        })();
+    };
+
     const hasProducts = (post.taggedProducts?.length ?? 0) > 0;
     const primaryMedia = post.imageUrl;
     const extraMedia =
         (post.mediaUrls?.length ?? 0) > 1 ? (post.mediaUrls!.length - 1) : 0;
     const isVideo = post.mediaType === "VIDEO";
+    const authorProfileLink =
+        user?.id && user.id === post.author.id ? "/profile" : `/profile/${post.author.id}`;
 
     return (
         <article className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
@@ -121,11 +212,17 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
                                 />
                             </div>
                             <div className="min-w-0">
-                                <Link to={`/groups/${post.group.id}`} className="block truncate text-sm font-bold text-neutral-900 hover:text-primary dark:text-neutral-100">
+                                <Link to={`/groups/${post.group.id}`} className="block truncate text-sm font-bold text-neutral-900 hover:text-primary hover:underline dark:text-neutral-100">
                                     {post.group.name}
                                 </Link>
                                 <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                                    {post.author.fullName ?? post.author.username ?? "User"} • {formatTimeAgo(post.createdAt)}
+                                    <Link
+                                        to={authorProfileLink}
+                                        className="font-medium text-neutral-700 hover:text-primary hover:underline dark:text-neutral-300"
+                                    >
+                                        {post.author.fullName ?? post.author.username ?? "User"}
+                                    </Link>{" "}
+                                    • {formatTimeAgo(post.createdAt)}
                                     {post.location ? ` • ${post.location}` : ""}
                                 </p>
                                 {post.feeling ? (
@@ -142,9 +239,12 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
                                 wrapperClassName="h-10 w-10 shrink-0 border-2 border-primary"
                             />
                             <div className="min-w-0">
-                                <p className="truncate text-sm font-bold text-neutral-900 dark:text-neutral-100">
+                                <Link
+                                    to={authorProfileLink}
+                                    className="block truncate text-sm font-bold text-neutral-900 hover:text-primary hover:underline dark:text-neutral-100"
+                                >
                                     {post.author.fullName ?? post.author.username ?? "User"}
-                                </p>
+                                </Link>
                                 <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
                                     {formatTimeAgo(post.createdAt)}
                                     {post.location ? ` • ${post.location}` : ""}
@@ -156,12 +256,36 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
                         </>
                     )}
                 </div>
-                <button
-                    type="button"
-                    className="rounded-full p-1 text-neutral-500 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                >
-                    <MoreHorizontal className="h-5 w-5" />
-                </button>
+                <div ref={moreMenuRef} className="relative">
+                    <button
+                        type="button"
+                        aria-expanded={moreMenuOpen}
+                        aria-haspopup="menu"
+                        onClick={() => setMoreMenuOpen((v) => !v)}
+                        className="rounded-full p-1 text-neutral-500 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    >
+                        <MoreHorizontal className="h-5 w-5" />
+                    </button>
+                    {moreMenuOpen ? (
+                        <div
+                            role="menu"
+                            className="absolute right-0 top-full z-50 mt-1 min-w-40 overflow-hidden rounded-lg border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+                        >
+                            <button
+                                type="button"
+                                role="menuitem"
+                                onClick={() => {
+                                    closeMoreMenu();
+                                    setReportModalOpen(true);
+                                }}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-neutral-800 transition-colors hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                            >
+                                <Flag className="h-4 w-4 shrink-0 opacity-70" />
+                                {t("feed.reportPost", "Report post")}
+                            </button>
+                        </div>
+                    ) : null}
+                </div>
             </div>
 
             {/* Content */}
@@ -310,6 +434,20 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
                             </div>
                         ) : null}
                     </div>
+                    <button
+                        type="button"
+                        disabled={saveBusy}
+                        onClick={toggleSave}
+                        aria-label={savedId ? "Remove from saved" : "Save post"}
+                        aria-pressed={!!savedId}
+                        className={`flex items-center gap-1.5 text-sm transition-colors hover:text-primary disabled:opacity-60 ${
+                            savedId
+                                ? "font-semibold text-primary"
+                                : "text-neutral-600 dark:text-neutral-400"
+                        }`}
+                    >
+                        <Bookmark className={`h-4 w-4 ${savedId ? "fill-current" : ""}`} />
+                    </button>
                 </div>
 
                 {/* Conditional CTA */}
@@ -334,11 +472,66 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
 
             {/* Comment input */}
             <div className="border-t border-neutral-100 px-4 pb-4 pt-2 dark:border-neutral-800">
-                <CommentList 
-                    comments={post.comments ?? []} 
-                    totalCount={post.commentsCount} 
-                    onViewMore={() => setShowPostModal(true)} 
-                />
+                {mode === "detail" ? (
+                    <div className="space-y-3">
+                        {hasMoreComments ? (
+                            <button
+                                type="button"
+                                onClick={() => void loadMoreComments()}
+                                disabled={loadingMoreComments}
+                                className="text-sm font-semibold text-neutral-500 transition-colors hover:text-neutral-700 disabled:opacity-60 dark:hover:text-neutral-300"
+                            >
+                                {loadingMoreComments
+                                    ? "Loading..."
+                                    : t("feed.viewMoreComments")}
+                            </button>
+                        ) : null}
+                        {displayComments.length > 0 ? (
+                            displayComments.map((comment) => (
+                                <div key={comment.id} className="flex gap-2">
+                                    <Avatar
+                                        src={comment.user?.avatarUrl}
+                                        alt={
+                                            comment.user?.fullName ??
+                                            comment.user?.username ??
+                                            "User"
+                                        }
+                                        wrapperClassName="h-8 w-8 shrink-0"
+                                    />
+                                    <div className="rounded-2xl bg-neutral-100 px-3 py-2 text-sm dark:bg-neutral-800">
+                                        <div className="flex items-center gap-2">
+                                            <Link
+                                                to={
+                                                    user?.id &&
+                                                    user.id === comment.user?.id
+                                                        ? "/profile"
+                                                        : `/profile/${comment.user?.id}`
+                                                }
+                                                className="font-semibold text-neutral-900 transition-colors hover:text-primary dark:text-neutral-100"
+                                            >
+                                                {comment.user?.fullName ??
+                                                    comment.user?.username ??
+                                                    "User"}
+                                            </Link>
+                                            <span className="shrink-0 text-xs text-neutral-500">
+                                                {formatTimeAgo(comment.createdAt)}
+                                            </span>
+                                        </div>
+                                        <p className="mt-0.5 text-neutral-800 dark:text-neutral-200">
+                                            {comment.content}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))
+                        ) : null}
+                    </div>
+                ) : (
+                    <CommentList
+                        comments={post.comments ?? []}
+                        totalCount={post.commentsCount}
+                        onViewMore={() => setShowPostModal(true)}
+                    />
+                )}
                 <div className="mt-3 flex items-center gap-2">
                     <input
                         value={newComment}
@@ -364,7 +557,7 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
                 </div>
             </div>
 
-            {showPostModal && (
+            {mode === "feed" && showPostModal && (
                 <PostDetailModal
                     post={post}
                     onClose={() => setShowPostModal(false)}
@@ -372,6 +565,14 @@ export function FeedPostCard({ post, onLike, onComment }: FeedPostCardProps) {
                     onComment={handleCommentFromModal}
                 />
             )}
+            {reportModalOpen ? (
+                <ReportModal
+                    targetType="post"
+                    targetId={post.id}
+                    onClose={() => setReportModalOpen(false)}
+                    onSuccess={() => setReportModalOpen(false)}
+                />
+            ) : null}
         </article>
     );
 }

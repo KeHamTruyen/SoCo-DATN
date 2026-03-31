@@ -380,7 +380,7 @@ export default function SavedItems() {
                                         >
                                             <div className="relative aspect-4/3 overflow-hidden bg-neutral-100 dark:bg-neutral-800">
                                                 <Link
-                                                    to={`/posts/${row.post.id}`}
+                                                    to={`/post/${row.post.id}`}
                                                     className="block h-full w-full"
                                                 >
                                                     {postImageUrl(row) ? (
@@ -440,7 +440,7 @@ export default function SavedItems() {
                                                     </span>
                                                 </div>
                                                 <Link
-                                                    to={`/posts/${row.post.id}`}
+                                                    to={`/post/${row.post.id}`}
                                                     className="mt-3 text-xs font-bold text-primary hover:underline"
                                                 >
                                                     Read post

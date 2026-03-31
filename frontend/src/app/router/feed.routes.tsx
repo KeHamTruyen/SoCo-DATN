@@ -1,4 +1,4 @@
-import { Route } from "react-router-dom";
+import { Navigate, Route, useParams } from "react-router-dom";
 import {
     AppShellHeaderOnlyLayout,
     AppShellWithFooterLayout,
@@ -13,12 +13,18 @@ import ScheduledPosts from "../../pages/ScheduledPosts";
 import SellerDashboard from "../../pages/SellerDashboard";
 import ProtectedRoute from "./ProtectedRoute";
 
+function LegacyPostDetailRedirect() {
+    const { id } = useParams<{ id: string }>();
+    return <Navigate to={id ? `/post/${id}` : "/feed"} replace />;
+}
+
 export function FeedRoutes() {
     return (
         <Route element={<ProtectedRoute />}>
             <Route element={<AppShellHeaderOnlyLayout />}>
                 <Route path="/feed" element={<Feed />} />
-                <Route path="/posts/:id" element={<PostDetail />} />
+                <Route path="/post/:postId" element={<PostDetail />} />
+                <Route path="/posts/:id" element={<LegacyPostDetailRedirect />} />
                 <Route path="/scheduled-posts" element={<ScheduledPosts />} />
                 <Route path="/seller/dashboard" element={<SellerDashboard />} />
                 <Route path="/profile" element={<Profile />} />

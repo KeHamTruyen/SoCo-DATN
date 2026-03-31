@@ -5,14 +5,14 @@
 ### ✅ Đã hoàn thành (cốt lõi)
 
 - **Backend:** Auth, Products, Categories, Cart, Orders, Posts/Feed, Upload/Cloudinary (`/api/upload/*`), Users & follow (`/api/users/*`), Messages (`/api/messages/*` + Socket.IO), Notifications (`/api/notifications/*`), Groups (`/api/groups/*`), Reviews (`/api/reviews/*`), Saved items (`/api/saved-items/*`), Reports (`/api/reports/*`), Scheduled posts (`/api/scheduled-posts/*` + cron), Seller (`/api/seller/*`: đăng ký + upload, **`GET /seller/stats`**), Admin (`/api/admin/*`), AI Gemini (`/api/ai/*`)
-- **Frontend:** Auth, **UnifiedHeader** (dropdown thông báo + **Socket realtime**), **Feed**, **`/scheduled-posts`** (list + tạo + xóa), Post detail, Cart / Checkout / Orders (buyer), **Seller Center** (`/seller/dashboard`: CRUD sản phẩm, tab đơn bán, stats), **Marketplace**, Messages, Notifications (trang + mark read + live toast), Groups (discover + detail + create + “My groups” từ API), Profile, Saved items, i18n toggle (VI/EN)
+- **Frontend:** Auth, **UnifiedHeader** (dropdown thông báo + **Socket realtime**), **Feed**, **`/scheduled-posts`** (list + tạo + xóa), Post detail, Cart / Checkout / Orders (buyer), **Seller Center** (`/seller/dashboard`: CRUD sản phẩm, tab đơn bán, stats), **Marketplace**, Messages, Notifications (**page + realtime sync + preferences + live toast**), Groups (discover + detail + create + “My groups” từ API + member management + invites), Profile + **Account Settings**, Saved items, i18n toggle (VI/EN)
 - **Admin (`admin/frontend`):** Reports, **Users**, **Seller applications**, Categories, Content, v.v.
 
 ### ⏳ Đang làm / tinh chỉnh
 
 - Reviews: form + list trên **ProductDetail**, seller reply (BE có; FE chưa đủ)
 - Scheduled posts: nút **Edit** trên list chưa nối; timezone/preview nâng cao
-- Realtime: **Notifications đã subscribe Socket trên FE** (header/live toast); chat vẫn chủ yếu REST (chưa subscribe Socket cho message stream)
+- Realtime: Chat vẫn chủ yếu REST (chưa subscribe Socket cho message stream); notifications đã hoàn thiện realtime FE
 - AI: `AiCreativeLab` vẫn mock — nối `/api/ai/*`
 - Production: **`express-rate-limit` có trong dependencies nhưng chưa gắn `app.js`**; **Helmet chưa thêm dependency**; Winston chưa dùng trong code; test; **seed** chỉ admin (`database/prisma/seed.js`)
 
@@ -221,7 +221,7 @@
 
 ---
 
-## 🔔 8. NOTIFICATIONS (✅ Backend + 🟡 FE realtime header)
+## 🔔 8. NOTIFICATIONS (✅ Backend + ✅ FE realtime + preferences)
 
 ### Backend
 
@@ -236,9 +236,9 @@
 
 - [x] NotificationsPage — `notificationApi`, mark read / mark all read
 - [x] **Dropdown header** (`UnifiedHeader` + `NotificationDropdown`) — 5 tin gần nhất + badge unread (REST initial)
-- [x] **Realtime ở header**: subscribe Socket.IO + cập nhật dropdown + live toast khi có `notification:new`
-- [ ] **TODO: Trang preferences (tắt/bật loại thông báo)**
-- [ ] **TODO: Realtime đầy đủ cho Notifications page** (đồng bộ live ngoài header)
+- [x] **NotificationProvider** dùng single source cho header + page + live toast
+- [x] **Realtime ở FE**: subscribe Socket.IO + cập nhật dropdown/page + sync `notification:new`, `notification:read`, `notification:read-all`
+- [x] Preferences UI + API (`social/order/system`)
 
 ---
 
@@ -328,7 +328,7 @@
 
 ---
 
-## 👤 13. USER PROFILE & SOCIAL (✅ Gần xong — ⏳ Settings & username URL)
+## 👤 13. USER PROFILE & SOCIAL (✅ Profile + settings cốt lõi)
 
 ### Backend
 
@@ -342,8 +342,9 @@
 
 - [x] ProfilePage — fetch user khác theo `id`, follow/unfollow
 - [x] User posts grid (tích hợp feed/post list theo context)
+- [x] Account settings page (`/account-settings`) — profile + privacy tabs, hooks + API
 - [ ] **TODO: Route `/profile/:username` nếu muốn slug thay vì id**
-- [ ] **TODO: SettingsPage — hooks + API đầy đủ**
+- [ ] **TODO: Mở rộng settings nâng cao hơn nếu cần** (security sessions, notification center hợp nhất, v.v.)
 
 ---
 
@@ -515,10 +516,10 @@
 ### 🟡 MEDIUM PRIORITY
 
 4. **AI frontend** → `/api/ai/*` (`AiCreativeLab`)
-5. **Realtime** — Socket.IO trên FE (chat + notifications)
+5. **Realtime chat** — Socket.IO trên FE cho message stream
 6. **Admin** — polish moderation sản phẩm, analytics charts
-7. **Groups** — bỏ mock sidebar, tạo nhóm, quản lý member
-8. **Scheduled posts** — nối nút Edit
+7. **Scheduled posts** — nối nút Edit
+8. **Profile/settings polish** — route theo username, settings nâng cao
 
 ### 🟢 LOW PRIORITY
 
@@ -530,28 +531,28 @@
 
 ## 📊 Tổng quan tiến độ
 
-| Module             | Backend  | Frontend | Status            |
-| ------------------ | -------- | -------- | ----------------- |
-| Auth               | ✅ 100%  | ✅ 100%  | ✅ Done           |
-| Products/Upload    | ✅ ~95%  | ✅ ~90%  | ⏳ Polish / reviews |
-| Categories         | ✅ 100%  | ✅ ~100% | ✅ Done           |
-| Cart               | ✅ 100%  | ✅ 100%  | ✅ Done           |
-| Orders             | ✅ 100%  | ✅ ~92%  | ⏳ Seller chi tiết |
-| Posts/Feed         | ✅ 100%  | ✅ 100%  | ✅ Done           |
-| Scheduled posts    | ✅ ~95%  | 🟡 ~75%  | ⏳ Edit + TZ UX   |
-| Messages           | ✅ ~90%  | 🟡 ~60%  | ⏳ Socket FE      |
-| Notifications      | ✅ ~97%  | ✅ ~96%  | ✅ Realtime + prefs sync |
-| Groups             | ✅ ~90%  | 🟡 ~78%  | ⏳ Tabs nâng cao  |
-| Reviews            | ✅ ~90%  | 🟡 ~25%  | ⏳ Form + list    |
-| Search/Marketplace | 🟡 ~70%  | ✅ ~80%  | ⏳ Unified search |
-| Seller             | ✅ ~90%  | ✅ ~80%  | ⏳ Store public   |
-| Profile/Social     | ✅ ~95%  | 🟡 ~80%  | ⏳ Settings       |
-| Admin              | 🟡 ~55%  | 🟡 ~60%  | ⏳ Charts, mod    |
-| AI                 | ✅ ~80%  | 🟡 ~25%  | ⏳ Wire FE        |
-| Saved items        | ✅ ~100% | ✅ ~90%  | ✅ Done           |
-| Reports            | ✅ ~90%  | 🟡 ~55%  | ⏳ Admin flow     |
+| Module             | Backend  | Frontend | Status                   |
+| ------------------ | -------- | -------- | ------------------------ |
+| Auth               | ✅ 100%  | ✅ 100%  | ✅ Done                  |
+| Products/Upload    | ✅ ~95%  | ✅ ~90%  | ⏳ Polish / reviews      |
+| Categories         | ✅ 100%  | ✅ ~100% | ✅ Done                  |
+| Cart               | ✅ 100%  | ✅ 100%  | ✅ Done                  |
+| Orders             | ✅ 100%  | ✅ ~92%  | ⏳ Seller chi tiết       |
+| Posts/Feed         | ✅ 100%  | ✅ 100%  | ✅ Done                  |
+| Scheduled posts    | ✅ ~95%  | 🟡 ~75%  | ⏳ Edit + TZ UX          |
+| Messages           | ✅ ~90%  | 🟡 ~60%  | ⏳ Socket FE             |
+| Notifications      | ✅ 100%  | ✅ 100%  | ✅ Done                  |
+| Groups             | ✅ ~95%  | ✅ ~92%  | ✅ Feature-complete v1   |
+| Reviews            | ✅ ~90%  | 🟡 ~25%  | ⏳ Form + list           |
+| Search/Marketplace | 🟡 ~70%  | ✅ ~80%  | ⏳ Unified search        |
+| Seller             | ✅ ~90%  | ✅ ~80%  | ⏳ Store public          |
+| Profile/Social     | ✅ ~95%  | ✅ ~90%  | ✅ Settings cơ bản       |
+| Admin              | 🟡 ~55%  | 🟡 ~60%  | ⏳ Charts, mod           |
+| AI                 | ✅ ~80%  | 🟡 ~25%  | ⏳ Wire FE               |
+| Saved items        | ✅ ~100% | ✅ ~90%  | ✅ Done                  |
+| Reports            | ✅ ~90%  | 🟡 ~55%  | ⏳ Admin flow            |
 
-**Tổng tiến độ ước tính: ~84%**
+**Tổng tiến độ ước tính: ~87%**
 
 ---
 
@@ -562,7 +563,7 @@
 3. ✅ ~~Phase 3: Posts & Social Feed~~ (DONE)
 4. ✅ ~~Phase 3b: Scheduled posts (BE + cron), Marketplace, nhiều API social~~ (DONE cốt lõi)
 5. 🎯 **Tiếp theo:** Reviews FE + seed dữ liệu mẫu + hardening (rate limit, Helmet, Winston)
-6. 🎯 **Sau đó:** Realtime chat FE, AI trên FE, admin analytics, test & deploy
+6. 🎯 **Sau đó:** Realtime chat FE, AI trên FE, scheduled post edit, admin analytics, test & deploy
 
 ---
 
@@ -671,4 +672,4 @@
 
 ---
 
-_Last updated: March 31, 2026_
+_Last updated: March 31, 2026 (updated to reflect current implementation state)_
