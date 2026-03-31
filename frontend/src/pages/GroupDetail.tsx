@@ -5,6 +5,7 @@ import {
     Image,
     Link2,
     Lock,
+    LogOut,
     MessageSquarePlus,
     Plus,
     Settings,
@@ -16,7 +17,7 @@ import {
     Users,
     XCircle,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import type { CreatePostPayload, FeedPost } from "../features/feed/types/feed.types";
 import { CreatePostModal } from "../features/feed/components/CreatePostModal";
@@ -25,6 +26,7 @@ import { feedApi } from "../features/feed/api/feedApi";
 import { groupApi } from "../features/group/api/groupApi";
 import type { Group, GroupInvite, GroupJoinRequest, GroupMemberBrief } from "../features/group/types/group.types";
 import { UpdateGroupModal } from "../features/group/components/UpdateGroupModal";
+import { HttpError } from "../shared/api/httpClient";
 import { useAuthSession } from "../shared/auth/useAuthSession";
 import { cn } from "../shared/lib/cn";
 import { Avatar, UnifiedHeader } from "../shared/ui";
@@ -115,6 +117,11 @@ export default function GroupDetail() {
     const [tabLoading, setTabLoading] = useState(false);
     const [joinRequests, setJoinRequests] = useState<GroupJoinRequest[]>([]);
     const [invites, setInvites] = useState<GroupInvite[]>([]);
+    const [membershipMenuOpen, setMembershipMenuOpen] = useState(false);
+    const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+    const [leaveError, setLeaveError] = useState<string | null>(null);
+    const [isLeaving, setIsLeaving] = useState(false);
+    const membershipMenuRef = useRef<HTMLDivElement | null>(null);
 
     // ── Fetch group data ──
     useEffect(() => {
@@ -209,18 +216,66 @@ export default function GroupDetail() {
     }, [activeTab, id, group?.memberRole]);
 
     // ── Handlers ──
-    const handleToggleMembership = async () => {
-        if (!group || !id) return;
-        try {
-            if (group.isMember) {
-                await groupApi.leaveGroup(id);
-                setGroup((g) => g ? { ...g, isMember: false, memberRole: null, membersCount: g.membersCount - 1 } : g);
-            } else {
-                const joined = await groupApi.joinGroup(id);
-                if (joined.requested) return;
-                setGroup((g) => g ? { ...g, isMember: true, memberRole: "MEMBER", membersCount: g.membersCount + 1 } : g);
+    useEffect(() => {
+        if (!membershipMenuOpen) return;
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (!membershipMenuRef.current?.contains(event.target as Node)) {
+                setMembershipMenuOpen(false);
             }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [membershipMenuOpen]);
+
+    const handleJoinGroup = async () => {
+        if (!group || !id || group.isMember) return;
+        try {
+            const joined = await groupApi.joinGroup(id);
+            if (joined.requested) return;
+            setGroup((g) =>
+                g
+                    ? {
+                          ...g,
+                          isMember: true,
+                          memberRole: "MEMBER",
+                          membersCount: g.membersCount + 1,
+                      }
+                    : g,
+            );
         } catch { /* silently ignore */ }
+    };
+
+    const handleLeaveGroup = async () => {
+        if (!group || !id || !group.isMember) return;
+        setIsLeaving(true);
+        setLeaveError(null);
+        try {
+            await groupApi.leaveGroup(id);
+            setGroup((g) =>
+                g
+                    ? {
+                          ...g,
+                          isMember: false,
+                          memberRole: null,
+                          membersCount: Math.max(0, g.membersCount - 1),
+                      }
+                    : g,
+            );
+            setMembershipMenuOpen(false);
+            setLeaveConfirmOpen(false);
+        } catch (error) {
+            if (error instanceof HttpError) {
+                setLeaveError(error.message);
+            } else {
+                setLeaveError("Unable to leave this group right now. Please try again.");
+            }
+        } finally {
+            setIsLeaving(false);
+        }
     };
 
     const handleCreatePost = async (payload: CreatePostPayload) => {
@@ -392,14 +447,41 @@ export default function GroupDetail() {
                                     <div className="flex flex-wrap items-center gap-2">
                                         {group.isMember ? (
                                             <>
-                                                <button
-                                                    type="button"
-                                                    id="group-joined-btn"
-                                                    onClick={() => void handleToggleMembership()}
-                                                    className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-2 text-sm font-semibold transition-colors hover:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700"
-                                                >
-                                                    Joined <ChevronDown className="h-4 w-4" />
-                                                </button>
+                                                <div className="relative" ref={membershipMenuRef}>
+                                                    <button
+                                                        type="button"
+                                                        id="group-joined-btn"
+                                                        onClick={() =>
+                                                            setMembershipMenuOpen((prev) => !prev)
+                                                        }
+                                                        className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-2 text-sm font-semibold transition-colors hover:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+                                                    >
+                                                        Joined
+                                                        <ChevronDown
+                                                            className={cn(
+                                                                "h-4 w-4 transition-transform",
+                                                                membershipMenuOpen && "rotate-180",
+                                                            )}
+                                                        />
+                                                    </button>
+
+                                                    {membershipMenuOpen && (
+                                                        <div className="absolute right-0 top-full z-10 mt-2 w-40 overflow-hidden rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-800">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setMembershipMenuOpen(false);
+                                                                    setLeaveError(null);
+                                                                    setLeaveConfirmOpen(true);
+                                                                }}
+                                                                className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
+                                                            >
+                                                                <LogOut className="h-4 w-4" />
+                                                                Leave group
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
                                                 <button
                                                     type="button"
                                                     id="group-invite-btn"
@@ -428,7 +510,7 @@ export default function GroupDetail() {
                                             <button
                                                 type="button"
                                                 id="group-join-btn"
-                                                onClick={() => void handleToggleMembership()}
+                                                onClick={() => void handleJoinGroup()}
                                                 className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
                                             >
                                                 <Users className="h-4 w-4" />
@@ -770,7 +852,7 @@ export default function GroupDetail() {
                             {!group.isMember && (
                                 <div
                                     className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 border-dashed border-neutral-300 p-6 text-center transition-all hover:border-primary/40 hover:bg-primary/5 dark:border-neutral-700"
-                                    onClick={() => void handleToggleMembership()}
+                                    onClick={() => void handleJoinGroup()}
                                 >
                                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                                         <Plus className="h-5 w-5" />
@@ -807,6 +889,46 @@ export default function GroupDetail() {
                     onClose={() => setShowUpdateModal(false)}
                     onUpdated={handleGroupUpdated}
                 />
+            )}
+
+            {leaveConfirmOpen && group && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
+                        <h2 className="text-lg font-bold text-neutral-900 dark:text-white">
+                            Confirm leaving group
+                        </h2>
+                        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
+                            Are you sure you want to leave "{group.name}"?
+                        </p>
+                        {leaveError && (
+                            <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-400">
+                                {leaveError}
+                            </p>
+                        )}
+                        <div className="mt-6 flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (isLeaving) return;
+                                    setLeaveConfirmOpen(false);
+                                    setLeaveError(null);
+                                }}
+                                disabled={isLeaving}
+                                className="rounded-xl border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-600 hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => void handleLeaveGroup()}
+                                disabled={isLeaving}
+                                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
+                            >
+                                {isLeaving ? "Leaving..." : "Leave group"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
