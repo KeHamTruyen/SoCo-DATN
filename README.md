@@ -1,214 +1,239 @@
-# Social Commerce Platform (SoCo-DATN)
+# SoCo-DATN
 
-Nền tảng thương mại xã hội kết hợp mua sắm và tương tác xã hội: feed, marketplace, giỏ hàng và đơn hàng, tin nhắn, nhóm, thông báo và các luồng người bán / quản trị.
+SoCo-DATN là hệ thống social commerce gồm ứng dụng người dùng, API lõi, cơ sở dữ liệu dùng chung và cụm quản trị tách riêng. Mục tiêu của dự án là kết hợp mua sắm trực tuyến với tương tác cộng đồng trong cùng một nền tảng: đăng bài, marketplace, chat, nhóm, đơn hàng, seller center và admin moderation.
 
-**Tiến độ chi tiết, API và hạng mục đang tinh chỉnh:** xem [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md).
+## Tổng quan kiến trúc
 
-## 📚 Tài liệu liên quan
+Hệ thống được tổ chức theo kiểu nhiều ứng dụng cùng dùng chung một schema Prisma/PostgreSQL:
 
-| Tài liệu                                                     | Mô tả ngắn                                                          |
-| ------------------------------------------------------------ | ------------------------------------------------------------------- |
-| [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md)         | Tiến độ tính năng FE/BE, TODO, endpoint tổng quan                   |
-| [EXTERNAL_SERVICES_GUIDE.md](EXTERNAL_SERVICES_GUIDE.md)     | Cloudinary, email (SMTP), Gemini AI, dịch vụ ngoài và cách cấu hình |
-| [backend/README.md](backend/README.md)                       | Cài đặt backend, cấu trúc thư mục, script Prisma (ủy quyền `database/`) |
-| [database/package.json](database/package.json)               | Lệnh Prisma: `generate`, `db:push`, `db:reset`, `migrate`, `migrate:deploy`, `migrate:status`, `studio`, `seed` |
-| [backend/API_TESTING_GUIDE.md](backend/API_TESTING_GUIDE.md) | Gợi ý kiểm thử API                                                  |
-| [backend/.env.example](backend/.env.example)                 | Danh sách biến môi trường đầy đủ (mẫu)                              |
+- `frontend/`: web người dùng viết bằng React + TypeScript + Vite
+- `backend/`: core API cho người dùng, seller, feed, marketplace, chat, notification, AI
+- `database/`: Prisma schema, seed script và các lệnh quản lý database
+- `admin/frontend/`: giao diện quản trị riêng
+- `admin/backend/`: admin API riêng, dùng chung database với core API
 
-## 🚀 Tính năng chính (tổng quan)
+Các cổng mặc định khi chạy local:
 
-- **Feed & bài viết**: Đăng bài, like, bình luận; upload media qua Cloudinary; lên lịch đăng bài (cron phía server)
-- **Marketplace**: Tìm kiếm, lọc, sắp xếp, phân trang sản phẩm; chi tiết sản phẩm
-- **Giỏ hàng & đơn hàng**: Cart, checkout (thanh toán mock/COD), theo dõi đơn (buyer/seller)
-- **Người dùng & hồ sơ**: Đăng ký/đăng nhập (JWT), follow, xem hồ sơ
-- **Tin nhắn**: REST API + **Socket.IO** cho realtime (đang mở rộng typing, v.v.)
-- **Thông báo**: API thông báo; đánh dấu đã đọc
-- **Nhóm cộng đồng**: Tạo/tham gia nhóm, trang nhóm
-- **Đánh giá & lưu**: Reviews API; mục đã lưu (saved items)
-- **Báo cáo & quản trị**: Báo cáo nội dung; admin dashboard (tối thiểu)
-- **Người bán**: Đăng ký seller, xác minh (dữ liệu nhạy cảm có thể mã hóa khi cấu hình key); dashboard người bán
-- **AI**: Backend `/api/ai/*` (Google Gemini); frontend có SDK GenAI cho tích hợp gợi ý/sáng tạo (theo tiến độ UI)
+| Thành phần | URL mặc định |
+| --- | --- |
+| User frontend | `http://localhost:3000` |
+| Core backend | `http://localhost:5000` |
+| Admin backend | `http://localhost:5001` |
+| Admin frontend | `http://localhost:5174` |
 
-## 📁 Cấu trúc dự án
+## Chức năng chính
 
-```
-SoCo-DATN/
-├── backend/                 # Node.js (ESM) + Express + Prisma Client + PostgreSQL
-│   ├── src/
-│   │   ├── config/
-│   │   ├── controllers/
-│   │   ├── middlewares/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   ├── validators/
-│   │   └── ...
-│   └── .env.example
-│
-├── database/                # Prisma schema + seed (`db push` hoặc `migrate` — xem README)
-│   ├── prisma/
-│   │   ├── schema.prisma
-│   │   └── seed.js
-│   └── package.json
-│
-├── frontend/                # React 19 + TypeScript + Vite + Tailwind CSS
-│   └── src/
-│       ├── app/             # router, layouts, providers
-│       ├── features/        # theo domain (feed, marketplace, cart, …)
-│       ├── pages/
-│       ├── shared/
-│       └── styles/
-│
-├── Materials/               # Tài liệu mô tả / yêu cầu đồ án (nếu có)
-├── DEVELOPMENT_CHECKLIST.md
-└── EXTERNAL_SERVICES_GUIDE.md
-```
+- Xác thực người dùng bằng JWT, quản lý hồ sơ, đổi mật khẩu, follow người dùng
+- Feed mạng xã hội: tạo bài viết, media upload, like, bình luận, bài viết hẹn giờ
+- Marketplace: danh sách sản phẩm, tìm kiếm, lọc, phân trang, chi tiết sản phẩm
+- Giỏ hàng và đơn hàng: checkout, lịch sử mua hàng, theo dõi trạng thái đơn
+- Seller center: quản lý shop, sản phẩm, đơn bán và thống kê seller
+- Nhắn tin và thông báo: REST API, có hỗ trợ realtime với Socket.IO ở một số luồng
+- Nhóm cộng đồng: khám phá nhóm, tham gia nhóm, quản lý thành viên
+- Báo cáo nội dung, duyệt seller, quản lý người dùng và moderation qua cụm admin
+- Tích hợp dịch vụ ngoài như Cloudinary, SMTP và Google Gemini AI
 
-## 🛠️ Công nghệ sử dụng
+## Công nghệ sử dụng
 
-### Backend
+### Backend và database
 
-- **Node.js** + **Express** — REST API (ES modules)
-- **Prisma** + **PostgreSQL**
-- **JWT** (jsonwebtoken), **bcryptjs**, **cookie-parser**, **CORS**
-- **Socket.IO** — realtime messaging
-- **Cloudinary** + **multer** / **multer-storage-cloudinary** — upload ảnh (sản phẩm, avatar, bài viết, …)
-- **node-cron** — bài viết lên lịch
-- **Nodemailer** — email (quên mật khẩu, thông báo qua SMTP nếu bật)
-- **@google/generative-ai** — Gemini trên server
-- **express-rate-limit**, **express-validator**, **winston**
-- **swagger-jsdoc** + **swagger-ui-express** — tài liệu API (khi bật cấu hình)
+- Node.js, Express, ES Modules
+- PostgreSQL, Prisma ORM
+- JWT, bcryptjs, cookie-parser, cors, express-validator
+- Socket.IO cho realtime
+- Cloudinary + multer cho upload media
+- Nodemailer cho email
+- `@google/generative-ai` cho AI phía server
 
 ### Frontend
 
-- **React 19** + **TypeScript**
-- **Vite 6**
-- **Tailwind CSS 4** (`@tailwindcss/vite`)
-- **react-router-dom** 7
-- **Lucide React**, **Motion**, **Recharts**
-- **@google/genai** — tích hợp phía client (theo tính năng)
+- React 19, TypeScript, Vite 6
+- Tailwind CSS 4
+- React Router 7
+- Lucide React, Motion, Recharts
+- `socket.io-client`
 
-## 📦 Cài đặt nhanh
+## Cấu trúc thư mục
 
-### Yêu cầu
+```text
+SoCo-DATN/
+|-- frontend/          # Ứng dụng người dùng
+|-- backend/           # Core API
+|-- database/          # Prisma schema, seed, database scripts
+|-- admin/
+|   |-- frontend/      # Giao diện quản trị
+|   `-- backend/       # Admin API
+|-- Materials/         # Tài liệu đồ án / tham khảo
+|-- DEVELOPMENT_CHECKLIST.md
+|-- EXTERNAL_SERVICES_GUIDE.md
+`-- README.md
+```
 
-- Node.js **>= 18**
-- PostgreSQL **>= 14**
-- npm (hoặc yarn/pnpm)
+## Yêu cầu môi trường
 
-### Backend
+- Node.js `>= 18`
+- PostgreSQL `>= 14`
+- npm
+
+## Khởi động nhanh
+
+### 1. Cài dependencies
+
+```bash
+cd database && npm install
+cd ../backend && npm install
+cd ../frontend && npm install
+cd ../admin/backend && npm install
+cd ../admin/frontend && npm install
+```
+
+### 2. Tạo file môi trường
+
+Sao chép các file mẫu:
+
+- `backend/.env.example` -> `backend/.env`
+- `admin/backend/.env.example` -> `admin/backend/.env`
+- `frontend/.env.example` -> `frontend/.env` nếu cần override
+- `admin/frontend/.env.example` -> `admin/frontend/.env`
+
+Biến quan trọng cần cấu hình trước:
+
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `FRONTEND_URL`
+- `ADMIN_JWT_SECRET`
+- `VITE_ADMIN_API_BASE_URL`
+
+Nếu dùng upload, email hoặc AI thì cấu hình thêm:
+
+- `CLOUDINARY_*`
+- `SMTP_*`
+- `GEMINI_API_KEY`
+
+## Khởi tạo database
+
+Toàn bộ schema nằm trong `database/prisma/schema.prisma`, nhưng các lệnh Prisma thường được gọi từ `backend/` để dùng đúng `backend/.env`.
 
 ```bash
 cd backend
-npm install
-cd ../database
-npm install
-cd ../backend
-
-# Sao chép môi trường: Unix/macOS
-cp .env.example .env
-# Windows (CMD/PowerShell): copy .env.example .env
-
-# Điền DATABASE_URL và các biến bắt buộc (xem mục Biến môi trường bên dưới)
-
 npm run prisma:generate
 npm run prisma:push
 npm run prisma:seed
+```
+
+Ý nghĩa nhanh:
+
+- `prisma:generate`: generate Prisma Client
+- `prisma:push`: đồng bộ schema vào database theo luồng dev hiện tại
+- `prisma:seed`: tạo dữ liệu seed cơ bản, bao gồm tài khoản admin nếu đã khai báo `SEED_*`
+
+Nếu muốn reset database trong môi trường dev:
+
+```bash
+cd backend
+npm run prisma:reset
+npm run prisma:generate
+```
+
+## Chạy hệ thống local
+
+Mở 4 terminal riêng:
+
+### Core backend
+
+```bash
+cd backend
 npm run dev
 ```
 
-API mặc định: `http://localhost:5000` (cổng có thể đổi qua `PORT` trong `.env`).
-
-### Frontend
+### User frontend
 
 ```bash
 cd frontend
-npm install
 npm run dev
 ```
 
-Dev server được cấu hình chạy tại **`http://localhost:3000`** (khớp `FRONTEND_URL` trong `backend/.env.example`). Đảm bảo backend cho phép CORS với URL này.
-
-### Dịch vụ ngoài (khuyến nghị)
-
-- **Cloudinary**: cần cho upload ảnh sản phẩm, avatar, bài viết theo luồng hiện tại — xem [EXTERNAL_SERVICES_GUIDE.md](EXTERNAL_SERVICES_GUIDE.md).
-- **Gemini** (`GEMINI_API_KEY`): bật tính năng AI phía server/client tương ứng.
-- **SMTP**: email (ví dụ quên mật khẩu) khi bạn cấu hình Nodemailer.
-
-Thiếu từng loại có thể khiến một số luồng lỗi hoặc bị giới hạn; chi tiết và fallback nằm trong guide và code.
-
-## 🗄️ Database
-
-PostgreSQL với Prisma. Schema và seed: [`database/prisma/`](database/prisma/).  
-Chi tiết bảng/quan hệ: mở `database/prisma/schema.prisma` hoặc từ `backend` chạy `npm run prisma:studio` (lệnh thực thi trong package `database/`, đọc `DATABASE_URL` từ `backend/.env`).
-
-**Luồng dev hiện dùng (không bắt buộc file migration):** `npm run prisma:push` — đồng bộ schema trực tiếp; `npm run prisma:reset` — xóa DB rồi tạo lại theo schema (mất dữ liệu).
-
-**Tham khảo Prisma Migrate (khi đã có thư mục `database/prisma/migrations/` hoặc triển khai production có migration):**
-
-| Lệnh (từ `backend/`) | Ý nghĩa ngắn |
-| -------------------- | ------------- |
-| `npm run prisma:migrate` | `prisma migrate dev` — tạo/áp migration trong dev (tương tác) |
-| `npm run prisma:migrate:deploy` | `prisma migrate deploy` — áp các migration đã commit (CI/production) |
-| `npm run prisma:migrate:status` | `prisma migrate status` — trạng thái migration so với DB |
-
-Tùy chọn: từ `backend` chạy `npm run prisma:seed` — thực thi [`database/prisma/seed.js`](database/prisma/seed.js) (biến seed trong `backend/.env`, xem `backend/.env.example`).
-
-## 🔐 Biến môi trường (tóm tắt)
-
-Cấu hình đầy đủ: **[backend/.env.example](backend/.env.example)**.
-
-| Nhóm                         | Gợi ý                                                                                           |
-| ---------------------------- | ----------------------------------------------------------------------------------------------- |
-| **Cốt lõi**                  | `DATABASE_URL`, `PORT`, `NODE_ENV`, `JWT_SECRET`, `JWT_EXPIRE`, `FRONTEND_URL`                  |
-| **Upload / CDN**             | `CLOUDINARY_*`, `MAX_FILE_SIZE`, `UPLOAD_PATH`                                                  |
-| **Bảo mật dữ liệu nhạy cảm** | `SENSITIVE_DATA_KEY` (production nên có; dev có thể để trống theo ghi chú trong `.env.example`) |
-| **Giới hạn request**         | `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX_REQUESTS`                                               |
-| **Email**                    | `SMTP_*`, `SMTP_FROM`                                                                           |
-| **AI**                       | `GEMINI_API_KEY`, `GEMINI_TEMPERATURE`, `GEMINI_MAX_TOKENS`                                     |
-
-Hướng dẫn đăng ký tài khoản dịch vụ và best practice: [EXTERNAL_SERVICES_GUIDE.md](EXTERNAL_SERVICES_GUIDE.md).
-
-## 📝 Scripts
-
-### Backend (`backend/`)
+### Admin backend
 
 ```bash
-npm start                 # Production
-npm run dev               # Development (nodemon)
-npm run prisma:generate   # Generate Prisma Client
-npm run prisma:push       # Đồng bộ schema (db push)
-npm run prisma:reset      # Reset DB + push schema (mất dữ liệu)
-npm run prisma:migrate    # migrate dev (tham khảo; cần thư mục migrations)
-npm run prisma:migrate:deploy   # migrate deploy (production/CI)
-npm run prisma:migrate:status   # migrate status
-npm run prisma:studio     # Prisma Studio
-npm run prisma:seed       # Seed (nếu có file seed)
+cd admin/backend
+npm run prisma:generate
+npm run dev
 ```
 
-### Frontend (`frontend/`)
+### Admin frontend
 
 ```bash
-npm run dev       # Dev server (cổng 3000)
-npm run build     # Build production
-npm run preview   # Xem bản build
-npm run lint      # tsc --noEmit
+cd admin/frontend
+npm run dev
 ```
 
-## 🤝 Đóng góp
+Sau khi chạy xong:
 
-1. Fork repository
-2. Tạo branch (`git checkout -b feature/TenTinhNang`)
-3. Commit và push
-4. Mở Pull Request
+- User app: `http://localhost:3000`
+- Admin app: `http://localhost:5174`
 
-## 📄 License
+## Scripts thường dùng
 
-ISC
+### `backend/`
 
-## 👥 Tác giả
+```bash
+npm run dev
+npm start
+npm run prisma:generate
+npm run prisma:push
+npm run prisma:reset
+npm run prisma:migrate
+npm run prisma:migrate:deploy
+npm run prisma:migrate:status
+npm run prisma:studio
+npm run prisma:seed
+```
 
-Social Commerce Platform Team — repository: [KeHamTruyen/SoCo-DATN](https://github.com/KeHamTruyen/SoCo-DATN)
+### `frontend/`
 
-## 📞 Liên hệ
+```bash
+npm run dev
+npm run build
+npm run preview
+npm run lint
+```
 
-- GitHub: [https://github.com/KeHamTruyen/SoCo-DATN](https://github.com/KeHamTruyen/SoCo-DATN)
+### `admin/backend/`
+
+```bash
+npm run dev
+npm start
+npm run prisma:generate
+```
+
+### `admin/frontend/`
+
+```bash
+npm run dev
+npm run build
+npm run preview
+```
+
+## Tài liệu liên quan
+
+| Tài liệu | Mục đích |
+| --- | --- |
+| [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md) | Tiến độ tính năng, checklist và hạng mục đang tinh chỉnh |
+| [EXTERNAL_SERVICES_GUIDE.md](EXTERNAL_SERVICES_GUIDE.md) | Hướng dẫn cấu hình Cloudinary, SMTP, Gemini và dịch vụ ngoài |
+| [backend/README.md](backend/README.md) | Hướng dẫn chi tiết cho core backend |
+| [admin/README.md](admin/README.md) | Hướng dẫn chi tiết cho cụm admin |
+| [frontend/README.md](frontend/README.md) | Ghi chú riêng cho frontend |
+| [backend/API_TESTING_GUIDE.md](backend/API_TESTING_GUIDE.md) | Gợi ý kiểm thử API |
+
+## Ghi chú triển khai
+
+- Core API và admin API dùng chung PostgreSQL và Prisma schema.
+- Admin không còn là một nhóm route nằm trong core backend, mà chạy như service riêng.
+- Một số tính năng phụ thuộc dịch vụ ngoài; nếu thiếu cấu hình, các luồng upload, email hoặc AI có thể không hoạt động đầy đủ.
+- Luồng database hiện tại ưu tiên `prisma db push` cho phát triển nội bộ.
+
+## Repository
+
+- GitHub: [KeHamTruyen/SoCo-DATN](https://github.com/KeHamTruyen/SoCo-DATN)
+- License: `ISC`
