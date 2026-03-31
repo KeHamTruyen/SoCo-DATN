@@ -7,7 +7,9 @@ const router = express.Router();
 router.use(protect, restrictToMember);
 
 router.get('/', notificationController.getNotifications);
+router.get('/preferences', notificationController.getPreferences);
 // Support both PATCH and PUT for backward compatibility with existing clients/docs.
+router.patch('/preferences', notificationController.updatePreferences);
 router.put('/read-all', notificationController.markAllAsRead);
 router.patch('/read-all', notificationController.markAllAsRead);
 router.put('/:id/read', notificationController.markAsRead);

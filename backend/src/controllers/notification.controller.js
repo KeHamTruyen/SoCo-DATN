@@ -8,10 +8,12 @@ class NotificationController {
         try {
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 20;
+            const type = req.query.type || "all";
 
             const data = await notificationService.getByUser(req.user.id, {
                 page,
                 limit,
+                type,
             });
 
             res.json({ success: true, data });
@@ -42,6 +44,33 @@ class NotificationController {
                 success: true,
                 message: "All notifications marked as read",
             });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * GET /api/notifications/preferences
+     */
+    async getPreferences(req, res, next) {
+        try {
+            const data = await notificationService.getPreferences(req.user.id);
+            res.json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * PATCH /api/notifications/preferences
+     */
+    async updatePreferences(req, res, next) {
+        try {
+            const data = await notificationService.updatePreferences(
+                req.user.id,
+                req.body || {},
+            );
+            res.json({ success: true, data });
         } catch (error) {
             next(error);
         }

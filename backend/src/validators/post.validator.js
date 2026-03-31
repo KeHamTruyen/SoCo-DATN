@@ -61,6 +61,11 @@ export const createPostValidation = [
         .isUUID()
         .withMessage("Product ID must be a valid UUID"),
 
+    body("groupId")
+        .optional()
+        .isUUID()
+        .withMessage("Group ID must be a valid UUID"),
+
     body("status")
         .optional()
         .isIn(["DRAFT", "PUBLISHED"])

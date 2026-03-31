@@ -25,3 +25,9 @@ export interface NotificationsListResponse {
     total: number;
     unreadCount: number;
 }
+
+export interface NotificationPreferences {
+    social: boolean;
+    order: boolean;
+    system: boolean;
+}

@@ -98,6 +98,12 @@ enum GroupMemberRole {
   MEMBER
 }
 
+enum GroupJoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum SavedItemType {
   POST
   PRODUCT
@@ -170,6 +176,10 @@ model User {
   followers                Follow[]                  @relation("Following")
   following                Follow[]                  @relation("Follower")
   groupMembers             GroupMember[]
+  groupJoinRequests        GroupJoinRequest[]
+  reviewedGroupJoinRequests GroupJoinRequest[] @relation("GroupJoinRequestReviewer")
+  createdGroupInvites      GroupInvite[]      @relation("GroupInviteCreator")
+  usedGroupInvites         GroupInvite[]      @relation("GroupInviteUsedBy")
   reviews                  Review[]
   aiContentHistory         AiContentHistory[]
   productViews             ProductView[]
@@ -793,6 +803,8 @@ model Group {
   creator User?         @relation(fields: [createdBy], references: [id], onDelete: SetNull)
   members GroupMember[]
   posts   Post[]
+  joinRequests GroupJoinRequest[]
+  invites      GroupInvite[]
 
   @@map("groups")
 }
@@ -809,6 +821,46 @@ model GroupMember {
 
   @@unique([groupId, userId])
   @@map("group_members")
+}
+
+model GroupJoinRequest {
+  id         String                 @id @default(uuid())
+  groupId    String                 @map("group_id")
+  userId     String                 @map("user_id")
+  status     GroupJoinRequestStatus @default(PENDING)
+  reviewedBy String?                @map("reviewed_by")
+  reviewedAt DateTime?              @map("reviewed_at")
+  createdAt  DateTime               @default(now()) @map("created_at")
+  updatedAt  DateTime               @updatedAt @map("updated_at")
+
+  group    Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("GroupJoinRequestReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@unique([groupId, userId], map: "group_join_requests_group_id_user_id_key")
+  @@index([groupId, status])
+  @@map("group_join_requests")
+}
+
+model GroupInvite {
+  id        String   @id @default(uuid())
+  groupId   String   @map("group_id")
+  code      String   @unique
+  createdBy String   @map("created_by")
+  usedBy    String?  @map("used_by")
+  expiresAt DateTime @map("expires_at")
+  maxUses   Int      @default(1) @map("max_uses")
+  usedCount Int      @default(0) @map("used_count")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator User  @relation("GroupInviteCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  usedByUser User? @relation("GroupInviteUsedBy", fields: [usedBy], references: [id], onDelete: SetNull)
+
+  @@index([groupId, isActive])
+  @@map("group_invites")
 }
 
 // =====================================================

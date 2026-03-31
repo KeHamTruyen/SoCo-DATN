@@ -5,14 +5,14 @@
 ### ✅ Đã hoàn thành (cốt lõi)
 
 - **Backend:** Auth, Products, Categories, Cart, Orders, Posts/Feed, Upload/Cloudinary (`/api/upload/*`), Users & follow (`/api/users/*`), Messages (`/api/messages/*` + Socket.IO), Notifications (`/api/notifications/*`), Groups (`/api/groups/*`), Reviews (`/api/reviews/*`), Saved items (`/api/saved-items/*`), Reports (`/api/reports/*`), Scheduled posts (`/api/scheduled-posts/*` + cron), Seller (`/api/seller/*`: đăng ký + upload, **`GET /seller/stats`**), Admin (`/api/admin/*`), AI Gemini (`/api/ai/*`)
-- **Frontend:** Auth, **UnifiedHeader** (dropdown thông báo — REST lần đầu), **Feed**, **`/scheduled-posts`** (list + tạo + xóa), Post detail, Cart / Checkout / Orders (buyer), **Seller Center** (`/seller/dashboard`: CRUD sản phẩm, tab đơn bán, stats), **Marketplace**, Messages, Notifications (trang + mark read), Groups (mock sidebar “My groups”), Profile, Saved items
+- **Frontend:** Auth, **UnifiedHeader** (dropdown thông báo + **Socket realtime**), **Feed**, **`/scheduled-posts`** (list + tạo + xóa), Post detail, Cart / Checkout / Orders (buyer), **Seller Center** (`/seller/dashboard`: CRUD sản phẩm, tab đơn bán, stats), **Marketplace**, Messages, Notifications (trang + mark read + live toast), Groups (discover + detail + create + “My groups” từ API), Profile, Saved items, i18n toggle (VI/EN)
 - **Admin (`admin/frontend`):** Reports, **Users**, **Seller applications**, Categories, Content, v.v.
 
 ### ⏳ Đang làm / tinh chỉnh
 
 - Reviews: form + list trên **ProductDetail**, seller reply (BE có; FE chưa đủ)
 - Scheduled posts: nút **Edit** trên list chưa nối; timezone/preview nâng cao
-- Realtime: Socket.IO **chưa subscribe trên FE** (chat & notifications chủ yếu REST)
+- Realtime: **Notifications đã subscribe Socket trên FE** (header/live toast); chat vẫn chủ yếu REST (chưa subscribe Socket cho message stream)
 - AI: `AiCreativeLab` vẫn mock — nối `/api/ai/*`
 - Production: **`express-rate-limit` có trong dependencies nhưng chưa gắn `app.js`**; **Helmet chưa thêm dependency**; Winston chưa dùng trong code; test; **seed** chỉ admin (`database/prisma/seed.js`)
 
@@ -221,7 +221,7 @@
 
 ---
 
-## 🔔 8. NOTIFICATIONS (✅ Backend REST — ⏳ Realtime & preferences)
+## 🔔 8. NOTIFICATIONS (✅ Backend + 🟡 FE realtime header)
 
 ### Backend
 
@@ -229,19 +229,20 @@
 - [x] Notification service
 - [x] Notification controller
 - [x] Notification routes (`/api/notifications/*`)
-- [ ] **TODO: WebSocket push song song với tạo notification**
+- [x] WebSocket push song song với tạo notification (`notification:new`)
 - [ ] **TODO: Email / FCM**
 
 ### Frontend
 
 - [x] NotificationsPage — `notificationApi`, mark read / mark all read
-- [x] **Dropdown header** (`UnifiedHeader` + `NotificationDropdown`) — 5 tin gần nhất + badge unread (load REST khi mount)
-- [ ] **TODO: Real-time** (Socket) + refresh sau khi có sự kiện mới
+- [x] **Dropdown header** (`UnifiedHeader` + `NotificationDropdown`) — 5 tin gần nhất + badge unread (REST initial)
+- [x] **Realtime ở header**: subscribe Socket.IO + cập nhật dropdown + live toast khi có `notification:new`
 - [ ] **TODO: Trang preferences (tắt/bật loại thông báo)**
+- [ ] **TODO: Realtime đầy đủ cho Notifications page** (đồng bộ live ngoài header)
 
 ---
 
-## 👥 9. GROUPS (✅ Backend — ⏳ Frontend)
+## 👥 9. GROUPS (✅ Feature-complete v1)
 
 ### Backend
 
@@ -250,14 +251,20 @@
 - [x] Group service (`group.service.js`)
 - [x] Group controller
 - [x] Group routes (`/api/groups/*`)
-- [x] Group permissions logic (admin/member cơ bản)
+- [x] Group permissions logic (ADMIN/MODERATOR/MEMBER + guard backend)
+- [x] Join request flow cho nhóm private (request -> approve/reject)
+- [x] Invite code/link flow (create/list/revoke/join-by-invite)
+- [x] Group media feed endpoint (`GET /api/groups/:groupId/media`)
+- [x] Group tagged products endpoint (`GET /api/groups/:groupId/products`)
 
 ### Frontend
 
-- [x] GroupsPage — `groupApi.listGroups`
-- [x] GroupDetailPage — tích hợp API theo route
-- [ ] **TODO: Bỏ mock “My groups” sidebar nếu còn**
-- [ ] **TODO: Create group modal, quản lý member, feed nhóm**
+- [x] GroupsPage — `groupApi.listGroups` + tìm kiếm/filter UI
+- [x] GroupDetailPage — tích hợp API theo route + thảo luận nhóm
+- [x] Sidebar “My groups” lấy từ `groupApi.getMyGroups` (không còn mock tĩnh)
+- [x] Create group modal + join/leave group + cập nhật group cơ bản
+- [x] Tab members/products/media chi tiết + quản lý member nâng cao
+- [x] Role-based actions theo capability (promote/demote/remove/approve/invite)
 
 ---
 
@@ -351,7 +358,7 @@
 
 - [x] **Admin app** (`admin/frontend`): Reports, **`UsersPage`** (`adminApi.getUsers`), **`SellerApplicationsPage`**, Categories, Content, v.v.
 - [ ] **TODO: Product moderation UI tập trung (nếu tách khỏi Content)**
-- [ ] **TODO: Analytics dashboard (charts) toàn nền tả**
+- [ ] **TODO: Analytics dashboard (charts) toàn nền tảng**
 
 ---
 
@@ -418,6 +425,7 @@
 - [ ] **TODO: Integration tests**
 - [ ] **TODO: API endpoint tests**
 - [ ] **TODO: Test coverage >= 70%**
+- [x] Groups v1 flow tests (join/leave/invite/approve + race simulation) với `node --test` (`backend/test/groups-v1-flow.test.js`)
 
 ### Frontend
 
@@ -471,7 +479,8 @@
 - [ ] **TODO: Empty states với CTAs**
 - [ ] **TODO: Toast notifications (sonner)**
 - [ ] **TODO: Accessibility (ARIA labels, keyboard navigation)**
-- [ ] **TODO: i18n - Multi-language support**
+- [x] i18n cơ bản (VI/EN toggle ở header, translations đã có)
+- [ ] **TODO: i18n đầy đủ toàn app** (chuẩn hóa key + phủ hết màn hình)
 
 ---
 
@@ -531,8 +540,8 @@
 | Posts/Feed         | ✅ 100%  | ✅ 100%  | ✅ Done           |
 | Scheduled posts    | ✅ ~95%  | 🟡 ~75%  | ⏳ Edit + TZ UX   |
 | Messages           | ✅ ~90%  | 🟡 ~60%  | ⏳ Socket FE      |
-| Notifications      | ✅ ~85%  | 🟡 ~80%  | ⏳ Realtime       |
-| Groups             | ✅ ~90%  | 🟡 ~55%  | ⏳ Bỏ mock, CRUD  |
+| Notifications      | ✅ ~97%  | ✅ ~96%  | ✅ Realtime + prefs sync |
+| Groups             | ✅ ~90%  | 🟡 ~78%  | ⏳ Tabs nâng cao  |
 | Reviews            | ✅ ~90%  | 🟡 ~25%  | ⏳ Form + list    |
 | Search/Marketplace | 🟡 ~70%  | ✅ ~80%  | ⏳ Unified search |
 | Seller             | ✅ ~90%  | ✅ ~80%  | ⏳ Store public   |
@@ -542,7 +551,7 @@
 | Saved items        | ✅ ~100% | ✅ ~90%  | ✅ Done           |
 | Reports            | ✅ ~90%  | 🟡 ~55%  | ⏳ Admin flow     |
 
-**Tổng tiến độ ước tính: ~78%**
+**Tổng tiến độ ước tính: ~84%**
 
 ---
 
@@ -553,8 +562,113 @@
 3. ✅ ~~Phase 3: Posts & Social Feed~~ (DONE)
 4. ✅ ~~Phase 3b: Scheduled posts (BE + cron), Marketplace, nhiều API social~~ (DONE cốt lõi)
 5. 🎯 **Tiếp theo:** Reviews FE + seed dữ liệu mẫu + hardening (rate limit, Helmet, Winston)
-6. 🎯 **Sau đó:** Realtime FE, AI trên FE, admin analytics, test & deploy
+6. 🎯 **Sau đó:** Realtime chat FE, AI trên FE, admin analytics, test & deploy
 
 ---
 
-_Last updated: March 25, 2026_
+## ✅ Notification hardening (production-ready)
+
+### Completed
+
+- [x] Backend emit payload `notification:new` với schema cố định (có `event`, `schemaVersion`, `category`, `actor`, `related`)
+- [x] Emit `notification:read` và `notification:read-all` để đồng bộ đa tab
+- [x] Preferences theo nhóm `social/order/system` (API get/update)
+- [x] Frontend dùng single source qua `NotificationProvider` cho header + page
+- [x] Notifications page nhận realtime, filter theo loại, optimistic update mark read/read-all
+- [x] Reconnect socket có cơ chế resync và chống duplicate theo `id`
+
+### Test matrix
+
+- [ ] **Multi-tab sync**: Tab A mark read -> Tab B tự đổi trạng thái + unread badge giảm ngay
+- [ ] **Multi-tab read-all**: Tab A read-all -> Tab B badge/page về 0 unread
+- [ ] **Reconnect**: ngắt mạng 15-30s, reconnect lại -> không duplicate, dữ liệu đồng bộ server
+- [ ] **Preferences off**: tắt `social`, tạo like/comment/follow -> không nhận notification social mới
+- [ ] **Preferences on lại**: bật lại `social`, trigger event -> nhận notification bình thường
+
+### Checklist test chi tiết - Notifications
+
+#### A. API contract & dữ liệu
+
+- [ ] `GET /api/notifications` trả về đủ trường cần cho FE (`id`, `rawType/type`, `title`, `message`, `isRead`, `createdAt`, `actionUrl`, actor/related nếu có).
+- [ ] `GET /api/notifications?type=social|order|system` filter đúng theo loại.
+- [ ] `PATCH /api/notifications/:id/read` trả thành công khi notification thuộc user hiện tại.
+- [ ] `PATCH /api/notifications/:id/read` không sửa được notification của user khác.
+- [ ] `PATCH /api/notifications/read-all` chỉ cập nhật notification unread của user hiện tại.
+- [ ] `GET /api/notifications/preferences` trả default hợp lệ khi user chưa có cấu hình.
+- [ ] `PATCH /api/notifications/preferences` cập nhật đúng từng key (`social/order/system`) và không ghi đè key ngoài phạm vi.
+
+#### B. Realtime event schema
+
+- [ ] Event `notification:new` luôn có `event="notification:new"` và `schemaVersion`.
+- [ ] Event `notification:new` có `category` đúng mapping (social/order/system).
+- [ ] Event `notification:read` chứa `id` vừa mark + `unreadCount` mới.
+- [ ] Event `notification:read-all` chứa `unreadCount=0`.
+- [ ] Payload sai schema không làm FE crash (FE bỏ qua payload malformed).
+
+#### C. Đồng bộ toàn app (header + notifications page)
+
+- [ ] Khi có notification mới, badge trên header tăng ngay không cần reload.
+- [ ] Khi mở trang notifications, danh sách hiển thị đúng item mới nhất nhận realtime.
+- [ ] Khi click read 1 item ở page, badge header giảm ngay.
+- [ ] Khi mark all read ở page, toàn bộ item về read + badge header về 0.
+- [ ] Khi thao tác read ở header/dropdown (nếu có), page phản ánh đúng trạng thái ngay.
+
+#### D. Multi-tab / multi-session
+
+- [ ] Mở 2 tab cùng tài khoản: read ở tab A -> tab B tự cập nhật read state.
+- [ ] Mở 2 tab cùng tài khoản: read-all ở tab A -> tab B về unread=0.
+- [ ] Mở 2 browser/profile khác nhau cùng tài khoản: vẫn sync read/read-all.
+- [ ] Mở tài khoản khác (user B): không nhận event notification của user A.
+
+#### E. Reconnect / mất mạng / chống duplicate
+
+- [ ] Tắt mạng 15-30s rồi bật lại: socket reconnect thành công.
+- [ ] Sau reconnect, hệ thống resync từ server: badge/list nhất quán.
+- [ ] Không xuất hiện duplicate item theo cùng `notification.id` sau reconnect nhiều lần.
+- [ ] Refresh trang sau reconnect vẫn giữ trạng thái read/unread đúng với DB.
+
+#### F. Preferences theo loại
+
+- [ ] Tắt `social`, tạo sự kiện like/comment/follow -> không có notification mới loại social.
+- [ ] Tắt `order`, tạo sự kiện order/new status -> không có notification mới loại order.
+- [ ] Tắt `system`, tạo sự kiện system/new message -> không có notification mới loại system.
+- [ ] Bật lại từng loại -> nhận lại notification đúng loại đó.
+- [ ] Thay đổi preferences ở tab A -> tab B sau refresh phản ánh đúng cấu hình mới.
+
+#### G. Filter & optimistic update trên FE
+
+- [ ] Filter `All` hiển thị đầy đủ.
+- [ ] Filter `Social/Order/System` chỉ hiển thị đúng loại.
+- [ ] Mark read ở tab đang filter không làm mất đồng bộ badge tổng.
+- [ ] Optimistic mark read thành công: UI đổi ngay, không giật/nhảy lại sai trạng thái.
+- [ ] Khi API mark read thất bại: UI rollback hoặc resync đúng dữ liệu server.
+
+#### H. Quyền truy cập & bảo mật
+
+- [ ] API notifications yêu cầu auth; token thiếu/sai phải trả 401/403.
+- [ ] User không thể đọc/mark/xóa notification của user khác (IDOR test).
+- [ ] Socket chỉ join room user hiện tại sau auth/session hợp lệ.
+
+#### I. Hiệu năng & UX
+
+- [ ] Có 100+ notifications vẫn render mượt (không lag rõ rệt).
+- [ ] Badge/unread count không bị âm trong mọi thao tác liên tiếp.
+- [ ] Timestamp/relative time hiển thị hợp lý.
+- [ ] Không có lỗi console nghiêm trọng khi nhận event liên tục.
+
+#### J. Regression các luồng tạo notification
+
+- [ ] Social: like/comment/follow vẫn tạo notification đúng người nhận.
+- [ ] Order: new order/status change vẫn tạo notification đúng người nhận.
+- [ ] Message/system: vẫn tạo notification đúng người nhận.
+- [ ] Các luồng trên không bị ảnh hưởng bởi thay đổi realtime mới.
+
+### Gợi ý test data
+
+- [ ] Ít nhất 2 user thật để test follow/like/comment.
+- [ ] 1 user buyer + 1 user seller để test order notifications.
+- [ ] Seed sẵn >= 20 notifications với đủ loại và trạng thái read/unread.
+
+---
+
+_Last updated: March 31, 2026_

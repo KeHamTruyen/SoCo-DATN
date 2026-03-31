@@ -42,6 +42,31 @@ export interface Group {
     createdBy?: string;
     creator?: GroupCreator;
     members?: GroupMemberBrief[];
+    capabilities?: {
+        canManageRoles: boolean;
+        canReviewRequests: boolean;
+        canManageInvites: boolean;
+        canRemoveMembers: boolean;
+    };
+}
+
+export interface GroupJoinRequest {
+    id: string;
+    groupId: string;
+    userId: string;
+    status: "PENDING" | "APPROVED" | "REJECTED";
+    createdAt: string;
+    user: GroupCreator;
+}
+
+export interface GroupInvite {
+    id: string;
+    groupId: string;
+    code: string;
+    expiresAt: string;
+    maxUses: number;
+    usedCount: number;
+    isActive: boolean;
 }
 
 export interface GroupsListResponse {

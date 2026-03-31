@@ -65,6 +65,15 @@ export const createPost = async (authorId, data) => {
     taggedUserIds,
   } = data;
 
+  if (groupId) {
+    const group = await prisma.group.findUnique({ where: { id: groupId } });
+    if (!group) throw new Error('Group not found');
+    const membership = await prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: authorId } },
+    });
+    if (!membership) throw new Error('Must be a group member to post');
+  }
+
   const post = await prisma.post.create({
     data: {
       authorId,
@@ -307,7 +316,15 @@ export const deletePost = async (postId, authorId) => {
   if (existingPost.authorId !== authorId) {
     throw new Error('Unauthorized to delete this post');
   }
-  await prisma.post.delete({ where: { id: postId } });
+  await prisma.$transaction(async (tx) => {
+    await tx.post.delete({ where: { id: postId } });
+    if (existingPost.groupId) {
+      await tx.group.update({
+        where: { id: existingPost.groupId },
+        data: { postsCount: { decrement: 1 } },
+      });
+    }
+  });
   return { message: 'Post deleted successfully' };
 };
 
@@ -315,7 +332,15 @@ export const deletePost = async (postId, authorId) => {
 export const deletePostAsModerator = async (postId) => {
   const existingPost = await prisma.post.findUnique({ where: { id: postId } });
   if (!existingPost) throw new Error('Post not found');
-  await prisma.post.delete({ where: { id: postId } });
+  await prisma.$transaction(async (tx) => {
+    await tx.post.delete({ where: { id: postId } });
+    if (existingPost.groupId) {
+      await tx.group.update({
+        where: { id: existingPost.groupId },
+        data: { postsCount: { decrement: 1 } },
+      });
+    }
+  });
   return { message: 'Post deleted successfully' };
 };
 

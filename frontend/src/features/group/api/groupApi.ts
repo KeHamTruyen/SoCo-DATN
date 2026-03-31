@@ -1,7 +1,14 @@
 import { httpClient } from "../../../shared/api/httpClient";
 import type { FeedPageResponse, FeedPost, CreatePostPayload } from "../../feed/types/feed.types";
 import { normalizeFeedPost } from "../../feed/utils/normalizeFeedPost";
-import type { Group, GroupsListResponse, GroupsQueryParams } from "../types/group.types";
+import type {
+    Group,
+    GroupInvite,
+    GroupJoinRequest,
+    GroupMemberBrief,
+    GroupsListResponse,
+    GroupsQueryParams,
+} from "../types/group.types";
 
 // ─── Raw shapes that match the backend JSON exactly ────────────────────────────
 interface RawListResponse {
@@ -24,6 +31,12 @@ interface RawPostListResponse {
 interface RawPostSingleResponse {
     success: boolean;
     data: { post: Record<string, unknown> };
+}
+
+interface RawArrayResponse<T> {
+    success: boolean;
+    data: T[];
+    pagination?: { page: number; limit: number; total: number; totalPages: number };
 }
 
 // ─── Map backend pagination → frontend GroupsListResponse ─────────────────────
@@ -70,7 +83,7 @@ export const groupApi = {
     },
 
     async joinGroup(groupId: string) {
-        const res = await httpClient.post<RawSingleResponse>(
+        const res = await httpClient.post<{ success: boolean; data: { joined: boolean; requested?: boolean } }>(
             `/groups/${groupId}/join`,
             {},
             { requiresAuth: true },
@@ -120,10 +133,65 @@ export const groupApi = {
     },
 
     async getGroupMembers(groupId: string, page = 1, limit = 20) {
-        const res = await httpClient.get<RawListResponse>(
+        const res = await httpClient.get<RawArrayResponse<GroupMemberBrief>>(
             `/groups/${groupId}/members?page=${page}&limit=${limit}`,
+            { requiresAuth: true },
         );
         return res;
+    },
+
+    async getGroupMedia(groupId: string, page = 1, limit = 24) {
+        return httpClient.get<RawArrayResponse<{ id: string; mediaUrls: string[]; mediaType?: string }>>(
+            `/groups/${groupId}/media?page=${page}&limit=${limit}`,
+            { requiresAuth: true },
+        );
+    },
+
+    async getGroupProducts(groupId: string, page = 1, limit = 20) {
+        return httpClient.get<RawArrayResponse<Record<string, unknown>>>(
+            `/groups/${groupId}/products?page=${page}&limit=${limit}`,
+            { requiresAuth: true },
+        );
+    },
+
+    async listJoinRequests(groupId: string, page = 1, limit = 20) {
+        return httpClient.get<RawArrayResponse<GroupJoinRequest>>(
+            `/groups/${groupId}/requests?page=${page}&limit=${limit}`,
+            { requiresAuth: true },
+        );
+    },
+
+    async approveJoinRequest(groupId: string, requestId: string) {
+        return httpClient.post(`/groups/${groupId}/requests/${requestId}/approve`, {}, { requiresAuth: true });
+    },
+
+    async rejectJoinRequest(groupId: string, requestId: string) {
+        return httpClient.post(`/groups/${groupId}/requests/${requestId}/reject`, {}, { requiresAuth: true });
+    },
+
+    async createInvite(groupId: string, payload?: { expiresInHours?: number; maxUses?: number }) {
+        const res = await httpClient.post<{ success: boolean; data: GroupInvite }>(
+            `/groups/${groupId}/invites`,
+            payload || {},
+            { requiresAuth: true },
+        );
+        return res.data;
+    },
+
+    async listInvites(groupId: string) {
+        const res = await httpClient.get<{ success: boolean; data: GroupInvite[] }>(
+            `/groups/${groupId}/invites`,
+            { requiresAuth: true },
+        );
+        return res.data;
+    },
+
+    async revokeInvite(groupId: string, inviteId: string) {
+        return httpClient.delete(`/groups/${groupId}/invites/${inviteId}`, { requiresAuth: true });
+    },
+
+    async joinByInvite(code: string) {
+        return httpClient.post(`/groups/join-by-invite`, { code }, { requiresAuth: true });
     },
 
     // ── Group posts ─────────────────────────────────────────

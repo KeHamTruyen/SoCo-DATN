@@ -17,13 +17,13 @@ import {
     XCircle,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import type { CreatePostPayload, FeedPost } from "../features/feed/types/feed.types";
 import { CreatePostModal } from "../features/feed/components/CreatePostModal";
 import { FeedPostCard } from "../features/feed/components/FeedPostCard";
 import { feedApi } from "../features/feed/api/feedApi";
 import { groupApi } from "../features/group/api/groupApi";
-import type { Group } from "../features/group/types/group.types";
+import type { Group, GroupInvite, GroupJoinRequest, GroupMemberBrief } from "../features/group/types/group.types";
 import { UpdateGroupModal } from "../features/group/components/UpdateGroupModal";
 import { useAuthSession } from "../shared/auth/useAuthSession";
 import { cn } from "../shared/lib/cn";
@@ -95,6 +95,7 @@ async function copyToClipboard(text: string) {
 
 export default function GroupDetail() {
     const { id } = useParams<{ id: string }>();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { user } = useAuthSession();
     const [group, setGroup] = useState<Group | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -108,6 +109,12 @@ export default function GroupDetail() {
     // UI state
     const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [inviteCopied, setInviteCopied] = useState(false);
+    const [members, setMembers] = useState<GroupMemberBrief[]>([]);
+    const [mediaRows, setMediaRows] = useState<Array<{ id: string; mediaUrls: string[]; mediaType?: string }>>([]);
+    const [productRows, setProductRows] = useState<Array<Record<string, unknown>>>([]);
+    const [tabLoading, setTabLoading] = useState(false);
+    const [joinRequests, setJoinRequests] = useState<GroupJoinRequest[]>([]);
+    const [invites, setInvites] = useState<GroupInvite[]>([]);
 
     // ── Fetch group data ──
     useEffect(() => {
@@ -128,6 +135,25 @@ export default function GroupDetail() {
         return () => { mounted = false; };
     }, [id]);
 
+    useEffect(() => {
+        const inviteCode = searchParams.get("invite");
+        if (!id || !inviteCode || group?.isMember) return;
+        void (async () => {
+            try {
+                await groupApi.joinByInvite(inviteCode);
+                setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.delete("invite");
+                    return next;
+                });
+                const data = await groupApi.getGroup(id);
+                setGroup(data);
+            } catch {
+                // ignore invalid invite code
+            }
+        })();
+    }, [group?.isMember, id, searchParams, setSearchParams]);
+
     // ── Fetch group posts when group is loaded or tab changes ──
     const fetchPosts = useCallback(async () => {
         if (!id || activeTab !== "discussion") return;
@@ -146,6 +172,42 @@ export default function GroupDetail() {
         void fetchPosts();
     }, [fetchPosts]);
 
+    useEffect(() => {
+        if (!id || activeTab === "discussion") return;
+        let mounted = true;
+        void (async () => {
+            setTabLoading(true);
+            try {
+                if (activeTab === "members") {
+                    const res = await groupApi.getGroupMembers(id);
+                    if (mounted) setMembers(res.data ?? []);
+                    if (canManageRoles || isModerator) {
+                        const requestsRes = await groupApi.listJoinRequests(id);
+                        if (mounted) setJoinRequests(requestsRes.data ?? []);
+                    }
+                    if (canManageRoles) {
+                        const invitesRes = await groupApi.listInvites(id);
+                        if (mounted) setInvites(invitesRes ?? []);
+                    }
+                } else if (activeTab === "media") {
+                    const res = await groupApi.getGroupMedia(id);
+                    if (mounted) setMediaRows(res.data ?? []);
+                } else if (activeTab === "products") {
+                    const res = await groupApi.getGroupProducts(id);
+                    if (mounted) setProductRows(res.data ?? []);
+                }
+            } catch {
+                if (!mounted) return;
+                if (activeTab === "members") setMembers([]);
+                if (activeTab === "media") setMediaRows([]);
+                if (activeTab === "products") setProductRows([]);
+            } finally {
+                if (mounted) setTabLoading(false);
+            }
+        })();
+        return () => { mounted = false; };
+    }, [activeTab, id, group?.memberRole]);
+
     // ── Handlers ──
     const handleToggleMembership = async () => {
         if (!group || !id) return;
@@ -154,7 +216,8 @@ export default function GroupDetail() {
                 await groupApi.leaveGroup(id);
                 setGroup((g) => g ? { ...g, isMember: false, memberRole: null, membersCount: g.membersCount - 1 } : g);
             } else {
-                await groupApi.joinGroup(id);
+                const joined = await groupApi.joinGroup(id);
+                if (joined.requested) return;
                 setGroup((g) => g ? { ...g, isMember: true, memberRole: "MEMBER", membersCount: g.membersCount + 1 } : g);
             }
         } catch { /* silently ignore */ }
@@ -201,11 +264,39 @@ export default function GroupDetail() {
 
     const isPublic = group?.privacy?.toUpperCase() === "PUBLIC";
     const isAdmin = group?.memberRole === "ADMIN";
+    const isModerator = group?.memberRole === "MODERATOR";
+    const canManageRoles = isAdmin;
+    const canRemoveMembers = isAdmin || isModerator;
     const avatarColor = group ? getAvatarColor(group.name) : "bg-primary";
     const gradient = group ? getGradient(group.name) : GRADIENT_PAIRS[0];
 
     // Admin members from the group.members array
     const adminMembers = group?.members?.filter((m) => m.role === "ADMIN") ?? [];
+
+    const handlePromoteDemote = async (target: GroupMemberBrief, role: "MODERATOR" | "MEMBER") => {
+        if (!id || !canManageRoles) return;
+        await groupApi.updateMemberRole(id, target.userId, role);
+        setMembers((prev) => prev.map((m) => (m.userId === target.userId ? { ...m, role } : m)));
+    };
+
+    const handleRemoveMember = async (target: GroupMemberBrief) => {
+        if (!id || !canRemoveMembers) return;
+        await groupApi.removeMember(id, target.userId);
+        setMembers((prev) => prev.filter((m) => m.userId !== target.userId));
+    };
+
+    const handleReviewRequest = async (requestId: string, action: "approve" | "reject") => {
+        if (!id) return;
+        if (action === "approve") await groupApi.approveJoinRequest(id, requestId);
+        else await groupApi.rejectJoinRequest(id, requestId);
+        setJoinRequests((prev) => prev.filter((r) => r.id !== requestId));
+    };
+
+    const handleCreateInvite = async () => {
+        if (!id || !canManageRoles) return;
+        const invite = await groupApi.createInvite(id, { expiresInHours: 72, maxUses: 1 });
+        setInvites((prev) => [invite, ...prev]);
+    };
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark">
@@ -464,17 +555,103 @@ export default function GroupDetail() {
                                 </>
                             )}
 
-                            {/* Other tabs */}
-                            {activeTab !== "discussion" && (
-                                <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900">
-                                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800">
-                                        {activeTab === "members" && <Users className="h-7 w-7" />}
-                                        {activeTab === "products" && <ShoppingBag className="h-7 w-7" />}
-                                        {activeTab === "media" && <Image className="h-7 w-7" />}
-                                    </div>
-                                    <p className="font-semibold text-neutral-500">
-                                        {TABS.find((t) => t.value === activeTab)?.label} — coming soon.
-                                    </p>
+                            {activeTab === "members" && (
+                                <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+                                    {tabLoading ? <p className="text-sm text-neutral-500">Loading members...</p> : (
+                                        <div className="space-y-3">
+                                            {members.map((m) => (
+                                                <div key={m.id} className="flex items-center justify-between rounded-lg border border-neutral-100 p-3 dark:border-neutral-800">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar src={m.user.avatarUrl} alt={m.user.fullName ?? m.user.username ?? "Member"} wrapperClassName="h-9 w-9" />
+                                                        <div>
+                                                            <p className="text-sm font-semibold">{m.user.fullName ?? m.user.username ?? "Member"}</p>
+                                                            <p className="text-xs text-neutral-500">{m.role}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        {canManageRoles && m.role !== "ADMIN" && (
+                                                            <button type="button" onClick={() => void handlePromoteDemote(m, m.role === "MODERATOR" ? "MEMBER" : "MODERATOR")} className="rounded-md border px-2 py-1 text-xs">
+                                                                {m.role === "MODERATOR" ? "Demote" : "Promote"}
+                                                            </button>
+                                                        )}
+                                                        {canRemoveMembers && m.role !== "ADMIN" && (
+                                                            <button type="button" onClick={() => void handleRemoveMember(m)} className="rounded-md border border-red-200 px-2 py-1 text-xs text-red-500">
+                                                                Remove
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {!members.length && <p className="text-sm text-neutral-500">No members found.</p>}
+                                        </div>
+                                    )}
+                                    {(canManageRoles || isModerator) && (
+                                        <div className="mt-5 border-t border-neutral-100 pt-4 dark:border-neutral-800">
+                                            <p className="mb-2 text-sm font-semibold">Pending Requests</p>
+                                            <div className="space-y-2">
+                                                {joinRequests.map((r) => (
+                                                    <div key={r.id} className="flex items-center justify-between rounded-lg border border-neutral-100 p-2 dark:border-neutral-800">
+                                                        <span className="text-sm">{r.user.fullName ?? r.user.username ?? "User"}</span>
+                                                        <div className="flex gap-2">
+                                                            <button type="button" className="rounded-md border px-2 py-1 text-xs" onClick={() => void handleReviewRequest(r.id, "approve")}>Approve</button>
+                                                            <button type="button" className="rounded-md border border-red-200 px-2 py-1 text-xs text-red-500" onClick={() => void handleReviewRequest(r.id, "reject")}>Reject</button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {!joinRequests.length && <p className="text-xs text-neutral-500">No pending requests.</p>}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {canManageRoles && (
+                                        <div className="mt-5 border-t border-neutral-100 pt-4 dark:border-neutral-800">
+                                            <div className="mb-2 flex items-center justify-between">
+                                                <p className="text-sm font-semibold">Invites</p>
+                                                <button type="button" className="rounded-md border px-2 py-1 text-xs" onClick={() => void handleCreateInvite()}>
+                                                    Create invite
+                                                </button>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {invites.map((invite) => (
+                                                    <div key={invite.id} className="flex items-center justify-between rounded-md border border-neutral-100 p-2 text-xs dark:border-neutral-800">
+                                                        <span>{invite.code}</span>
+                                                        <button type="button" onClick={() => void copyToClipboard(`${window.location.origin}/groups/${id}?invite=${invite.code}`)} className="rounded border px-2 py-1">
+                                                            Copy
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                {!invites.length && <p className="text-xs text-neutral-500">No active invites.</p>}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === "media" && (
+                                <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+                                    {tabLoading ? <p className="text-sm text-neutral-500">Loading media...</p> : (
+                                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                                            {mediaRows.flatMap((row) => row.mediaUrls.map((url) => (
+                                                <img key={`${row.id}-${url}`} src={url} alt="group media" className="h-32 w-full rounded-lg object-cover" />
+                                            )))}
+                                            {!mediaRows.length && <p className="col-span-full text-sm text-neutral-500">No media yet.</p>}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === "products" && (
+                                <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+                                    {tabLoading ? <p className="text-sm text-neutral-500">Loading products...</p> : (
+                                        <div className="space-y-2">
+                                            {productRows.map((row) => (
+                                                <div key={String(row.id)} className="rounded-lg border border-neutral-100 p-3 dark:border-neutral-800">
+                                                    <p className="text-sm font-semibold">{String(row.title ?? "Product")}</p>
+                                                    <p className="text-xs text-neutral-500">{String(row.price ?? "")}</p>
+                                                </div>
+                                            ))}
+                                            {!productRows.length && <p className="text-sm text-neutral-500">No tagged products.</p>}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

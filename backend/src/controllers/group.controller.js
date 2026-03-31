@@ -52,12 +52,13 @@ class GroupController {
   async joinGroup(req, res, next) {
     try {
       const result = await groupService.joinGroup(req.params.groupId, req.user.id);
-      res.json({ success: true, message: 'Joined group', data: result });
+      const message = result.requested ? 'Join request submitted' : 'Joined group';
+      res.json({ success: true, message, data: result });
     } catch (error) {
       if (error.message === 'Group not found') {
         return res.status(404).json({ success: false, message: error.message });
       }
-      if (error.message === 'Already a member') {
+      if (error.message === 'Already a member' || error.message === 'Join request already pending') {
         return res.status(400).json({ success: false, message: error.message });
       }
       next(error);
@@ -81,12 +82,15 @@ class GroupController {
 
   async getMembers(req, res, next) {
     try {
-      const result = await groupService.getMembers(req.params.groupId, {
+      const result = await groupService.getMembers(req.params.groupId, req.user?.id || null, {
         page: parseInt(req.query.page) || 1,
         limit: parseInt(req.query.limit) || 20,
       });
       res.json({ success: true, data: result.members, pagination: result.pagination });
     } catch (error) {
+      if (error.message === 'Must be a group member') {
+        return res.status(403).json({ success: false, message: error.message });
+      }
       next(error);
     }
   }
@@ -125,7 +129,11 @@ class GroupController {
       );
       res.json({ success: true, message: 'Role updated', data: member });
     } catch (error) {
-      if (error.message.includes('Only admin') || error.message.includes('not a member')) {
+      if (
+        error.message.includes('Only admin')
+        || error.message.includes('not a member')
+        || error.message.includes('only admin')
+      ) {
         return res.status(403).json({ success: false, message: error.message });
       }
       next(error);
@@ -170,6 +178,9 @@ class GroupController {
       const data = await formatPostsForResponse(result.posts);
       res.json({ success: true, data, pagination: result.pagination });
     } catch (error) {
+      if (error.message === 'Must be a group member') {
+        return res.status(403).json({ success: false, message: error.message });
+      }
       next(error);
     }
   }
@@ -190,6 +201,148 @@ class GroupController {
       }
       if (error.message.includes('Must be a group member')) {
         return res.status(403).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
+
+  async getGroupMedia(req, res, next) {
+    try {
+      const result = await groupService.getGroupMedia(
+        req.params.groupId,
+        req.user?.id || null,
+        { page: parseInt(req.query.page) || 1, limit: parseInt(req.query.limit) || 24 },
+      );
+      res.json({ success: true, data: result.items, pagination: result.pagination });
+    } catch (error) {
+      if (error.message === 'Must be a group member') {
+        return res.status(403).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
+
+  async getGroupProducts(req, res, next) {
+    try {
+      const result = await groupService.getGroupProducts(
+        req.params.groupId,
+        req.user?.id || null,
+        { page: parseInt(req.query.page) || 1, limit: parseInt(req.query.limit) || 20 },
+      );
+      res.json({ success: true, data: result.items, pagination: result.pagination });
+    } catch (error) {
+      if (error.message === 'Must be a group member') {
+        return res.status(403).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
+
+  async listJoinRequests(req, res, next) {
+    try {
+      const result = await groupService.listJoinRequests(req.params.groupId, req.user.id, {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 20,
+      });
+      res.json({ success: true, data: result.requests, pagination: result.pagination });
+    } catch (error) {
+      if (error.message === 'Insufficient permissions') {
+        return res.status(403).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
+
+  async approveJoinRequest(req, res, next) {
+    try {
+      const data = await groupService.reviewJoinRequest(
+        req.params.groupId,
+        req.params.requestId,
+        req.user.id,
+        'approve',
+      );
+      res.json({ success: true, message: 'Request approved', data });
+    } catch (error) {
+      if (error.message === 'Insufficient permissions') {
+        return res.status(403).json({ success: false, message: error.message });
+      }
+      if (error.message.includes('not found') || error.message.includes('already reviewed')) {
+        return res.status(400).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
+
+  async rejectJoinRequest(req, res, next) {
+    try {
+      const data = await groupService.reviewJoinRequest(
+        req.params.groupId,
+        req.params.requestId,
+        req.user.id,
+        'reject',
+      );
+      res.json({ success: true, message: 'Request rejected', data });
+    } catch (error) {
+      if (error.message === 'Insufficient permissions') {
+        return res.status(403).json({ success: false, message: error.message });
+      }
+      if (error.message.includes('not found') || error.message.includes('already reviewed')) {
+        return res.status(400).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
+
+  async createInvite(req, res, next) {
+    try {
+      const invite = await groupService.createInvite(req.params.groupId, req.user.id, req.body || {});
+      res.status(201).json({ success: true, message: 'Invite created', data: invite });
+    } catch (error) {
+      if (error.message === 'Insufficient permissions') {
+        return res.status(403).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
+
+  async listInvites(req, res, next) {
+    try {
+      const invites = await groupService.listInvites(req.params.groupId, req.user.id);
+      res.json({ success: true, data: invites });
+    } catch (error) {
+      if (error.message === 'Insufficient permissions') {
+        return res.status(403).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
+
+  async revokeInvite(req, res, next) {
+    try {
+      await groupService.revokeInvite(req.params.groupId, req.params.inviteId, req.user.id);
+      res.json({ success: true, message: 'Invite revoked' });
+    } catch (error) {
+      if (error.message === 'Insufficient permissions') {
+        return res.status(403).json({ success: false, message: error.message });
+      }
+      if (error.message === 'Invite not found') {
+        return res.status(404).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
+
+  async joinByInvite(req, res, next) {
+    try {
+      const result = await groupService.joinByInvite(req.body.code, req.user.id);
+      res.json({
+        success: true,
+        message: result.requested ? 'Join request submitted' : 'Joined group',
+        data: result,
+      });
+    } catch (error) {
+      if (error.message.includes('Invite') || error.message.includes('Already a member')) {
+        return res.status(400).json({ success: false, message: error.message });
       }
       next(error);
     }

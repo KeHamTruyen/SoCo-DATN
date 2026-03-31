@@ -1,5 +1,9 @@
 import { httpClient } from "../../../shared/api/httpClient";
-import type { Notification, NotificationsListResponse } from "../types/notification.types";
+import type {
+    Notification,
+    NotificationPreferences,
+    NotificationsListResponse,
+} from "../types/notification.types";
 
 interface ApiResponse<T> {
     data?: T;
@@ -14,13 +18,22 @@ function unwrap<T>(res: ApiResponse<T> | T): T {
 
 interface BackendNotification {
     id: string;
-    type: string;
+    type?: string;
+    rawType?: string;
+    category?: Notification["type"];
     title?: string;
     message: string;
     isRead: boolean;
     createdAt: string;
+    readAt?: string | null;
+    userId?: string;
     actionUrl?: string | null;
     relatedUser?: {
+        fullName?: string | null;
+        username?: string | null;
+        avatarUrl?: string | null;
+    } | null;
+    actor?: {
         fullName?: string | null;
         username?: string | null;
         avatarUrl?: string | null;
@@ -59,18 +72,21 @@ function mapIconType(rawType: string): Notification["iconType"] {
 }
 
 function toNotification(raw: BackendNotification): Notification {
-    const actorName = raw.relatedUser?.fullName || raw.relatedUser?.username || undefined;
+    const actor = raw.actor || raw.relatedUser;
+    const rawType = raw.rawType || raw.type || "system";
+    const category = raw.category || mapType(rawType);
+    const actorName = actor?.fullName || actor?.username || undefined;
     return {
         id: raw.id,
-        type: mapType(raw.type),
+        type: category,
         title: raw.title,
         content: raw.message,
         actorName,
-        actorAvatarUrl: raw.relatedUser?.avatarUrl || undefined,
+        actorAvatarUrl: actor?.avatarUrl || undefined,
         isRead: raw.isRead,
         createdAt: raw.createdAt,
         link: raw.actionUrl || undefined,
-        iconType: mapIconType(raw.type),
+        iconType: mapIconType(rawType),
     };
 }
 
@@ -106,5 +122,18 @@ export const notificationApi = {
     },
     mapRealtimeNotification(raw: unknown) {
         return toNotification(raw as BackendNotification);
+    },
+    async getPreferences() {
+        const res = await httpClient.get<ApiResponse<NotificationPreferences> | NotificationPreferences>(
+            "/notifications/preferences",
+            { requiresAuth: true },
+        );
+        return unwrap<NotificationPreferences>(res);
+    },
+    async updatePreferences(updates: Partial<NotificationPreferences>) {
+        const res = await httpClient.patch<
+            ApiResponse<NotificationPreferences> | NotificationPreferences
+        >("/notifications/preferences", updates, { requiresAuth: true });
+        return unwrap<NotificationPreferences>(res);
     },
 };

@@ -12,10 +12,8 @@ import {
 } from "lucide-react";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { io, type Socket } from "socket.io-client";
-import { notificationApi } from "../../../../features/notification/api/notificationApi";
 import { NotificationDropdown } from "../../../../features/notification/components/NotificationDropdown";
-import type { Notification } from "../../../../features/notification/types/notification.types";
+import { useNotificationCenter } from "../../../../features/notification/context/NotificationContext";
 import { useAuthSession } from "../../../auth/useAuthSession";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../../lib/cn";
@@ -40,12 +38,6 @@ const defaultNavItems: HeaderNavItem[] = [
     { label: "Marketplace", to: "/marketplace" },
 ];
 
-function getSocketBaseUrl() {
-    const rawApiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
-    if (!rawApiBase) return "http://localhost:5000";
-    return rawApiBase.replace(/\/api\/?$/, "");
-}
-
 export function UnifiedHeader({
     navItems = defaultNavItems,
     activePath,
@@ -57,64 +49,22 @@ export function UnifiedHeader({
     const [profileOpen, setProfileOpen] = useState(false);
     const [themeModalOpen, setThemeModalOpen] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
-    const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [unreadCount, setUnreadCount] = useState(0);
-    const [liveToasts, setLiveToasts] = useState<Notification[]>([]);
     const notifRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
-    const socketRef = useRef<Socket | null>(null);
     const navigate = useNavigate();
     const { user, logout } = useAuthSession();
     const { t, i18n } = useTranslation();
+    const {
+        notifications,
+        unreadCount,
+        liveToasts,
+        dismissToast,
+    } = useNotificationCenter();
 
     const toggleLanguage = () => {
         const newLang = i18n.language === "vi" ? "en" : "vi";
         void i18n.changeLanguage(newLang);
     };
-
-    useEffect(() => {
-        void notificationApi
-            .listNotifications()
-            .then((data) => {
-                setNotifications(data.items.slice(0, 5));
-                setUnreadCount(data.unreadCount);
-            })
-            .catch(() => {});
-    }, []);
-
-    useEffect(() => {
-        if (!user?.id) return;
-        const socket = io(getSocketBaseUrl(), {
-            transports: ["websocket"],
-            withCredentials: true,
-        });
-        socketRef.current = socket;
-        socket.emit("user:online", user.id);
-        socket.on("notification:new", (rawNotification: unknown) => {
-            try {
-                const incoming = notificationApi.mapRealtimeNotification(rawNotification);
-                setNotifications((prev) => [incoming, ...prev].slice(0, 5));
-                setUnreadCount((prev) => prev + (incoming.isRead ? 0 : 1));
-                setLiveToasts((prev) => [incoming, ...prev].slice(0, 3));
-            } catch {
-                // Ignore malformed payloads to keep header stable.
-            }
-        });
-
-        return () => {
-            socket.off("notification:new");
-            socket.disconnect();
-            socketRef.current = null;
-        };
-    }, [user?.id]);
-
-    useEffect(() => {
-        if (liveToasts.length === 0) return;
-        const timer = window.setTimeout(() => {
-            setLiveToasts((prev) => prev.slice(0, -1));
-        }, 5000);
-        return () => window.clearTimeout(timer);
-    }, [liveToasts]);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -209,7 +159,7 @@ export function UnifiedHeader({
                         </Button>
                         {notifOpen && (
                             <NotificationDropdown
-                                notifications={notifications}
+                                notifications={notifications.slice(0, 5)}
                                 unreadCount={unreadCount}
                                 onClose={() => setNotifOpen(false)}
                             />
@@ -419,11 +369,7 @@ export function UnifiedHeader({
                         key={notification.id}
                         to={notification.link ?? "/notifications"}
                         className="pointer-events-auto rounded-xl border border-border bg-card p-3 text-card-foreground shadow-lg transition hover:bg-muted/60"
-                        onClick={() =>
-                            setLiveToasts((prev) =>
-                                prev.filter((item) => item.id !== notification.id),
-                            )
-                        }
+                        onClick={() => dismissToast(notification.id)}
                     >
                         <p className="line-clamp-1 text-sm font-semibold">
                             {notification.title ?? "Thong bao moi"}

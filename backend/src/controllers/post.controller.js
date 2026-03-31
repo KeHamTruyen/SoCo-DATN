@@ -11,6 +11,12 @@ export const createPost = async (req, res, next) => {
       data: { post: formatted },
     });
   } catch (error) {
+    if (error.message === 'Group not found') {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+    if (error.message === 'Must be a group member to post') {
+      return res.status(403).json({ success: false, message: error.message });
+    }
     next(error);
   }
 };

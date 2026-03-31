@@ -1,8 +1,7 @@
 import { CheckCheck } from "lucide-react";
-import { useEffect, useState } from "react";
-import { notificationApi } from "../features/notification/api/notificationApi";
+import { useMemo, useState } from "react";
+import { useNotificationCenter } from "../features/notification/context/NotificationContext";
 import { NotificationItem } from "../features/notification/components/NotificationItem";
-import type { Notification } from "../features/notification/types/notification.types";
 import { cn } from "../shared/lib/cn";
 import { Button, UnifiedHeader } from "../shared/ui";
 
@@ -17,40 +16,28 @@ const TABS: { value: TabFilter; label: string }[] = [
 
 export default function Notifications() {
     const [activeTab, setActiveTab] = useState<TabFilter>("all");
-    const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [unreadCount, setUnreadCount] = useState(0);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const load = async (tab: TabFilter) => {
-        setIsLoading(true);
-        try {
-            const data = await notificationApi.listNotifications(tab);
-            setNotifications(data.items);
-            setUnreadCount(data.unreadCount);
-        } catch {
-            setNotifications([]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        void load(activeTab);
-    }, [activeTab]);
+    const {
+        notifications,
+        unreadCount,
+        isLoading,
+        preferences,
+        markRead,
+        markAllRead,
+        updatePreferences,
+    } = useNotificationCenter();
 
     const handleMarkAllRead = async () => {
-        await notificationApi.markAllRead();
-        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-        setUnreadCount(0);
+        await markAllRead();
     };
 
     const handleRead = async (id: string) => {
-        await notificationApi.markRead(id);
-        setNotifications((prev) =>
-            prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
-        );
-        setUnreadCount((c) => Math.max(0, c - 1));
+        await markRead(id);
     };
+
+    const filteredNotifications = useMemo(() => {
+        if (activeTab === "all") return notifications;
+        return notifications.filter((item) => item.type === activeTab);
+    }, [activeTab, notifications]);
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark">
@@ -107,6 +94,28 @@ export default function Notifications() {
                     </nav>
                 </div>
 
+                <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+                    <p className="mb-3 text-sm font-semibold">Notification preferences</p>
+                    <div className="flex flex-wrap gap-2">
+                        {(Object.keys(preferences) as Array<keyof typeof preferences>).map(
+                            (key) => (
+                                <Button
+                                    key={key}
+                                    variant={preferences[key] ? "primary" : "outline"}
+                                    size="sm"
+                                    onClick={() =>
+                                        void updatePreferences({
+                                            [key]: !preferences[key],
+                                        })
+                                    }
+                                >
+                                    {key}
+                                </Button>
+                            ),
+                        )}
+                    </div>
+                </div>
+
                 {isLoading ? (
                     <div className="space-y-3">
                         {Array.from({ length: 5 }).map((_, i) => (
@@ -116,13 +125,13 @@ export default function Notifications() {
                             />
                         ))}
                     </div>
-                ) : notifications.length === 0 ? (
+                ) : filteredNotifications.length === 0 ? (
                     <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center dark:border-neutral-800 dark:bg-neutral-900">
                         <p className="text-neutral-400">No notifications.</p>
                     </div>
                 ) : (
                     <div className="space-y-1">
-                        {notifications.map((n) => (
+                        {filteredNotifications.map((n) => (
                             <NotificationItem
                                 key={n.id}
                                 notification={n}
@@ -132,7 +141,7 @@ export default function Notifications() {
                     </div>
                 )}
 
-                {notifications.length > 0 && (
+                {filteredNotifications.length > 0 && (
                     <div className="mt-6 flex justify-center">
                         <Button variant="outline">Load More</Button>
                     </div>
