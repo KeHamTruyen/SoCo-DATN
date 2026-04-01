@@ -1,11 +1,98 @@
 import prisma from "../config/database.js";
+import { cloudinary, deleteImage, getPublicIdFromUrl } from "../config/cloudinary.js";
 
 const MAX_TAGGED_USERS = 10;
+
+const SCHEDULED_POST_INCLUDE = {
+    product: { select: { id: true, title: true, slug: true } },
+};
 
 function normalizeTaggedUserIds(raw) {
     if (!Array.isArray(raw)) return [];
     const uniq = [...new Set(raw.filter((id) => typeof id === "string" && id.length > 0))];
     return uniq.slice(0, MAX_TAGGED_USERS);
+}
+
+function normalizeText(value) {
+    return value === undefined || value === null ? null : String(value).trim() || null;
+}
+
+function buildScheduledPostUpdateData(data, { allowScheduleTime = true } = {}) {
+    const updateData = {};
+    if (data.content !== undefined) updateData.content = data.content;
+    if (data.mediaUrls !== undefined) updateData.mediaUrls = data.mediaUrls;
+    if (data.mediaType !== undefined) updateData.mediaType = data.mediaType;
+    if (data.productId !== undefined) updateData.productId = data.productId;
+    if (data.location !== undefined) updateData.location = normalizeText(data.location);
+    if (data.feeling !== undefined) updateData.feeling = normalizeText(data.feeling);
+    if (data.taggedUserIds !== undefined) {
+        updateData.taggedUserIds = normalizeTaggedUserIds(data.taggedUserIds);
+    }
+    if (data.scheduledTime !== undefined && allowScheduleTime) {
+        const scheduled = new Date(data.scheduledTime);
+        if (scheduled <= new Date()) {
+            throw new Error("Scheduled time must be in the future");
+        }
+        updateData.scheduledTime = scheduled;
+    }
+    return updateData;
+}
+
+async function deleteMediaAssets(mediaUrls, mediaType) {
+    const urls = Array.isArray(mediaUrls) ? mediaUrls : [];
+    if (!urls.length) {
+        return;
+    }
+
+    const destroyers = urls.map((url) => {
+        const publicId = getPublicIdFromUrl(url);
+        if (!publicId) {
+            return Promise.resolve();
+        }
+
+        if (mediaType === "VIDEO") {
+            return cloudinary.uploader
+                .destroy(publicId, { resource_type: "video" })
+                .catch(() => {});
+        }
+
+        return deleteImage(publicId).catch(() => {});
+    });
+
+    await Promise.all(destroyers);
+}
+
+async function attachPublishedMetadata(posts) {
+    const publishedPostIds = posts
+        .map((post) => post.publishedPostId)
+        .filter((postId) => typeof postId === "string" && postId.length > 0);
+
+    if (!publishedPostIds.length) {
+        return posts;
+    }
+
+    const publishedPosts = await prisma.post.findMany({
+        where: { id: { in: publishedPostIds } },
+        select: { id: true, publishedAt: true, createdAt: true },
+    });
+    const publishedMap = new Map(publishedPosts.map((post) => [post.id, post]));
+
+    return posts.map((post) => ({
+        ...post,
+        publishedPost: post.publishedPostId ? publishedMap.get(post.publishedPostId) ?? null : null,
+    }));
+}
+
+function parseAnalyticsRange(range) {
+    switch (range) {
+        case "7d":
+            return 7;
+        case "90d":
+            return 90;
+        case "30d":
+        default:
+            return 30;
+    }
 }
 
 class ScheduledPostService {
@@ -57,23 +144,206 @@ class ScheduledPostService {
     /**
      * UC6.2 – Get all scheduled posts for a user
      */
-    async getScheduledPosts(userId, { page = 1, limit = 20 } = {}) {
+    async getScheduledPosts(userId, { status, page = 1, limit = 20 } = {}) {
         const skip = (page - 1) * limit;
+        const normalizedStatus =
+            typeof status === "string" && status.trim().length > 0
+                ? status.trim().toLowerCase()
+                : undefined;
+        const where = {
+            userId,
+            ...(normalizedStatus ? { status: normalizedStatus } : {}),
+        };
+
+        if (normalizedStatus === "published") {
+            const posts = await prisma.scheduledPost.findMany({
+                where,
+                include: SCHEDULED_POST_INCLUDE,
+            });
+            const enrichedPosts = await attachPublishedMetadata(posts);
+            const sortedPosts = enrichedPosts.sort((a, b) => {
+                const aTime = new Date(
+                    a.publishedPost?.publishedAt ??
+                        a.publishedPost?.createdAt ??
+                        a.scheduledTime,
+                ).getTime();
+                const bTime = new Date(
+                    b.publishedPost?.publishedAt ??
+                        b.publishedPost?.createdAt ??
+                        b.scheduledTime,
+                ).getTime();
+                return bTime - aTime;
+            });
+            const paginatedPosts = sortedPosts.slice(skip, skip + limit);
+            return {
+                posts: paginatedPosts,
+                total: sortedPosts.length,
+                page,
+                limit,
+                hasMore: page * limit < sortedPosts.length,
+            };
+        }
 
         const [posts, total] = await Promise.all([
             prisma.scheduledPost.findMany({
-                where: { userId },
-                include: {
-                    product: { select: { id: true, title: true, slug: true } },
-                },
-                orderBy: { scheduledTime: "asc" },
+                where,
+                include: SCHEDULED_POST_INCLUDE,
+                orderBy: { scheduledTime: "desc" },
                 skip,
                 take: limit,
             }),
-            prisma.scheduledPost.count({ where: { userId } }),
+            prisma.scheduledPost.count({ where }),
         ]);
 
-        return { posts, total, page, limit };
+        return { posts, total, page, limit, hasMore: page * limit < total };
+    }
+
+    async getScheduledPostsAnalytics(userId, { range = "30d" } = {}) {
+        const days = parseAnalyticsRange(range);
+        const startDate = new Date();
+        startDate.setHours(0, 0, 0, 0);
+        startDate.setDate(startDate.getDate() - (days - 1));
+
+        const scheduledPosts = await prisma.scheduledPost.findMany({
+            where: {
+                userId,
+                status: "published",
+                publishedPostId: { not: null },
+            },
+            include: SCHEDULED_POST_INCLUDE,
+        });
+
+        const publishedPostIds = scheduledPosts
+            .map((post) => post.publishedPostId)
+            .filter((postId) => typeof postId === "string" && postId.length > 0);
+
+        if (!publishedPostIds.length) {
+            return {
+                summary: {
+                    publishedCount: 0,
+                    views: 0,
+                    likes: 0,
+                    comments: 0,
+                    shares: 0,
+                    engagement: 0,
+                    engagementRate: 0,
+                },
+                series: [],
+                topPosts: [],
+                range,
+            };
+        }
+
+        const publishedPosts = await prisma.post.findMany({
+            where: {
+                id: { in: publishedPostIds },
+                authorId: userId,
+                publishedAt: { gte: startDate },
+            },
+            select: {
+                id: true,
+                content: true,
+                mediaUrls: true,
+                mediaType: true,
+                likesCount: true,
+                commentsCount: true,
+                sharesCount: true,
+                viewsCount: true,
+                publishedAt: true,
+            },
+        });
+
+        const publishedMap = new Map(publishedPosts.map((post) => [post.id, post]));
+        const analyticsPosts = scheduledPosts
+            .map((scheduledPost) => {
+                const publishedPost = scheduledPost.publishedPostId
+                    ? publishedMap.get(scheduledPost.publishedPostId)
+                    : undefined;
+                if (!publishedPost) {
+                    return null;
+                }
+                const engagement =
+                    publishedPost.likesCount +
+                    publishedPost.commentsCount +
+                    publishedPost.sharesCount;
+                return {
+                    scheduledPostId: scheduledPost.id,
+                    publishedPostId: publishedPost.id,
+                    content: publishedPost.content ?? scheduledPost.content ?? "",
+                    mediaUrls: publishedPost.mediaUrls,
+                    mediaType: publishedPost.mediaType,
+                    scheduledTime: scheduledPost.scheduledTime,
+                    publishedAt: publishedPost.publishedAt,
+                    viewsCount: publishedPost.viewsCount,
+                    likesCount: publishedPost.likesCount,
+                    commentsCount: publishedPost.commentsCount,
+                    sharesCount: publishedPost.sharesCount,
+                    engagement,
+                    engagementRate:
+                        publishedPost.viewsCount > 0
+                            ? engagement / publishedPost.viewsCount
+                            : 0,
+                };
+            })
+            .filter(Boolean);
+
+        const summary = analyticsPosts.reduce(
+            (acc, post) => {
+                acc.publishedCount += 1;
+                acc.views += post.viewsCount;
+                acc.likes += post.likesCount;
+                acc.comments += post.commentsCount;
+                acc.shares += post.sharesCount;
+                acc.engagement += post.engagement;
+                return acc;
+            },
+            {
+                publishedCount: 0,
+                views: 0,
+                likes: 0,
+                comments: 0,
+                shares: 0,
+                engagement: 0,
+            },
+        );
+
+        const seriesMap = new Map();
+        for (let i = 0; i < days; i += 1) {
+            const date = new Date(startDate);
+            date.setDate(startDate.getDate() + i);
+            const key = date.toISOString().slice(0, 10);
+            seriesMap.set(key, {
+                date: key,
+                publishedCount: 0,
+                views: 0,
+                engagement: 0,
+            });
+        }
+
+        analyticsPosts.forEach((post) => {
+            const key = new Date(post.publishedAt).toISOString().slice(0, 10);
+            const bucket = seriesMap.get(key);
+            if (!bucket) {
+                return;
+            }
+            bucket.publishedCount += 1;
+            bucket.views += post.viewsCount;
+            bucket.engagement += post.engagement;
+        });
+
+        const topPosts = [...analyticsPosts]
+            .sort((a, b) => b.engagement - a.engagement || b.viewsCount - a.viewsCount)
+            .slice(0, 5);
+
+        return {
+            summary: {
+                ...summary,
+                engagementRate: summary.views > 0 ? summary.engagement / summary.views : 0,
+            },
+            series: Array.from(seriesMap.values()),
+            topPosts,
+            range,
+        };
     }
 
     /**
@@ -81,35 +351,66 @@ class ScheduledPostService {
      */
     async updateScheduledPost(id, userId, data) {
         const existing = await prisma.scheduledPost.findFirst({
-            where: { id, userId, status: "scheduled" },
+            where: { id, userId },
+            include: SCHEDULED_POST_INCLUDE,
         });
-        if (!existing)
-            throw new Error("Scheduled post not found or already published");
-
-        const updateData = {};
-        if (data.content !== undefined) updateData.content = data.content;
-        if (data.mediaUrls !== undefined) updateData.mediaUrls = data.mediaUrls;
-        if (data.mediaType !== undefined) updateData.mediaType = data.mediaType;
-        if (data.productId !== undefined) updateData.productId = data.productId;
-        if (data.location !== undefined) {
-            updateData.location =
-                data.location === null ? null : String(data.location).trim() || null;
-        }
-        if (data.feeling !== undefined) {
-            updateData.feeling =
-                data.feeling === null ? null : String(data.feeling).trim() || null;
-        }
-        if (data.taggedUserIds !== undefined) {
-            updateData.taggedUserIds = normalizeTaggedUserIds(data.taggedUserIds);
-        }
-        if (data.scheduledTime) {
-            const scheduled = new Date(data.scheduledTime);
-            if (scheduled <= new Date())
-                throw new Error("Scheduled time must be in the future");
-            updateData.scheduledTime = scheduled;
+        if (!existing) {
+            throw new Error("Scheduled post not found");
         }
 
-        return prisma.scheduledPost.update({ where: { id }, data: updateData });
+        if (existing.status === "scheduled") {
+            const updateData = buildScheduledPostUpdateData(data);
+            return prisma.scheduledPost.update({
+                where: { id },
+                data: updateData,
+                include: SCHEDULED_POST_INCLUDE,
+            });
+        }
+
+        if (existing.status === "published" && existing.publishedPostId) {
+            const scheduledUpdateData = buildScheduledPostUpdateData(data, {
+                allowScheduleTime: false,
+            });
+            const postUpdateData = {
+                ...(data.content !== undefined && { content: data.content }),
+                ...(data.mediaUrls !== undefined && { mediaUrls: data.mediaUrls }),
+                ...(data.mediaType !== undefined && { mediaType: data.mediaType }),
+                ...(data.productId !== undefined && { productId: data.productId }),
+                ...(data.location !== undefined && { location: normalizeText(data.location) }),
+                ...(data.feeling !== undefined && { feeling: normalizeText(data.feeling) }),
+                ...(data.taggedUserIds !== undefined && {
+                    taggedUserIds: normalizeTaggedUserIds(data.taggedUserIds),
+                }),
+            };
+
+            const updatedScheduledPost = await prisma.$transaction(async (tx) => {
+                const publishedPost = await tx.post.findFirst({
+                    where: { id: existing.publishedPostId, authorId: userId },
+                    select: { id: true, publishedAt: true, createdAt: true },
+                });
+                if (!publishedPost) {
+                    throw new Error("Published post not found");
+                }
+
+                await tx.post.update({
+                    where: { id: existing.publishedPostId },
+                    data: postUpdateData,
+                });
+                const updated = await tx.scheduledPost.update({
+                    where: { id },
+                    data: scheduledUpdateData,
+                    include: SCHEDULED_POST_INCLUDE,
+                });
+                return {
+                    ...updated,
+                    publishedPost,
+                };
+            });
+
+            return updatedScheduledPost;
+        }
+
+        throw new Error("Scheduled post cannot be updated");
     }
 
     /**
@@ -151,12 +452,40 @@ class ScheduledPostService {
      */
     async deleteScheduledPost(id, userId) {
         const existing = await prisma.scheduledPost.findFirst({
-            where: { id, userId, status: "scheduled" },
+            where: { id, userId },
         });
-        if (!existing)
-            throw new Error("Scheduled post not found or already published");
+        if (!existing) {
+            throw new Error("Scheduled post not found");
+        }
 
-        return prisma.scheduledPost.delete({ where: { id } });
+        if (existing.status === "scheduled") {
+            await deleteMediaAssets(existing.mediaUrls, existing.mediaType);
+            return prisma.scheduledPost.delete({ where: { id } });
+        }
+
+        if (existing.status === "published" && existing.publishedPostId) {
+            return prisma.$transaction(async (tx) => {
+                const publishedPost = await tx.post.findFirst({
+                    where: { id: existing.publishedPostId, authorId: userId },
+                    select: { id: true, groupId: true },
+                });
+                if (!publishedPost) {
+                    throw new Error("Published post not found");
+                }
+
+                await deleteMediaAssets(existing.mediaUrls, existing.mediaType);
+                await tx.post.delete({ where: { id: publishedPost.id } });
+                if (publishedPost.groupId) {
+                    await tx.group.update({
+                        where: { id: publishedPost.groupId },
+                        data: { postsCount: { decrement: 1 } },
+                    });
+                }
+                return tx.scheduledPost.delete({ where: { id } });
+            });
+        }
+
+        throw new Error("Scheduled post cannot be deleted");
     }
 }
 

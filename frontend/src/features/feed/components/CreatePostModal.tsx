@@ -27,6 +27,11 @@ import { Button } from "../../../shared/ui/atoms/button";
 import type { CreatePostPayload, PostMediaType, TaggedUserBrief } from "../types/feed.types";
 import { useTranslation } from "react-i18next";
 
+interface CreatePostInitialValues extends Partial<CreatePostPayload> {
+    productLabel?: string | null;
+    taggedUsers?: TaggedUserBrief[];
+}
+
 interface CreatePostModalProps {
     onClose: () => void;
     onCreate: (payload: CreatePostPayload) => Promise<void>;
@@ -34,6 +39,10 @@ interface CreatePostModalProps {
     defaultScheduleMode?: boolean;
     /** When set, the post is created inside a group. */
     groupId?: string;
+    initialValues?: CreatePostInitialValues;
+    hideScheduleOption?: boolean;
+    title?: string;
+    submitLabel?: string;
 }
 
 function toDatetimeLocalValue(date: Date | undefined, timeStr: string): string {
@@ -63,28 +72,46 @@ export function CreatePostModal({
     onCreate,
     defaultScheduleMode = false,
     groupId,
+    initialValues,
+    hideScheduleOption = false,
+    title,
+    submitLabel,
 }: CreatePostModalProps) {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const { user } = useAuthSession();
-    const [content, setContent] = useState("");
+    const initialScheduledDate = useMemo(() => {
+        if (!initialValues?.scheduledAt) return undefined;
+        const parsed = new Date(initialValues.scheduledAt);
+        return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+    }, [initialValues?.scheduledAt]);
+    const initialScheduleMode = !hideScheduleOption && (defaultScheduleMode || Boolean(initialScheduledDate));
+    const [content, setContent] = useState(() => initialValues?.content ?? "");
     const [scheduleDate, setScheduleDate] = useState<Date | undefined>(() =>
-        defaultScheduleMode ? new Date() : undefined,
+        initialScheduleMode ? (initialScheduledDate ?? new Date()) : undefined,
     );
-    const [scheduleTime, setScheduleTime] = useState(() => format(new Date(), "HH:mm"));
-    const [isScheduleMode, setIsScheduleMode] = useState(defaultScheduleMode);
+    const [scheduleTime, setScheduleTime] = useState(() =>
+        initialScheduledDate ? format(initialScheduledDate, "HH:mm") : format(new Date(), "HH:mm"),
+    );
+    const [isScheduleMode, setIsScheduleMode] = useState(initialScheduleMode);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const schedulePanelRef = useRef<HTMLDivElement>(null);
 
-    const [mediaUrls, setMediaUrls] = useState<string[]>([]);
-    const [mediaType, setMediaType] = useState<PostMediaType | undefined>(undefined);
+    const [mediaUrls, setMediaUrls] = useState<string[]>(() => initialValues?.mediaUrls ?? []);
+    const [mediaType, setMediaType] = useState<PostMediaType | undefined>(
+        () => initialValues?.mediaType,
+    );
     const [uploadBusy, setUploadBusy] = useState(false);
-    const [productId, setProductId] = useState<string | null>(null);
-    const [productLabel, setProductLabel] = useState<string | null>(null);
-    const [taggedUsers, setTaggedUsers] = useState<TaggedUserBrief[]>([]);
-    const [feeling, setFeeling] = useState<string | null>(null);
-    const [location, setLocation] = useState("");
+    const [productId, setProductId] = useState<string | null>(initialValues?.productId ?? null);
+    const [productLabel, setProductLabel] = useState<string | null>(
+        initialValues?.productLabel ?? null,
+    );
+    const [taggedUsers, setTaggedUsers] = useState<TaggedUserBrief[]>(
+        () => initialValues?.taggedUsers ?? [],
+    );
+    const [feeling, setFeeling] = useState<string | null>(initialValues?.feeling ?? null);
+    const [location, setLocation] = useState(initialValues?.location ?? "");
     const [toolPanel, setToolPanel] = useState<ToolPanel>("none");
 
     const FEELING_PRESETS = useMemo(() => [
@@ -268,14 +295,14 @@ export function CreatePostModal({
                     <Button variant="ghost" size="icon" onClick={onClose}>
                         <X className="h-5 w-5" />
                     </Button>
-                    <h2 className="text-lg font-semibold">{t("createPost.title")}</h2>
+                    <h2 className="text-lg font-semibold">{title ?? t("createPost.title")}</h2>
                     <Button
                         size="sm"
                         className="rounded-full px-5"
                         onClick={() => void handlePost()}
                         disabled={!canSubmit}
                     >
-                        {isScheduleMode ? t("createPost.schedule") : t("createPost.post")}
+                        {submitLabel ?? (isScheduleMode ? t("createPost.schedule") : t("createPost.post"))}
                     </Button>
                 </div>
 
@@ -579,7 +606,9 @@ export function CreatePostModal({
                         ) : null}
                     </div>
 
-                    <div className="grid gap-3 px-4 pb-2 sm:grid-cols-2">
+                    <div
+                        className={`grid gap-3 px-4 pb-2 ${hideScheduleOption ? "sm:grid-cols-1" : "sm:grid-cols-2"}`}
+                    >
                         <button
                             type="button"
                             onClick={openAiCreativeLab}
@@ -599,24 +628,26 @@ export function CreatePostModal({
                             </div>
                         </button>
 
-                        <button
-                            type="button"
-                            onClick={toggleSchedule}
-                            className={`${FEATURE_CARD_CLASS} ${isScheduleMode ? "ring-2 ring-primary/40" : ""}`}
-                        >
-                            <div className="flex items-start justify-between gap-2">
-                                <div className={FEATURE_ICON_CLASS}>
-                                    <CalendarClock className="h-5 w-5" />
+                        {!hideScheduleOption ? (
+                            <button
+                                type="button"
+                                onClick={toggleSchedule}
+                                className={`${FEATURE_CARD_CLASS} ${isScheduleMode ? "ring-2 ring-primary/40" : ""}`}
+                            >
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className={FEATURE_ICON_CLASS}>
+                                        <CalendarClock className="h-5 w-5" />
+                                    </div>
+                                    <ChevronRight className="h-5 w-5 shrink-0 text-primary opacity-70 transition-transform group-hover:translate-x-0.5" />
                                 </div>
-                                <ChevronRight className="h-5 w-5 shrink-0 text-primary opacity-70 transition-transform group-hover:translate-x-0.5" />
-                            </div>
-                            <div>
-                                <p className="font-semibold text-foreground">{t("createPost.schedulePost")}</p>
-                                <p className="mt-1 text-xs text-muted-foreground">
-                                    {t("createPost.schedulePostDesc")}
-                                </p>
-                            </div>
-                        </button>
+                                <div>
+                                    <p className="font-semibold text-foreground">{t("createPost.schedulePost")}</p>
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        {t("createPost.schedulePostDesc")}
+                                    </p>
+                                </div>
+                            </button>
+                        ) : null}
                     </div>
 
                     {isScheduleMode ? (

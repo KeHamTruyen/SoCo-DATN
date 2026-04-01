@@ -60,6 +60,22 @@ export function normalizeFeedPost(raw: Record<string, unknown> | null | undefine
                   ? String(raw.scheduledTime)
                   : undefined,
         isScheduled: raw.isScheduled as boolean | undefined,
+        scheduledStatus:
+            raw.status === "scheduled" || raw.status === "published" || raw.status === "failed"
+                ? (raw.status as FeedPost["scheduledStatus"])
+                : undefined,
+        publishedPostId:
+            raw.publishedPostId != null ? String(raw.publishedPostId) : undefined,
+        publishedAt:
+            raw.publishedAt != null
+                ? String(raw.publishedAt)
+                : raw.publishedPost &&
+                    typeof raw.publishedPost === "object" &&
+                    (raw.publishedPost as Record<string, unknown>).publishedAt != null
+                  ? String(
+                        (raw.publishedPost as Record<string, unknown>).publishedAt,
+                    )
+                  : undefined,
         location: raw.location != null ? String(raw.location) : undefined,
         feeling: raw.feeling != null ? String(raw.feeling) : undefined,
         groupId: raw.groupId != null ? String(raw.groupId) : undefined,

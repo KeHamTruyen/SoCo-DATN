@@ -20,7 +20,31 @@ class ScheduledPostController {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 20;
-      const data = await scheduledPostService.getScheduledPosts(req.user.id, { page, limit });
+      const status =
+        typeof req.query.status === 'string' && req.query.status.trim().length > 0
+          ? req.query.status.trim().toLowerCase()
+          : undefined;
+      const data = await scheduledPostService.getScheduledPosts(req.user.id, {
+        status,
+        page,
+        limit,
+      });
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/scheduled-posts/analytics
+   */
+  async getAnalytics(req, res, next) {
+    try {
+      const range =
+        typeof req.query.range === 'string' && req.query.range.trim().length > 0
+          ? req.query.range.trim().toLowerCase()
+          : '30d';
+      const data = await scheduledPostService.getScheduledPostsAnalytics(req.user.id, { range });
       res.json({ success: true, data });
     } catch (error) {
       next(error);
@@ -35,6 +59,12 @@ class ScheduledPostController {
       const post = await scheduledPostService.updateScheduledPost(req.params.id, req.user.id, req.body);
       res.json({ success: true, message: 'Scheduled post updated', data: { post } });
     } catch (error) {
+      if (
+        error.message === 'Scheduled post not found' ||
+        error.message === 'Published post not found'
+      ) {
+        return res.status(404).json({ success: false, message: error.message });
+      }
       next(error);
     }
   }
@@ -59,6 +89,12 @@ class ScheduledPostController {
       await scheduledPostService.deleteScheduledPost(req.params.id, req.user.id);
       res.json({ success: true, message: 'Scheduled post deleted' });
     } catch (error) {
+      if (
+        error.message === 'Scheduled post not found' ||
+        error.message === 'Published post not found'
+      ) {
+        return res.status(404).json({ success: false, message: error.message });
+      }
       next(error);
     }
   }

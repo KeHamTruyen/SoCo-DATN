@@ -4,6 +4,8 @@ import type {
     FeedComment,
     FeedPageResponse,
     FeedPost,
+    ScheduledAnalyticsRange,
+    ScheduledPostsAnalyticsResponse,
     ScheduledPostsResponse,
 } from "../types/feed.types";
 import { normalizeFeedPost } from "../utils/normalizeFeedPost";
@@ -48,6 +50,20 @@ interface BackendListResponse {
 interface ScheduledListEnvelope {
     posts?: Record<string, unknown>[];
     total?: number;
+    page?: number;
+    limit?: number;
+    hasMore?: boolean;
+}
+
+interface ScheduledAnalyticsEnvelope {
+    summary?: ScheduledPostsAnalyticsResponse["summary"];
+    series?: ScheduledPostsAnalyticsResponse["series"];
+    topPosts?: ScheduledPostsAnalyticsResponse["topPosts"];
+    range?: ScheduledAnalyticsRange;
+}
+
+interface ListScheduledPostsParams {
+    status?: "scheduled" | "published";
     page?: number;
     limit?: number;
 }
@@ -165,10 +181,14 @@ export const feedApi = {
         return extractPost(inner);
     },
 
-    async listScheduledPosts() {
+    async listScheduledPosts(params: ListScheduledPostsParams = {}) {
+        const search = new URLSearchParams();
+        if (params.status) search.set("status", params.status);
+        if (params.page) search.set("page", String(params.page));
+        if (params.limit) search.set("limit", String(params.limit));
         const res = await httpClient.get<
             ApiResponse<ScheduledListEnvelope> | ScheduledListEnvelope
-        >("/scheduled-posts", { requiresAuth: true });
+        >(`/scheduled-posts${search.size ? `?${search.toString()}` : ""}`, { requiresAuth: true });
         const inner = unwrap(res) as ScheduledListEnvelope | undefined;
         const posts = inner?.posts ?? [];
         const items = posts.map((row) =>
@@ -180,14 +200,56 @@ export const feedApi = {
                         : row.scheduledAt != null
                           ? String(row.scheduledAt)
                           : undefined,
-                isScheduled: true,
+                isScheduled: row.status !== "published",
                 imageUrl: (row.mediaUrls as string[] | undefined)?.[0],
             } as Record<string, unknown>),
         );
         return {
             items,
             total: inner?.total ?? items.length,
+            page: inner?.page ?? params.page ?? 1,
+            limit: inner?.limit ?? params.limit ?? items.length,
+            hasMore: inner?.hasMore ?? false,
         } satisfies ScheduledPostsResponse;
+    },
+
+    async updateScheduledPost(scheduledPostId: string, payload: CreatePostPayload) {
+        const body = {
+            ...buildCreateBody(payload),
+            ...(payload.scheduledAt
+                ? { scheduledTime: new Date(payload.scheduledAt).toISOString() }
+                : {}),
+        };
+        const res = await httpClient.put<ApiResponse<PostEnvelope> | PostEnvelope>(
+            `/scheduled-posts/${scheduledPostId}`,
+            body,
+            { requiresAuth: true },
+        );
+        const inner = unwrap(res);
+        return extractPost(inner);
+    },
+
+    async getScheduledPostsAnalytics(range: ScheduledAnalyticsRange = "30d") {
+        const res = await httpClient.get<
+            ApiResponse<ScheduledAnalyticsEnvelope> | ScheduledAnalyticsEnvelope
+        >(`/scheduled-posts/analytics?range=${range}`, {
+            requiresAuth: true,
+        });
+        const inner = unwrap(res) as ScheduledAnalyticsEnvelope | undefined;
+        return {
+            summary: inner?.summary ?? {
+                publishedCount: 0,
+                views: 0,
+                likes: 0,
+                comments: 0,
+                shares: 0,
+                engagement: 0,
+                engagementRate: 0,
+            },
+            series: inner?.series ?? [],
+            topPosts: inner?.topPosts ?? [],
+            range: inner?.range ?? range,
+        } satisfies ScheduledPostsAnalyticsResponse;
     },
 
     async deletePost(postId: string) {

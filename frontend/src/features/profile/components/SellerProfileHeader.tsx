@@ -2,20 +2,23 @@ import {
     BadgeCheck,
     Camera,
     CirclePlus,
+    Flag,
     MessageCircle,
+    MoreHorizontal,
     Pencil,
     Shield,
     Star,
     UserPlus,
     UserCheck,
 } from "lucide-react";
-import { useRef, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { Link } from "react-router-dom";
 import { Avatar } from "../../../shared/ui/atoms/avatar";
 import { Button } from "../../../shared/ui/atoms/button";
 import { cn } from "../../../shared/lib/cn";
 import type { PublicUserProfile } from "../types/profile.types";
 import { useTranslation } from "react-i18next";
+import { ReportModal } from "../../report/components/ReportModal";
 
 interface SellerProfileHeaderProps {
     profile: PublicUserProfile;
@@ -49,6 +52,9 @@ export function SellerProfileHeader({
     const displayName = profile.shopName ?? profile.fullName;
     const avatarInputRef = useRef<HTMLInputElement>(null);
     const coverInputRef = useRef<HTMLInputElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [reportOpen, setReportOpen] = useState(false);
 
     const handleAvatarInput = (e: ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0];
@@ -61,6 +67,22 @@ export function SellerProfileHeader({
         e.target.value = "";
         if (f && onCoverFile) void onCoverFile(f);
     };
+
+    useEffect(() => {
+        if (!menuOpen) return;
+        const onDoc = (e: MouseEvent) => {
+            if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
+        };
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setMenuOpen(false);
+        };
+        document.addEventListener("mousedown", onDoc);
+        document.addEventListener("keydown", onKey);
+        return () => {
+            document.removeEventListener("mousedown", onDoc);
+            document.removeEventListener("keydown", onKey);
+        };
+    }, [menuOpen]);
 
     return (
         <section
@@ -291,18 +313,56 @@ export function SellerProfileHeader({
                             </Button>
                         )}
                         {!isSelf ? (
-                            <Link
-                                to={`/messages?userId=${profile.id}`}
-                                className="flex-1 sm:flex-none"
-                            >
-                                <Button
-                                    variant="outline"
-                                    className="w-full gap-2 rounded-xl sm:w-auto"
+                            <>
+                                <Link
+                                    to={`/messages?userId=${profile.id}`}
+                                    className="flex-1 sm:flex-none"
                                 >
-                                    <MessageCircle className="h-4 w-4" />
-                                    {t("profile.message")}
-                                </Button>
-                            </Link>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full gap-2 rounded-xl sm:w-auto"
+                                    >
+                                        <MessageCircle className="h-4 w-4" />
+                                        {t("profile.message")}
+                                    </Button>
+                                </Link>
+                                <div
+                                    ref={menuRef}
+                                    className="relative flex-1 sm:flex-none"
+                                >
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="w-full rounded-xl px-3 sm:w-auto"
+                                        onClick={() =>
+                                            setMenuOpen((prev) => !prev)
+                                        }
+                                        aria-haspopup="menu"
+                                        aria-expanded={menuOpen}
+                                    >
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                    {menuOpen ? (
+                                        <div
+                                            role="menu"
+                                            className="absolute right-0 top-full z-50 mt-2 min-w-40 overflow-hidden rounded-lg border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+                                        >
+                                            <button
+                                                type="button"
+                                                role="menuitem"
+                                                onClick={() => {
+                                                    setMenuOpen(false);
+                                                    setReportOpen(true);
+                                                }}
+                                                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-neutral-800 transition-colors hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                                            >
+                                                <Flag className="h-4 w-4 shrink-0 opacity-70" />
+                                                Report user
+                                            </button>
+                                        </div>
+                                    ) : null}
+                                </div>
+                            </>
                         ) : null}
                     </div>
                 </div>
@@ -342,6 +402,13 @@ export function SellerProfileHeader({
                     </div>
                 </div>
             </div>
+            {reportOpen ? (
+                <ReportModal
+                    targetType="user"
+                    targetId={profile.id}
+                    onClose={() => setReportOpen(false)}
+                />
+            ) : null}
         </section>
     );
 }

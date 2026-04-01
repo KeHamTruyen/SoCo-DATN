@@ -51,6 +51,9 @@ export interface FeedPost {
     taggedUsers?: TaggedUserBrief[];
     scheduledAt?: string;
     isScheduled?: boolean;
+    scheduledStatus?: "scheduled" | "published" | "failed";
+    publishedPostId?: string;
+    publishedAt?: string;
     location?: string;
     feeling?: string;
     groupId?: string;
@@ -78,5 +81,50 @@ export interface FeedPageResponse {
 export interface ScheduledPostsResponse {
     items: FeedPost[];
     total: number;
+    page: number;
+    limit: number;
+    hasMore: boolean;
+}
+
+export type ScheduledAnalyticsRange = "7d" | "30d" | "90d";
+
+export interface ScheduledPostAnalyticsSummary {
+    publishedCount: number;
+    views: number;
+    likes: number;
+    comments: number;
+    shares: number;
+    engagement: number;
+    engagementRate: number;
+}
+
+export interface ScheduledPostAnalyticsPoint {
+    date: string;
+    publishedCount: number;
+    views: number;
+    engagement: number;
+}
+
+export interface ScheduledPostAnalyticsItem {
+    scheduledPostId: string;
+    publishedPostId: string;
+    content: string;
+    mediaUrls?: string[];
+    mediaType?: PostMediaType | null;
+    scheduledTime: string;
+    publishedAt: string;
+    viewsCount: number;
+    likesCount: number;
+    commentsCount: number;
+    sharesCount: number;
+    engagement: number;
+    engagementRate: number;
+}
+
+export interface ScheduledPostsAnalyticsResponse {
+    summary: ScheduledPostAnalyticsSummary;
+    series: ScheduledPostAnalyticsPoint[];
+    topPosts: ScheduledPostAnalyticsItem[];
+    range: ScheduledAnalyticsRange;
 }
 

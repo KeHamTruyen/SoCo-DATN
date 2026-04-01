@@ -10,6 +10,7 @@ import AccountSettings from "../../pages/AccountSettings";
 import Profile from "../../pages/Profile";
 import SavedItems from "../../pages/SavedItems";
 import ScheduledPosts from "../../pages/ScheduledPosts";
+import ScheduledPostsAnalytics from "../../pages/ScheduledPostsAnalytics";
 import SellerDashboard from "../../pages/SellerDashboard";
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -26,6 +27,7 @@ export function FeedRoutes() {
                 <Route path="/post/:postId" element={<PostDetail />} />
                 <Route path="/posts/:id" element={<LegacyPostDetailRedirect />} />
                 <Route path="/scheduled-posts" element={<ScheduledPosts />} />
+                <Route path="/scheduled-posts/analytics" element={<ScheduledPostsAnalytics />} />
                 <Route path="/seller/dashboard" element={<SellerDashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:id" element={<Profile />} />
