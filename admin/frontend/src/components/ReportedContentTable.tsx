@@ -28,6 +28,8 @@ type Props = {
     onDismiss: (id: string) => void;
     onDeleteContent: (r: Report) => void;
     onBlockUser: (r: Report) => void;
+    onOpenDetail: (r: Report) => void;
+    actionPendingId?: string | null;
 };
 
 export function ReportedContentTable({
@@ -35,6 +37,8 @@ export function ReportedContentTable({
     onDismiss,
     onDeleteContent,
     onBlockUser,
+    onOpenDetail,
+    actionPendingId,
 }: Props) {
     if (reports.length === 0) {
         return (
@@ -51,13 +55,13 @@ export function ReportedContentTable({
                     <thead>
                         <tr className="border-b border-border bg-muted/50">
                             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                Content Preview
+                                Reported Target
                             </th>
                             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                Type & Priority
+                                Report Details
                             </th>
                             <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                Reporter Message
+                                Reporter & Status
                             </th>
                             <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 Actions
@@ -66,88 +70,138 @@ export function ReportedContentTable({
                     </thead>
                     <tbody className="divide-y divide-border">
                         {reports.map((report) => (
+                            (() => {
+                                const actionsDisabled =
+                                    actionPendingId === report.id ||
+                                    report.status !== "pending";
+                                return (
                             <tr
                                 key={report.id}
                                 className="transition-colors hover:bg-muted/40"
                             >
                                 <td className="px-6 py-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
-                                            {report.targetImageUrl ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => onOpenDetail(report)}
+                                        className="flex w-full cursor-pointer items-start gap-3 rounded-lg text-left transition-colors hover:bg-muted/50"
+                                    >
+                                        {report.targetImageUrl ? (
+                                            <div className="size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
                                                 <img
                                                     src={report.targetImageUrl}
                                                     alt=""
                                                     className="size-full object-cover"
                                                 />
-                                            ) : null}
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-foreground">
+                                            </div>
+                                        ) : null}
+                                        <div className="min-w-0">
+                                            <p className="truncate text-sm font-semibold text-foreground">
                                                 {report.targetTitle ??
                                                     `${report.targetType} content`}
                                             </p>
-                                            <p className="text-[11px] text-muted-foreground">
-                                                ID: #{report.reportNumber}
+                                            {report.targetSubtitle ? (
+                                                <p className="mt-1 text-xs text-muted-foreground">
+                                                    {report.targetSubtitle}
+                                                </p>
+                                            ) : null}
+                                            {report.targetPreview ? (
+                                                <p className="mt-1 line-clamp-2 max-w-sm text-xs text-muted-foreground">
+                                                    {report.targetPreview}
+                                                </p>
+                                            ) : null}
+                                            <p className="mt-1 text-[11px] text-primary hover:underline">
+                                                View detail
                                             </p>
                                         </div>
-                                    </div>
+                                    </button>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <div className="space-y-1.5">
+                                    <div className="max-w-xs space-y-2">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                {report.targetType}
+                                            </span>
+                                            <span
+                                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${PRIORITY_COLOR[report.priority]}`}
+                                            >
+                                                {report.priority}
+                                            </span>
+                                        </div>
                                         <span
                                             className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${PRIORITY_COLOR[report.priority]}`}
                                         >
                                             {REASON_LABEL[String(report.reason)] ??
                                                 report.reason}
                                         </span>
-                                        <div className="flex items-center gap-1.5">
+                                        <p className="line-clamp-2 text-sm italic text-muted-foreground">
+                                            {report.description
+                                                ? `"${report.description}"`
+                                                : "No description provided"}
+                                        </p>
+                                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                             <div
                                                 className={`size-1.5 rounded-full ${PRIORITY_DOT[report.priority]}`}
                                             />
-                                            <span className="text-xs font-medium capitalize text-muted-foreground">
-                                                {report.priority} Priority
+                                            <span>
+                                                {report.targetStatus
+                                                    ? `Target ${report.targetStatus}`
+                                                    : "Target status unavailable"}
                                             </span>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    {report.description ? (
-                                        <p className="line-clamp-2 max-w-xs text-sm italic text-muted-foreground">
-                                            &ldquo;{report.description}&rdquo;
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium text-foreground">
+                                            {report.reporterName || "Unknown reporter"}
                                         </p>
-                                    ) : (
-                                        <p className="text-sm text-muted-foreground">
-                                            No description provided
+                                        <p className="text-xs text-muted-foreground">
+                                            Submitted {new Date(report.createdAt).toLocaleString()}
                                         </p>
-                                    )}
+                                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                            Report #{report.reportNumber} · {report.status}
+                                        </p>
+                                        {report.targetDeleted ? (
+                                            <p className="text-xs text-destructive">
+                                                Target unavailable
+                                            </p>
+                                        ) : null}
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex flex-wrap justify-end gap-2">
                                         <button
                                             type="button"
                                             onClick={() => onDismiss(report.id)}
-                                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted"
+                                            disabled={actionsDisabled}
+                                            className="cursor-pointer rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             Dismiss
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => onDeleteContent(report)}
-                                            className="rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10"
+                                            disabled={actionsDisabled}
+                                            className="cursor-pointer rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             Delete target
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => onBlockUser(report)}
-                                            disabled={report.targetType !== "user"}
-                                            className="rounded-lg bg-secondary px-3 py-1.5 text-xs font-semibold text-secondary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                                            disabled={
+                                                report.targetType !== "user" ||
+                                                actionsDisabled
+                                            }
+                                            className="cursor-pointer rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-semibold text-secondary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                                         >
                                             Block user
                                         </button>
                                     </div>
                                 </td>
                             </tr>
+                                );
+                            })()
                         ))}
                     </tbody>
                 </table>

@@ -11,6 +11,13 @@ interface RawReport {
     status: string;
     createdAt: string;
     reporter?: { fullName?: string | null; username?: string | null };
+    targetTitle?: string | null;
+    targetSubtitle?: string | null;
+    targetPreview?: string | null;
+    targetImageUrl?: string | null;
+    targetStatus?: string | null;
+    targetDeleted?: boolean;
+    targetDetail?: Report["targetDetail"];
 }
 
 interface ListRes {
@@ -52,6 +59,13 @@ export const reportApi = {
             status: "dismissed",
             resolution: "dismissed",
         });
+    },
+
+    async getReportById(reportId: string) {
+        const res = await http<{ success: boolean; data: RawReport }>(
+            `/reports/${reportId}`,
+        );
+        return mapApiReportToRow(res.data);
     },
 };
 

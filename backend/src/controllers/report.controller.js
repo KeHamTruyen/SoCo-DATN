@@ -10,7 +10,7 @@ class ReportController {
         return res.status(400).json({ success: false, message: error.message });
       }
       if (error.message.includes('already reported')) {
-        return res.status(429).json({ success: false, message: error.message });
+        return res.status(409).json({ success: false, message: error.message });
       }
       next(error);
     }

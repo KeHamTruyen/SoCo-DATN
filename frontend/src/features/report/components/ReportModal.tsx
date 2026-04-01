@@ -3,6 +3,7 @@ import { useState } from "react";
 import { reportApi } from "../api/reportApi";
 import type { ReportReason, ReportTargetType } from "../types/report.types";
 import { Button } from "../../../shared/ui/atoms/button";
+import { HttpError } from "../../../shared/api/httpClient";
 
 const SOCIAL_REASONS: { value: ReportReason; label: string }[] = [
     { value: "inappropriate_content", label: "Inappropriate Content" },
@@ -28,16 +29,30 @@ export function ReportModal({ targetType, targetId, onClose, onSuccess }: Report
     const [description, setDescription] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleClose = () => {
+        if (submitted) {
+            onSuccess?.();
+        }
+        onClose();
+    };
 
     const handleSubmit = async () => {
         if (!selectedReason) return;
         setIsSubmitting(true);
+        setError(null);
         try {
             await reportApi.createReport({ targetType, targetId, reason: selectedReason, description });
             setSubmitted(true);
-            onSuccess?.();
-        } catch {
-            // silently ignore
+        } catch (err) {
+            if (err instanceof HttpError && err.status === 409) {
+                setError("Bạn đã report nội dung này trong vòng 24 giờ qua.");
+            } else if (err instanceof HttpError) {
+                setError(err.message || "Không thể gửi report lúc này. Vui lòng thử lại.");
+            } else {
+                setError("Không thể gửi report lúc này. Vui lòng thử lại.");
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -53,7 +68,7 @@ export function ReportModal({ targetType, targetId, onClose, onSuccess }: Report
                     </h2>
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="text-neutral-400 transition-colors hover:text-neutral-600 dark:hover:text-neutral-200"
                     >
                         <X className="h-5 w-5" />
@@ -69,7 +84,7 @@ export function ReportModal({ targetType, targetId, onClose, onSuccess }: Report
                         <p className="text-sm text-neutral-500 dark:text-neutral-400">
                             Thank you for your report. Our team will review it within 24 hours.
                         </p>
-                        <Button onClick={onClose}>Close</Button>
+                        <Button onClick={handleClose}>Close</Button>
                     </div>
                 ) : (
                     <>
@@ -141,11 +156,16 @@ export function ReportModal({ targetType, targetId, onClose, onSuccess }: Report
                                     <Lock className="h-3 w-3" />
                                     All reports are reviewed confidentially by our admin team
                                 </div>
+                                {error ? (
+                                    <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
+                                        {error}
+                                    </p>
+                                ) : null}
                             </div>
                         </div>
 
                         <div className="flex items-center justify-end gap-3 border-t border-neutral-100 bg-neutral-50 p-6 dark:border-neutral-800 dark:bg-neutral-800/30">
-                            <Button variant="ghost" onClick={onClose}>
+                            <Button variant="ghost" onClick={handleClose}>
                                 Cancel
                             </Button>
                             <Button

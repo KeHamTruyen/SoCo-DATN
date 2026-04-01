@@ -617,6 +617,10 @@ export default function GroupDetail() {
                                                 }}
                                                 onLike={() => void handleLike(post.id)}
                                                 onComment={(content) => handleComment(post.id, content)}
+                                                onDeletePost={async (targetPostId) => {
+                                                    await feedApi.deletePost(targetPostId);
+                                                    setPosts((prev) => prev.filter((p) => p.id !== targetPostId));
+                                                }}
                                             />
                                         ))
                                     ) : (

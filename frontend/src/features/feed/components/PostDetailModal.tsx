@@ -8,9 +8,10 @@ interface PostDetailModalProps {
     onClose: () => void;
     onLike: () => void;
     onComment: (content: string) => void;
+    onDeletePost?: (postId: string) => Promise<void> | void;
 }
 
-export function PostDetailModal({ post, onClose, onLike, onComment }: PostDetailModalProps) {
+export function PostDetailModal({ post, onClose, onLike, onComment, onDeletePost }: PostDetailModalProps) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/60 p-0 backdrop-blur-sm sm:p-4 md:p-8">
             <div className="relative flex max-h-[95vh] w-full max-w-5xl flex-col overflow-hidden rounded-t-xl bg-background-light shadow-2xl dark:bg-background-dark sm:rounded-xl">
@@ -20,7 +21,12 @@ export function PostDetailModal({ post, onClose, onLike, onComment }: PostDetail
                     </button>
                 </div>
                 <div className="flex-1 overflow-auto bg-transparent">
-                    <PostDetailView post={post} onLike={onLike} onComment={onComment} />
+                    <PostDetailView
+                        post={post}
+                        onLike={onLike}
+                        onComment={onComment}
+                        onDeletePost={onDeletePost}
+                    />
                 </div>
             </div>
         </div>

@@ -1,4 +1,4 @@
-import { Bookmark, Flag, Link2, MessageSquarePlus, MoreHorizontal, Share2 } from "lucide-react";
+import { Bookmark, Flag, Link2, MessageSquarePlus, MoreHorizontal, Share2, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
@@ -16,6 +16,7 @@ interface FeedPostCardProps {
     post: FeedPost;
     onLike: () => void;
     onComment: (content: string) => Promise<void> | void;
+    onDeletePost?: (postId: string) => Promise<void> | void;
     mode?: "feed" | "detail";
 }
 
@@ -39,6 +40,7 @@ export function FeedPostCard({
     post,
     onLike,
     onComment,
+    onDeletePost,
     mode = "feed",
 }: FeedPostCardProps) {
     const { user } = useAuthSession();
@@ -52,6 +54,7 @@ export function FeedPostCard({
     const [savedId, setSavedId] = useState<string | null>(null);
     const [saveBusy, setSaveBusy] = useState(false);
     const [olderComments, setOlderComments] = useState<FeedComment[]>([]);
+    const [deletedCommentIds, setDeletedCommentIds] = useState<string[]>([]);
     const [commentsPage, setCommentsPage] = useState(1);
     const [loadingMoreComments, setLoadingMoreComments] = useState(false);
     const shareMenuRef = useRef<HTMLDivElement>(null);
@@ -115,10 +118,28 @@ export function FeedPostCard({
         void onComment(content);
     };
 
+    const handleDeletePost = () => {
+        closeMoreMenu();
+        void onDeletePost?.(post.id);
+    };
+
+    const handleDeleteComment = async (commentId: string) => {
+        try {
+            await feedApi.deleteComment(commentId);
+            setDeletedCommentIds((prev) => [...prev, commentId]);
+        } catch {
+            // Ignore deletion errors for now.
+        }
+    };
+
     const displayComments =
         mode === "detail"
-            ? [...olderComments, ...[...(post.comments ?? [])].reverse()]
-            : post.comments ?? [];
+            ? [...olderComments, ...[...(post.comments ?? [])].reverse()].filter(
+                  (comment) => !deletedCommentIds.includes(comment.id),
+              )
+            : (post.comments ?? []).filter(
+                  (comment) => !deletedCommentIds.includes(comment.id),
+              );
 
     const hasMoreComments =
         mode === "detail"
@@ -186,6 +207,7 @@ export function FeedPostCard({
     const isVideo = post.mediaType === "VIDEO";
     const authorProfileLink =
         user?.id && user.id === post.author.id ? "/profile" : `/profile/${post.author.id}`;
+    const isOwnPost = user?.id === post.author.id;
 
     return (
         <article className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
@@ -271,18 +293,30 @@ export function FeedPostCard({
                             role="menu"
                             className="absolute right-0 top-full z-50 mt-1 min-w-40 overflow-hidden rounded-lg border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
                         >
-                            <button
-                                type="button"
-                                role="menuitem"
-                                onClick={() => {
-                                    closeMoreMenu();
-                                    setReportModalOpen(true);
-                                }}
-                                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-neutral-800 transition-colors hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
-                            >
-                                <Flag className="h-4 w-4 shrink-0 opacity-70" />
-                                {t("feed.reportPost", "Report post")}
-                            </button>
+                            {isOwnPost ? (
+                                <button
+                                    type="button"
+                                    role="menuitem"
+                                    onClick={handleDeletePost}
+                                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                                >
+                                    <Trash2 className="h-4 w-4 shrink-0 opacity-70" />
+                                    Delete post
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    role="menuitem"
+                                    onClick={() => {
+                                        closeMoreMenu();
+                                        setReportModalOpen(true);
+                                    }}
+                                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-neutral-800 transition-colors hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                                >
+                                    <Flag className="h-4 w-4 shrink-0 opacity-70" />
+                                    {t("feed.reportPost", "Report post")}
+                                </button>
+                            )}
                         </div>
                     ) : null}
                 </div>
@@ -487,49 +521,20 @@ export function FeedPostCard({
                             </button>
                         ) : null}
                         {displayComments.length > 0 ? (
-                            displayComments.map((comment) => (
-                                <div key={comment.id} className="flex gap-2">
-                                    <Avatar
-                                        src={comment.user?.avatarUrl}
-                                        alt={
-                                            comment.user?.fullName ??
-                                            comment.user?.username ??
-                                            "User"
-                                        }
-                                        wrapperClassName="h-8 w-8 shrink-0"
-                                    />
-                                    <div className="rounded-2xl bg-neutral-100 px-3 py-2 text-sm dark:bg-neutral-800">
-                                        <div className="flex items-center gap-2">
-                                            <Link
-                                                to={
-                                                    user?.id &&
-                                                    user.id === comment.user?.id
-                                                        ? "/profile"
-                                                        : `/profile/${comment.user?.id}`
-                                                }
-                                                className="font-semibold text-neutral-900 transition-colors hover:text-primary dark:text-neutral-100"
-                                            >
-                                                {comment.user?.fullName ??
-                                                    comment.user?.username ??
-                                                    "User"}
-                                            </Link>
-                                            <span className="shrink-0 text-xs text-neutral-500">
-                                                {formatTimeAgo(comment.createdAt)}
-                                            </span>
-                                        </div>
-                                        <p className="mt-0.5 text-neutral-800 dark:text-neutral-200">
-                                            {comment.content}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))
+                            <CommentList
+                                comments={displayComments}
+                                totalCount={displayComments.length}
+                                reverseOrder={false}
+                                onDeleteComment={handleDeleteComment}
+                            />
                         ) : null}
                     </div>
                 ) : (
                     <CommentList
-                        comments={post.comments ?? []}
-                        totalCount={post.commentsCount}
+                        comments={displayComments}
+                        totalCount={Math.max(0, post.commentsCount - deletedCommentIds.length)}
                         onViewMore={() => setShowPostModal(true)}
+                        onDeleteComment={handleDeleteComment}
                     />
                 )}
                 <div className="mt-3 flex items-center gap-2">
@@ -563,6 +568,7 @@ export function FeedPostCard({
                     onClose={() => setShowPostModal(false)}
                     onLike={onLike}
                     onComment={handleCommentFromModal}
+                    onDeletePost={onDeletePost}
                 />
             )}
             {reportModalOpen ? (

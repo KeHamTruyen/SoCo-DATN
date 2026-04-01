@@ -1,13 +1,15 @@
 import {
     Bookmark,
+    Flag,
     Heart,
     MessageCircle,
     MoreHorizontal,
     Send,
     ShoppingCart,
+    Trash2,
     Tag,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { savedItemsApi } from "../../saved-items/api/savedItemsApi";
 import { Avatar } from "../../../shared/ui/atoms/avatar";
@@ -15,7 +17,10 @@ import { Button } from "../../../shared/ui/atoms/button";
 import { cn } from "../../../shared/lib/cn";
 import { formatTimeAgo } from "../../../shared/lib/formatTimeAgo";
 import { feedApi } from "../api/feedApi";
-import type { FeedComment, FeedPost, ShoppableProduct } from "../types/feed.types";
+import type { FeedPost, ShoppableProduct } from "../types/feed.types";
+import { useAuthSession } from "../../../shared/auth/useAuthSession";
+import { CommentList } from "./CommentList";
+import { ReportModal } from "../../report/components/ReportModal";
 
 interface ShoppableHotspotProps {
     product: ShoppableProduct;
@@ -68,12 +73,18 @@ interface PostDetailViewProps {
     post: FeedPost;
     onLike: () => void;
     onComment: (content: string) => void;
+    onDeletePost?: (postId: string) => Promise<void> | void;
 }
 
-export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps) {
+export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDetailViewProps) {
+    const { user } = useAuthSession();
     const [commentInput, setCommentInput] = useState("");
     const [savedId, setSavedId] = useState<string | null>(null);
     const [saveBusy, setSaveBusy] = useState(false);
+    const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+    const [reportModalOpen, setReportModalOpen] = useState(false);
+    const [deletedCommentIds, setDeletedCommentIds] = useState<string[]>([]);
+    const moreMenuRef = useRef<HTMLDivElement>(null);
 
     const [olderComments, setOlderComments] = useState<FeedComment[]>([]);
     const [page, setPage] = useState(1);
@@ -102,7 +113,9 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
         }
     };
 
-    const displayComments = [...olderComments, ...[...(post.comments || [])].reverse()];
+    const displayComments = [...olderComments, ...[...(post.comments || [])].reverse()].filter(
+        (comment) => !deletedCommentIds.includes(comment.id),
+    );
 
     useEffect(() => {
         let cancelled = false;
@@ -144,6 +157,33 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
         if (!trimmed) return;
         onComment(trimmed);
         setCommentInput("");
+    };
+
+    const isOwnPost = user?.id === post.author.id;
+
+    useEffect(() => {
+        if (!moreMenuOpen) return;
+        const onDoc = (e: MouseEvent) => {
+            if (!moreMenuRef.current?.contains(e.target as Node)) setMoreMenuOpen(false);
+        };
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setMoreMenuOpen(false);
+        };
+        document.addEventListener("mousedown", onDoc);
+        document.addEventListener("keydown", onKey);
+        return () => {
+            document.removeEventListener("mousedown", onDoc);
+            document.removeEventListener("keydown", onKey);
+        };
+    }, [moreMenuOpen]);
+
+    const handleDeleteComment = async (commentId: string) => {
+        try {
+            await feedApi.deleteComment(commentId);
+            setDeletedCommentIds((prev) => [...prev, commentId]);
+        } catch {
+            // Ignore deletion errors for now.
+        }
     };
 
     const primaryMedia = post.imageUrl;
@@ -299,9 +339,49 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                                 </>
                             )}
                         </div>
-                        <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-5 w-5" />
-                        </Button>
+                        <div ref={moreMenuRef} className="relative">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setMoreMenuOpen((v) => !v)}
+                            >
+                                <MoreHorizontal className="h-5 w-5" />
+                            </Button>
+                            {moreMenuOpen ? (
+                                <div
+                                    role="menu"
+                                    className="absolute right-0 top-full z-50 mt-1 min-w-40 overflow-hidden rounded-lg border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+                                >
+                                    {isOwnPost ? (
+                                        <button
+                                            type="button"
+                                            role="menuitem"
+                                            onClick={() => {
+                                                setMoreMenuOpen(false);
+                                                void onDeletePost?.(post.id);
+                                            }}
+                                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                                        >
+                                            <Trash2 className="h-4 w-4 shrink-0 opacity-70" />
+                                            Delete post
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            role="menuitem"
+                                            onClick={() => {
+                                                setMoreMenuOpen(false);
+                                                setReportModalOpen(true);
+                                            }}
+                                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-neutral-800 transition-colors hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                                        >
+                                            <Flag className="h-4 w-4 shrink-0 opacity-70" />
+                                            Report post
+                                        </button>
+                                    )}
+                                </div>
+                            ) : null}
+                        </div>
                     </div>
 
                     <div className="p-4">
@@ -416,28 +496,12 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                             </div>
                         )}
                         {displayComments.length > 0 ? (
-                            displayComments.map((comment: FeedComment) => (
-                                <div key={comment.id} className="flex gap-3">
-                                    <Avatar
-                                        src={comment.user?.avatarUrl}
-                                        alt={comment.user?.fullName}
-                                        wrapperClassName="h-8 w-8 shrink-0"
-                                    />
-                                    <div className="rounded-2xl bg-neutral-100 px-3 py-2 text-sm dark:bg-neutral-800">
-                                        <div className="flex items-center gap-2">
-                                            <p className="font-semibold text-neutral-900 dark:text-neutral-100">
-                                                {comment.user?.fullName ?? comment.user?.username ?? "User"}
-                                            </p>
-                                            <span className="text-xs text-neutral-500 shrink-0">
-                                                {comment.createdAt ? formatTimeAgo(comment.createdAt) : ""}
-                                            </span>
-                                        </div>
-                                        <p className="mt-0.5 text-neutral-800 dark:text-neutral-200">
-                                            {comment.content}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))
+                            <CommentList
+                                comments={displayComments}
+                                totalCount={Math.max(0, post.commentsCount - deletedCommentIds.length)}
+                                reverseOrder={false}
+                                onDeleteComment={handleDeleteComment}
+                            />
                         ) : (
                             <p className="text-center text-sm text-neutral-400">
                                 No comments yet. Be the first!
@@ -461,6 +525,13 @@ export function PostDetailView({ post, onLike, onComment }: PostDetailViewProps)
                     </div>
                 </div>
             </div>
+            {reportModalOpen ? (
+                <ReportModal
+                    targetType="post"
+                    targetId={post.id}
+                    onClose={() => setReportModalOpen(false)}
+                />
+            ) : null}
         </div>
     );
 }

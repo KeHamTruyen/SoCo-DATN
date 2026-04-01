@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { feedApi } from "../features/feed/api/feedApi";
 import { FeedPostCard } from "../features/feed/components/FeedPostCard";
 import type { FeedPost } from "../features/feed/types/feed.types";
@@ -7,6 +7,7 @@ import { UnifiedHeader } from "../shared/ui";
 
 export default function PostDetail() {
     const { id, postId } = useParams<{ id?: string; postId?: string }>();
+    const navigate = useNavigate();
     const resolvedPostId = postId ?? id;
     const [post, setPost] = useState<FeedPost | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -116,6 +117,10 @@ export default function PostDetail() {
                         post={post}
                         onLike={() => void handleLike()}
                         onComment={(c) => void handleComment(c)}
+                        onDeletePost={async (targetPostId) => {
+                            await feedApi.deletePost(targetPostId);
+                            navigate("/feed");
+                        }}
                         mode="detail"
                     />
                 )}

@@ -194,6 +194,12 @@ export const feedApi = {
         return httpClient.delete(`/posts/${postId}`, { requiresAuth: true });
     },
 
+    async deleteComment(commentId: string) {
+        return httpClient.delete(`/posts/comments/${commentId}`, {
+            requiresAuth: true,
+        });
+    },
+
     async deleteScheduledPost(scheduledPostId: string) {
         return httpClient.delete(`/scheduled-posts/${scheduledPostId}`, {
             requiresAuth: true,

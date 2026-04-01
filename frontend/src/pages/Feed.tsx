@@ -24,6 +24,7 @@ export default function Feed() {
         createPost,
         toggleLike,
         addComment,
+        loadInitial,
     } = useFeed();
 
     const { user } = useAuthSession();
@@ -78,6 +79,10 @@ export default function Feed() {
                                 onComment={(content) =>
                                     addComment(post.id, content)
                                 }
+                                onDeletePost={async (postId) => {
+                                    await feedApi.deletePost(postId);
+                                    await loadInitial();
+                                }}
                             />
                         ))
                     )}

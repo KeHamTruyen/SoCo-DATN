@@ -39,6 +39,13 @@ export function mapApiReportToRow(r: {
     status: string;
     createdAt: string;
     reporter?: { fullName?: string | null; username?: string | null };
+    targetTitle?: string | null;
+    targetSubtitle?: string | null;
+    targetPreview?: string | null;
+    targetImageUrl?: string | null;
+    targetStatus?: string | null;
+    targetDeleted?: boolean;
+    targetDetail?: Report["targetDetail"];
 }): Report {
     const nr = normalizeReason(r.reason);
     return {
@@ -46,12 +53,18 @@ export function mapApiReportToRow(r: {
         reportNumber: r.id.slice(0, 8).toUpperCase(),
         targetType: r.targetType as Report["targetType"],
         targetId: r.targetId,
-        targetTitle: `${r.targetType} · ${r.targetId.slice(0, 8)}…`,
+        targetTitle: r.targetTitle || `${r.targetType} · ${r.targetId.slice(0, 8)}…`,
+        targetSubtitle: r.targetSubtitle || undefined,
+        targetPreview: r.targetPreview || undefined,
         reason: nr,
         description: r.description ?? undefined,
         status: r.status,
         priority: reasonToPriority(r.reason),
         createdAt: r.createdAt,
+        targetImageUrl: r.targetImageUrl || undefined,
+        targetStatus: r.targetStatus || undefined,
+        targetDeleted: Boolean(r.targetDeleted),
+        targetDetail: r.targetDetail ?? null,
         reporterName:
             r.reporter?.fullName || r.reporter?.username || undefined,
     };
