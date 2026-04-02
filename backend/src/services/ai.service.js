@@ -8,14 +8,26 @@ class AIService {
     /**
      * UC5.1 – Generate text content from description/idea/image
      */
-    async generateText({ userId, description, tone, imageBase64 }) {
+    async generateText({
+        userId,
+        description,
+        tone,
+        imageBase64,
+        withHashtags = true,
+        withCta = true,
+        length = "Medium",
+    }) {
         const model = getGeminiModel();
         const analysis = await this._analyzeInput(model, {
             description,
             tone,
             imageBase64,
         });
-        let prompt = this._buildTextPrompt(analysis, description, tone);
+        let prompt = this._buildTextPrompt(analysis, description, tone, {
+            withHashtags,
+            withCta,
+            length,
+        });
 
         let bestResult = null;
         let bestScore = 0;
@@ -36,6 +48,7 @@ class AIService {
                 model,
                 description,
                 parsed,
+                { length },
             );
 
             if (evaluation.weightedScore > bestScore) {
@@ -45,7 +58,11 @@ class AIService {
 
             if (evaluation.weightedScore >= QUALITY_THRESHOLD) break;
             if (attempt < MAX_RETRIES - 1) {
-                prompt = this._refineTextPrompt(prompt, evaluation);
+                prompt = this._refineTextPrompt(prompt, evaluation, {
+                    withHashtags,
+                    withCta,
+                    length,
+                });
             }
         }
 
@@ -67,12 +84,23 @@ class AIService {
     /**
      * UC5.2 – Generate image + text
      */
-    async generateImageText({ userId, description, tone, imageBase64 }) {
+    async generateImageText({
+        userId,
+        description,
+        tone,
+        imageBase64,
+        withHashtags = true,
+        withCta = true,
+        length = "Medium",
+    }) {
         const textResult = await this.generateText({
             userId,
             description,
             tone,
             imageBase64,
+            withHashtags,
+            withCta,
+            length,
         });
         const model = getGeminiModel();
 
@@ -122,12 +150,23 @@ class AIService {
     /**
      * UC5.3 – Generate video + images + text (delegates to Veo 2 for video)
      */
-    async generateVideoImagesText({ userId, description, tone, imageBase64 }) {
+    async generateVideoImagesText({
+        userId,
+        description,
+        tone,
+        imageBase64,
+        withHashtags = true,
+        withCta = true,
+        length = "Medium",
+    }) {
         const imageTextResult = await this.generateImageText({
             userId,
             description,
             tone,
             imageBase64,
+            withHashtags,
+            withCta,
+            length,
         });
 
         // Video generation placeholder — Google Veo 2 API access is limited.
@@ -171,7 +210,21 @@ Desired tone: "${tone || "auto-detect"}"`;
         return this._parseJsonOutput(result.response.text());
     }
 
-    _buildTextPrompt(analysis, description, tone) {
+    _buildTextPrompt(
+        analysis,
+        description,
+        tone,
+        { withHashtags = true, withCta = true, length = "Medium" } = {},
+    ) {
+        const lengthRanges = {
+            Short: { min: 100, max: 140 },
+            Medium: { min: 140, max: 220 },
+            Long: { min: 220, max: 300 },
+        };
+        const selectedLength =
+            lengthRanges[length] != null ? length : "Medium";
+        const { min, max } = lengthRanges[selectedLength];
+
         return `You are an expert content creator for a Social Commerce platform.
 
 CONTEXT:
@@ -184,9 +237,15 @@ USER INPUT:
 ${description}
 
 CONSTRAINTS:
-- Length: 100-300 words
-- Hashtags: 5-10 relevant hashtags
-- Must include a Call-to-Action
+- Length: ${min}-${max} words
+- Hashtags: ${
+            withHashtags ? "5-10 relevant hashtags" : "[] (empty array)"
+        }
+- ${
+            withCta
+                ? "Must include a Call-to-Action"
+                : 'No Call-to-Action: set callToAction to "" and do not include CTA text in body'
+        }
 - Language: Vietnamese
 - Tone: ${tone || analysis.tone || "friendly"}
 - No sensitive content
@@ -195,8 +254,10 @@ OUTPUT FORMAT (strict JSON only, no markdown):
 {
   "title": "catchy title",
   "body": "main content",
-  "hashtags": ["#tag1", "#tag2"],
-  "callToAction": "CTA text",
+  "hashtags": ${
+            withHashtags ? '["#tag1", "#tag2"]' : "[]"
+        },
+  "callToAction": ${withCta ? '"CTA text"' : '""'},
   "tone": "detected/applied tone"
 }`;
     }
@@ -222,7 +283,12 @@ CONSTRAINTS:
 - Engaging and eye-catching for social media feeds`;
     }
 
-    async _evaluateText(model, originalInput, generatedContent) {
+    async _evaluateText(
+        model,
+        originalInput,
+        generatedContent,
+        { length = "Medium" } = {},
+    ) {
         const text =
             typeof generatedContent === "string"
                 ? generatedContent
@@ -233,9 +299,18 @@ CONSTRAINTS:
         const hasCTA = !!generatedContent?.callToAction;
         const hasTitle = !!generatedContent?.title;
 
+        const lengthRanges = {
+            Short: { min: 100, max: 140 },
+            Medium: { min: 140, max: 220 },
+            Long: { min: 220, max: 300 },
+        };
+        const selectedLength =
+            lengthRanges[length] != null ? length : "Medium";
+        const { min, max } = lengthRanges[selectedLength];
+
         const structureScore = (hasTitle ? 5 : 1) + (hasCTA ? 5 : 1);
         const lengthScore =
-            wordCount >= 100 && wordCount <= 300
+            wordCount >= min && wordCount <= max
                 ? 9
                 : wordCount >= 50 && wordCount <= 400
                   ? 6
@@ -319,15 +394,29 @@ GENERATED POST: ${text}`;
         };
     }
 
-    _refineTextPrompt(currentPrompt, evaluation) {
+    _refineTextPrompt(
+        currentPrompt,
+        evaluation,
+        { withHashtags = true, withCta = true, length = "Medium" } = {},
+    ) {
+        const lengthRanges = {
+            Short: { min: 100, max: 140 },
+            Medium: { min: 140, max: 220 },
+            Long: { min: 220, max: 300 },
+        };
+        const selectedLength =
+            lengthRanges[length] != null ? length : "Medium";
+        const { min, max } = lengthRanges[selectedLength];
+
         const refinements = {
             relevance:
                 "The post MUST directly mention the main product/subject. Be more specific.",
-            engagement:
-                "Start with a compelling question or statistic. Add 2+ emojis. End with a strong CTA.",
+            engagement: withCta
+                ? "Start with a compelling question or statistic. Add 2+ emojis. End with a strong CTA."
+                : "Start with a compelling question or statistic. Add 2+ emojis. End with a strong benefit statement (no CTA).",
             structure:
                 "Output MUST strictly follow the JSON schema. Every field is REQUIRED.",
-            length: "Content body MUST be between 100-300 words.",
+            length: `Content body MUST be between ${min}-${max} words.`,
             language:
                 "Write in natural Vietnamese. Tone should be friendly, avoid machine-translated language.",
             commercialValue:

@@ -6,8 +6,18 @@ class AIController {
      */
     async generateText(req, res, next) {
         try {
-            const { description, tone } = req.body;
+            const {
+                description,
+                tone,
+                withHashtags = true,
+                withCta = true,
+                length,
+            } = req.body;
             const imageBase64 = req.body.imageBase64 || null;
+            const normalizedLength =
+                length === "Short" || length === "Medium" || length === "Long"
+                    ? length
+                    : "Medium";
 
             if (!description) {
                 return res
@@ -23,6 +33,9 @@ class AIController {
                 description,
                 tone,
                 imageBase64,
+                withHashtags: Boolean(withHashtags),
+                withCta: Boolean(withCta),
+                length: normalizedLength,
             });
 
             res.json({ success: true, data: result });
@@ -36,8 +49,18 @@ class AIController {
      */
     async generateImageText(req, res, next) {
         try {
-            const { description, tone } = req.body;
+            const {
+                description,
+                tone,
+                withHashtags = true,
+                withCta = true,
+                length,
+            } = req.body;
             const imageBase64 = req.body.imageBase64 || null;
+            const normalizedLength =
+                length === "Short" || length === "Medium" || length === "Long"
+                    ? length
+                    : "Medium";
 
             if (!description) {
                 return res
@@ -53,6 +76,9 @@ class AIController {
                 description,
                 tone,
                 imageBase64,
+                withHashtags: Boolean(withHashtags),
+                withCta: Boolean(withCta),
+                length: normalizedLength,
             });
 
             res.json({ success: true, data: result });
@@ -66,8 +92,18 @@ class AIController {
      */
     async generateVideoImagesText(req, res, next) {
         try {
-            const { description, tone } = req.body;
+            const {
+                description,
+                tone,
+                withHashtags = true,
+                withCta = true,
+                length,
+            } = req.body;
             const imageBase64 = req.body.imageBase64 || null;
+            const normalizedLength =
+                length === "Short" || length === "Medium" || length === "Long"
+                    ? length
+                    : "Medium";
 
             if (!description) {
                 return res
@@ -83,6 +119,9 @@ class AIController {
                 description,
                 tone,
                 imageBase64,
+                withHashtags: Boolean(withHashtags),
+                withCta: Boolean(withCta),
+                length: normalizedLength,
             });
 
             res.json({ success: true, data: result });
