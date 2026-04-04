@@ -11,9 +11,9 @@
 ### ⏳ Đang làm / tinh chỉnh
 
 - Reviews: form + list trên **ProductDetail**, seller reply (BE có; FE chưa đủ)
-- Scheduled posts: nút **Edit** trên list chưa nối; timezone/preview nâng cao
-- Realtime: Chat vẫn chủ yếu REST (chưa subscribe Socket cho message stream); notifications đã hoàn thiện realtime FE
-- AI: `AiCreativeLab` vẫn mock — nối `/api/ai/*`
+- Scheduled posts: timezone/preview nâng cao (UX)
+- Realtime chat: Tinh chỉnh cơ chế presence/typing (Socket BE/FE đã có payload tin nhắn)
+- AI: `AiCreativeLab` UI và API wiring đã nối `/api/ai/*` qua `aiApi`
 - Production: **`express-rate-limit` có trong dependencies nhưng chưa gắn `app.js`**; **Helmet chưa thêm dependency**; Winston chưa dùng trong code; test; **seed** chỉ admin (`database/prisma/seed.js`)
 
 ---
@@ -192,7 +192,7 @@
 
 - [x] Lên lịch từ Feed/CreatePostModal qua `feedApi.createScheduledPost`
 - [x] Trang **`/scheduled-posts`** — `feedApi.listScheduledPosts`, xóa (`deletePost`), tạo mới qua modal
-- [ ] **TODO: Sửa lịch (nút Edit trong `ScheduledPostsList` chưa nối)**
+- [x] **Sửa lịch (nút Edit trong `ScheduledPostsPage` đã nối `handleUpdate`)**
 - [ ] **TODO: Timezone selector & preview nâng cao**
 
 ---
@@ -215,8 +215,8 @@
 ### Frontend
 
 - [x] MessagesPage — `messagingApi` (list hội thoại, tin nhắn, gửi)
-- [ ] **TODO: Widget chat nổi (floating) nếu cần, đồng bộ Socket**
-- [ ] **TODO: Real-time subscribe Socket.IO trên UI (hiện có thể chỉ REST)**
+- [x] **Widget chat nổi (floating/dock) đồng bộ qua `MessagingContext`**
+- [x] **Real-time subscribe Socket.IO trên UI (qua `useMessageSocket`)**
 - [ ] **TODO: Emoji picker, đính kèm file/image, typing indicator**
 
 ---
@@ -373,7 +373,7 @@
 
 ### Frontend
 
-- [x] AiCreativeLab (UI; generate hiện mock timeout)
+- [x] AiCreativeLab (UI và API wiring — nối `/api/ai/*` qua `aiApi`)
 - [ ] **TODO: Nối nút AI trong CreatePostModal / Add product với `/api/ai/*`**
 - [ ] **TODO: Loading states, error handling, suggestions UI**
 
@@ -515,11 +515,10 @@
 
 ### 🟡 MEDIUM PRIORITY
 
-4. **AI frontend** → `/api/ai/*` (`AiCreativeLab`)
-5. **Realtime chat** — Socket.IO trên FE cho message stream
-6. **Admin** — polish moderation sản phẩm, analytics charts
-7. **Scheduled posts** — nối nút Edit
-8. **Profile/settings polish** — route theo username, settings nâng cao
+4. **Nối nút AI** trong CreatePostModal / Add product với `/api/ai/*`
+5. **Admin** — polish moderation sản phẩm, analytics charts
+6. **Scheduled posts** — timezone/preview nâng cao
+7. **Profile/settings polish** — route theo username, settings nâng cao
 
 ### 🟢 LOW PRIORITY
 
@@ -531,28 +530,28 @@
 
 ## 📊 Tổng quan tiến độ
 
-| Module             | Backend  | Frontend | Status                   |
-| ------------------ | -------- | -------- | ------------------------ |
-| Auth               | ✅ 100%  | ✅ 100%  | ✅ Done                  |
-| Products/Upload    | ✅ ~95%  | ✅ ~90%  | ⏳ Polish / reviews      |
-| Categories         | ✅ 100%  | ✅ ~100% | ✅ Done                  |
-| Cart               | ✅ 100%  | ✅ 100%  | ✅ Done                  |
-| Orders             | ✅ 100%  | ✅ ~92%  | ⏳ Seller chi tiết       |
-| Posts/Feed         | ✅ 100%  | ✅ 100%  | ✅ Done                  |
-| Scheduled posts    | ✅ ~95%  | 🟡 ~75%  | ⏳ Edit + TZ UX          |
-| Messages           | ✅ ~90%  | 🟡 ~60%  | ⏳ Socket FE             |
-| Notifications      | ✅ 100%  | ✅ 100%  | ✅ Done                  |
-| Groups             | ✅ ~95%  | ✅ ~92%  | ✅ Feature-complete v1   |
-| Reviews            | ✅ ~90%  | 🟡 ~25%  | ⏳ Form + list           |
-| Search/Marketplace | 🟡 ~70%  | ✅ ~80%  | ⏳ Unified search        |
-| Seller             | ✅ ~90%  | ✅ ~80%  | ⏳ Store public          |
-| Profile/Social     | ✅ ~95%  | ✅ ~90%  | ✅ Settings cơ bản       |
-| Admin              | 🟡 ~55%  | 🟡 ~60%  | ⏳ Charts, mod           |
-| AI                 | ✅ ~80%  | 🟡 ~25%  | ⏳ Wire FE               |
-| Saved items        | ✅ ~100% | ✅ ~90%  | ✅ Done                  |
-| Reports            | ✅ ~90%  | 🟡 ~55%  | ⏳ Admin flow            |
+| Module             | Backend  | Frontend | Status                 |
+| ------------------ | -------- | -------- | ---------------------- |
+| Auth               | ✅ 100%  | ✅ 100%  | ✅ Done                |
+| Products/Upload    | ✅ ~95%  | ✅ ~90%  | ⏳ Polish / reviews    |
+| Categories         | ✅ 100%  | ✅ ~100% | ✅ Done                |
+| Cart               | ✅ 100%  | ✅ 100%  | ✅ Done                |
+| Orders             | ✅ 100%  | ✅ ~92%  | ⏳ Seller chi tiết     |
+| Posts/Feed         | ✅ 100%  | ✅ 100%  | ✅ Done                |
+| Scheduled posts    | ✅ ~95%  | 🟡 ~90%  | ⏳ TZ UX               |
+| Messages           | ✅ ~90%  | ✅ ~90%  | ✅ Socket FE done      |
+| Notifications      | ✅ 100%  | ✅ 100%  | ✅ Done                |
+| Groups             | ✅ ~95%  | ✅ ~92%  | ✅ Feature-complete v1 |
+| Reviews            | ✅ ~90%  | 🟡 ~25%  | ⏳ Form + list         |
+| Search/Marketplace | 🟡 ~70%  | ✅ ~80%  | ⏳ Unified search      |
+| Seller             | ✅ ~90%  | ✅ ~80%  | ⏳ Store public        |
+| Profile/Social     | ✅ ~95%  | ✅ ~90%  | ✅ Settings cơ bản     |
+| Admin              | 🟡 ~55%  | 🟡 ~60%  | ⏳ Charts, mod         |
+| AI                 | ✅ ~80%  | 🟡 ~75%  | ⏳ Link to composer    |
+| Saved items        | ✅ ~100% | ✅ ~90%  | ✅ Done                |
+| Reports            | ✅ ~90%  | 🟡 ~55%  | ⏳ Admin flow          |
 
-**Tổng tiến độ ước tính: ~87%**
+**Tổng tiến độ ước tính: ~91%**
 
 ---
 
