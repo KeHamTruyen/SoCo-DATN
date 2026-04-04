@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { MessageDock } from "../../features/messaging/components/MessageDock";
 import { AuthRoutes } from "./auth.routes";
 import { CommerceRoutes } from "./commerce.routes";
 import { FeedRoutes } from "./feed.routes";
@@ -17,6 +18,7 @@ export default function AppRouter() {
                 {CommerceRoutes()}
                 {SocialRoutes()}
             </Routes>
+            <MessageDock />
         </BrowserRouter>
     );
 }

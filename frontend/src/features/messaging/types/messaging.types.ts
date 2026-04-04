@@ -5,6 +5,8 @@ export interface Conversation {
     participantAvatarUrl?: string;
     isOnline: boolean;
     lastMessage?: string;
+    /** True if the latest message in the thread was sent by the current user */
+    lastMessageIsOwn?: boolean;
     lastMessageAt?: string;
     unreadCount: number;
 }
@@ -15,7 +17,9 @@ export interface Message {
     senderId: string;
     content: string;
     createdAt: string;
-    type: "text" | "product";
+    type: "text" | "product" | "image";
+    /** Set when type is "image" (messageType IMAGE + mediaUrl from API) */
+    mediaUrl?: string;
     product?: {
         id: string;
         name: string;
@@ -25,11 +29,19 @@ export interface Message {
     };
 }
 
+export interface PaginationMeta {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+}
+
 export interface ConversationsListResponse {
     items: Conversation[];
+    pagination?: PaginationMeta;
 }
 
 export interface MessagesListResponse {
     items: Message[];
-    nextCursor: string | null;
+    pagination?: PaginationMeta;
 }

@@ -70,28 +70,6 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     const data = await parseJsonSafe(response);
 
     if (!response.ok) {
-        // #region agent log
-        if (path.startsWith("/seller")) {
-            fetch("http://127.0.0.1:7303/ingest/6c92d646-cd5e-404a-952f-872ed8b81520", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ba053a" },
-                body: JSON.stringify({
-                    sessionId: "ba053a",
-                    runId: "pre-fix",
-                    hypothesisId: "H1_H4",
-                    location: "httpClient.ts:request:error",
-                    message: "seller-related request failed",
-                    data: {
-                        method,
-                        path,
-                        status: response.status,
-                        hasAuthHeader: Boolean(composedHeaders.Authorization),
-                    },
-                    timestamp: Date.now(),
-                }),
-            }).catch(() => {});
-        }
-        // #endregion
         const message =
             (data as { message?: string } | null)?.message ??
             `Request failed with status ${response.status}`;

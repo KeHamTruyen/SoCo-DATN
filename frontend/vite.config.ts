@@ -14,6 +14,8 @@ export default defineConfig(({ mode }) => {
             alias: {
                 "@": path.resolve(__dirname, "."),
             },
+            /** Avoid duplicate React instances (breaks Context across boundaries). */
+            dedupe: ["react", "react-dom"],
         },
         server: {
             // HMR is disabled in AI Studio via DISABLE_HMR env var.

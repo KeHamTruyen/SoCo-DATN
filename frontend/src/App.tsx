@@ -4,7 +4,12 @@
  */
 
 import AppRouter from "./app/router";
+import { MessagingProvider } from "./features/messaging/context/MessagingContext";
 
 export default function App() {
-    return <AppRouter />;
+    return (
+        <MessagingProvider>
+            <AppRouter />
+        </MessagingProvider>
+    );
 }

@@ -3,11 +3,9 @@ import {
     useContext,
     useEffect,
     useMemo,
-    useRef,
     useState,
     type ReactNode,
 } from "react";
-import { io, type Socket } from "socket.io-client";
 import { notificationApi } from "../api/notificationApi";
 import type {
     Notification,
@@ -15,6 +13,7 @@ import type {
     NotificationType,
 } from "../types/notification.types";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
+import { useSocket } from "../../../shared/realtime/SocketContext";
 
 interface NotificationContextValue {
     notifications: Notification[];
@@ -37,12 +36,6 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
     system: true,
 };
 
-function getSocketBaseUrl() {
-    const rawApiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
-    if (!rawApiBase) return "http://localhost:5000";
-    return rawApiBase.replace(/\/api\/?$/, "");
-}
-
 function upsertNotification(list: Notification[], incoming: Notification) {
     const index = list.findIndex((item) => item.id === incoming.id);
     if (index === -1) return [incoming, ...list];
@@ -53,12 +46,12 @@ function upsertNotification(list: Notification[], incoming: Notification) {
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
     const { user } = useAuthSession();
+    const socket = useSocket();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [preferences, setPreferences] = useState<NotificationPreferences>(DEFAULT_PREFERENCES);
     const [isLoading, setIsLoading] = useState(false);
     const [liveToasts, setLiveToasts] = useState<Notification[]>([]);
-    const socketRef = useRef<Socket | null>(null);
 
     const refresh = async (type: "all" | NotificationType = "all") => {
         setIsLoading(true);
@@ -90,26 +83,17 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                 .then(setPreferences)
                 .catch(() => setPreferences(DEFAULT_PREFERENCES)),
         ]);
+    }, [user?.id]);
 
-        const socket = io(getSocketBaseUrl(), {
-            transports: ["websocket"],
-            withCredentials: true,
-            reconnection: true,
-        });
-        socketRef.current = socket;
+    useEffect(() => {
+        if (!user?.id || !socket) return;
 
-        const joinUserRoom = () => {
-            socket.emit("user:online", user.id);
+        const onConnect = () => {
+            void refresh("all");
         };
 
-        socket.on("connect", () => {
-            joinUserRoom();
-            void refresh("all");
-        });
-        socket.on("reconnect", () => {
-            joinUserRoom();
-            void refresh("all");
-        });
+        socket.on("connect", onConnect);
+        socket.on("reconnect", onConnect);
         socket.on("notification:new", (rawNotification: unknown) => {
             try {
                 const incoming = notificationApi.mapRealtimeNotification(rawNotification);
@@ -138,15 +122,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         });
 
         return () => {
-            socket.off("connect");
-            socket.off("reconnect");
+            socket.off("connect", onConnect);
+            socket.off("reconnect", onConnect);
             socket.off("notification:new");
             socket.off("notification:read");
             socket.off("notification:read-all");
-            socket.disconnect();
-            socketRef.current = null;
         };
-    }, [user?.id]);
+    }, [user?.id, socket]);
 
     useEffect(() => {
         if (liveToasts.length === 0) return;

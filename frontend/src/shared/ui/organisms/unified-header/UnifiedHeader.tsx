@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { MessageDropdown } from "../../../../features/messaging/components/MessageDropdown";
+import { useMessagingOptional } from "../../../../features/messaging/context/MessagingContext";
 import { NotificationDropdown } from "../../../../features/notification/components/NotificationDropdown";
 import { NotificationToastStack } from "../../../../features/notification/components/NotificationToastStack";
 import { useNotificationCenter } from "../../../../features/notification/context/NotificationContext";
@@ -39,6 +41,20 @@ const defaultNavItems: HeaderNavItem[] = [
     { label: "Marketplace", to: "/marketplace" },
 ];
 
+/** Numeric badge on header icons (caps display at 99+). */
+function HeaderCountBadge({ count }: { count: number }) {
+    if (count < 1) return null;
+    const label = count > 99 ? "99+" : String(count);
+    return (
+        <span
+            className="pointer-events-none absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-primary-foreground"
+            aria-hidden
+        >
+            {label}
+        </span>
+    );
+}
+
 export function UnifiedHeader({
     navItems = defaultNavItems,
     activePath,
@@ -50,7 +66,9 @@ export function UnifiedHeader({
     const [profileOpen, setProfileOpen] = useState(false);
     const [themeModalOpen, setThemeModalOpen] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
+    const [messagesOpen, setMessagesOpen] = useState(false);
     const notifRef = useRef<HTMLDivElement>(null);
+    const messageRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
     const { user, logout } = useAuthSession();
@@ -63,6 +81,8 @@ export function UnifiedHeader({
         markRead,
         markAllRead,
     } = useNotificationCenter();
+    const messaging = useMessagingOptional();
+    const unreadChatsCount = messaging?.unreadChatsCount ?? 0;
 
     const toggleLanguage = () => {
         const newLang = i18n.language === "vi" ? "en" : "vi";
@@ -77,6 +97,9 @@ export function UnifiedHeader({
             }
             if (profileRef.current && !profileRef.current.contains(t)) {
                 setProfileOpen(false);
+            }
+            if (messageRef.current && !messageRef.current.contains(t)) {
+                setMessagesOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -154,12 +177,18 @@ export function UnifiedHeader({
                             variant="ghost"
                             size="icon"
                             className="relative text-neutral-600 dark:text-neutral-300"
-                            onClick={() => setNotifOpen((v) => !v)}
+                            onClick={() => {
+                                setNotifOpen((v) => !v);
+                                setMessagesOpen(false);
+                            }}
+                            aria-label={
+                                unreadCount > 0
+                                    ? t("header.notificationsBadgeAria", { count: unreadCount })
+                                    : t("header.notifications")
+                            }
                         >
                             <Bell className="h-5 w-5" />
-                            {unreadCount > 0 && (
-                                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
-                            )}
+                            <HeaderCountBadge count={unreadCount} />
                         </Button>
                         {notifOpen && (
                             <NotificationDropdown
@@ -170,15 +199,30 @@ export function UnifiedHeader({
                             />
                         )}
                     </div>
-                    <Link to="/messages">
+                    <div ref={messageRef} className="relative">
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="text-neutral-600 dark:text-neutral-300"
+                            className="relative text-neutral-600 dark:text-neutral-300"
+                            onClick={() => {
+                                setMessagesOpen((v) => !v);
+                                setNotifOpen(false);
+                            }}
+                            aria-expanded={messagesOpen}
+                            aria-haspopup="dialog"
+                            aria-label={
+                                unreadChatsCount > 0
+                                    ? t("header.messagesBadgeAria", { count: unreadChatsCount })
+                                    : t("header.messages")
+                            }
                         >
                             <MessageCircle className="h-5 w-5" />
+                            <HeaderCountBadge count={unreadChatsCount} />
                         </Button>
-                    </Link>
+                        {messagesOpen && messaging ? (
+                            <MessageDropdown onClose={() => setMessagesOpen(false)} />
+                        ) : null}
+                    </div>
                     <Link to="/cart">
                         <Button
                             variant="ghost"
