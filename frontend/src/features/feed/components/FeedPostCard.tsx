@@ -2,17 +2,17 @@ import { Bookmark, Flag, Link2, MessageSquarePlus, MoreHorizontal, Share2, Trash
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
-import { Avatar, Button } from "../../../shared/ui";
+import { Button } from "../../../shared/ui";
 import { ReportModal } from "../../report/components/ReportModal";
-import { savedItemsApi } from "../../saved-items/api/savedItemsApi";
 import { CommentList } from "./CommentList";
 import { PostDetailModal } from "./PostDetailModal";
-import { formatTimeAgo } from "../../../shared/lib/formatTimeAgo";
 import { useTranslation } from "react-i18next";
 import { feedApi } from "../api/feedApi";
-import type { FeedComment, FeedPost } from "../types/feed.types";
+import type { FeedPost } from "../types/feed.types";
 import { PostBodyHtml } from "./PostBodyHtml";
-import { PostVisibilityInline } from "./PostVisibilityInline";
+import { PostAuthorMetaHeader } from "./PostAuthorMetaHeader";
+import { useSavedPostItem } from "../hooks/useSavedPostItem";
+import { usePostCommentsPagination } from "../hooks/usePostCommentsPagination";
 
 interface FeedPostCardProps {
     post: FeedPost;
@@ -53,12 +53,14 @@ export function FeedPostCard({
     const [moreMenuOpen, setMoreMenuOpen] = useState(false);
     const [reportModalOpen, setReportModalOpen] = useState(false);
     const [linkJustCopied, setLinkJustCopied] = useState(false);
-    const [savedId, setSavedId] = useState<string | null>(null);
-    const [saveBusy, setSaveBusy] = useState(false);
-    const [olderComments, setOlderComments] = useState<FeedComment[]>([]);
     const [deletedCommentIds, setDeletedCommentIds] = useState<string[]>([]);
-    const [commentsPage, setCommentsPage] = useState(1);
-    const [loadingMoreComments, setLoadingMoreComments] = useState(false);
+    const { savedId, saveBusy, toggleSave } = useSavedPostItem(post.id);
+    const { olderComments, loadingMore, hasMore, loadMoreComments } = usePostCommentsPagination({
+        postId: post.id,
+        embeddedCommentCount: post.comments?.length ?? 0,
+        commentsCount: post.commentsCount,
+        enabled: mode === "detail",
+    });
     const shareMenuRef = useRef<HTMLDivElement>(null);
     const moreMenuRef = useRef<HTMLDivElement>(null);
     const { t } = useTranslation();
@@ -90,21 +92,6 @@ export function FeedPostCard({
             document.removeEventListener("keydown", onKey);
         };
     }, [shareMenuOpen, moreMenuOpen, closeShareMenu, closeMoreMenu]);
-
-    useEffect(() => {
-        let cancelled = false;
-        void (async () => {
-            try {
-                const id = await savedItemsApi.lookup("POST", post.id);
-                if (!cancelled) setSavedId(id);
-            } catch {
-                if (!cancelled) setSavedId(null);
-            }
-        })();
-        return () => {
-            cancelled = true;
-        };
-    }, [post.id]);
 
     const handleComment = () => {
         if (!newComment.trim()) return;
@@ -143,28 +130,6 @@ export function FeedPostCard({
                   (comment) => !deletedCommentIds.includes(comment.id),
               );
 
-    const hasMoreComments =
-        mode === "detail"
-            ? post.commentsCount > ((post.comments?.length || 0) + olderComments.length)
-            : post.commentsCount > (post.comments?.length || 0);
-
-    const loadMoreComments = async () => {
-        if (mode !== "detail" || loadingMoreComments || !hasMoreComments) return;
-        setLoadingMoreComments(true);
-        try {
-            const nextPage = commentsPage + 1;
-            const currentOffset = (post.comments?.length || 0) + olderComments.length;
-            const res = await feedApi.getComments(post.id, nextPage, 5, currentOffset);
-            const newOlder = [...res.items].reverse();
-            setOlderComments((prev) => [...newOlder, ...prev]);
-            setCommentsPage(nextPage);
-        } catch {
-            // Ignore transient pagination errors in detail mode.
-        } finally {
-            setLoadingMoreComments(false);
-        }
-    };
-
     const postPermalink = `${window.location.origin}/post/${post.id}`;
 
     const handleCopyPostLink = () => {
@@ -182,26 +147,6 @@ export function FeedPostCard({
         })();
     };
 
-    const toggleSave = () => {
-        if (saveBusy) return;
-        setSaveBusy(true);
-        void (async () => {
-            try {
-                if (savedId) {
-                    await savedItemsApi.remove(savedId);
-                    setSavedId(null);
-                } else {
-                    const row = await savedItemsApi.save("POST", post.id);
-                    setSavedId(row.id);
-                }
-            } catch {
-                /* ignore */
-            } finally {
-                setSaveBusy(false);
-            }
-        })();
-    };
-
     const hasProducts = (post.taggedProducts?.length ?? 0) > 0;
     const primaryMedia = post.imageUrl;
     const extraMedia =
@@ -215,95 +160,11 @@ export function FeedPostCard({
         <article className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             {/* Author header — with optional group badge */}
             <div className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                    {post.group ? (
-                        /* ─ Group post: stacked avatar + group name above author ─ */
-                        <>
-                            <div className="relative h-10 w-10 shrink-0">
-                                {/* Group avatar (background) */}
-                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-xs font-bold text-white">
-                                    {post.group.avatarUrl ? (
-                                        <img src={post.group.avatarUrl} alt="" className="h-full w-full rounded-lg object-cover" />
-                                    ) : (
-                                        post.group.name.slice(0, 2).toUpperCase()
-                                    )}
-                                </div>
-                                {/* User avatar (overlapping bottom-right) */}
-                                <Avatar
-                                    src={post.author.avatarUrl}
-                                    alt={post.author.fullName ?? post.author.email}
-                                    wrapperClassName="absolute -bottom-1 -right-1 h-6 w-6 border-2 border-white dark:border-neutral-900"
-                                />
-                            </div>
-                            <div className="min-w-0">
-                                <Link to={`/groups/${post.group.id}`} className="block truncate text-sm font-bold text-neutral-900 hover:text-primary hover:underline dark:text-neutral-100">
-                                    {post.group.name}
-                                </Link>
-                                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                                    <Link
-                                        to={authorProfileLink}
-                                        className="font-medium text-neutral-700 hover:text-primary hover:underline dark:text-neutral-300"
-                                    >
-                                        {post.author.fullName ?? post.author.username ?? "User"}
-                                    </Link>
-                                </p>
-                                <p className="mt-0.5 flex flex-wrap items-center gap-x-1 text-[11px] text-neutral-500 dark:text-neutral-400">
-                                    <PostVisibilityInline visibility={post.visibility} />
-                                    <span className="text-neutral-400 dark:text-neutral-500" aria-hidden>
-                                        ·
-                                    </span>
-                                    <span>{formatTimeAgo(post.createdAt)}</span>
-                                    {post.location ? (
-                                        <>
-                                            <span className="text-neutral-400 dark:text-neutral-500" aria-hidden>
-                                                ·
-                                            </span>
-                                            <span>{post.location}</span>
-                                        </>
-                                    ) : null}
-                                </p>
-                                {post.feeling ? (
-                                    <p className="text-[11px] font-medium text-primary">{post.feeling}</p>
-                                ) : null}
-                            </div>
-                        </>
-                    ) : (
-                        /* ─ Normal post: regular author header ─ */
-                        <>
-                            <Avatar
-                                src={post.author.avatarUrl}
-                                alt={post.author.fullName ?? post.author.email}
-                                wrapperClassName="h-10 w-10 shrink-0 border-2 border-primary"
-                            />
-                            <div className="min-w-0">
-                                <Link
-                                    to={authorProfileLink}
-                                    className="block truncate text-sm font-bold text-neutral-900 hover:text-primary hover:underline dark:text-neutral-100"
-                                >
-                                    {post.author.fullName ?? post.author.username ?? "User"}
-                                </Link>
-                                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 flex flex-wrap items-center gap-x-1">
-                                    <PostVisibilityInline visibility={post.visibility} />
-                                    <span className="text-neutral-400 dark:text-neutral-500" aria-hidden>
-                                        ·
-                                    </span>
-                                    <span>{formatTimeAgo(post.createdAt)}</span>
-                                    {post.location ? (
-                                        <>
-                                            <span className="text-neutral-400 dark:text-neutral-500" aria-hidden>
-                                                ·
-                                            </span>
-                                            <span>{post.location}</span>
-                                        </>
-                                    ) : null}
-                                </p>
-                                {post.feeling ? (
-                                    <p className="text-[11px] font-medium text-primary">{post.feeling}</p>
-                                ) : null}
-                            </div>
-                        </>
-                    )}
-                </div>
+                <PostAuthorMetaHeader
+                    post={post}
+                    variant="compact"
+                    authorProfilePath={authorProfileLink}
+                />
                 <div ref={moreMenuRef} className="relative">
                     <button
                         type="button"
@@ -536,14 +397,14 @@ export function FeedPostCard({
             <div className="border-t border-neutral-100 px-4 pb-4 pt-2 dark:border-neutral-800">
                 {mode === "detail" ? (
                     <div className="space-y-3">
-                        {hasMoreComments ? (
+                        {hasMore ? (
                             <button
                                 type="button"
                                 onClick={() => void loadMoreComments()}
-                                disabled={loadingMoreComments}
+                                disabled={loadingMore}
                                 className="text-sm font-semibold text-neutral-500 transition-colors hover:text-neutral-700 disabled:opacity-60 dark:hover:text-neutral-300"
                             >
-                                {loadingMoreComments
+                                {loadingMore
                                     ? "Loading..."
                                     : t("feed.viewMoreComments")}
                             </button>
