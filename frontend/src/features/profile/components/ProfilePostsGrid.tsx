@@ -1,6 +1,7 @@
 import { Heart, MessageCircle, Tag } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { FeedPost } from "../../feed/types/feed.types";
+import { stripHtmlToPlain } from "../../../shared/tiptap/postHtmlUtils";
 
 interface ProfilePostsGridProps {
     posts: FeedPost[];
@@ -53,7 +54,7 @@ export function ProfilePostsGrid({
                             />
                         ) : (
                             <div className="flex aspect-square items-center justify-center p-4 text-sm text-neutral-400">
-                                <p className="line-clamp-4 text-center">{post.content}</p>
+                                <p className="line-clamp-4 text-center">{stripHtmlToPlain(post.content)}</p>
                             </div>
                         )}
                         <div className="absolute inset-0 flex items-center justify-center gap-4 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">

@@ -1,6 +1,8 @@
 import { Heart, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PostVisibilityInline } from "../../feed/components/PostVisibilityInline";
 import type { FeedPost } from "../../feed/types/feed.types";
+import { stripHtmlToPlain } from "../../../shared/tiptap/postHtmlUtils";
 import { useTranslation } from "react-i18next";
 
 function formatPostAge(iso: string, t: (k: string, o?: Record<string, unknown>) => string): string {
@@ -77,13 +79,13 @@ export function BuyerProfilePostGrid({
                                     />
                                 ) : (
                                     <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">
-                                        {post.content}
+                                        {stripHtmlToPlain(post.content)}
                                     </div>
                                 )}
                             </div>
                             <div className="p-4">
                                 <p className="mb-3 line-clamp-2 text-sm text-foreground/90">
-                                    {post.content}
+                                    {stripHtmlToPlain(post.content)}
                                 </p>
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <div className="flex gap-3">
@@ -96,7 +98,13 @@ export function BuyerProfilePostGrid({
                                             {post.commentsCount}
                                         </span>
                                     </div>
-                                    <span>{formatPostAge(post.createdAt, t)}</span>
+                                    <span className="inline-flex flex-wrap items-center gap-x-1 gap-y-0.5">
+                                        <PostVisibilityInline visibility={post.visibility} />
+                                        <span className="text-muted-foreground/80" aria-hidden>
+                                            ·
+                                        </span>
+                                        <span>{formatPostAge(post.createdAt, t)}</span>
+                                    </span>
                                 </div>
                             </div>
                         </>

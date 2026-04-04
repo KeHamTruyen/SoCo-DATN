@@ -1,5 +1,13 @@
-import type { FeedPost, PostMediaType } from "../types/feed.types";
+import type { FeedPost, PostMediaType, PostVisibility } from "../types/feed.types";
 import type { UserProfile } from "../../auth/types/auth.types";
+
+/** API / DB cũ có thể thiếu visibility — coi như công khai. */
+function coerceVisibility(raw: unknown): PostVisibility {
+    if (raw === "PUBLIC" || raw === "FOLLOWERS" || raw === "FOLLOWING" || raw === "PRIVATE") {
+        return raw;
+    }
+    return "PUBLIC";
+}
 
 function coerceAuthor(raw: unknown): UserProfile {
     if (!raw || typeof raw !== "object") {
@@ -80,5 +88,6 @@ export function normalizeFeedPost(raw: Record<string, unknown> | null | undefine
         feeling: raw.feeling != null ? String(raw.feeling) : undefined,
         groupId: raw.groupId != null ? String(raw.groupId) : undefined,
         group: raw.group as FeedPost["group"],
+        visibility: coerceVisibility(raw.visibility),
     };
 }

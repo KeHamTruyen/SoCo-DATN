@@ -3,6 +3,7 @@ import {
     Flag,
     Heart,
     MessageCircle,
+    MessageSquarePlus,
     MoreHorizontal,
     Send,
     ShoppingCart,
@@ -11,15 +12,18 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { savedItemsApi } from "../../saved-items/api/savedItemsApi";
 import { Avatar } from "../../../shared/ui/atoms/avatar";
 import { Button } from "../../../shared/ui/atoms/button";
 import { cn } from "../../../shared/lib/cn";
 import { formatTimeAgo } from "../../../shared/lib/formatTimeAgo";
 import { feedApi } from "../api/feedApi";
-import type { FeedPost, ShoppableProduct } from "../types/feed.types";
+import type { FeedComment, FeedPost, ShoppableProduct } from "../types/feed.types";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { CommentList } from "./CommentList";
+import { PostBodyHtml } from "./PostBodyHtml";
+import { PostVisibilityInline } from "./PostVisibilityInline";
 import { ReportModal } from "../../report/components/ReportModal";
 
 interface ShoppableHotspotProps {
@@ -77,6 +81,7 @@ interface PostDetailViewProps {
 }
 
 export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDetailViewProps) {
+    const { t } = useTranslation();
     const { user } = useAuthSession();
     const [commentInput, setCommentInput] = useState("");
     const [savedId, setSavedId] = useState<string | null>(null);
@@ -254,9 +259,9 @@ export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDe
                 )}
             </div> : null}
 
-            <div className={cn("flex flex-col gap-4", hasPrimaryMedia ? "lg:col-span-5" : "lg:col-span-12")}>
+            <div className={cn(hasPrimaryMedia ? "lg:col-span-5" : "lg:col-span-12")}>
                 <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                    <div className="flex items-center justify-between border-b border-neutral-100 p-4 dark:border-neutral-800">
+                    <div className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-3">
                             {post.group ? (
                                 <>
@@ -300,9 +305,20 @@ export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDe
                                                 ? ` · @${post.author.username}`
                                                 : ""}
                                         </p>
-                                        <p className="text-xs text-neutral-500">
-                                            {formatTimeAgo(post.createdAt)}
-                                            {post.location ? ` · ${post.location}` : ""}
+                                        <p className="text-xs text-neutral-500 flex flex-wrap items-center gap-x-1">
+                                            <PostVisibilityInline visibility={post.visibility} />
+                                            <span className="text-neutral-400 dark:text-neutral-500" aria-hidden>
+                                                ·
+                                            </span>
+                                            <span>{formatTimeAgo(post.createdAt)}</span>
+                                            {post.location ? (
+                                                <>
+                                                    <span className="text-neutral-400 dark:text-neutral-500" aria-hidden>
+                                                        ·
+                                                    </span>
+                                                    <span>{post.location}</span>
+                                                </>
+                                            ) : null}
                                         </p>
                                         {post.feeling ? (
                                             <p className="mt-0.5 text-xs font-medium text-primary">
@@ -326,9 +342,20 @@ export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDe
                                                 post.author.username ??
                                                 "User"}
                                         </Link>
-                                        <p className="text-xs text-neutral-500">
-                                            {formatTimeAgo(post.createdAt)}
-                                            {post.location ? ` · ${post.location}` : ""}
+                                        <p className="text-xs text-neutral-500 flex flex-wrap items-center gap-x-1">
+                                            <PostVisibilityInline visibility={post.visibility} />
+                                            <span className="text-neutral-400 dark:text-neutral-500" aria-hidden>
+                                                ·
+                                            </span>
+                                            <span>{formatTimeAgo(post.createdAt)}</span>
+                                            {post.location ? (
+                                                <>
+                                                    <span className="text-neutral-400 dark:text-neutral-500" aria-hidden>
+                                                        ·
+                                                    </span>
+                                                    <span>{post.location}</span>
+                                                </>
+                                            ) : null}
                                         </p>
                                         {post.feeling ? (
                                             <p className="mt-0.5 text-xs font-medium text-primary">
@@ -384,13 +411,15 @@ export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDe
                         </div>
                     </div>
 
-                    <div className="p-4">
-                        <p className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
-                            {post.content}
-                        </p>
+                    <div className="px-4 pb-3">
+                        <PostBodyHtml
+                            content={post.content}
+                            className="text-neutral-700 dark:text-neutral-300"
+                            plainClassName="text-neutral-700 dark:text-neutral-300"
+                        />
                         {post.taggedUsers && post.taggedUsers.length > 0 ? (
-                            <p className="mt-3 text-xs text-neutral-600 dark:text-neutral-400">
-                                <span className="font-semibold">With </span>
+                            <p className="mt-2 text-xs text-neutral-600 dark:text-neutral-400">
+                                <span className="font-semibold text-neutral-500">{t("feed.with")}</span>
                                 {post.taggedUsers.map((u, i) => (
                                     <span key={u.id}>
                                         {i > 0 ? ", " : ""}
@@ -470,58 +499,54 @@ export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDe
                             ) : null}
                         </div>
                     </div>
-                </div>
-                <div className="flex min-h-96 flex-1 flex-col overflow-y-auto rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                    <div className="border-b border-neutral-100 p-4 shrink-0 dark:border-neutral-800">
-                        <h3 className="font-bold">Comments ({post.commentsCount})</h3>
-                    </div>
-                    <div
-                        className={cn(
-                            "min-h-64 flex-1 overflow-y-auto p-4",
-                            displayComments.length > 0 || hasMore
-                                ? "space-y-4"
-                                : "flex items-center justify-center",
-                        )}
-                    >
-                        {hasMore && (
-                            <div className="flex justify-center pb-2">
-                                <button
-                                    type="button"
-                                    onClick={loadMoreComments}
-                                    disabled={loadingMore}
-                                    className="text-sm font-semibold text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
-                                >
-                                    {loadingMore ? "Loading..." : "View more comments"}
-                                </button>
-                            </div>
-                        )}
-                        {displayComments.length > 0 ? (
-                            <CommentList
-                                comments={displayComments}
-                                totalCount={Math.max(0, post.commentsCount - deletedCommentIds.length)}
-                                reverseOrder={false}
-                                onDeleteComment={handleDeleteComment}
+
+                    <div className="border-t border-neutral-100 px-4 pb-4 pt-2 dark:border-neutral-800">
+                        <div className="space-y-3">
+                            {hasMore ? (
+                                <div className="flex justify-center pb-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => void loadMoreComments()}
+                                        disabled={loadingMore}
+                                        className="text-sm font-semibold text-neutral-500 transition-colors hover:text-neutral-700 disabled:opacity-60 dark:hover:text-neutral-300"
+                                    >
+                                        {loadingMore ? "Loading..." : t("feed.viewMoreComments")}
+                                    </button>
+                                </div>
+                            ) : null}
+                            {displayComments.length > 0 ? (
+                                <CommentList
+                                    comments={displayComments}
+                                    totalCount={Math.max(0, post.commentsCount - deletedCommentIds.length)}
+                                    reverseOrder={false}
+                                    onDeleteComment={handleDeleteComment}
+                                />
+                            ) : null}
+                        </div>
+                        <div className="mt-3 flex items-center gap-2">
+                            <input
+                                type="text"
+                                value={commentInput}
+                                onChange={(e) => setCommentInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSendComment();
+                                    }
+                                }}
+                                placeholder={t("feed.writeComment")}
+                                className="h-9 w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-neutral-700 dark:bg-neutral-800"
                             />
-                        ) : (
-                            <p className="text-center text-sm text-neutral-400">
-                                No comments yet. Be the first!
-                            </p>
-                        )}
-                    </div>
-                    <div className="flex items-center gap-3 border-t border-neutral-100 p-4 shrink-0 dark:border-neutral-800">
-                        <input
-                            type="text"
-                            value={commentInput}
-                            onChange={(e) => setCommentInput(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") handleSendComment();
-                            }}
-                            placeholder="Add a comment..."
-                            className="flex-1 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-neutral-700 dark:bg-neutral-800"
-                        />
-                        <Button size="icon" onClick={handleSendComment} disabled={!commentInput.trim()}>
-                            <Send className="h-4 w-4" />
-                        </Button>
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                disabled={!commentInput.trim()}
+                                onClick={handleSendComment}
+                            >
+                                <MessageSquarePlus className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>

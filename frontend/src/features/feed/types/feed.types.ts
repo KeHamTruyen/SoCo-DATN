@@ -19,6 +19,9 @@ export interface ShoppableProduct {
 
 export type PostMediaType = "IMAGE" | "VIDEO" | "NONE";
 
+/** Ai được xem bài (khớp backend PostVisibility). */
+export type PostVisibility = "PUBLIC" | "FOLLOWERS" | "FOLLOWING" | "PRIVATE";
+
 export interface TaggedUserBrief {
     id: string;
     username?: string;
@@ -58,6 +61,7 @@ export interface FeedPost {
     feeling?: string;
     groupId?: string;
     group?: FeedPostGroup;
+    visibility?: PostVisibility;
 }
 
 /** Payload for creating or scheduling a post from the composer modal. */
@@ -71,6 +75,7 @@ export interface CreatePostPayload {
     taggedUserIds?: string[];
     scheduledAt?: string;
     groupId?: string;
+    visibility?: PostVisibility;
 }
 
 export interface FeedPageResponse {

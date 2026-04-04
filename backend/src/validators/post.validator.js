@@ -73,8 +73,8 @@ export const createPostValidation = [
 
     body("visibility")
         .optional()
-        .isIn(["PUBLIC", "FOLLOWERS", "PRIVATE"])
-        .withMessage("Visibility must be PUBLIC, FOLLOWERS, or PRIVATE"),
+        .isIn(["PUBLIC", "FOLLOWERS", "FOLLOWING", "PRIVATE"])
+        .withMessage("Visibility must be PUBLIC, FOLLOWERS, FOLLOWING, or PRIVATE"),
 
     body("location")
         .optional({ nullable: true })
@@ -152,8 +152,8 @@ export const updatePostValidation = [
 
     body("visibility")
         .optional()
-        .isIn(["PUBLIC", "FOLLOWERS", "PRIVATE"])
-        .withMessage("Visibility must be PUBLIC, FOLLOWERS, or PRIVATE"),
+        .isIn(["PUBLIC", "FOLLOWERS", "FOLLOWING", "PRIVATE"])
+        .withMessage("Visibility must be PUBLIC, FOLLOWERS, FOLLOWING, or PRIVATE"),
 
     body("location")
         .optional({ nullable: true })
@@ -267,8 +267,8 @@ export const getPostsValidation = [
 
     query("visibility")
         .optional()
-        .isIn(["PUBLIC", "FOLLOWERS", "PRIVATE"])
-        .withMessage("Visibility must be PUBLIC, FOLLOWERS, or PRIVATE"),
+        .isIn(["PUBLIC", "FOLLOWERS", "FOLLOWING", "PRIVATE"])
+        .withMessage("Visibility must be PUBLIC, FOLLOWERS, FOLLOWING, or PRIVATE"),
 
     query("status")
         .optional()

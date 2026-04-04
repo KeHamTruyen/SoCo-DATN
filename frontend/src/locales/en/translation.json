@@ -27,7 +27,13 @@
         "noComments": "No comments yet. Be the first!",
         "copyPostLink": "Copy link",
         "linkCopied": "Copied!",
-        "reportPost": "Report post"
+        "reportPost": "Report post",
+        "visibility": {
+            "PUBLIC": "Public",
+            "FOLLOWERS": "Followers",
+            "FOLLOWING": "Following",
+            "PRIVATE": "Only me"
+        }
     },
     "createPost": {
         "title": "Create Post",
@@ -54,6 +60,14 @@
         "scheduleDateTime": "Schedule date & time",
         "time": "Time",
         "postNowInstead": "Post now instead",
+        "visibility": {
+            "label": "Audience",
+            "group": "Visible to group members",
+            "public": "Public",
+            "followers": "Followers",
+            "following": "Following",
+            "private": "Only me"
+        },
         "feelings": {
             "happy": "Happy",
             "happyVal": "😊 Happy",

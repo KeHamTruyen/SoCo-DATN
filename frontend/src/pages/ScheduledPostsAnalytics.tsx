@@ -18,6 +18,7 @@ import type {
     ScheduledPostsAnalyticsResponse,
 } from "../features/feed/types/feed.types";
 import { Button, UnifiedHeader } from "../shared/ui";
+import { stripHtmlToPlain } from "../shared/tiptap/postHtmlUtils";
 
 const RANGE_OPTIONS: Array<{ value: ScheduledAnalyticsRange; label: string }> = [
     { value: "7d", label: "7 days" },
@@ -278,7 +279,7 @@ export default function ScheduledPostsAnalytics() {
                                     )}
                                     <div className="min-w-0 flex-1">
                                         <p className="line-clamp-2 text-sm font-medium text-neutral-800 dark:text-neutral-100">
-                                            {post.content || "Untitled post"}
+                                            {stripHtmlToPlain(post.content) || "Untitled post"}
                                         </p>
                                         <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                                             Scheduled {formatDate(post.scheduledTime)} • Published{" "}

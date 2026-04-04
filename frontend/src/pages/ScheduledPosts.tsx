@@ -6,6 +6,7 @@ import { CreatePostModal } from "../features/feed/components/CreatePostModal";
 import { ScheduledPostsList } from "../features/feed/components/ScheduledPostsList";
 import type { CreatePostPayload, FeedPost } from "../features/feed/types/feed.types";
 import { Button, UnifiedHeader } from "../shared/ui";
+import { stripHtmlToPlain } from "../shared/tiptap/postHtmlUtils";
 
 type ScheduledBucket = "scheduled" | "published";
 
@@ -286,6 +287,7 @@ export default function ScheduledPosts() {
 
             {editingPost ? (
                 <CreatePostModal
+                    key={editingPost.id}
                     onClose={() => setEditingPost(null)}
                     onCreate={(payload) => void handleUpdate(payload)}
                     defaultScheduleMode={editingPost.scheduledStatus !== "published"}
@@ -294,6 +296,7 @@ export default function ScheduledPosts() {
                     submitLabel="Save Changes"
                     initialValues={{
                         content: editingPost.content,
+                        visibility: editingPost.visibility,
                         mediaUrls: editingPost.mediaUrls,
                         mediaType: editingPost.mediaType ?? undefined,
                         productId: editingPost.taggedProducts?.[0]?.productId ?? null,
@@ -321,7 +324,8 @@ export default function ScheduledPosts() {
                         </div>
                         <div className="p-6">
                             <p className="line-clamp-3 rounded-lg bg-neutral-50 p-3 text-sm text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
-                                {deleteConfirmation.post.content || "This post has no caption."}
+                                {stripHtmlToPlain(deleteConfirmation.post.content) ||
+                                    "This post has no caption."}
                             </p>
                         </div>
                         <div className="flex items-center justify-end gap-3 border-t border-neutral-100 bg-neutral-50 p-6 dark:border-neutral-800 dark:bg-neutral-800/30">

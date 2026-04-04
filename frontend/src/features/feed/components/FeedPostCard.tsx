@@ -11,6 +11,8 @@ import { formatTimeAgo } from "../../../shared/lib/formatTimeAgo";
 import { useTranslation } from "react-i18next";
 import { feedApi } from "../api/feedApi";
 import type { FeedComment, FeedPost } from "../types/feed.types";
+import { PostBodyHtml } from "./PostBodyHtml";
+import { PostVisibilityInline } from "./PostVisibilityInline";
 
 interface FeedPostCardProps {
     post: FeedPost;
@@ -243,9 +245,22 @@ export function FeedPostCard({
                                         className="font-medium text-neutral-700 hover:text-primary hover:underline dark:text-neutral-300"
                                     >
                                         {post.author.fullName ?? post.author.username ?? "User"}
-                                    </Link>{" "}
-                                    • {formatTimeAgo(post.createdAt)}
-                                    {post.location ? ` • ${post.location}` : ""}
+                                    </Link>
+                                </p>
+                                <p className="mt-0.5 flex flex-wrap items-center gap-x-1 text-[11px] text-neutral-500 dark:text-neutral-400">
+                                    <PostVisibilityInline visibility={post.visibility} />
+                                    <span className="text-neutral-400 dark:text-neutral-500" aria-hidden>
+                                        ·
+                                    </span>
+                                    <span>{formatTimeAgo(post.createdAt)}</span>
+                                    {post.location ? (
+                                        <>
+                                            <span className="text-neutral-400 dark:text-neutral-500" aria-hidden>
+                                                ·
+                                            </span>
+                                            <span>{post.location}</span>
+                                        </>
+                                    ) : null}
                                 </p>
                                 {post.feeling ? (
                                     <p className="text-[11px] font-medium text-primary">{post.feeling}</p>
@@ -267,9 +282,20 @@ export function FeedPostCard({
                                 >
                                     {post.author.fullName ?? post.author.username ?? "User"}
                                 </Link>
-                                <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                                    {formatTimeAgo(post.createdAt)}
-                                    {post.location ? ` • ${post.location}` : ""}
+                                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 flex flex-wrap items-center gap-x-1">
+                                    <PostVisibilityInline visibility={post.visibility} />
+                                    <span className="text-neutral-400 dark:text-neutral-500" aria-hidden>
+                                        ·
+                                    </span>
+                                    <span>{formatTimeAgo(post.createdAt)}</span>
+                                    {post.location ? (
+                                        <>
+                                            <span className="text-neutral-400 dark:text-neutral-500" aria-hidden>
+                                                ·
+                                            </span>
+                                            <span>{post.location}</span>
+                                        </>
+                                    ) : null}
                                 </p>
                                 {post.feeling ? (
                                     <p className="text-[11px] font-medium text-primary">{post.feeling}</p>
@@ -324,9 +350,11 @@ export function FeedPostCard({
 
             {/* Content */}
             <div className="px-4 pb-3">
-                <p className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
-                    {post.content}
-                </p>
+                <PostBodyHtml
+                    content={post.content}
+                    className="text-neutral-700 dark:text-neutral-300"
+                    plainClassName="text-neutral-700 dark:text-neutral-300"
+                />
                 {post.taggedUsers && post.taggedUsers.length > 0 ? (
                     <p className="mt-2 text-xs text-neutral-600 dark:text-neutral-400">
                         <span className="font-semibold text-neutral-500">{t("feed.with")}</span>

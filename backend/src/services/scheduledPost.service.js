@@ -35,6 +35,7 @@ function buildScheduledPostUpdateData(data, { allowScheduleTime = true } = {}) {
         }
         updateData.scheduledTime = scheduled;
     }
+    if (data.visibility !== undefined) updateData.visibility = data.visibility;
     return updateData;
 }
 
@@ -111,6 +112,7 @@ class ScheduledPostService {
             location,
             feeling,
             taggedUserIds,
+            visibility,
         },
     ) {
         const scheduled = new Date(scheduledTime);
@@ -381,6 +383,7 @@ class ScheduledPostService {
                 ...(data.taggedUserIds !== undefined && {
                     taggedUserIds: normalizeTaggedUserIds(data.taggedUserIds),
                 }),
+                ...(data.visibility !== undefined && { visibility: data.visibility }),
             };
 
             const updatedScheduledPost = await prisma.$transaction(async (tx) => {
@@ -434,7 +437,7 @@ class ScheduledPostService {
                 feeling: existing.feeling,
                 taggedUserIds: existing.taggedUserIds || [],
                 status: "PUBLISHED",
-                visibility: "PUBLIC",
+                visibility: existing.visibility || "PUBLIC",
                 publishedAt: new Date(),
             },
         });

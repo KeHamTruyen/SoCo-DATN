@@ -9,6 +9,7 @@ import type {
 } from "../features/saved-items/types/savedItems.types";
 import { httpClient } from "../shared/api/httpClient";
 import { UnifiedHeader } from "../shared/ui";
+import { truncatePlainPreview } from "../shared/tiptap/postHtmlUtils";
 
 interface CategoryOption {
     id: string;
@@ -415,13 +416,10 @@ export default function SavedItems() {
                                             </div>
                                             <div className="flex flex-1 flex-col p-4">
                                                 <p className="mb-2 line-clamp-2 text-sm font-semibold text-neutral-800 dark:text-neutral-100">
-                                                    {(
-                                                        row.post.content || ""
-                                                    ).slice(0, 120)}
-                                                    {(row.post.content
-                                                        ?.length ?? 0) > 120
-                                                        ? "…"
-                                                        : ""}
+                                                    {truncatePlainPreview(
+                                                        row.post.content,
+                                                        120,
+                                                    )}
                                                 </p>
                                                 <div className="mt-auto flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
                                                     <span>

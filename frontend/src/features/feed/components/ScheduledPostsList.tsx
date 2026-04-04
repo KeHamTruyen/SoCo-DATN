@@ -1,6 +1,8 @@
 import { CalendarClock, Edit2, Loader2, Trash2 } from "lucide-react";
 import { Button } from "../../../shared/ui/atoms/button";
+import { stripHtmlToPlain } from "../../../shared/tiptap/postHtmlUtils";
 import type { FeedPost } from "../types/feed.types";
+import { PostVisibilityInline } from "./PostVisibilityInline";
 
 interface ScheduledPostsListProps {
     sectionTitle: string;
@@ -109,13 +111,19 @@ export function ScheduledPostsList({
                             )}
                             <div>
                                 <p className="line-clamp-2 text-sm text-neutral-700 dark:text-neutral-300">
-                                    {post.content}
+                                    {stripHtmlToPlain(post.content)}
                                 </p>
                                 {(post.publishedAt ?? post.scheduledAt) && (
-                                    <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-primary">
-                                        <CalendarClock className="h-3.5 w-3.5" />
-                                        <span>{dateLabel}:</span>
-                                        {formatDate(post.publishedAt ?? post.scheduledAt ?? "")}
+                                    <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs">
+                                        <PostVisibilityInline visibility={post.visibility} />
+                                        <span className="text-neutral-400" aria-hidden>
+                                            ·
+                                        </span>
+                                        <span className="inline-flex items-center gap-1.5 font-medium text-primary">
+                                            <CalendarClock className="h-3.5 w-3.5 shrink-0" />
+                                            <span>{dateLabel}:</span>
+                                            {formatDate(post.publishedAt ?? post.scheduledAt ?? "")}
+                                        </span>
                                     </div>
                                 )}
                             </div>

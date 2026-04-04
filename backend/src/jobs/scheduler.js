@@ -30,7 +30,7 @@ async function publishScheduledPosts() {
             feeling: scheduled.feeling,
             taggedUserIds: scheduled.taggedUserIds || [],
             status: 'PUBLISHED',
-            visibility: 'PUBLIC',
+            visibility: scheduled.visibility || 'PUBLIC',
             publishedAt: now,
           },
         });

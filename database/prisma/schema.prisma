@@ -69,6 +69,7 @@ enum PostStatus {
 enum PostVisibility {
   PUBLIC
   FOLLOWERS
+  FOLLOWING
   PRIVATE
 }
 
@@ -638,6 +639,8 @@ model ScheduledPost {
   location       String?  @db.VarChar(500)
   feeling        String?  @db.VarChar(120)
   taggedUserIds  String[] @default([]) @map("tagged_user_ids")
+
+  visibility PostVisibility @default(PUBLIC)
 
   scheduledTime DateTime @map("scheduled_time")
   timezone      String   @default("Asia/Ho_Chi_Minh") @db.VarChar(50)

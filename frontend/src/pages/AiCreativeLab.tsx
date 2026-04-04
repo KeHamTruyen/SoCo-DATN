@@ -28,6 +28,11 @@ import { useAuthSession } from "../shared/auth/useAuthSession";
 import { isSellerRole } from "../shared/auth/roleGuards";
 import { Button, UnifiedHeader } from "../shared/ui";
 import { cn } from "../shared/lib/cn";
+import {
+    isPostBodyHtmlEmpty,
+    plainOrLegacyToPostHtml,
+    sanitizePostHtml,
+} from "../shared/tiptap/postHtmlUtils";
 
 type StudioMode = "text" | "image" | "video";
 
@@ -118,6 +123,7 @@ export default function AiCreativeLab() {
     /** true khi editor có ký tự (không chỉ khoảng trắng) — cập nhật nhẹ, không lưu full text vào state mỗi phím. */
     const [hasDraftText, setHasDraftText] = useState(false);
     const outputPlainTextRef = useRef("");
+    const outputHtmlRef = useRef("<p></p>");
     const [outputRevision, setOutputRevision] = useState(0);
     const [editorResetNonce, setEditorResetNonce] = useState(0);
     const schedulePanelRef = useRef<HTMLDivElement>(null);
@@ -161,6 +167,10 @@ export default function AiCreativeLab() {
         setHasDraftText((prev) => (prev === next ? prev : next));
     }, []);
 
+    const onEditorHtmlChange = useCallback((html: string) => {
+        outputHtmlRef.current = html;
+    }, []);
+
     const resetPageState = useCallback(() => {
         setMode("text");
         setPrompt("");
@@ -183,16 +193,27 @@ export default function AiCreativeLab() {
         setScheduleDate(new Date());
         setScheduleTime(format(new Date(), "HH:mm"));
         outputPlainTextRef.current = "";
+        outputHtmlRef.current = "<p></p>";
         setHasDraftText(false);
         setOutputRevision(0);
         setEditorResetNonce((n) => n + 1);
     }, []);
 
     const buildCreatePayload = useCallback(async (): Promise<CreatePostPayload> => {
-        const fallback = generated
+        const fallbackPlain = generated
             ? buildPlainTextFromGenerated(generated, length, withHashtags, withCta)
             : "";
-        const content = (outputPlainTextRef.current.trim() || fallback).trim();
+
+        let content = "";
+        const htmlRaw = outputHtmlRef.current;
+        if (htmlRaw && !isPostBodyHtmlEmpty(htmlRaw)) {
+            content = sanitizePostHtml(htmlRaw);
+        } else {
+            const plain = (outputPlainTextRef.current.trim() || fallbackPlain).trim();
+            if (plain) {
+                content = sanitizePostHtml(plainOrLegacyToPostHtml(plain));
+            }
+        }
 
         let mediaUrls: string[] | undefined;
         let mediaType: PostMediaType | undefined;
@@ -333,6 +354,7 @@ export default function AiCreativeLab() {
 
         setGenerated(null);
         outputPlainTextRef.current = "";
+        outputHtmlRef.current = "<p></p>";
         setHasDraftText(false);
         setEditorResetNonce((n) => n + 1);
 
@@ -767,6 +789,7 @@ export default function AiCreativeLab() {
                                     withCta={withCta}
                                     length={length}
                                     onPlainTextChange={onEditorPlainTextChange}
+                                    onHtmlChange={onEditorHtmlChange}
                                 />
 
                                 {mode === "image" && generatedImage?.data ? (

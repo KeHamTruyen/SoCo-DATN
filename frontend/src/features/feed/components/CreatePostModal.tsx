@@ -24,8 +24,14 @@ import { uploadApi } from "../../upload/api/uploadApi";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { Avatar } from "../../../shared/ui/atoms/avatar";
 import { Button } from "../../../shared/ui/atoms/button";
-import type { CreatePostPayload, PostMediaType, TaggedUserBrief } from "../types/feed.types";
+import type { CreatePostPayload, PostMediaType, PostVisibility, TaggedUserBrief } from "../types/feed.types";
 import { useTranslation } from "react-i18next";
+import { PostBodyEditor } from "./PostBodyEditor";
+import {
+    isPostBodyHtmlEmpty,
+    plainOrLegacyToPostHtml,
+    sanitizePostHtml,
+} from "../../../shared/tiptap/postHtmlUtils";
 
 interface CreatePostInitialValues extends Partial<CreatePostPayload> {
     productLabel?: string | null;
@@ -67,6 +73,11 @@ function mediaTypeFromFile(file: File): PostMediaType {
     return "IMAGE";
 }
 
+function parsePostVisibility(v: unknown): PostVisibility {
+    if (v === "PUBLIC" || v === "FOLLOWERS" || v === "FOLLOWING" || v === "PRIVATE") return v;
+    return "PUBLIC";
+}
+
 export function CreatePostModal({
     onClose,
     onCreate,
@@ -86,7 +97,12 @@ export function CreatePostModal({
         return Number.isNaN(parsed.getTime()) ? undefined : parsed;
     }, [initialValues?.scheduledAt]);
     const initialScheduleMode = !hideScheduleOption && (defaultScheduleMode || Boolean(initialScheduledDate));
-    const [content, setContent] = useState(() => initialValues?.content ?? "");
+    const [content, setContent] = useState(() =>
+        plainOrLegacyToPostHtml(initialValues?.content ?? ""),
+    );
+    const [visibility, setVisibility] = useState<PostVisibility>(() =>
+        parsePostVisibility(initialValues?.visibility),
+    );
     const [scheduleDate, setScheduleDate] = useState<Date | undefined>(() =>
         initialScheduleMode ? (initialScheduledDate ?? new Date()) : undefined,
     );
@@ -179,7 +195,7 @@ export function CreatePostModal({
     }, [friendQuery, toolPanel]);
 
     const canSubmit =
-        (Boolean(content.trim()) || mediaUrls.length > 0) &&
+        (!isPostBodyHtmlEmpty(content) || mediaUrls.length > 0) &&
         (!isScheduleMode || Boolean(scheduledAt)) &&
         !isSubmitting &&
         !uploadBusy;
@@ -238,12 +254,13 @@ export function CreatePostModal({
     };
 
     const handlePost = async () => {
-        if (!content.trim() && mediaUrls.length === 0) return;
+        if (isPostBodyHtmlEmpty(content) && mediaUrls.length === 0) return;
         if (isScheduleMode && !scheduledAt) return;
         setIsSubmitting(true);
         try {
+            const bodyHtml = isPostBodyHtmlEmpty(content) ? "" : sanitizePostHtml(content);
             const payload: CreatePostPayload = {
-                content: content.trim(),
+                content: bodyHtml,
                 mediaUrls: mediaUrls.length ? mediaUrls : undefined,
                 mediaType: mediaUrls.length ? mediaType : undefined,
                 productId: productId || undefined,
@@ -252,6 +269,7 @@ export function CreatePostModal({
                 taggedUserIds: taggedUsers.length ? taggedUsers.map((t) => t.id) : undefined,
                 scheduledAt: isScheduleMode ? scheduledAt : undefined,
                 groupId: groupId || undefined,
+                visibility: groupId ? "PUBLIC" : visibility,
             };
             await onCreate(payload);
             onClose();
@@ -288,10 +306,12 @@ export function CreatePostModal({
         "--rdp-nav_button-width": "2.25rem",
     } as CSSProperties;
 
+    const displayName = user?.fullName?.trim() || user?.username || "—";
+
     return (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-neutral-900/60 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-            <div className="flex max-h-[95vh] w-full max-w-lg flex-col overflow-hidden rounded-t-xl border border-neutral-200 bg-background-light shadow-2xl dark:border-neutral-800 dark:bg-background-dark sm:rounded-xl">
-                <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-4 dark:border-neutral-800">
+            <div className="flex max-h-[min(92vh,900px)] w-full max-w-[min(100vw-1rem,56rem)] flex-col overflow-hidden rounded-t-xl border border-neutral-200 bg-background-light shadow-2xl dark:border-neutral-800 dark:bg-background-dark sm:rounded-xl lg:max-w-[min(100vw-2rem,64rem)]">
+                <div className="flex shrink-0 items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-neutral-800 sm:px-6 sm:py-4">
                     <Button variant="ghost" size="icon" onClick={onClose}>
                         <X className="h-5 w-5" />
                     </Button>
@@ -306,24 +326,73 @@ export function CreatePostModal({
                     </Button>
                 </div>
 
-                <div className="overflow-y-auto">
-                    <div className="flex gap-3 px-4 py-4">
-                        <Avatar
-                            src={user?.avatarUrl}
-                            alt={user?.fullName ?? "You"}
-                            wrapperClassName="h-10 w-10 shrink-0"
-                        />
-                        <textarea
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            placeholder={t("createPost.placeholder")}
-                            rows={4}
-                            className="flex-1 resize-none border-none bg-transparent p-0 text-base placeholder:text-neutral-400 focus:outline-none focus:ring-0 dark:placeholder:text-neutral-500"
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                    <div className="border-b border-neutral-200/90 px-4 py-4 dark:border-neutral-800 sm:px-6 sm:py-5">
+                        <div className="flex gap-3 sm:gap-4">
+                            <Avatar
+                                src={user?.avatarUrl}
+                                alt={displayName}
+                                wrapperClassName="h-12 w-12 shrink-0 sm:h-14 sm:w-14"
+                            />
+                            <div className="min-w-0 flex-1">
+                                <p className="truncate text-base font-semibold text-neutral-900 dark:text-neutral-100">
+                                    {displayName}
+                                </p>
+                                {groupId ? (
+                                    <p className="mt-1 text-sm font-medium text-primary">
+                                        {t("createPost.visibility.group")}
+                                    </p>
+                                ) : (
+                                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                                        <label
+                                            htmlFor="create-post-visibility"
+                                            className="sr-only"
+                                        >
+                                            {t("createPost.visibility.label")}
+                                        </label>
+                                        <select
+                                            id="create-post-visibility"
+                                            value={visibility}
+                                            onChange={(e) =>
+                                                setVisibility(e.target.value as PostVisibility)
+                                            }
+                                            className="h-9 shrink-0 rounded-lg border border-border bg-muted/40 px-2.5 text-sm font-medium text-foreground shadow-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                        >
+                                            <option value="PUBLIC">
+                                                {t("createPost.visibility.public")}
+                                            </option>
+                                            <option value="FOLLOWERS">
+                                                {t("createPost.visibility.followers")}
+                                            </option>
+                                            <option value="FOLLOWING">
+                                                {t("createPost.visibility.following")}
+                                            </option>
+                                            <option value="PRIVATE">
+                                                {t("createPost.visibility.private")}
+                                            </option>
+                                        </select>
+                                        {user?.username ? (
+                                            <span className="text-sm text-muted-foreground">
+                                                @{user.username}
+                                            </span>
+                                        ) : null}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="px-4 pb-3 pt-3 sm:px-6 sm:pb-4 sm:pt-4">
+                        <PostBodyEditor
+                            defaultHtml={content}
+                            onHtmlChange={setContent}
+                            hideEmoji
+                            hideInsertImage
                         />
                     </div>
 
                     {mediaUrls.length > 0 ? (
-                        <div className="flex flex-wrap gap-2 px-4 pb-2">
+                        <div className="flex flex-wrap gap-2 px-4 pb-2 sm:px-6">
                             {mediaUrls.map((url, i) => (
                                 <div
                                     key={`${url}-${i}`}
@@ -353,7 +422,7 @@ export function CreatePostModal({
                     ) : null}
 
                     {(productLabel || taggedUsers.length > 0 || feeling || location.trim()) && (
-                        <div className="flex flex-wrap gap-2 px-4 pb-2 text-xs">
+                        <div className="flex flex-wrap gap-2 px-4 pb-2 text-xs sm:px-6">
                             {productLabel ? (
                                 <span className="rounded-full bg-success/15 px-2 py-1 font-medium text-success">
                                     {t("createPost.productLabel")}: {productLabel}
@@ -388,7 +457,7 @@ export function CreatePostModal({
                         </div>
                     )}
 
-                    <div className="px-4 pb-4">
+                    <div className="px-4 pb-4 sm:px-6">
                         <div
                             role="toolbar"
                             aria-label={t("createPost.addToPost")}
@@ -607,7 +676,7 @@ export function CreatePostModal({
                     </div>
 
                     <div
-                        className={`grid gap-3 px-4 pb-2 ${hideScheduleOption ? "sm:grid-cols-1" : "sm:grid-cols-2"}`}
+                        className={`grid gap-3 px-4 pb-2 sm:px-6 ${hideScheduleOption ? "sm:grid-cols-1" : "sm:grid-cols-2"}`}
                     >
                         <button
                             type="button"
@@ -651,7 +720,7 @@ export function CreatePostModal({
                     </div>
 
                     {isScheduleMode ? (
-                        <div ref={schedulePanelRef} className="space-y-3 px-4 py-3">
+                        <div ref={schedulePanelRef} className="space-y-3 px-4 py-3 sm:px-6">
                             <label className="block text-center text-sm font-semibold text-foreground">
                                 {t("createPost.scheduleDateTime")}
                             </label>
