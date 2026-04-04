@@ -1,32 +1,79 @@
 import {
     BarChart3,
-    Bold,
     Calendar,
+    CalendarClock,
     CheckCircle,
-    Copy,
     FolderOpen,
-    Image as ImageIcon,
-    Italic,
-    List,
+    Loader2,
     Megaphone,
-    Plus,
     RefreshCw,
     Search,
-    Smile,
     Sparkles,
     Wand2,
+    X,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import { Button, UnifiedHeader } from "../shared/ui";
-import { cn } from "../shared/lib/cn";
+import type { CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { DayPicker } from "react-day-picker";
+import { format, setHours, setMinutes, setSeconds, startOfDay } from "date-fns";
+import "react-day-picker/style.css";
+
+import { feedApi } from "../features/feed/api/feedApi";
+import type { CreatePostPayload, PostMediaType } from "../features/feed/types/feed.types";
+import { uploadApi } from "../features/upload/api/uploadApi";
+import { AiLabRichOutput } from "../features/ai/components/AiLabRichOutput";
 import { aiApi } from "../features/ai/api/aiApi";
 import { httpClient } from "../shared/api/httpClient";
+import { useAuthSession } from "../shared/auth/useAuthSession";
+import { isSellerRole } from "../shared/auth/roleGuards";
+import { Button, UnifiedHeader } from "../shared/ui";
+import { cn } from "../shared/lib/cn";
 
 type StudioMode = "text" | "image" | "video";
 
 const TONES = ["Excited", "Professional", "Fun", "Friendly"] as const;
 const LENGTHS = ["Short", "Medium", "Long"] as const;
+
+function toDatetimeLocalValue(date: Date | undefined, timeStr: string): string {
+    if (!date) return "";
+    const parts = timeStr.split(":");
+    const h = parseInt(parts[0] ?? "", 10);
+    const m = parseInt(parts[1] ?? "", 10);
+    if (Number.isNaN(h) || Number.isNaN(m)) return "";
+    const d = setSeconds(setMinutes(setHours(date, h), m), 0);
+    return format(d, "yyyy-MM-dd'T'HH:mm");
+}
+
+function buildPlainTextFromGenerated(
+    generated: any,
+    length: (typeof LENGTHS)[number],
+    withHashtags: boolean,
+    withCta: boolean,
+): string {
+    const gt = generated?.generatedText;
+    if (!gt) return "";
+    const parts: string[] = [];
+    if (gt.title && String(gt.title).trim()) parts.push(String(gt.title).trim());
+    if (gt.body && String(gt.body).trim()) parts.push(String(gt.body).trim());
+    if (withCta && gt.callToAction && String(gt.callToAction).trim()) {
+        parts.push(String(gt.callToAction).trim());
+    }
+    const hashtagMax = length === "Short" ? 5 : length === "Medium" ? 8 : 10;
+    if (withHashtags && Array.isArray(gt.hashtags) && gt.hashtags.length) {
+        parts.push(gt.hashtags.slice(0, hashtagMax).join(" "));
+    }
+    return parts.join("\n\n").trim();
+}
+
+function base64ToFile(base64: string, mimeType: string, filename: string): File {
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new File([byteArray], filename, { type: mimeType });
+}
 
 export default function AiCreativeLab() {
     const [mode, setMode] = useState<StudioMode>("text");
@@ -63,22 +110,22 @@ export default function AiCreativeLab() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [generated, setGenerated] = useState<any>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const outputRef = useRef<HTMLDivElement>(null);
+    const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+    const [successModal, setSuccessModal] = useState<"none" | "scheduled" | "published">("none");
+    const [scheduleDate, setScheduleDate] = useState<Date | undefined>(() => new Date());
+    const [scheduleTime, setScheduleTime] = useState(() => format(new Date(), "HH:mm"));
+    const [postActionBusy, setPostActionBusy] = useState(false);
+    /** true khi editor có ký tự (không chỉ khoảng trắng) — cập nhật nhẹ, không lưu full text vào state mỗi phím. */
+    const [hasDraftText, setHasDraftText] = useState(false);
+    const outputPlainTextRef = useRef("");
+    const [outputRevision, setOutputRevision] = useState(0);
+    const [editorResetNonce, setEditorResetNonce] = useState(0);
+    const schedulePanelRef = useRef<HTMLDivElement>(null);
     const productWrapRef = useRef<HTMLDivElement>(null);
 
-    const truncateWords = (text: string, maxWords: number) => {
-        const words = text.trim().split(/\s+/).filter(Boolean);
-        if (words.length <= maxWords) return text;
-        return words.slice(0, maxWords).join(" ").trim();
-    };
+    const { user } = useAuthSession();
+    const canLinkProduct = isSellerRole(user?.role);
 
-    const lengthMeta =
-        length === "Short"
-            ? { min: 100, max: 140, hashtagMax: 5 }
-            : length === "Medium"
-              ? { min: 140, max: 220, hashtagMax: 8 }
-              : { min: 220, max: 300, hashtagMax: 10 };
-    const wordMax = lengthMeta.max;
     const effectiveTone =
         toneMode === "preset" ? tonePreset : toneCustom.trim();
     const displayTone =
@@ -90,42 +137,188 @@ export default function AiCreativeLab() {
         return "Long (220-300 chữ)";
     };
 
-    const generatedText = generated?.generatedText ?? null;
     const generatedImage = generated?.generatedImage ?? null;
-
-    const displayBody = generatedText?.body
-        ? truncateWords(String(generatedText.body), wordMax)
-        : "";
-    const displayHashtags =
-        withHashtags && Array.isArray(generatedText?.hashtags)
-            ? generatedText.hashtags.slice(0, lengthMeta.hashtagMax).join(" ")
-            : "";
 
     const textWeightedScore =
         generated?.evaluationScores?.weightedScore ??
         generated?.textScores?.weightedScore;
     const imageWeightedScore = generated?.imageScores?.weightedScore;
 
+    const scheduledAt = useMemo(
+        () => toDatetimeLocalValue(scheduleDate, scheduleTime),
+        [scheduleDate, scheduleTime],
+    );
+
+    const hasPostableContent = useMemo(() => {
+        const textOk = hasDraftText;
+        const imageOk = mode === "image" && Boolean(generated?.generatedImage?.data);
+        return Boolean(textOk || imageOk);
+    }, [generated, mode, hasDraftText]);
+
+    const onEditorPlainTextChange = useCallback((plain: string) => {
+        outputPlainTextRef.current = plain;
+        const next = plain.trim().length > 0;
+        setHasDraftText((prev) => (prev === next ? prev : next));
+    }, []);
+
+    const resetPageState = useCallback(() => {
+        setMode("text");
+        setPrompt("");
+        setToneMode("preset");
+        setTonePreset("Excited");
+        setToneCustom("");
+        setLength("Medium");
+        setWithHashtags(true);
+        setWithCta(true);
+        setProductQuery("");
+        setMyProducts([]);
+        setHasLoadedMyProducts(false);
+        setSelectedProduct(null);
+        setProductDropdownOpen(false);
+        setGenerated(null);
+        setErrorMessage(null);
+        setIsGenerating(false);
+        setIsLoadingMyProducts(false);
+        setScheduleModalOpen(false);
+        setScheduleDate(new Date());
+        setScheduleTime(format(new Date(), "HH:mm"));
+        outputPlainTextRef.current = "";
+        setHasDraftText(false);
+        setOutputRevision(0);
+        setEditorResetNonce((n) => n + 1);
+    }, []);
+
+    const buildCreatePayload = useCallback(async (): Promise<CreatePostPayload> => {
+        const fallback = generated
+            ? buildPlainTextFromGenerated(generated, length, withHashtags, withCta)
+            : "";
+        const content = (outputPlainTextRef.current.trim() || fallback).trim();
+
+        let mediaUrls: string[] | undefined;
+        let mediaType: PostMediaType | undefined;
+        if (mode === "image" && generated?.generatedImage?.data) {
+            const mime = generated.generatedImage.mimeType || "image/jpeg";
+            const ext = mime.includes("png") ? "png" : "jpg";
+            const file = base64ToFile(
+                String(generated.generatedImage.data),
+                mime,
+                `ai-generated.${ext}`,
+            );
+            const { url } = await uploadApi.uploadPostMedia(file);
+            mediaUrls = [url];
+            mediaType = "IMAGE";
+        }
+
+        return {
+            content,
+            mediaUrls,
+            mediaType,
+            productId: canLinkProduct ? selectedProduct?.id ?? undefined : undefined,
+        };
+    }, [
+        canLinkProduct,
+        generated,
+        length,
+        mode,
+        selectedProduct,
+        withCta,
+        withHashtags,
+    ]);
+
+    const handlePublishNow = useCallback(async () => {
+        if (!hasPostableContent || postActionBusy) return;
+        setErrorMessage(null);
+        setPostActionBusy(true);
+        try {
+            const payload = await buildCreatePayload();
+            if (!payload.content?.trim() && !payload.mediaUrls?.length) {
+                setErrorMessage("Không có nội dung để đăng.");
+                return;
+            }
+            await feedApi.createPost(payload);
+            resetPageState();
+            setSuccessModal("published");
+        } catch (err) {
+            setErrorMessage(err instanceof Error ? err.message : "Đăng bài thất bại.");
+        } finally {
+            setPostActionBusy(false);
+        }
+    }, [buildCreatePayload, hasPostableContent, postActionBusy, resetPageState]);
+
+    const handleConfirmSchedule = useCallback(async () => {
+        if (!hasPostableContent || postActionBusy) return;
+        if (!scheduledAt) {
+            setErrorMessage("Chọn ngày và giờ đăng.");
+            return;
+        }
+        const when = new Date(scheduledAt);
+        if (when.getTime() <= Date.now()) {
+            setErrorMessage("Thời điểm đăng phải ở tương lai.");
+            return;
+        }
+        setErrorMessage(null);
+        setPostActionBusy(true);
+        try {
+            const base = await buildCreatePayload();
+            if (!base.content?.trim() && !base.mediaUrls?.length) {
+                setErrorMessage("Không có nội dung để lên lịch.");
+                return;
+            }
+            await feedApi.createScheduledPost({ ...base, scheduledAt });
+            resetPageState();
+            setSuccessModal("scheduled");
+        } catch (err) {
+            setErrorMessage(err instanceof Error ? err.message : "Lên lịch đăng thất bại.");
+        } finally {
+            setPostActionBusy(false);
+        }
+    }, [
+        buildCreatePayload,
+        hasPostableContent,
+        postActionBusy,
+        resetPageState,
+        scheduledAt,
+    ]);
+
+    const openScheduleModal = useCallback(() => {
+        if (!hasPostableContent) return;
+        setScheduleDate((d) => d ?? new Date());
+        setScheduleTime(format(new Date(), "HH:mm"));
+        setScheduleModalOpen(true);
+        requestAnimationFrame(() => {
+            schedulePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
+    }, [hasPostableContent]);
+
+    const rdpThemeStyle = {
+        "--rdp-accent-color": "var(--primary)",
+        "--rdp-accent-background-color": "var(--primary-subtle)",
+        "--rdp-day_button-border-radius": "var(--radius)",
+        "--rdp-today-color": "var(--primary)",
+        "--rdp-nav_button-height": "2.25rem",
+        "--rdp-nav_button-width": "2.25rem",
+    } as CSSProperties;
+
     const handleGenerate = useCallback(async () => {
         if (isGenerating) return;
         setErrorMessage(null);
-        setGenerated(null);
 
         const idea = prompt.trim();
-        const productAttachment = selectedProduct
-            ? [
-                  `Linked product: ${selectedProduct.title}`,
-                  selectedProduct.description
-                      ? `Description: ${selectedProduct.description}`
-                      : null,
-                  selectedProduct.price != null ? `Price: ${selectedProduct.price}` : null,
-                  selectedProduct.imageUrl ? `Image: ${selectedProduct.imageUrl}` : null,
-              ]
-                  .filter(Boolean)
-                  .join(". ")
-            : productQuery.trim()
-              ? `Linked product: ${productQuery.trim()}`
-              : "";
+        const productAttachment =
+            canLinkProduct && selectedProduct
+                ? [
+                      `Linked product: ${selectedProduct.title}`,
+                      selectedProduct.description
+                          ? `Description: ${selectedProduct.description}`
+                          : null,
+                      selectedProduct.price != null ? `Price: ${selectedProduct.price}` : null,
+                      selectedProduct.imageUrl ? `Image: ${selectedProduct.imageUrl}` : null,
+                  ]
+                      .filter(Boolean)
+                      .join(". ")
+                : canLinkProduct && productQuery.trim()
+                  ? `Linked product: ${productQuery.trim()}`
+                  : "";
         const description = [idea, productAttachment].filter(Boolean).join(". ");
 
         if (toneMode === "custom" && !effectiveTone) {
@@ -138,6 +331,11 @@ export default function AiCreativeLab() {
             return;
         }
 
+        setGenerated(null);
+        outputPlainTextRef.current = "";
+        setHasDraftText(false);
+        setEditorResetNonce((n) => n + 1);
+
         setIsGenerating(true);
         try {
             if (mode === "text") {
@@ -149,6 +347,7 @@ export default function AiCreativeLab() {
                     length,
                 });
                 setGenerated(res);
+                setOutputRevision((v) => v + 1);
                 return;
             }
 
@@ -161,6 +360,7 @@ export default function AiCreativeLab() {
                     length,
                 });
                 setGenerated(res);
+                setOutputRevision((v) => v + 1);
                 return;
             }
 
@@ -172,6 +372,7 @@ export default function AiCreativeLab() {
                 length,
             });
             setGenerated(res);
+            setOutputRevision((v) => v + 1);
         } catch (err) {
             setErrorMessage(err instanceof Error ? err.message : "Tạo nội dung thất bại.");
         } finally {
@@ -182,6 +383,7 @@ export default function AiCreativeLab() {
         isGenerating,
         mode,
         prompt,
+        canLinkProduct,
         productQuery,
         selectedProduct,
         toneMode,
@@ -236,6 +438,13 @@ export default function AiCreativeLab() {
         void loadMyProducts();
     }, [productDropdownOpen, loadMyProducts]);
 
+    useEffect(() => {
+        if (canLinkProduct) return;
+        setSelectedProduct(null);
+        setProductQuery("");
+        setProductDropdownOpen(false);
+    }, [canLinkProduct]);
+
     const filteredMyProducts = (() => {
         const q = productQuery.trim().toLowerCase();
         if (!q) return myProducts.slice(0, 8);
@@ -249,16 +458,6 @@ export default function AiCreativeLab() {
         setProductQuery(p.title);
         setProductDropdownOpen(false);
     };
-
-    const handleCopy = useCallback(async () => {
-        const text = outputRef.current?.innerText ?? "";
-        if (!text) return;
-        try {
-            await navigator.clipboard.writeText(text);
-        } catch {
-            /* ignore */
-        }
-    }, []);
 
     return (
         <div className="flex min-h-0 flex-1 flex-col">
@@ -319,12 +518,6 @@ export default function AiCreativeLab() {
                             Library
                         </button>
                     </nav>
-                    <div className="mt-auto flex flex-col gap-1 border-t border-neutral-200/80 px-2 pb-6 pt-4 dark:border-neutral-800">
-                        <Button type="button" className="mx-1 gap-2 font-semibold">
-                            <Plus className="h-4 w-4" />
-                            Create New
-                        </Button>
-                    </div>
                 </aside>
 
                 {/* Main workspace */}
@@ -454,6 +647,7 @@ export default function AiCreativeLab() {
                             </label>
                         </div>
 
+                        {canLinkProduct ? (
                         <div className="rounded-2xl border border-neutral-200 bg-neutral-100 p-6 dark:border-neutral-700 dark:bg-neutral-800/50">
                             <div className="mb-4 flex items-center justify-between">
                                 <span className="text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
@@ -527,6 +721,7 @@ export default function AiCreativeLab() {
                                 ) : null}
                             </div>
                         </div>
+                        ) : null}
 
                         <Button
                             type="button"
@@ -546,7 +741,7 @@ export default function AiCreativeLab() {
 
                         <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <h3 className="text-xl font-extrabold text-neutral-900 dark:text-neutral-50 lg:text-2xl">
-                                Kết quả được tạo bởi AI
+                                Soạn và chỉnh sửa bài đăng
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 <Button
@@ -559,135 +754,48 @@ export default function AiCreativeLab() {
                                     <RefreshCw className="h-4 w-4" />
                                     Tạo lại
                                 </Button>
-                                <Button type="button" variant="outline" size="sm" className="gap-2 font-semibold" onClick={handleCopy}>
-                                    <Copy className="h-4 w-4" />
-                                    Sao chép
-                                </Button>
                             </div>
                         </div>
 
                         <div className="relative z-10 flex min-h-[280px] flex-1 flex-col rounded-2xl border border-neutral-200 bg-neutral-50/80 p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/40 lg:p-8">
-                            <div className="mb-6 flex flex-wrap items-center gap-4 border-b border-neutral-200 pb-4 dark:border-neutral-700">
-                                <div className="flex gap-1">
-                                    <button
-                                        type="button"
-                                        className="flex h-8 w-8 items-center justify-center rounded text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-800"
-                                    >
-                                        <Bold className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="flex h-8 w-8 items-center justify-center rounded text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-800"
-                                    >
-                                        <Italic className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="flex h-8 w-8 items-center justify-center rounded text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-800"
-                                    >
-                                        <List className="h-4 w-4" />
-                                    </button>
-                                </div>
-                                <div className="hidden h-4 w-px bg-neutral-200 sm:block dark:bg-neutral-700" />
-                                <div className="flex gap-1">
-                                    <button
-                                        type="button"
-                                        className="flex h-8 w-8 items-center justify-center rounded text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-800"
-                                    >
-                                        <Smile className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="flex h-8 w-8 items-center justify-center rounded text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-800"
-                                    >
-                                        <ImageIcon className="h-4 w-4" />
-                                    </button>
-                                </div>
-                            </div>
+                            <div className="flex min-h-0 flex-1 flex-col gap-4">
+                                <AiLabRichOutput
+                                    generated={generated}
+                                    outputRevision={outputRevision}
+                                    editorResetNonce={editorResetNonce}
+                                    withHashtags={withHashtags}
+                                    withCta={withCta}
+                                    length={length}
+                                    onPlainTextChange={onEditorPlainTextChange}
+                                />
 
-                            <div
-                                ref={outputRef}
-                                className="flex-1 text-base leading-relaxed text-neutral-900 outline-none dark:text-neutral-100"
-                            >
-                                {!generated ? (
-                                    <>
-                                        <p className="mb-4 text-sm text-neutral-600 dark:text-neutral-400">
-                                            Nhập ý tưởng ở bên trái rồi bấm{" "}
-                                            <strong className="text-neutral-900 dark:text-neutral-50">Tạo nội dung</strong>.
+                                {mode === "image" && generatedImage?.data ? (
+                                    <div>
+                                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+                                            Ảnh AI
                                         </p>
-                                        {prompt.trim() || productQuery.trim() ? (
-                                            <p className="mt-4 border-t border-neutral-200 pt-4 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-                                                {prompt.trim() ? (
-                                                    <>
-                                                        <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-                                                            Ý tưởng:
-                                                        </span>{" "}
-                                                        {prompt}
-                                                        <span className="mt-1 block text-xs">
-                                                            Mode: {mode} · Tone:{" "}
-                                                            {displayTone} · Length:{" "}
-                                                            {length}
-                                                        </span>
-                                                    </>
-                                                ) : null}
-                                                {productQuery.trim() ? (
-                                                    <span className="mt-2 block">
-                                                        <span className="font-semibold text-neutral-700 dark:text-neutral-300">
-                                                            Sản phẩm:
-                                                        </span>{" "}
-                                                        {productQuery}
-                                                    </span>
-                                                ) : null}
-                                            </p>
-                                        ) : null}
-                                    </>
-                                ) : (
-                                    <>
-                                        {generatedText?.title ? (
-                                            <p className="mb-3 text-lg font-extrabold tracking-tight text-neutral-900 dark:text-neutral-50">
-                                                {generatedText.title}
-                                            </p>
-                                        ) : null}
+                                        <img
+                                            alt="AI generated image"
+                                            className="max-h-80 w-auto rounded-xl border border-neutral-200 object-contain dark:border-neutral-800"
+                                            src={`data:${
+                                                generatedImage.mimeType || "image/jpeg"
+                                            };base64,${generatedImage.data}`}
+                                        />
+                                    </div>
+                                ) : null}
 
-                                        {displayBody ? (
-                                            <p className="mb-4 whitespace-pre-wrap">{displayBody}</p>
-                                        ) : null}
+                                {generated && mode === "video" ? (
+                                    <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                                        {generated?.videoStatus === "unavailable"
+                                            ? generated?.message ?? "Video generation hiện chưa khả dụng."
+                                            : "Đã có kết quả video."}
+                                    </p>
+                                ) : null}
 
-                                        {withCta && generatedText?.callToAction ? (
-                                            <p className="mb-4 font-semibold text-primary">
-                                                {generatedText.callToAction}
-                                            </p>
-                                        ) : null}
-
-                                        {withHashtags && displayHashtags ? (
-                                            <p className="mb-4 italic text-neutral-600 dark:text-neutral-400">
-                                                {displayHashtags}
-                                            </p>
-                                        ) : null}
-
-                                        {mode === "image" && generatedImage?.data ? (
-                                            <img
-                                                alt="AI generated image"
-                                                className="mb-4 max-h-80 w-auto rounded-xl border border-neutral-200 object-contain dark:border-neutral-800"
-                                                src={`data:${
-                                                    generatedImage.mimeType || "image/jpeg"
-                                                };base64,${generatedImage.data}`}
-                                            />
-                                        ) : null}
-
-                                        {mode === "video" ? (
-                                            <p className="mb-4 text-sm text-neutral-600 dark:text-neutral-400">
-                                                {generated?.videoStatus === "unavailable"
-                                                    ? generated?.message ??
-                                                      "Video generation hiện chưa khả dụng."
-                                                    : "Đã có kết quả video."}
-                                            </p>
-                                        ) : null}
-
-                                        <p className="mt-4 text-xs text-neutral-500 dark:text-neutral-400">
-                                            Mode: {mode} · Tone:{" "}
-                                            {displayTone} · Length:{" "}
-                                            {length} · Status:{" "}
+                                {generated ? (
+                                    <div className="border-t border-neutral-200 pt-3 dark:border-neutral-700">
+                                        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                            Mode: {mode} · Tone: {displayTone} · Length: {length} · Status:{" "}
                                             {generated?.status ?? "—"}
                                         </p>
                                         {typeof textWeightedScore === "number" ? (
@@ -695,14 +803,13 @@ export default function AiCreativeLab() {
                                                 Text score: {textWeightedScore.toFixed(1)}
                                             </p>
                                         ) : null}
-                                        {mode === "image" &&
-                                        typeof imageWeightedScore === "number" ? (
+                                        {mode === "image" && typeof imageWeightedScore === "number" ? (
                                             <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                                                 Image score: {imageWeightedScore.toFixed(1)}
                                             </p>
                                         ) : null}
-                                    </>
-                                )}
+                                    </div>
+                                ) : null}
                             </div>
 
                             {errorMessage ? (
@@ -713,28 +820,133 @@ export default function AiCreativeLab() {
                         </div>
 
                         <div className="relative z-10 flex flex-col items-stretch justify-end gap-3 border-t border-neutral-200 pt-4 sm:flex-row sm:items-center dark:border-neutral-800">
-                            <Link
-                                to="/scheduled-posts"
+                            <Button
+                                type="button"
+                                variant="outline"
                                 className={cn(
-                                    "inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-5 font-bold text-neutral-800 transition-all hover:bg-neutral-50 active:scale-[0.98] dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700",
+                                    "h-12 gap-2 px-5 font-bold",
+                                    !hasPostableContent && "pointer-events-none opacity-50",
                                 )}
+                                disabled={!hasPostableContent || postActionBusy}
+                                onClick={openScheduleModal}
                             >
                                 <Calendar className="h-5 w-5" />
                                 Lên lịch đăng
-                            </Link>
-                            <Link
-                                to="/feed"
-                                className={cn(
-                                    "inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-700 active:scale-[0.98]",
-                                )}
+                            </Button>
+                            <Button
+                                type="button"
+                                className="h-12 gap-2 px-6 font-bold shadow-lg shadow-primary/20"
+                                disabled={!hasPostableContent || postActionBusy}
+                                onClick={() => void handlePublishNow()}
                             >
-                                <CheckCircle className="h-5 w-5" />
+                                {postActionBusy ? (
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                ) : (
+                                    <CheckCircle className="h-5 w-5" />
+                                )}
                                 Đăng ngay
-                            </Link>
+                            </Button>
                         </div>
                     </section>
                 </div>
             </div>
+
+            {scheduleModalOpen ? (
+                <div className="fixed inset-0 z-50 flex items-end justify-center bg-neutral-900/60 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+                    <div
+                        role="presentation"
+                        className="absolute inset-0"
+                        onClick={() => !postActionBusy && setScheduleModalOpen(false)}
+                        aria-hidden
+                    />
+                    <div className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-t-xl border border-neutral-200 bg-background-light shadow-2xl dark:border-neutral-800 dark:bg-background-dark sm:rounded-xl">
+                        <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-4 dark:border-neutral-800">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                type="button"
+                                disabled={postActionBusy}
+                                onClick={() => setScheduleModalOpen(false)}
+                            >
+                                <X className="h-5 w-5" />
+                            </Button>
+                            <h2 className="text-lg font-semibold">Lên lịch đăng</h2>
+                            <Button
+                                type="button"
+                                size="sm"
+                                className="rounded-full px-5"
+                                disabled={postActionBusy || !scheduledAt}
+                                onClick={() => void handleConfirmSchedule()}
+                            >
+                                {postActionBusy ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    "Xác nhận"
+                                )}
+                            </Button>
+                        </div>
+                        <div ref={schedulePanelRef} className="space-y-3 overflow-y-auto px-4 py-4">
+                            <div className="flex items-center gap-2 text-sm font-medium text-neutral-600 dark:text-neutral-400">
+                                <CalendarClock className="h-4 w-4 shrink-0 text-primary" />
+                                Chọn ngày và giờ đăng bài (giống khi tạo bài trên Feed).
+                            </div>
+                            <label className="block text-center text-sm font-semibold text-neutral-900 dark:text-neutral-50">
+                                Ngày &amp; giờ
+                            </label>
+                            <div className="flex w-full justify-center">
+                                <div className="inline-flex max-w-full rounded-xl border border-neutral-200 bg-card p-3 text-card-foreground dark:border-neutral-700">
+                                    <DayPicker
+                                        mode="single"
+                                        required={false}
+                                        selected={scheduleDate}
+                                        onSelect={setScheduleDate}
+                                        disabled={{ before: startOfDay(new Date()) }}
+                                        style={rdpThemeStyle}
+                                        className="mx-auto text-foreground [--rdp-weekday-opacity:1] [&_.rdp-weekday]:text-muted-foreground [&_.rdp-outside]:opacity-60 [&_.rdp-outside]:text-muted-foreground [&_.rdp-month_caption]:text-foreground [&_.rdp-caption_label]:text-foreground"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+                                <label
+                                    htmlFor="ai-lab-schedule-time"
+                                    className="shrink-0 text-sm font-medium text-neutral-900 dark:text-neutral-50"
+                                >
+                                    Giờ
+                                </label>
+                                <input
+                                    id="ai-lab-schedule-time"
+                                    type="time"
+                                    value={scheduleTime}
+                                    onChange={(e) => setScheduleTime(e.target.value)}
+                                    className="h-10 w-full min-w-0 rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-900 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 sm:max-w-48"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
+
+            {successModal !== "none" ? (
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-neutral-900/60 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-sm rounded-xl border border-neutral-200 bg-background-light p-6 text-center shadow-2xl dark:border-neutral-800 dark:bg-background-dark">
+                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/15 text-primary">
+                            <CheckCircle className="h-8 w-8" />
+                        </div>
+                        <p className="mb-6 text-lg font-semibold text-neutral-900 dark:text-neutral-50">
+                            {successModal === "scheduled"
+                                ? "Đã lên lịch đăng thành công."
+                                : "Đã đăng bài thành công."}
+                        </p>
+                        <Button
+                            type="button"
+                            className="w-full font-semibold"
+                            onClick={() => setSuccessModal("none")}
+                        >
+                            Đóng
+                        </Button>
+                    </div>
+                </div>
+            ) : null}
         </div>
     );
 }

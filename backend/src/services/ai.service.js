@@ -221,8 +221,7 @@ Desired tone: "${tone || "auto-detect"}"`;
             Medium: { min: 140, max: 220 },
             Long: { min: 220, max: 300 },
         };
-        const selectedLength =
-            lengthRanges[length] != null ? length : "Medium";
+        const selectedLength = lengthRanges[length] != null ? length : "Medium";
         const { min, max } = lengthRanges[selectedLength];
 
         return `You are an expert content creator for a Social Commerce platform.
@@ -238,9 +237,7 @@ ${description}
 
 CONSTRAINTS:
 - Length: ${min}-${max} words
-- Hashtags: ${
-            withHashtags ? "5-10 relevant hashtags" : "[] (empty array)"
-        }
+- Hashtags: ${withHashtags ? "5-10 relevant hashtags" : "[] (empty array)"}
 - ${
             withCta
                 ? "Must include a Call-to-Action"
@@ -254,9 +251,7 @@ OUTPUT FORMAT (strict JSON only, no markdown):
 {
   "title": "catchy title",
   "body": "main content",
-  "hashtags": ${
-            withHashtags ? '["#tag1", "#tag2"]' : "[]"
-        },
+  "hashtags": ${withHashtags ? '["#tag1", "#tag2"]' : "[]"},
   "callToAction": ${withCta ? '"CTA text"' : '""'},
   "tone": "detected/applied tone"
 }`;
@@ -304,8 +299,7 @@ CONSTRAINTS:
             Medium: { min: 140, max: 220 },
             Long: { min: 220, max: 300 },
         };
-        const selectedLength =
-            lengthRanges[length] != null ? length : "Medium";
+        const selectedLength = lengthRanges[length] != null ? length : "Medium";
         const { min, max } = lengthRanges[selectedLength];
 
         const structureScore = (hasTitle ? 5 : 1) + (hasCTA ? 5 : 1);
@@ -404,8 +398,7 @@ GENERATED POST: ${text}`;
             Medium: { min: 140, max: 220 },
             Long: { min: 220, max: 300 },
         };
-        const selectedLength =
-            lengthRanges[length] != null ? length : "Medium";
+        const selectedLength = lengthRanges[length] != null ? length : "Medium";
         const { min, max } = lengthRanges[selectedLength];
 
         const refinements = {
