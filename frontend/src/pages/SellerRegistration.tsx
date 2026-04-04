@@ -29,6 +29,11 @@ import { useAuthSession } from "../shared/auth/useAuthSession";
 import { BrandLogo } from "../shared/ui/organisms/brand-logo/BrandLogo";
 import { Button } from "../shared/ui/atoms/button";
 import { cn } from "../shared/lib/cn";
+import {
+    messageForSellerRegistrationSubmitError,
+    SELLER_REGISTRATION_CATEGORIES,
+    SELLER_REGISTRATION_ID_TYPES,
+} from "../features/seller/utils/sellerRegistrationConstants";
 
 type Step = 1 | 2 | 3;
 
@@ -50,37 +55,7 @@ const STEPS = [
     },
 ];
 
-const CATEGORIES = [
-    { value: "electronics", label: "Electronics" },
-    { value: "fashion", label: "Fashion & Apparel" },
-    { value: "home", label: "Home & Living" },
-    { value: "beauty", label: "Beauty & Wellness" },
-    { value: "other", label: "Other" },
-];
-
-const ID_TYPES = [
-    { value: "national_id", label: "National ID Card" },
-    { value: "passport", label: "Passport" },
-    { value: "business_license", label: "Business License" },
-];
-
 type PreviewKey = "logo" | "cover" | "idFront" | "idBack";
-
-function messageForSellerRegistrationSubmitError(err: unknown): string {
-    if (err instanceof HttpError) {
-        const code = (err.details as { code?: string } | undefined)?.code;
-        if (code === "SELLER_APPLICATION_LOCKED") {
-            return "Đơn đăng ký của bạn đang được xem xét. Bạn không thể gửi lại cho đến khi có kết quả từ quản trị viên.";
-        }
-        if (code === "SELLER_APPLICATION_ALREADY_APPROVED") {
-            return "Đơn đăng ký đã được duyệt. Vui lòng tải lại trang hoặc đăng nhập lại.";
-        }
-        if (code === "USER_ALREADY_SELLER") {
-            return "Tài khoản của bạn đã là người bán.";
-        }
-    }
-    return err instanceof Error ? err.message : "Unknown error";
-}
 
 export default function SellerRegistration() {
     const navigate = useNavigate();
@@ -661,7 +636,7 @@ export default function SellerRegistration() {
                                             <option value="">
                                                 Select a category
                                             </option>
-                                            {CATEGORIES.map((c) => (
+                                            {SELLER_REGISTRATION_CATEGORIES.map((c) => (
                                                 <option
                                                     key={c.value}
                                                     value={c.value}
@@ -738,7 +713,7 @@ export default function SellerRegistration() {
                                         ID Document Type
                                     </label>
                                     <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                                        {ID_TYPES.map((type) => (
+                                        {SELLER_REGISTRATION_ID_TYPES.map((type) => (
                                             <label
                                                 key={type.value}
                                                 className={cn(

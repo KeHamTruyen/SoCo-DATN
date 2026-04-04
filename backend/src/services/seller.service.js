@@ -10,6 +10,11 @@ import {
 import emailService from './email.service.js';
 import notificationService from './notification.service.js';
 import { decryptSensitive, encryptSensitive, maskAccountOrId } from '../utils/sensitiveCrypto.js';
+import {
+  normalizeShopSnapshot,
+  sanitizeVerificationForAdminList,
+  validateCompleteRegistrationPayload,
+} from '../utils/sellerServiceHelpers.js';
 
 class SellerService {
   /**
@@ -106,7 +111,7 @@ class SellerService {
       },
     });
 
-    const shopInformation = this._normalizeShopSnapshot(data.registrationMeta);
+    const shopInformation = normalizeShopSnapshot(data.registrationMeta);
     if (shopInformation) {
       await prisma.user.update({
         where: { id: userId },
@@ -115,30 +120,6 @@ class SellerService {
     }
 
     return updated;
-  }
-
-  _validateCompleteRegistrationPayload(p) {
-    if (!p || typeof p !== 'object') {
-      throw Object.assign(new Error('Invalid registration payload'), { statusCode: 400 });
-    }
-    const idNum = typeof p.idNumber === 'string' ? p.idNumber.trim() : '';
-    if (!idNum) {
-      throw Object.assign(new Error('ID number is required'), { statusCode: 400 });
-    }
-    const shopName = typeof p.shopName === 'string' ? p.shopName.trim() : '';
-    if (!shopName) {
-      throw Object.assign(new Error('Shop name is required'), { statusCode: 400 });
-    }
-    if (!p.bankName || !String(p.bankName).trim()) {
-      throw Object.assign(new Error('Bank name is required'), { statusCode: 400 });
-    }
-    const acc = typeof p.accountNumber === 'string' ? p.accountNumber.trim() : '';
-    if (!acc) {
-      throw Object.assign(new Error('Bank account number is required'), { statusCode: 400 });
-    }
-    if (!p.accountHolderName || !String(p.accountHolderName).trim()) {
-      throw Object.assign(new Error('Account holder name is required'), { statusCode: 400 });
-    }
   }
 
   /**
@@ -159,7 +140,7 @@ class SellerService {
     const verification = await this._getVerification(userId);
     this._ensureEditable(verification);
 
-    this._validateCompleteRegistrationPayload(payload);
+    validateCompleteRegistrationPayload(payload);
 
     const applyBrand = payload.applyShopBrandingToProfile !== false;
 
@@ -190,7 +171,7 @@ class SellerService {
       shopAddress: payload.shopAddress,
       contactPhone: payload.contactPhone,
     };
-    const snapshot = this._normalizeShopSnapshot(registrationMeta);
+    const snapshot = normalizeShopSnapshot(registrationMeta);
     const shopInformation = snapshot ? { ...snapshot } : {};
     const hasShopInformation = Object.keys(shopInformation).length > 0;
     const bankCipher = encryptSensitive(payload.accountNumber);
@@ -387,7 +368,7 @@ class SellerService {
       prisma.sellerVerification.count({ where }),
     ]);
 
-    const applications = rows.map((v) => this._sanitizeVerificationForAdminList(v));
+    const applications = rows.map((v) => sanitizeVerificationForAdminList(v));
 
     return { applications, total, page, limit };
   }
@@ -615,42 +596,6 @@ class SellerService {
       pendingOrders,
       productViews,
       productViewsToday,
-    };
-  }
-
-  /**
-   * Public shop JSON on User (no avatar/cover, no plaintext CCCD/STK).
-   * Built from step3 `registrationMeta` so the snapshot matches the wizard (FE sends full shop fields).
-   */
-  _normalizeShopSnapshot(meta) {
-    if (!meta || typeof meta !== 'object') return null;
-    const t = (v) => (typeof v === 'string' ? v.trim() : v);
-    const clip = (s, max) => {
-      const x = t(s);
-      if (x == null || x === '') return null;
-      return x.length > max ? x.slice(0, max) : x;
-    };
-    const o = {
-      shopName: clip(meta.shopName, 255),
-      shopCategory: clip(meta.shopCategory, 100),
-      shopDescription: clip(meta.shopDescription, 5000),
-      shopAddress: clip(meta.shopAddress, 500),
-      contactPhone: clip(meta.contactPhone, 40),
-      idType: clip(meta.idType, 50),
-    };
-    if (!Object.values(o).some(Boolean)) return null;
-    return o;
-  }
-
-  _sanitizeVerificationForAdminList(v) {
-    const idDec = decryptSensitive(v.idCardNumber);
-    const bankDec = decryptSensitive(v.bankAccountNumber);
-    return {
-      ...v,
-      idCardNumber: maskAccountOrId(idDec),
-      bankAccountNumber: maskAccountOrId(bankDec),
-      idCardFrontSignedUrl: signedAuthenticatedImageUrl(v.idCardFrontPublicId) || v.idCardFrontUrl,
-      idCardBackSignedUrl: signedAuthenticatedImageUrl(v.idCardBackPublicId) || v.idCardBackUrl,
     };
   }
 

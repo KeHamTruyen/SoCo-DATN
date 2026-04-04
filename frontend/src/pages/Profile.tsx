@@ -43,8 +43,7 @@ import { useAuthSession } from "../shared/auth/useAuthSession";
 import { cn } from "../shared/lib/cn";
 import { UnifiedHeader } from "../shared/ui";
 import { useTranslation } from "react-i18next";
-
-const POST_PAGE_SIZE = 12;
+import { PROFILE_POST_PAGE_SIZE } from "../features/profile/constants/profilePageConstants";
 
 type BuyerVisitorTab = "posts" | "reviews";
 type BuyerSelfTab = "posts" | "orders" | "groups" | "reviews";
@@ -296,7 +295,7 @@ export default function Profile() {
                 const postsPromise = feedApi.listUserPosts(
                     loadedProfile.id,
                     1,
-                    POST_PAGE_SIZE,
+                    PROFILE_POST_PAGE_SIZE,
                 );
                 const suggestedPromise =
                     loadedProfile.role === "buyer"
@@ -348,7 +347,7 @@ export default function Profile() {
             const res = await feedApi.listUserPosts(
                 profile.id,
                 nextPage,
-                POST_PAGE_SIZE,
+                PROFILE_POST_PAGE_SIZE,
             );
             setPosts((prev) => [...prev, ...res.items]);
             setPostsPage(nextPage);

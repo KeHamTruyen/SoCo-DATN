@@ -15,7 +15,7 @@ import {
 import type { CSSProperties } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
-import { format, setHours, setMinutes, setSeconds, startOfDay } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import "react-day-picker/style.css";
 
 import { feedApi } from "../features/feed/api/feedApi";
@@ -33,52 +33,18 @@ import {
     plainOrLegacyToPostHtml,
     sanitizePostHtml,
 } from "../shared/tiptap/postHtmlUtils";
+import {
+    AI_LAB_LENGTHS,
+    AI_LAB_TONES,
+    aiLabToDatetimeLocalValue,
+    base64ToFile,
+    buildPlainTextFromGenerated,
+    lengthOptionLabel,
+    type StudioMode,
+} from "../features/ai/utils/aiCreativeLabUtils";
 
-type StudioMode = "text" | "image" | "video";
-
-const TONES = ["Excited", "Professional", "Fun", "Friendly"] as const;
-const LENGTHS = ["Short", "Medium", "Long"] as const;
-
-function toDatetimeLocalValue(date: Date | undefined, timeStr: string): string {
-    if (!date) return "";
-    const parts = timeStr.split(":");
-    const h = parseInt(parts[0] ?? "", 10);
-    const m = parseInt(parts[1] ?? "", 10);
-    if (Number.isNaN(h) || Number.isNaN(m)) return "";
-    const d = setSeconds(setMinutes(setHours(date, h), m), 0);
-    return format(d, "yyyy-MM-dd'T'HH:mm");
-}
-
-function buildPlainTextFromGenerated(
-    generated: any,
-    length: (typeof LENGTHS)[number],
-    withHashtags: boolean,
-    withCta: boolean,
-): string {
-    const gt = generated?.generatedText;
-    if (!gt) return "";
-    const parts: string[] = [];
-    if (gt.title && String(gt.title).trim()) parts.push(String(gt.title).trim());
-    if (gt.body && String(gt.body).trim()) parts.push(String(gt.body).trim());
-    if (withCta && gt.callToAction && String(gt.callToAction).trim()) {
-        parts.push(String(gt.callToAction).trim());
-    }
-    const hashtagMax = length === "Short" ? 5 : length === "Medium" ? 8 : 10;
-    if (withHashtags && Array.isArray(gt.hashtags) && gt.hashtags.length) {
-        parts.push(gt.hashtags.slice(0, hashtagMax).join(" "));
-    }
-    return parts.join("\n\n").trim();
-}
-
-function base64ToFile(base64: string, mimeType: string, filename: string): File {
-    const byteCharacters = atob(base64);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    return new File([byteArray], filename, { type: mimeType });
-}
+const TONES = AI_LAB_TONES;
+const LENGTHS = AI_LAB_LENGTHS;
 
 export default function AiCreativeLab() {
     const [mode, setMode] = useState<StudioMode>("text");
@@ -137,12 +103,6 @@ export default function AiCreativeLab() {
     const displayTone =
         toneMode === "preset" ? tonePreset : toneCustom.trim() || "—";
 
-    const lengthOptionLabel = (l: (typeof LENGTHS)[number]) => {
-        if (l === "Short") return "Short (100-140 chữ)";
-        if (l === "Medium") return "Medium (140-220 chữ)";
-        return "Long (220-300 chữ)";
-    };
-
     const generatedImage = generated?.generatedImage ?? null;
 
     const textWeightedScore =
@@ -151,7 +111,7 @@ export default function AiCreativeLab() {
     const imageWeightedScore = generated?.imageScores?.weightedScore;
 
     const scheduledAt = useMemo(
-        () => toDatetimeLocalValue(scheduleDate, scheduleTime),
+        () => aiLabToDatetimeLocalValue(scheduleDate, scheduleTime),
         [scheduleDate, scheduleTime],
     );
 
