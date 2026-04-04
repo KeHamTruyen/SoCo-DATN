@@ -30,7 +30,7 @@ interface RawParticipant {
     user?: RawUser | null;
 }
 
-interface RawConversationPayload {
+export interface RawConversationPayload {
     id: string;
     participants?: RawParticipant[];
     lastMessage?: RawMessagePayload | null;

@@ -2,6 +2,7 @@ import { httpClient } from "../../../shared/api/httpClient";
 import {
     mapConversationFromApi,
     mapMessageFromApi,
+    type RawConversationPayload,
     type RawMessagePayload,
 } from "../utils/messagingMappers";
 import type {
@@ -14,29 +15,39 @@ import type {
 
 const BASE = "/messages";
 
-interface WrappedListResponse<T> {
+// ── API response shapes ────────────────────────────────────────────────
+
+/** Standard backend list wrapper: `{ success, data, pagination }`. */
+interface ApiListResponse<T> {
     success?: boolean;
-    data?: T;
+    data?: T[];
     pagination?: PaginationMeta;
 }
 
-function extractArray<T>(res: unknown): { items: T[]; pagination?: PaginationMeta } {
-    if (res && typeof res === "object" && "data" in res) {
-        const data = (res as WrappedListResponse<T[]>).data;
-        const pagination = (res as WrappedListResponse<T[]>).pagination;
-        const items = Array.isArray(data) ? data : [];
-        return { items, pagination };
-    }
-    if (Array.isArray(res)) return { items: res as T[] };
-    return { items: [] };
+/** Standard backend single-item wrapper: `{ success, data }`. */
+interface ApiItemResponse<T> {
+    success?: boolean;
+    data?: T;
 }
 
-function unwrapData<T>(res: unknown): T {
-    if (res && typeof res === "object" && "data" in res && (res as { data: unknown }).data !== undefined) {
-        return (res as { data: T }).data;
+// ── Response unwrappers ────────────────────────────────────────────────
+
+function extractList<T>(res: ApiListResponse<T> | T[]): { items: T[]; pagination?: PaginationMeta } {
+    if (Array.isArray(res)) return { items: res };
+    return {
+        items: Array.isArray(res.data) ? res.data : [],
+        pagination: res.pagination,
+    };
+}
+
+function unwrapItem<T>(res: ApiItemResponse<T> | T): T {
+    if (res && typeof res === "object" && "data" in res) {
+        return (res as ApiItemResponse<T>).data as T;
     }
     return res as T;
 }
+
+// ── Public API ─────────────────────────────────────────────────────────
 
 export const messagingApi = {
     async listConversations(
@@ -44,11 +55,11 @@ export const messagingApi = {
         page = 1,
         limit = 20,
     ): Promise<ConversationsListResponse> {
-        const res = await httpClient.get<unknown>(
+        const res = await httpClient.get<ApiListResponse<RawConversationPayload>>(
             `${BASE}/conversations?page=${page}&limit=${limit}`,
             { requiresAuth: true },
         );
-        const { items: rawItems, pagination } = extractArray<unknown>(res);
+        const { items: rawItems, pagination } = extractList(res);
         const items: Conversation[] = [];
         for (const raw of rawItems) {
             const c = mapConversationFromApi(raw, currentUserId);
@@ -62,11 +73,11 @@ export const messagingApi = {
         page = 1,
         limit = 50,
     ): Promise<MessagesListResponse> {
-        const res = await httpClient.get<unknown>(
+        const res = await httpClient.get<ApiListResponse<RawMessagePayload>>(
             `${BASE}/conversations/${encodeURIComponent(conversationId)}?page=${page}&limit=${limit}`,
             { requiresAuth: true },
         );
-        const { items: rawItems, pagination } = extractArray<RawMessagePayload>(res);
+        const { items: rawItems, pagination } = extractList(res);
         const items: Message[] = [];
         for (const raw of rawItems) {
             const m = mapMessageFromApi(raw);
@@ -93,12 +104,12 @@ export const messagingApi = {
                       mediaUrl: body.mediaUrl,
                       content: body.content ?? null,
                   };
-        const res = await httpClient.post<unknown>(
+        const res = await httpClient.post<ApiItemResponse<RawMessagePayload>>(
             `${BASE}/conversations/${encodeURIComponent(conversationId)}`,
             payload,
             { requiresAuth: true },
         );
-        const raw = unwrapData<unknown>(res);
+        const raw = unwrapItem(res);
         const msg = mapMessageFromApi(raw);
         if (!msg) throw new Error("Invalid message response");
         return msg;
@@ -108,17 +119,17 @@ export const messagingApi = {
         userId: string,
         currentUserId: string,
     ): Promise<{ conversationId: string; conversation: Conversation }> {
-        const res = await httpClient.post<unknown>(
+        const res = await httpClient.post<ApiItemResponse<RawConversationPayload>>(
             `${BASE}/conversations`,
             { userId },
             { requiresAuth: true },
         );
-        const raw = unwrapData<unknown>(res);
+        const raw = unwrapItem(res);
         const conversation = mapConversationFromApi(raw, currentUserId);
-        if (!conversation || !raw || typeof raw !== "object" || !("id" in raw)) {
+        if (!conversation || !raw?.id) {
             throw new Error("Invalid conversation response");
         }
-        return { conversationId: (raw as { id: string }).id, conversation };
+        return { conversationId: raw.id, conversation };
     },
 
     async markConversationRead(conversationId: string): Promise<void> {

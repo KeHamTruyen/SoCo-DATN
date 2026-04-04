@@ -5,8 +5,8 @@ import { ChatHeader } from "../features/messaging/components/ChatHeader";
 import { ConversationSidebar } from "../features/messaging/components/ConversationSidebar";
 import { MessageComposer } from "../features/messaging/components/MessageComposer";
 import { MessageList } from "../features/messaging/components/MessageList";
-import { uploadApi } from "../features/upload/api/uploadApi";
 import { useMessaging } from "../features/messaging/context/MessagingContext";
+import { useChatActions } from "../features/messaging/hooks/useChatActions";
 import { useAuthSession } from "../shared/auth/useAuthSession";
 import { PageShell, UnifiedHeader } from "../shared/ui";
 
@@ -30,34 +30,34 @@ export default function Messages() {
 
     const [activeConversationId, setActiveId] = useState<string | null>(null);
     const [messageInput, setMessageInput] = useState("");
-    const [isSending, setIsSending] = useState(false);
     const [openingUser, setOpeningUser] = useState(false);
+
+    const { handleSend, handleAttachImage, isSending } = useChatActions({ sendMessage });
 
     const activeConversation = conversations.find((c) => c.id === activeConversationId);
     const messages = activeConversationId ? messageThreads[activeConversationId] ?? [] : [];
 
+    // Sync active conversation ID to context (for socket unread tracking)
     useEffect(() => {
         setActiveConversationId(activeConversationId);
         return () => setActiveConversationId(null);
     }, [activeConversationId, setActiveConversationId]);
 
-    /** Load thread when active conversation changes */
+    // Load thread when active conversation changes
     useEffect(() => {
         if (!activeConversationId) return;
         void loadMessagesForConversation(activeConversationId);
     }, [activeConversationId, loadMessagesForConversation]);
 
-    /** Mark read when viewing a thread */
+    // Mark read when viewing a thread
     useEffect(() => {
         if (!activeConversationId) return;
         void markConversationRead(activeConversationId);
     }, [activeConversationId, markConversationRead]);
 
-    /** Deep link: /messages?userId= */
+    // Deep link: /messages?userId=
     useEffect(() => {
-        if (!userIdParam || !user?.id || userIdParam === user.id) {
-            return;
-        }
+        if (!userIdParam || !user?.id || userIdParam === user.id) return;
 
         let cancelled = false;
         setOpeningUser(true);
@@ -99,35 +99,23 @@ export default function Messages() {
         setActiveId(conversationId);
     }, []);
 
-    const handleSend = useCallback(async () => {
-        const trimmed = messageInput.trim();
-        if (!trimmed || !activeConversationId) return;
-        setIsSending(true);
+    const onSend = async () => {
+        if (!activeConversationId) return;
+        const text = messageInput;
         setMessageInput("");
         try {
-            await sendMessage(activeConversationId, trimmed);
+            await handleSend(activeConversationId, text);
         } catch {
-            setMessageInput(trimmed);
-        } finally {
-            setIsSending(false);
+            setMessageInput(text);
         }
-    }, [messageInput, activeConversationId, sendMessage]);
+    };
 
-    const handleAttachImage = useCallback(
-        async (file: File) => {
-            if (!activeConversationId) return;
-            setIsSending(true);
-            try {
-                const { url } = await uploadApi.uploadPostMedia(file);
-                await sendMessage(activeConversationId, { messageType: "IMAGE", mediaUrl: url });
-            } finally {
-                setIsSending(false);
-            }
-        },
-        [activeConversationId, sendMessage],
-    );
+    const onAttachImage = async (file: File) => {
+        if (!activeConversationId) return;
+        await handleAttachImage(activeConversationId, file);
+    };
 
-    /** Select first conversation when list loads (no deep link in progress) */
+    // Select first conversation when list loads (no deep link in progress)
     useEffect(() => {
         if (userIdParam || openingUser) return;
         if (conversations.length === 0 || activeConversationId) return;
@@ -162,10 +150,10 @@ export default function Messages() {
                                 <MessageComposer
                                     value={messageInput}
                                     onChange={setMessageInput}
-                                    onSend={() => void handleSend()}
-                                    onAttachImage={handleAttachImage}
-                                    disabled={isSending}
-                                    sending={isSending}
+                                    onSend={() => void onSend()}
+                                    onAttachImage={onAttachImage}
+                                    disabled={isSending(activeConversationId!)}
+                                    sending={isSending(activeConversationId!)}
                                 />
                             </>
                         ) : (
