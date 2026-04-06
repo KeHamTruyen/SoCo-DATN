@@ -6,6 +6,7 @@ import {
     MessageCircle,
     Monitor,
     Search,
+    Settings,
     ShoppingCart,
     User,
     X,
@@ -260,7 +261,16 @@ export function UnifiedHeader({
                                         onClick={() => setProfileOpen(false)}
                                     >
                                         <User className="h-4 w-4 shrink-0 text-neutral-500" />
-                                        {t("header.profileSettings")}
+                                        {t("header.profile")}
+                                    </Link>
+                                    <Link
+                                        to="/settings"
+                                        role="menuitem"
+                                        className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                                        onClick={() => setProfileOpen(false)}
+                                    >
+                                        <Settings className="h-4 w-4 shrink-0 text-neutral-500" />
+                                        {t("header.settings")}
                                     </Link>
                                     <button
                                         type="button"
@@ -359,7 +369,7 @@ export function UnifiedHeader({
                     {user ? (
                         <div className="border-t border-neutral-200 pt-3 dark:border-neutral-800">
                             <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                {t("header.profileSettings")}
+                                {t("header.account")}
                             </p>
                             <Link
                                 to="/profile"
@@ -367,7 +377,15 @@ export function UnifiedHeader({
                                 onClick={() => setMobileOpen(false)}
                             >
                                 <User className="h-4 w-4" />
-                                {t("header.profileSettings")}
+                                {t("header.profile")}
+                            </Link>
+                            <Link
+                                to="/settings"
+                                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                                onClick={() => setMobileOpen(false)}
+                            >
+                                <Settings className="h-4 w-4" />
+                                {t("header.settings")}
                             </Link>
                             <button
                                 type="button"

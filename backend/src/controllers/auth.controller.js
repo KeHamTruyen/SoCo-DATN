@@ -145,6 +145,17 @@ class AuthController {
         }
     }
 
+    // ─── UC1.3 – Get 2FA status ─────────────────────────────────
+
+    async get2FAStatus(req, res, next) {
+        try {
+            const result = await authService.get2FAStatus(req.user.id);
+            res.json({ success: true, data: result });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     // ─── UC1.4 – Forgot password ───────────────────────────────
 
     async forgotPassword(req, res, next) {

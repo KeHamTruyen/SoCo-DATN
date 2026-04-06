@@ -6,7 +6,7 @@ import {
     MessageCircle,
     MoreHorizontal,
     Pencil,
-    Shield,
+    Settings,
     Star,
     UserPlus,
     UserCheck,
@@ -29,8 +29,6 @@ interface SellerProfileHeaderProps {
     onCoverFile?: (file: File) => void | Promise<void>;
     profileMediaBusy?: boolean;
     profileMediaError?: string | null;
-    onOpenEditProfile?: () => void;
-    onOpenPrivacy?: () => void;
     onOpenCreatePost?: () => void;
 }
 
@@ -43,10 +41,8 @@ export function SellerProfileHeader({
     onCoverFile,
     profileMediaBusy = false,
     profileMediaError = null,
-                      onOpenEditProfile,
-                      onOpenPrivacy,
-                      onOpenCreatePost,
-                  }: SellerProfileHeaderProps) {
+    onOpenCreatePost,
+}: SellerProfileHeaderProps) {
     const { t } = useTranslation();
     const cover = profile.coverUrl ?? profile.coverImage;
     const displayName = profile.shopName ?? profile.fullName;
@@ -251,35 +247,13 @@ export function SellerProfileHeader({
                     <div className="flex w-full flex-wrap gap-3 md:w-auto md:justify-end">
                         {isSelf ? (
                             <>
-                                <button
-                                    type="button"
-                                    disabled={
-                                        profileMediaBusy || !onOpenEditProfile
-                                    }
-                                    onClick={() => onOpenEditProfile?.()}
-                                    className={cn(
-                                        "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
-                                    )}
+                                <Link
+                                    to="/settings"
+                                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98]"
                                 >
-                                    <Pencil className="h-4 w-4" />
-                                    {t("profile.editProfile")}
-                                </button>
-                                <button
-                                    type="button"
-                                    disabled={
-                                        profileMediaBusy || !onOpenPrivacy
-                                    }
-                                    onClick={() => onOpenPrivacy?.()}
-                                    className={cn(
-                                        "inline-flex h-10 min-w-0 max-w-full items-center justify-center gap-2 whitespace-normal rounded-xl border border-border bg-background px-4 text-center text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 sm:whitespace-nowrap",
-                                    )}
-                                >
-                                    <Shield
-                                        className="h-4 w-4 shrink-0"
-                                        aria-hidden
-                                    />
-                                    {t("profile.privacy")}
-                                </button>
+                                    <Settings className="h-4 w-4" />
+                                    {t("header.settings")}
+                                </Link>
                                 <button
                                     type="button"
                                     disabled={

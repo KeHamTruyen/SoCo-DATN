@@ -28,8 +28,6 @@ import { marketplaceApi } from "../features/marketplace/api/marketplaceApi";
 import { uploadApi } from "../features/upload/api/uploadApi";
 import type { ProductListItem } from "../features/marketplace/types/marketplace.types";
 import { profileApi } from "../features/profile/api/profileApi";
-import { AccountSettingsModal } from "../features/profile/components/AccountSettingsModal";
-import type { AccountSettingsTab } from "../features/profile/components/AccountSettingsPanel";
 import { BuyerProfileHeader } from "../features/profile/components/BuyerProfileHeader";
 import { BuyerProfilePostGrid } from "../features/profile/components/BuyerProfilePostGrid";
 import { BuyerProfileSelfSidebar } from "../features/profile/components/BuyerProfileSelfSidebar";
@@ -76,25 +74,7 @@ export default function Profile() {
     const [profileMediaError, setProfileMediaError] = useState<string | null>(
         null,
     );
-    const [accountSettingsOpen, setAccountSettingsOpen] = useState(false);
-    const [accountSettingsTab, setAccountSettingsTab] =
-        useState<AccountSettingsTab>("profile");
     const { t } = useTranslation();
-
-    const openAccountSettings = useCallback((tab: AccountSettingsTab) => {
-        setAccountSettingsTab(tab);
-        setAccountSettingsOpen(true);
-    }, []);
-
-    const handleAccountSettingsProfileSaved = useCallback(async () => {
-        if (!user) return;
-        try {
-            const p = await profileApi.getProfile(user.id);
-            setProfile(p);
-        } catch {
-            /* keep existing profile */
-        }
-    }, [user]);
 
     const [postDetailModalId, setPostDetailModalId] = useState<string | null>(
         null,
@@ -576,16 +556,6 @@ export default function Profile() {
                             onCoverFile={isSelf ? handleCoverFile : undefined}
                             profileMediaBusy={profileMediaBusy}
                             profileMediaError={profileMediaError}
-                            onOpenEditProfile={
-                                isSelf
-                                    ? () => openAccountSettings("profile")
-                                    : undefined
-                            }
-                            onOpenPrivacy={
-                                isSelf
-                                    ? () => openAccountSettings("privacy")
-                                    : undefined
-                            }
                             onOpenCreatePost={
                                 isSelf
                                     ? () => setCreatePostModalOpen(true)
@@ -955,10 +925,6 @@ export default function Profile() {
                             onCoverFile={handleCoverFile}
                             profileMediaBusy={profileMediaBusy}
                             profileMediaError={profileMediaError}
-                            onOpenEditProfile={() =>
-                                openAccountSettings("profile")
-                            }
-                            onOpenPrivacy={() => openAccountSettings("privacy")}
                             onOpenCreatePost={() =>
                                 setCreatePostModalOpen(true)
                             }
@@ -1039,12 +1005,6 @@ export default function Profile() {
                     </div>
                 )}
             </main>
-            <AccountSettingsModal
-                open={Boolean(isSelf && user && accountSettingsOpen)}
-                onClose={() => setAccountSettingsOpen(false)}
-                initialTab={accountSettingsTab}
-                onProfileSaveSuccess={handleAccountSettingsProfileSaved}
-            />
             {profileModalPost ? (
                 <PostDetailModal
                     post={profileModalPost}

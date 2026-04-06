@@ -354,6 +354,16 @@ class AuthService {
         return { message: "2FA has been disabled" };
     }
 
+    // ─── UC1.3 – Get 2FA status ──────────────────────────────
+
+    async get2FAStatus(userId) {
+        const tfa = await prisma.twoFactorAuth.findUnique({
+            where: { userId },
+            select: { isEnabled: true },
+        });
+        return { isEnabled: Boolean(tfa?.isEnabled) };
+    }
+
     // ─── UC1.4 – Forgot password ───────────────────────────────
 
     async forgotPassword(email) {

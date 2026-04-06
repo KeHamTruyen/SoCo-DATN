@@ -97,4 +97,34 @@ export const authApi = {
         >("/auth/privacy", payload, { requiresAuth: true });
         return unwrap<PrivacySettings>(res as ApiResponse<PrivacySettings>);
     },
+
+    // ─── 2FA ────────────────────────────────────────────────────
+
+    async get2FAStatus() {
+        const res = await httpClient.get<
+            ApiResponse<{ isEnabled: boolean }> | { isEnabled: boolean }
+        >("/auth/2fa/status", { requiresAuth: true });
+        return unwrap<{ isEnabled: boolean }>(res);
+    },
+
+    async enable2FA() {
+        const res = await httpClient.post<
+            ApiResponse<{ message: string; backupCodes: string[] }> | { message: string; backupCodes: string[] }
+        >("/auth/2fa/enable", {}, { requiresAuth: true });
+        return unwrap<{ message: string; backupCodes: string[] }>(res);
+    },
+
+    async confirm2FAEnable(otpCode: string) {
+        const res = await httpClient.post<
+            ApiResponse<{ message: string; backupCodes: string[] }> | { message: string; backupCodes: string[] }
+        >("/auth/2fa/confirm", { otpCode }, { requiresAuth: true });
+        return unwrap<{ message: string; backupCodes: string[] }>(res);
+    },
+
+    async disable2FA(password: string) {
+        const res = await httpClient.post<
+            ApiResponse<{ message: string }> | { message: string }
+        >("/auth/2fa/disable", { password }, { requiresAuth: true });
+        return unwrap<{ message: string }>(res);
+    },
 };

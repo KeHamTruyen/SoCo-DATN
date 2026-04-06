@@ -31,7 +31,7 @@ export function FeedRoutes() {
                 <Route path="/seller/dashboard" element={<SellerDashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:id" element={<Profile />} />
-                <Route path="/account/settings" element={<AccountSettings />} />
+                <Route path="/settings" element={<AccountSettings />} />
             </Route>
             <Route element={<AppShellWithFooterLayout />}>
                 <Route path="/saved-items" element={<SavedItems />} />

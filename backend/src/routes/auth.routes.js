@@ -216,6 +216,16 @@ router.put(
 
 /**
  * @swagger
+ * /auth/2fa/status:
+ *   get:
+ *     summary: Lấy trạng thái 2FA (UC1.3)
+ *     tags: [Authentication]
+ *     security: [{ bearerAuth: [] }]
+ */
+router.get("/2fa/status", protect, authController.get2FAStatus);
+
+/**
+ * @swagger
  * /auth/2fa/enable:
  *   post:
  *     summary: Bắt đầu bật 2FA – gửi OTP (UC1.3)

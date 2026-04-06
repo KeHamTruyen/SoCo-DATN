@@ -5,7 +5,7 @@ import {
     MapPin,
     MessageCircle,
     MoreHorizontal,
-    Shield,
+    Settings,
     UserCheck,
     UserPlus,
 } from "lucide-react";
@@ -28,10 +28,6 @@ interface BuyerProfileHeaderProps {
     onCoverFile?: (file: File) => void | Promise<void>;
     profileMediaBusy?: boolean;
     profileMediaError?: string | null;
-    /** Self: open account settings (profile tab) */
-    onOpenEditProfile?: () => void;
-    /** Self: open account settings (privacy tab) */
-    onOpenPrivacy?: () => void;
     onOpenCreatePost?: () => void;
 }
 
@@ -44,10 +40,8 @@ export function BuyerProfileHeader({
     onCoverFile,
     profileMediaBusy = false,
     profileMediaError = null,
-                      onOpenEditProfile,
-                      onOpenPrivacy,
-                      onOpenCreatePost,
-                  }: BuyerProfileHeaderProps) {
+    onOpenCreatePost,
+}: BuyerProfileHeaderProps) {
     const cover = profile.coverUrl ?? profile.coverImage;
     const { t } = useTranslation();
     const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -230,25 +224,17 @@ export function BuyerProfileHeader({
                             </>
                         ) : (
                             <>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="h-10 w-full min-w-0 flex-1 justify-center px-6 sm:w-auto sm:flex-none"
-                                    disabled={profileMediaBusy || !onOpenEditProfile}
-                                    onClick={() => onOpenEditProfile?.()}
-                                >
-                                    {t("profile.editProfile")}
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="h-10 w-full min-w-0 flex-1 justify-center gap-2 px-6 sm:w-auto sm:flex-none"
-                                    disabled={profileMediaBusy || !onOpenPrivacy}
-                                    onClick={() => onOpenPrivacy?.()}
-                                >
-                                    <Shield className="h-4 w-4 shrink-0" aria-hidden />
-                                    {t("profile.privacy")}
-                                </Button>
+                                <Link to="/settings">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="h-10 w-full min-w-0 flex-1 justify-center gap-2 px-6 sm:w-auto sm:flex-none"
+                                        disabled={profileMediaBusy}
+                                    >
+                                        <Settings className="h-4 w-4 shrink-0" aria-hidden />
+                                        {t("header.settings")}
+                                    </Button>
+                                </Link>
                                 <Button
                                     type="button"
                                     className="h-10 w-full min-w-0 flex-1 justify-center gap-2 px-6 shadow-lg shadow-primary/20 sm:w-auto sm:flex-none"

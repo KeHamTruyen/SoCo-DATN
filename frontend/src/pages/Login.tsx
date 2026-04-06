@@ -42,7 +42,7 @@ export default function Login() {
                 if (response.requires2FA) {
                     sessionStorage.setItem(
                         "soco.tempToken",
-                        response.accessToken,
+                        response.tempToken ?? "",
                     );
                     navigate("/verify");
                     return;

@@ -17,6 +17,7 @@ export interface AuthResponse {
     refreshToken?: string;
     user: UserProfile;
     requires2FA?: boolean;
+    tempToken?: string;
 }
 
 export interface LoginPayload {

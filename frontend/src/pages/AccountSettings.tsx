@@ -12,14 +12,16 @@ export default function AccountSettings() {
     const { user } = useAuthSession();
     const { t } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
+
+    const rawTab = searchParams.get("tab");
     const tab: AccountSettingsTab =
-        searchParams.get("tab") === "privacy" ? "privacy" : "profile";
+        rawTab === "privacy" ? "privacy" : rawTab === "settings" ? "settings" : "profile";
 
     const setTab = useCallback(
         (next: AccountSettingsTab) => {
             const nextParams = new URLSearchParams(searchParams);
-            if (next === "privacy") nextParams.set("tab", "privacy");
-            else nextParams.delete("tab");
+            if (next === "profile") nextParams.delete("tab");
+            else nextParams.set("tab", next);
             setSearchParams(nextParams, { replace: true });
         },
         [searchParams, setSearchParams],
@@ -53,12 +55,6 @@ export default function AccountSettings() {
                 ]}
             />
             <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8 sm:px-6">
-                <Link
-                    to="/profile"
-                    className="mb-6 inline-flex text-sm font-medium text-primary hover:underline"
-                >
-                    {t("accountSettings.backToProfile")}
-                </Link>
                 <h1 className="mb-6 text-2xl font-bold">{t("accountSettings.title")}</h1>
                 <AccountSettingsPanel tab={tab} onTabChange={setTab} idPrefix="acc-page-" />
             </main>
