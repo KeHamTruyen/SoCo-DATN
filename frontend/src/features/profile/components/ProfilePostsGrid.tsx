@@ -4,18 +4,16 @@ import type { FeedPost } from "../../feed/types/feed.types";
 import { stripHtmlToPlain } from "../../../shared/tiptap/postHtmlUtils";
 
 interface ProfilePostsGridProps {
-    posts: FeedPost[];
-    isLoading: boolean;
     columns?: 2 | 3;
-    onPostClick?: (post: FeedPost) => void;
 }
 
+import { useProfileContext } from "../context/ProfileContext";
+
 export function ProfilePostsGrid({
-    posts,
-    isLoading,
     columns = 3,
-    onPostClick,
 }: ProfilePostsGridProps) {
+    const { posts, isLoading, openProfilePostModal: onPostClick } = useProfileContext();
+
     if (isLoading) {
         return (
             <div

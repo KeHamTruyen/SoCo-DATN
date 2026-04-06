@@ -17,24 +17,18 @@ function formatPostAge(iso: string, t: (k: string, o?: Record<string, unknown>) 
     return t("profile.postAgeWeekPlus");
 }
 
-interface BuyerProfilePostGridProps {
-    posts: FeedPost[];
-    isLoading: boolean;
-    hasMore?: boolean;
-    loadingMore?: boolean;
-    onLoadMore?: () => void;
-    /** Opens post detail in a modal instead of navigating to `/post/:id` */
-    onPostClick?: (post: FeedPost) => void;
-}
+import { useProfileContext } from "../context/ProfileContext";
 
-export function BuyerProfilePostGrid({
-    posts,
-    isLoading,
-    hasMore = false,
-    loadingMore = false,
-    onLoadMore,
-    onPostClick,
-}: BuyerProfilePostGridProps) {
+export function BuyerProfilePostGrid() {
+    const {
+        posts,
+        isLoading,
+        postsHasMore: hasMore,
+        postsLoadingMore: loadingMore,
+        loadMorePosts: onLoadMore,
+        openProfilePostModal: onPostClick,
+    } = useProfileContext();
+
     const { t } = useTranslation();
 
     if (isLoading) {

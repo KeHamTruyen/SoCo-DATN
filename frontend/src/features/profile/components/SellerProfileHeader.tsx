@@ -20,29 +20,23 @@ import type { PublicUserProfile } from "../types/profile.types";
 import { useTranslation } from "react-i18next";
 import { ReportModal } from "../../report/components/ReportModal";
 
-interface SellerProfileHeaderProps {
-    profile: PublicUserProfile;
-    isSelf: boolean;
-    onFollow?: () => void;
-    onUnfollow?: () => void;
-    onAvatarFile?: (file: File) => void | Promise<void>;
-    onCoverFile?: (file: File) => void | Promise<void>;
-    profileMediaBusy?: boolean;
-    profileMediaError?: string | null;
-    onOpenCreatePost?: () => void;
-}
+import { useProfileContext } from "../context/ProfileContext";
 
-export function SellerProfileHeader({
-    profile,
-    isSelf,
-    onFollow,
-    onUnfollow,
-    onAvatarFile,
-    onCoverFile,
-    profileMediaBusy = false,
-    profileMediaError = null,
-    onOpenCreatePost,
-}: SellerProfileHeaderProps) {
+export function SellerProfileHeader() {
+    const {
+        profile,
+        isSelf,
+        handleFollow,
+        handleUnfollow,
+        handleAvatarFile,
+        handleCoverFile,
+        profileMediaBusy,
+        profileMediaError,
+        setCreatePostModalOpen,
+    } = useProfileContext();
+
+    if (!profile) return null;
+
     const { t } = useTranslation();
     const cover = profile.coverUrl ?? profile.coverImage;
     const displayName = profile.shopName ?? profile.fullName;
@@ -55,13 +49,13 @@ export function SellerProfileHeader({
     const handleAvatarInput = (e: ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0];
         e.target.value = "";
-        if (f && onAvatarFile) void onAvatarFile(f);
+        if (f) void handleAvatarFile(f);
     };
 
     const handleCoverInput = (e: ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0];
         e.target.value = "";
-        if (f && onCoverFile) void onCoverFile(f);
+        if (f) void handleCoverFile(f);
     };
 
     useEffect(() => {
@@ -87,7 +81,7 @@ export function SellerProfileHeader({
                 isSelf ? "rounded-3xl" : "sm:rounded-2xl",
             )}
         >
-            {isSelf && onCoverFile ? (
+            {isSelf ? (
                 <input
                     ref={coverInputRef}
                     type="file"
@@ -96,7 +90,7 @@ export function SellerProfileHeader({
                     onChange={handleCoverInput}
                 />
             ) : null}
-            {isSelf && onAvatarFile ? (
+            {isSelf ? (
                 <input
                     ref={avatarInputRef}
                     type="file"
@@ -127,7 +121,7 @@ export function SellerProfileHeader({
                         )}
                     </>
                 ) : null}
-                {isSelf && onCoverFile ? (
+                {isSelf ? (
                     <button
                         type="button"
                         disabled={profileMediaBusy}
@@ -163,12 +157,11 @@ export function SellerProfileHeader({
                                 isSelf
                                     ? "h-28 w-28 md:h-32 md:w-32"
                                     : "h-28 w-28 md:h-32 md:w-32",
-                                isSelf && onAvatarFile && "cursor-pointer",
+                                isSelf && "cursor-pointer",
                             )}
                             onClick={() => {
                                 if (
                                     isSelf &&
-                                    onAvatarFile &&
                                     !profileMediaBusy
                                 ) {
                                     avatarInputRef.current?.click();
@@ -177,7 +170,6 @@ export function SellerProfileHeader({
                             onKeyDown={(e) => {
                                 if (
                                     isSelf &&
-                                    onAvatarFile &&
                                     !profileMediaBusy &&
                                     (e.key === "Enter" || e.key === " ")
                                 ) {
@@ -185,15 +177,15 @@ export function SellerProfileHeader({
                                     avatarInputRef.current?.click();
                                 }
                             }}
-                            role={isSelf && onAvatarFile ? "button" : undefined}
-                            tabIndex={isSelf && onAvatarFile ? 0 : undefined}
+                            role={isSelf ? "button" : undefined}
+                            tabIndex={isSelf ? 0 : undefined}
                         >
                             <Avatar
                                 src={profile.avatarUrl}
                                 alt={displayName}
                                 wrapperClassName="h-full w-full"
                             />
-                            {isSelf && onAvatarFile ? (
+                            {isSelf ? (
                                 <div
                                     className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
                                     aria-hidden
@@ -257,9 +249,9 @@ export function SellerProfileHeader({
                                 <button
                                     type="button"
                                     disabled={
-                                        profileMediaBusy || !onOpenCreatePost
+                                        profileMediaBusy
                                     }
-                                    onClick={() => onOpenCreatePost?.()}
+                                    onClick={() => setCreatePostModalOpen(true)}
                                     className={cn(
                                         "inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary-700 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
                                     )}
@@ -272,7 +264,7 @@ export function SellerProfileHeader({
                             <Button
                                 variant="outline"
                                 className="gap-2 rounded-xl"
-                                onClick={onUnfollow}
+                                onClick={handleUnfollow}
                             >
                                 <UserCheck className="h-4 w-4" />
                                 {t("profile.following")}
@@ -280,7 +272,7 @@ export function SellerProfileHeader({
                         ) : (
                             <Button
                                 className="gap-2 rounded-xl"
-                                onClick={onFollow}
+                                onClick={handleFollow}
                             >
                                 <UserPlus className="h-4 w-4" />
                                 {t("profile.followShop")}

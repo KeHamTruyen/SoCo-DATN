@@ -3,17 +3,11 @@ import { Link } from "react-router-dom";
 import type { ProductListItem } from "../../marketplace/types/marketplace.types";
 import { useTranslation } from "react-i18next";
 
-interface SellerProfileProductGridProps {
-    products: ProductListItem[];
-    isLoading: boolean;
-    categoryFilter: string | null;
-}
+import { useProfileContext } from "../context/ProfileContext";
 
-export function SellerProfileProductGrid({
-    products,
-    isLoading,
-    categoryFilter,
-}: SellerProfileProductGridProps) {
+export function SellerProfileProductGrid() {
+    const { shopProducts: products, isLoading, productCategory: categoryFilter } = useProfileContext();
+
     const { t } = useTranslation();
     const visible =
         categoryFilter == null || categoryFilter === ""

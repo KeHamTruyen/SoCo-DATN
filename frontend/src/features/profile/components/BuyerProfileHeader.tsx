@@ -18,30 +18,23 @@ import { cn } from "../../../shared/lib/cn";
 import { useTranslation } from "react-i18next";
 import { ReportModal } from "../../report/components/ReportModal";
 
-interface BuyerProfileHeaderProps {
-    profile: PublicUserProfile;
-    isSelf: boolean;
-    onFollow?: () => void;
-    onUnfollow?: () => void;
-    /** Self only: after file picked, parent uploads & persists */
-    onAvatarFile?: (file: File) => void | Promise<void>;
-    onCoverFile?: (file: File) => void | Promise<void>;
-    profileMediaBusy?: boolean;
-    profileMediaError?: string | null;
-    onOpenCreatePost?: () => void;
-}
+import { useProfileContext } from "../context/ProfileContext";
 
-export function BuyerProfileHeader({
-    profile,
-    isSelf,
-    onFollow,
-    onUnfollow,
-    onAvatarFile,
-    onCoverFile,
-    profileMediaBusy = false,
-    profileMediaError = null,
-    onOpenCreatePost,
-}: BuyerProfileHeaderProps) {
+export function BuyerProfileHeader() {
+    const {
+        profile,
+        isSelf,
+        handleFollow,
+        handleUnfollow,
+        handleAvatarFile,
+        handleCoverFile,
+        profileMediaBusy,
+        profileMediaError,
+        setCreatePostModalOpen,
+    } = useProfileContext();
+
+    if (!profile) return null;
+
     const cover = profile.coverUrl ?? profile.coverImage;
     const { t } = useTranslation();
     const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -53,13 +46,13 @@ export function BuyerProfileHeader({
     const handleAvatarInput = (e: ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0];
         e.target.value = "";
-        if (f && onAvatarFile) void onAvatarFile(f);
+        if (f) void handleAvatarFile(f);
     };
 
     const handleCoverInput = (e: ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0];
         e.target.value = "";
-        if (f && onCoverFile) void onCoverFile(f);
+        if (f) void handleCoverFile(f);
     };
 
     useEffect(() => {
@@ -80,7 +73,7 @@ export function BuyerProfileHeader({
 
     return (
         <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-            {isSelf && onCoverFile ? (
+            {isSelf ? (
                 <input
                     ref={coverInputRef}
                     type="file"
@@ -89,7 +82,7 @@ export function BuyerProfileHeader({
                     onChange={handleCoverInput}
                 />
             ) : null}
-            {isSelf && onAvatarFile ? (
+            {isSelf ? (
                 <input
                     ref={avatarInputRef}
                     type="file"
@@ -105,7 +98,7 @@ export function BuyerProfileHeader({
                 ) : (
                     <div className="h-full w-full bg-linear-to-br from-primary/40 via-primary/20 to-muted" />
                 )}
-                {isSelf && onCoverFile ? (
+                {isSelf ? (
                     <button
                         type="button"
                         disabled={profileMediaBusy}
@@ -126,17 +119,16 @@ export function BuyerProfileHeader({
                         <div
                             className={cn(
                                 "group relative h-32 w-32 overflow-hidden rounded-full border-4 border-background bg-muted shadow-lg sm:h-40 sm:w-40",
-                                isSelf && onAvatarFile && "cursor-pointer",
+                                isSelf && "cursor-pointer",
                             )}
                             onClick={() => {
-                                if (isSelf && onAvatarFile && !profileMediaBusy) {
+                                if (isSelf && !profileMediaBusy) {
                                     avatarInputRef.current?.click();
                                 }
                             }}
                             onKeyDown={(e) => {
                                 if (
                                     isSelf &&
-                                    onAvatarFile &&
                                     !profileMediaBusy &&
                                     (e.key === "Enter" || e.key === " ")
                                 ) {
@@ -144,15 +136,15 @@ export function BuyerProfileHeader({
                                     avatarInputRef.current?.click();
                                 }
                             }}
-                            role={isSelf && onAvatarFile ? "button" : undefined}
-                            tabIndex={isSelf && onAvatarFile ? 0 : undefined}
+                            role={isSelf ? "button" : undefined}
+                            tabIndex={isSelf ? 0 : undefined}
                         >
                             <Avatar
                                 src={profile.avatarUrl}
                                 alt={profile.fullName}
                                 wrapperClassName="h-full w-full"
                             />
-                            {isSelf && onAvatarFile ? (
+                            {isSelf ? (
                                 <div
                                     className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
                                     aria-hidden
@@ -173,13 +165,13 @@ export function BuyerProfileHeader({
                                     <Button
                                         variant="outline"
                                         className="flex-1 gap-2 sm:flex-none px-6 sm:px-8"
-                                        onClick={onUnfollow}
+                                        onClick={handleUnfollow}
                                     >
                                         <UserCheck className="h-4 w-4" />
                                         {t("profile.following")}
                                     </Button>
                                 ) : (
-                                    <Button className="flex-1 gap-2 sm:flex-none px-6 sm:px-8" onClick={onFollow}>
+                                    <Button className="flex-1 gap-2 sm:flex-none px-6 sm:px-8" onClick={handleFollow}>
                                         <UserPlus className="h-4 w-4" />
                                         {t("profile.follow")}
                                     </Button>
@@ -238,8 +230,8 @@ export function BuyerProfileHeader({
                                 <Button
                                     type="button"
                                     className="h-10 w-full min-w-0 flex-1 justify-center gap-2 px-6 shadow-lg shadow-primary/20 sm:w-auto sm:flex-none"
-                                    disabled={profileMediaBusy || !onOpenCreatePost}
-                                    onClick={() => onOpenCreatePost?.()}
+                                    disabled={profileMediaBusy}
+                                    onClick={() => setCreatePostModalOpen(true)}
                                 >
                                     <CirclePlus className="h-4 w-4 shrink-0" aria-hidden />
                                     {t("profile.createContent")}
