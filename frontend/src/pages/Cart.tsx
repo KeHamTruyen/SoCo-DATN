@@ -99,6 +99,7 @@ export default function Cart() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [actionError, setActionError] = useState<string | null>(null);
 
     useEffect(() => {
         let mounted = true;
@@ -148,8 +149,9 @@ export default function Cart() {
         try {
             const updated = await cartApi.updateItem(cartItemId, quantity);
             setCart(updated);
+            setActionError(null);
         } catch {
-            // silently ignore
+            setActionError("Unable to update quantity. Please try again.");
         }
     };
 
@@ -157,24 +159,30 @@ export default function Cart() {
         try {
             const updated = await cartApi.removeItem(cartItemId);
             setCart(updated);
+            setActionError(null);
             setSelectedIds((prev) => {
                 const next = new Set(prev);
                 next.delete(cartItemId);
                 return next;
             });
         } catch {
-            // silently ignore
+            setActionError("Unable to remove item. Please try again.");
         }
     };
 
     const handleDeleteSelected = async () => {
         if (selectedIds.size === 0) return;
-        for (const id of selectedIds) {
-            await cartApi.removeItem(id);
+        try {
+            for (const id of selectedIds) {
+                await cartApi.removeItem(id);
+            }
+            const updated = await cartApi.getCart();
+            setCart(updated);
+            setSelectedIds(new Set());
+            setActionError(null);
+        } catch {
+            setActionError("Unable to delete selected items.");
         }
-        const updated = await cartApi.getCart();
-        setCart(updated);
-        setSelectedIds(new Set());
     };
 
     const allItems =
@@ -304,6 +312,11 @@ export default function Cart() {
 
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                     <div className="space-y-6 lg:col-span-2">
+                        {actionError ? (
+                            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-400">
+                                {actionError}
+                            </div>
+                        ) : null}
                         <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                             <label className="flex cursor-pointer items-center gap-3">
                                 <input
@@ -373,7 +386,15 @@ export default function Cart() {
                         cart={cart}
                         selectedCount={selectedCount}
                         selectedSubtotal={selectedSubtotal}
-                        onCheckout={() => navigate("/checkout")}
+                        onCheckout={() => {
+                            if (selectedCount === 0) {
+                                setActionError("Please select at least one item to checkout.");
+                                return;
+                            }
+                            navigate("/checkout", {
+                                state: { selectedCartItemIds: Array.from(selectedIds) },
+                            });
+                        }}
                     />
                 </div>
 

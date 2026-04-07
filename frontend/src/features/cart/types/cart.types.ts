@@ -10,6 +10,7 @@ export interface CartItem {
     imageUrl?: string;
     price: number;
     quantity: number;
+    variantId?: string | null;
     variants?: CartItemVariant[];
     sellerId: string;
     sellerName: string;
@@ -23,6 +24,9 @@ export interface CartGroup {
 }
 
 export interface Cart {
+    id?: string;
+    userId?: string;
+    items?: CartItem[];
     groups: CartGroup[];
     subtotal: number;
     shipping: number;

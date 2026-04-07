@@ -1,25 +1,26 @@
 import { CreditCard, Smartphone, Truck } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { cartApi } from "../features/cart/api/cartApi";
 import { orderApi } from "../features/order/api/orderApi";
-import type { CreateOrderPayload } from "../features/order/types/order.types";
+import type { CartItem } from "../features/cart/types/cart.types";
 import { Button, UnifiedHeader } from "../shared/ui";
 
 const PAYMENT_METHODS = [
     {
-        value: "cod" as const,
+        value: "COD" as const,
         label: "Cash on Delivery (COD)",
         desc: "Pay when you receive the package",
         icon: Truck,
     },
     {
-        value: "bank_transfer" as const,
+        value: "BANK_TRANSFER" as const,
         label: "Bank Transfer",
         desc: "Transfer directly to our bank account",
         icon: CreditCard,
     },
     {
-        value: "e_wallet" as const,
+        value: "MOMO" as const,
         label: "E-Wallet",
         desc: "MoMo, ZaloPay, VNPay",
         icon: Smartphone,
@@ -28,15 +29,55 @@ const PAYMENT_METHODS = [
 
 export default function Checkout() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const selectedCartItemIds = useMemo<string[]>(
+        () => ((location.state as { selectedCartItemIds?: string[] } | null)?.selectedCartItemIds ?? []),
+        [location.state],
+    );
     const [form, setForm] = useState({
         fullName: "",
         phone: "",
         address: "",
     });
-    const [paymentMethod, setPaymentMethod] =
-        useState<CreateOrderPayload["paymentMethod"]>("cod");
+    const [paymentMethod, setPaymentMethod] = useState<"COD" | "BANK_TRANSFER" | "MOMO">("COD");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoadingCart, setIsLoadingCart] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedItems, setSelectedItems] = useState<CartItem[]>([]);
+
+    useEffect(() => {
+        let mounted = true;
+        void (async () => {
+            if (selectedCartItemIds.length === 0) {
+                if (mounted) {
+                    setError("No selected cart items. Please return to cart.");
+                    setIsLoadingCart(false);
+                }
+                return;
+            }
+            try {
+                const cart = await cartApi.getCart();
+                if (!mounted) return;
+                const items = (cart.items ?? []).filter((item) => selectedCartItemIds.includes(item.id));
+                setSelectedItems(items);
+                if (items.length === 0) {
+                    setError("Selected items are no longer in your cart.");
+                }
+            } catch {
+                if (!mounted) return;
+                setError("Unable to load selected cart items.");
+            } finally {
+                if (mounted) setIsLoadingCart(false);
+            }
+        })();
+        return () => {
+            mounted = false;
+        };
+    }, [selectedCartItemIds]);
+
+    const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const shipping = selectedItems.length > 0 ? 30000 : 0;
+    const total = subtotal + shipping;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -48,8 +89,10 @@ export default function Checkout() {
         setError(null);
         try {
             const order = await orderApi.createOrder({
-                cartItemIds: [],
-                shippingAddress: form,
+                cartItemIds: selectedItems.map((item) => item.id),
+                shippingName: form.fullName,
+                shippingPhone: form.phone,
+                shippingAddress: form.address,
                 paymentMethod,
             });
             navigate(`/checkout/success?orderId=${order.id}`);
@@ -171,18 +214,31 @@ export default function Checkout() {
                                     <h2 className="text-xl font-bold">Order Summary</h2>
                                 </div>
                                 <div className="space-y-4 p-6">
+                                    {isLoadingCart ? (
+                                        <p className="text-sm text-neutral-500">Loading selected items...</p>
+                                    ) : null}
+                                    {!isLoadingCart && selectedItems.length > 0 ? (
+                                        <div className="space-y-2 rounded-lg border border-neutral-200 p-3 text-sm dark:border-neutral-700">
+                                            {selectedItems.map((item) => (
+                                                <div key={item.id} className="flex justify-between gap-3">
+                                                    <span className="line-clamp-1">{item.productName} x{item.quantity}</span>
+                                                    <span>${(item.price * item.quantity).toFixed(2)}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : null}
                                     <div className="flex justify-between text-sm">
                                         <span className="text-neutral-500">Subtotal</span>
-                                        <span className="font-medium">—</span>
+                                        <span className="font-medium">${subtotal.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-neutral-500">Shipping</span>
-                                        <span className="font-medium text-success">Free</span>
+                                        <span className="font-medium">{shipping > 0 ? `$${shipping.toFixed(2)}` : "Free"}</span>
                                     </div>
                                     <div className="border-t border-neutral-100 pt-4 dark:border-neutral-800">
                                         <div className="flex justify-between">
                                             <span className="font-bold">Total</span>
-                                            <span className="text-xl font-bold text-primary">—</span>
+                                            <span className="text-xl font-bold text-primary">${total.toFixed(2)}</span>
                                         </div>
                                     </div>
 
@@ -195,7 +251,7 @@ export default function Checkout() {
                                     <Button
                                         type="submit"
                                         className="w-full"
-                                        disabled={isSubmitting}
+                                        disabled={isSubmitting || isLoadingCart || selectedItems.length === 0}
                                     >
                                         {isSubmitting ? "Placing Order..." : "Place Order"}
                                     </Button>
