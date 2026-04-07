@@ -74,7 +74,7 @@ export function ProductDetailPanel({
                     </span>
                     <span className="text-muted-foreground/30">|</span>
                     <span className="text-sm font-medium text-muted-foreground">
-                        2.4k Sold
+                        {product.salesCount ?? 0} Sold
                     </span>
                 </div>
             </div>
@@ -202,10 +202,12 @@ export function ProductDetailPanel({
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                     <div className="flex items-center text-amber-500">
                                         <Star className="h-3 w-3 fill-current" />
-                                        <span className="ml-1 font-bold text-foreground">4.9</span>
+                                        <span className="ml-1 font-bold text-foreground">
+                                            {(product.seller.shopRating ?? 0).toFixed(1)}
+                                        </span>
                                     </div>
                                     <span>•</span>
-                                    <span className="font-medium">12k Followers</span>
+                                    <span className="font-medium">{product.seller.followersCount ?? 0} Followers</span>
                                 </div>
                             </div>
                             {isOwnProduct ? (

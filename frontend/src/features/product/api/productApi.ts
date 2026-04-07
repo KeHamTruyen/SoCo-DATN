@@ -1,5 +1,10 @@
 import { httpClient } from "../../../shared/api/httpClient";
-import type { ProductDetail, ProductVariantRow } from "../types/product.types";
+import type {
+    ProductDetail,
+    ProductReviewItem,
+    ProductReviewsResponse,
+    ProductVariantRow,
+} from "../types/product.types";
 
 interface ApiResponse<T> {
     data?: T;
@@ -46,6 +51,62 @@ function mapVariantRow(v: Record<string, unknown>): ProductVariantRow {
     };
 }
 
+function mapReviewPhoto(raw: unknown, idx: number) {
+    const imageUrl =
+        typeof raw === "string"
+            ? raw.trim()
+            : String(
+                  (raw as Record<string, unknown> | undefined)?.imageUrl ??
+                      (raw as Record<string, unknown> | undefined)?.url ??
+                      (raw as Record<string, unknown> | undefined)?.path ??
+                      "",
+              ).trim();
+    return {
+        id:
+            typeof raw === "string"
+                ? `photo-${idx}`
+                : String((raw as Record<string, unknown> | undefined)?.id ?? `photo-${idx}`),
+        imageUrl,
+    };
+}
+
+function mapReviewItem(raw: Record<string, unknown>, idx: number): ProductReviewItem {
+    const photosRaw =
+        (raw.images as unknown[] | undefined) ??
+        (raw.photos as unknown[] | undefined) ??
+        [];
+    const photos = photosRaw
+        .map((photo, photoIdx) => mapReviewPhoto(photo, photoIdx))
+        .filter((photo) => photo.imageUrl.length > 0);
+
+    const authorRaw =
+        (raw.user as Record<string, unknown> | undefined) ??
+        (raw.author as Record<string, unknown> | undefined) ??
+        {};
+
+    return {
+        id: String(raw.id ?? `review-${idx}`),
+        rating: Math.max(0, Math.min(5, num(raw.rating, 0))),
+        title:
+            typeof raw.title === "string" && raw.title.trim() !== ""
+                ? raw.title.trim()
+                : undefined,
+        content: String(raw.content ?? raw.comment ?? ""),
+        createdAt: String(raw.createdAt ?? raw.created_at ?? new Date(0).toISOString()),
+        helpfulCount: num(raw.helpfulCount ?? raw.likesCount ?? raw.upvotes ?? 0, 0),
+        author: {
+            id: String(authorRaw.id ?? ""),
+            name: String(authorRaw.fullName ?? authorRaw.username ?? authorRaw.name ?? "Anonymous"),
+            avatarUrl:
+                typeof authorRaw.avatarUrl === "string" && authorRaw.avatarUrl.trim() !== ""
+                    ? authorRaw.avatarUrl
+                    : undefined,
+        },
+        isVerifiedBuyer: Boolean(raw.isVerifiedBuyer ?? raw.isVerifiedPurchase),
+        photos,
+    };
+}
+
 export function mapApiProductToDetail(raw: Record<string, unknown>): ProductDetail {
     const imgs = (raw.images as { imageUrl?: string }[] | undefined) ?? [];
     const variantsRaw = (raw.variants as Record<string, unknown>[] | undefined) ?? [];
@@ -65,6 +126,16 @@ export function mapApiProductToDetail(raw: Record<string, unknown>): ProductDeta
         price: basePrice,
         oldPrice: oldPrice && oldPrice > basePrice ? oldPrice : undefined,
         images: imgs.map((i) => i.imageUrl).filter(Boolean) as string[],
+        salesCount: num(raw.salesCount, 0),
+        viewsCount: num(raw.viewsCount, 0),
+        sku: typeof raw.sku === "string" && raw.sku.trim() !== "" ? raw.sku : undefined,
+        stockQuantity:
+            raw.stockQuantity === null || raw.stockQuantity === undefined
+                ? undefined
+                : num(raw.stockQuantity, 0),
+        categoryName: raw.category && typeof raw.category === "object"
+            ? String((raw.category as { name?: unknown }).name ?? "")
+            : undefined,
         rating: undefined,
         seller: raw.seller
             ? {
@@ -76,6 +147,8 @@ export function mapApiProductToDetail(raw: Record<string, unknown>): ProductDeta
                           "",
                   ),
                   avatarUrl: (raw.seller as { avatarUrl?: string }).avatarUrl,
+                  followersCount: num((raw.seller as { followersCount?: unknown }).followersCount, 0),
+                  shopRating: num((raw.seller as { shopRating?: unknown }).shopRating, 0),
               }
             : undefined,
         variants: variants.length > 0 ? variants : undefined,
@@ -90,5 +163,40 @@ export const productApi = {
         );
         const data = unwrap(res);
         return mapApiProductToDetail(data as Record<string, unknown>);
+    },
+
+    async getProductReviews(
+        productId: string,
+        params: { page: number; limit: number },
+    ): Promise<ProductReviewsResponse> {
+        const searchParams = new URLSearchParams();
+        searchParams.set("page", String(params.page));
+        searchParams.set("limit", String(params.limit));
+
+        const res = await httpClient.get<ApiResponse<Record<string, unknown>> | Record<string, unknown>>(
+            `/reviews/product/${productId}?${searchParams.toString()}`,
+            { requiresAuth: false },
+        );
+        const data = unwrap(res) as Record<string, unknown>;
+
+        const rawItems =
+            (Array.isArray(data.items) ? data.items : undefined) ??
+            (Array.isArray(data.reviews) ? data.reviews : undefined) ??
+            (Array.isArray(data.data) ? data.data : undefined) ??
+            [];
+
+        const pagination = (data.pagination as Record<string, unknown> | undefined) ?? {};
+        const total = num(pagination.total ?? data.total ?? rawItems.length, rawItems.length);
+        const page = num(pagination.page ?? data.page ?? params.page, params.page);
+        const limit = num(pagination.limit ?? data.limit ?? params.limit, params.limit);
+
+        return {
+            items: rawItems
+                .map((item, idx) => mapReviewItem(item as Record<string, unknown>, idx))
+                .filter((item) => item.content.trim() !== "" || item.photos.length > 0),
+            page,
+            limit,
+            total,
+        };
     },
 };
