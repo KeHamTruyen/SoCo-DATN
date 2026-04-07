@@ -68,14 +68,18 @@ export default function Marketplace() {
     const filterSigRef = useRef(filterSignature);
 
     const [draftQ, setDraftQ] = useState(qFromUrl);
-    const qTimerRef = useRef<ReturnType<typeof setTimeout>>();
+    const qTimerRef = useRef<number | null>(null);
 
     useEffect(() => {
         setDraftQ(qFromUrl);
     }, [qFromUrl]);
 
     useEffect(() => {
-        return () => window.clearTimeout(qTimerRef.current);
+        return () => {
+            if (qTimerRef.current !== null) {
+                window.clearTimeout(qTimerRef.current);
+            }
+        };
     }, []);
 
     const patchSearchParams = useCallback(
@@ -96,7 +100,9 @@ export default function Marketplace() {
     const handleSearchInput = useCallback(
         (value: string) => {
             setDraftQ(value);
-            window.clearTimeout(qTimerRef.current);
+            if (qTimerRef.current !== null) {
+                window.clearTimeout(qTimerRef.current);
+            }
             qTimerRef.current = window.setTimeout(() => {
                 patchSearchParams({ q: value || undefined });
             }, 300);

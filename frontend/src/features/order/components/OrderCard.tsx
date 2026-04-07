@@ -7,8 +7,10 @@ import type { Order, OrderStatus } from "../types/order.types";
 const STATUS_LABEL: Record<OrderStatus, string> = {
     pending: "Pending",
     confirmed: "Confirmed",
+    processing: "Processing",
     shipping: "Shipping",
     delivered: "Delivered",
+    completed: "Completed",
     cancelled: "Cancelled",
     refunded: "Refunded",
 };
@@ -16,8 +18,10 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
 const STATUS_COLOR: Record<OrderStatus, string> = {
     pending: "bg-warning/10 text-warning dark:bg-warning/20",
     confirmed: "bg-info/10 text-info dark:bg-info/20",
+    processing: "bg-info/10 text-info dark:bg-info/20",
     shipping: "bg-primary-100 text-primary-700 dark:bg-primary-950/40 dark:text-primary-400",
     delivered: "bg-success/10 text-success dark:bg-success/20",
+    completed: "bg-success/10 text-success dark:bg-success/20",
     cancelled: "bg-destructive/10 text-destructive dark:bg-destructive/20",
     refunded: "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-400",
 };

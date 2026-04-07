@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useProfileTabs } from "./useProfileTabs";
+import { useProfileTabs } from "../useProfileTabs";
 
 describe("useProfileTabs", () => {
     it("should initialize with default values", () => {

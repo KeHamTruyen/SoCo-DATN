@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useProfileFollow } from "./useProfileFollow";
-import { profileApi } from "../api/profileApi";
-import type { PublicUserProfile } from "../types/profile.types";
+import { useProfileFollow } from "../useProfileFollow";
+import { profileApi } from "../../api/profileApi";
+import type { PublicUserProfile } from "../../types/profile.types";
 
-vi.mock("../api/profileApi", () => ({
+vi.mock("../../api/profileApi", () => ({
     profileApi: {
         followUser: vi.fn(),
         unfollowUser: vi.fn(),

@@ -1,4 +1,4 @@
-import type { LoginPortal } from "../../features/auth/api/authApi";
+type LoginPortal = "admin" | "user";
 
 export const LOGIN_PORTAL_KEY = "soco.loginPortal";
 

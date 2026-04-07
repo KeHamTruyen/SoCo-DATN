@@ -57,3 +57,4 @@ export interface SavedItemsPagination {
 }
 
 export type SavedTab = "all" | "posts" | "products";
+export type PriceSort = "recent" | "price_asc" | "price_desc";
