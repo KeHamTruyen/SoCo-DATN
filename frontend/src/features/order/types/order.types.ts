@@ -27,6 +27,14 @@ export interface OrderItem {
     price: number;
     quantity: number;
     variantText?: string;
+    review?: {
+        id: string;
+        rating: number;
+        title?: string;
+        content?: string;
+        images: string[];
+        createdAt?: string;
+    };
 }
 
 export interface OrderTimeline {

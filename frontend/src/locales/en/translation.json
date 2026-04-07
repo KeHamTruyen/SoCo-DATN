@@ -477,6 +477,7 @@
             "messageSeller": "Message Seller",
             "buyAgain": "Buy Again",
             "leaveReview": "Leave Review",
+            "viewReview": "View Review",
             "cancelOrder": "Cancel Order",
             "markAsReceived": "Mark as Received"
         },
@@ -489,6 +490,31 @@
             "loadFailed": "Unable to load order details.",
             "notFound": "Order not found.",
             "updateStatusFailed": "Unable to update order status."
+        },
+        "review": {
+            "reviewOrder": "Review Order",
+            "viewReviewed": "View Reviewed Items",
+            "title": "Review Products",
+            "close": "Close",
+            "productQuality": "Product quality",
+            "contentPlaceholder": "Share your experience about this product...",
+            "addMedia": "Add Images/Video",
+            "cancel": "Cancel",
+            "submit": "Submit Review",
+            "submitting": "Submitting...",
+            "submitSuccess": "Review submitted successfully.",
+            "alreadyReviewed": "This item has already been reviewed.",
+            "rating": {
+                "1": "Very Bad",
+                "2": "Bad",
+                "3": "Normal",
+                "4": "Satisfied",
+                "5": "Excellent"
+            },
+            "errors": {
+                "ratingRequired": "Please rate all products before submitting.",
+                "submitFailed": "Failed to submit review."
+            }
         }
     }
 }

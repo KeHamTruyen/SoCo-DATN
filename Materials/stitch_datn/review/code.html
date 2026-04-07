@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Đánh giá sản phẩm - ShopSymphony</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#e7e7f5",
+                        "on-primary-fixed": "#001452",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#d2bbff",
+                        "surface-bright": "#fbf8ff",
+                        "outline-variant": "#c3c5d9",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-low": "#f3f2ff",
+                        "on-tertiary-fixed-variant": "#5a00c6",
+                        "on-primary-container": "#dfe3ff",
+                        "on-tertiary-container": "#ecdfff",
+                        "secondary-container": "#fe6b00",
+                        "on-background": "#191b25",
+                        "outline": "#737688",
+                        "surface-variant": "#e1e1ef",
+                        "primary": "#003ec7",
+                        "background": "#fbf8ff",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#b7c4ff",
+                        "surface-tint": "#004ced",
+                        "primary-container": "#0052ff",
+                        "on-surface": "#191b25",
+                        "on-secondary-fixed-variant": "#7a3000",
+                        "on-secondary-fixed": "#351000",
+                        "on-primary-fixed-variant": "#0038b6",
+                        "surface-container-highest": "#e1e1ef",
+                        "surface": "#fbf8ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#2e303a",
+                        "on-surface-variant": "#434656",
+                        "secondary-fixed": "#ffdbcc",
+                        "tertiary-container": "#7b39ec",
+                        "on-secondary-container": "#572000",
+                        "inverse-on-surface": "#f0effe",
+                        "secondary-fixed-dim": "#ffb693",
+                        "error-container": "#ffdad6",
+                        "surface-container": "#ededfb",
+                        "primary-fixed": "#dde1ff",
+                        "tertiary-fixed": "#eaddff",
+                        "secondary": "#a04100",
+                        "inverse-primary": "#b7c4ff",
+                        "tertiary": "#620bd3",
+                        "surface-dim": "#d9d9e7",
+                        "on-tertiary-fixed": "#25005a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .star-active {
+            font-variation-settings: 'FILL' 1;
+            color: #fe6b00;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-surface text-on-surface antialiased overflow-hidden">
+    <!-- TopAppBar Shell (Inactive Context) -->
+    <header
+        class="fixed top-0 w-full z-40 bg-[#fbf8ff] flex justify-between items-center px-8 h-20 max-w-full mx-auto shadow-none blur-md pointer-events-none">
+        <div class="text-2xl font-bold tracking-tighter text-[#191b25]">ShopSymphony</div>
+        <nav class="hidden md:flex items-center gap-8">
+            <span class="text-[#191b25]/70 font-medium">Shop</span>
+            <span class="text-[#003ec7] font-bold border-b-2 border-[#003ec7]">Orders</span>
+            <span class="text-[#191b25]/70 font-medium">Returns</span>
+            <span class="text-[#191b25]/70 font-medium">Account</span>
+        </nav>
+        <div class="flex items-center gap-4">
+            <span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+            <span class="material-symbols-outlined text-on-surface-variant">shopping_bag</span>
+        </div>
+    </header>
+    <!-- Background Content (Blurred Order History) -->
+    <main class="pt-24 px-8 max-w-7xl mx-auto blur-md pointer-events-none">
+        <h1 class="text-4xl font-extrabold tracking-tight mb-8">My Orders</h1>
+        <div class="space-y-6">
+            <!-- Mock Order Card 1 -->
+            <div
+                class="bg-surface-container-lowest p-6 rounded-xl shadow-none flex items-center justify-between border border-outline-variant/15">
+                <div class="flex items-center gap-6">
+                    <div class="w-20 h-20 bg-surface-container-highest rounded-lg overflow-hidden">
+                        <img class="w-full h-full object-cover"
+                            data-alt="Close up of premium metallic wireless headphones on a wooden desk with soft cinematic lighting"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3d9O8x6ry37xBGJrKo309WTTid7FauqmxY3yPjAe4vZucZSAR7NxkwpGbcY5havRFbA_XRVUauWv0UpxIbmDhcthNYdW6RD4J51EUNadE73PukIwj0WfrMQg7sM7sUHZ0I5fMpiAkp_RQ1lxXv4Yexdx8eR1o73uymPu7ahMGhe8IXTkpyUdKTpEZjelKSiexuko7DSaJAwvEY28pZhv4dlnRXld0pJ6TVYhZ3oPPyNMTxzK1DrBN1kSfRA3QcK6kAyWCeit_d72r" />
+                    </div>
+                    <div>
+                        <p class="font-bold text-lg">Pro Wireless Headphones</p>
+                        <p class="text-on-surface-variant text-sm">Order #ORD-9921 • Delivers Oct 12</p>
+                    </div>
+                </div>
+                <div class="bg-tertiary-container/20 text-tertiary font-bold px-4 py-1 rounded-full text-xs">DELIVERED
+                </div>
+            </div>
+            <!-- Mock Order Card 2 -->
+            <div
+                class="bg-surface-container-lowest p-6 rounded-xl shadow-none flex items-center justify-between border border-outline-variant/15">
+                <div class="flex items-center gap-6">
+                    <div class="w-20 h-20 bg-surface-container-highest rounded-lg overflow-hidden">
+                        <img class="w-full h-full object-cover"
+                            data-alt="Elegant silver smart watch with leather strap isolated on white background high-end product photography"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOv7diNNozbwbMFjSpbraM2Qk47B-Prgigzu7tx5dDzhT7Z4VHkxfoblXNjggXqVPXoqScoaQt5OwjjRLZo4SUyroy8m_eSxHwOYO1eKH3GBdyuDA7nsSRYKgToujCocljbVbBQyXbPPxrdFXgxY39RDHxtTaBnyHHucQOTkjwymI1YBZF6C6GcalmyQyHx5ZLzMGjhV0S95DSx2k81tF3PHpE8J9h0-wpmihSJ8bc48sybXOCAEZ9ySEXpqBU6rV-mCJ9I1yb1ZTF" />
+                    </div>
+                    <div>
+                        <p class="font-bold text-lg">Smart Classic Watch</p>
+                        <p class="text-on-surface-variant text-sm">Order #ORD-9921 • Delivers Oct 12</p>
+                    </div>
+                </div>
+                <div class="bg-tertiary-container/20 text-tertiary font-bold px-4 py-1 rounded-full text-xs">DELIVERED
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Modal Overlay -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-on-background/20 backdrop-blur-sm p-4">
+        <!-- Dialog Container -->
+        <div
+            class="bg-surface-container-lowest w-full max-w-2xl max-h-[921px] rounded-xl flex flex-col shadow-[0_32px_64px_-12px_rgba(25,27,37,0.14)] overflow-hidden">
+            <!-- Modal Header -->
+            <div class="px-8 pt-8 pb-4 flex flex-col gap-1 border-b border-outline-variant/10">
+                <div class="flex justify-between items-start">
+                    <h2 class="text-2xl font-extrabold tracking-tight text-on-surface">Đánh giá sản phẩm</h2>
+                    <button
+                        class="text-on-surface-variant hover:bg-surface-container-high p-2 rounded-full transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <p class="text-[#003ec7] font-semibold text-sm tracking-wide">Alex's Tech Haven</p>
+            </div>
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto px-8 py-6 space-y-12">
+                <!-- Product 1 Section -->
+                <section class="space-y-6">
+                    <div class="flex gap-4 items-center">
+                        <div class="w-16 h-16 bg-surface-container-low rounded-lg overflow-hidden flex-shrink-0">
+                            <img class="w-full h-full object-cover"
+                                data-alt="Premium headphones studio shot with neutral lighting"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0nqUA_GhIFGpfP31SEhOuPJOPeWS24jL_mRMt7yHh88-XxA3zaosOXMiBm1_M6KjsJSvd3C6zneo7RPMcvDnjugmOv-5hFAV53R3oDGdy6OLNwtzK0VmxyJ73VYdRfrbW51PzKmYmr0XD62EOGvzl42YXEVVYLs2mOUq_dp7bn7EbIr3uyWoVKJ3BfBwWzDw_ppXZRdR2l0X-WfMSy5tskKHAjR0vToOj3VOeAnc-yp-yISv_uvNqsYjXJkv4WjoMsmgKpubid4x7" />
+                        </div>
+                        <h3 class="font-bold text-lg leading-tight">Pro Wireless Headphones</h3>
+                    </div>
+                    <!-- Rating Stars -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs uppercase tracking-widest font-bold text-on-surface-variant">Chất lượng
+                            sản phẩm</label>
+                        <div class="flex gap-2">
+                            <span class="material-symbols-outlined star-active text-3xl cursor-pointer">star</span>
+                            <span class="material-symbols-outlined star-active text-3xl cursor-pointer">star</span>
+                            <span class="material-symbols-outlined star-active text-3xl cursor-pointer">star</span>
+                            <span class="material-symbols-outlined star-active text-3xl cursor-pointer">star</span>
+                            <span class="material-symbols-outlined star-active text-3xl cursor-pointer">star</span>
+                            <span class="ml-2 text-secondary font-semibold self-center">Tuyệt vời</span>
+                        </div>
+                    </div>
+                    <!-- Review Text -->
+                    <div class="space-y-3">
+                        <textarea
+                            class="w-full bg-surface-container-highest border-none rounded-lg p-4 text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all min-h-[120px] resize-none"
+                            placeholder="Hãy chia sẻ cảm nhận của bạn về chất lượng sản phẩm này..."></textarea>
+                        <button
+                            class="flex items-center gap-2 border-2 border-dashed border-outline-variant text-on-surface-variant px-4 py-3 rounded-lg hover:bg-surface-container-high hover:border-primary transition-all text-sm font-semibold">
+                            <span class="material-symbols-outlined">add_a_photo</span>
+                            Thêm Hình ảnh/Video
+                        </button>
+                    </div>
+                </section>
+                <hr class="border-outline-variant/15" />
+                <!-- Product 2 Section -->
+                <section class="space-y-6">
+                    <div class="flex gap-4 items-center">
+                        <div class="w-16 h-16 bg-surface-container-low rounded-lg overflow-hidden flex-shrink-0">
+                            <img class="w-full h-full object-cover"
+                                data-alt="Sleek modern smart watch macro photography"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2QVJDyI6ggRTqOC5AqfWg5M_AxjkL5nMIyx7_dQc85ftTo54M2Udbi1Ec4r2LAfrvgiwOV0Ua414AlTOj1xub1mTIkf7oyPplwp7RspD6NMwKaWf-kc7TieY0NJQqyAEYPnVTd_qsVkI1ZWv5vft-R7vYclLxslnbnEsFXQ03r1GkGTpJ0o00je972t4eR86UXUVL_KZlCEi7xFygDQbtWm7M1xbPJN4ia6hWwOWeVl3qXAPD4VVhtifntHZyJrVUgazmaZVKLIBC" />
+                        </div>
+                        <h3 class="font-bold text-lg leading-tight">Smart Classic Watch</h3>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs uppercase tracking-widest font-bold text-on-surface-variant">Chất lượng
+                            sản phẩm</label>
+                        <div class="flex gap-2">
+                            <span class="material-symbols-outlined star-active text-3xl cursor-pointer">star</span>
+                            <span class="material-symbols-outlined star-active text-3xl cursor-pointer">star</span>
+                            <span class="material-symbols-outlined star-active text-3xl cursor-pointer">star</span>
+                            <span class="material-symbols-outlined star-active text-3xl cursor-pointer">star</span>
+                            <span
+                                class="material-symbols-outlined text-on-surface-variant/30 text-3xl cursor-pointer">star</span>
+                            <span class="ml-2 text-on-surface-variant/70 font-semibold self-center">Hài lòng</span>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <textarea
+                            class="w-full bg-surface-container-highest border-none rounded-lg p-4 text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all min-h-[120px] resize-none"
+                            placeholder="Hãy chia sẻ cảm nhận của bạn về chất lượng sản phẩm này..."></textarea>
+                        <button
+                            class="flex items-center gap-2 border-2 border-dashed border-outline-variant text-on-surface-variant px-4 py-3 rounded-lg hover:bg-surface-container-high transition-all text-sm font-semibold">
+                            <span class="material-symbols-outlined">add_a_photo</span>
+                            Thêm Hình ảnh/Video
+                        </button>
+                    </div>
+                </section>
+                <hr class="border-outline-variant/15" />
+                <!-- Seller Service Rating -->
+                <section class="bg-surface-container-low p-6 rounded-xl space-y-6">
+                    <h4 class="font-bold text-on-surface flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary"
+                            style="font-variation-settings: 'FILL' 1;">store</span>
+                        Đánh giá Dịch vụ Người bán
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-3">
+                            <label class="text-xs font-bold text-on-surface-variant">Dịch vụ Người bán</label>
+                            <div class="flex gap-1">
+                                <span class="material-symbols-outlined star-active text-2xl">star</span>
+                                <span class="material-symbols-outlined star-active text-2xl">star</span>
+                                <span class="material-symbols-outlined star-active text-2xl">star</span>
+                                <span class="material-symbols-outlined star-active text-2xl">star</span>
+                                <span class="material-symbols-outlined star-active text-2xl">star</span>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <label class="text-xs font-bold text-on-surface-variant">Tốc độ vận chuyển</label>
+                            <div class="flex gap-1">
+                                <span class="material-symbols-outlined star-active text-2xl">star</span>
+                                <span class="material-symbols-outlined star-active text-2xl">star</span>
+                                <span class="material-symbols-outlined star-active text-2xl">star</span>
+                                <span class="material-symbols-outlined star-active text-2xl">star</span>
+                                <span class="material-symbols-outlined star-active text-2xl">star</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <!-- Modal Footer -->
+            <div
+                class="px-8 py-6 bg-surface-container-lowest border-t border-outline-variant/10 flex items-center justify-end gap-4">
+                <button
+                    class="px-6 py-3 font-bold text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-all">
+                    Hủy
+                </button>
+                <button
+                    class="bg-[#ea580c] hover:bg-[#c2410c] text-white px-10 py-3 rounded-lg font-extrabold tracking-tight shadow-lg shadow-orange-500/20 active:scale-95 transition-all">
+                    Gửi đánh giá
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

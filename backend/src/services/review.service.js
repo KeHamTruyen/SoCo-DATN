@@ -75,6 +75,7 @@ export const createReview = async (userId, data) => {
       content: content || null,
       images,
       isVerifiedPurchase: true,
+      isPublished: true,
     },
     include: reviewInclude,
   });

@@ -56,6 +56,30 @@ function normalizeOrder(raw: Record<string, unknown>): Order {
             price: num(item.unitPrice ?? item.price, 0),
             quantity: num(item.quantity, 1),
             variantText: variantText || undefined,
+            review:
+                item.review && typeof item.review === "object"
+                    ? {
+                          id: String((item.review as Record<string, unknown>).id ?? ""),
+                          rating: num((item.review as Record<string, unknown>).rating, 0),
+                          title:
+                              typeof (item.review as Record<string, unknown>).title === "string"
+                                  ? String((item.review as Record<string, unknown>).title)
+                                  : undefined,
+                          content:
+                              typeof (item.review as Record<string, unknown>).content === "string"
+                                  ? String((item.review as Record<string, unknown>).content)
+                                  : undefined,
+                          images: Array.isArray((item.review as Record<string, unknown>).images)
+                              ? ((item.review as Record<string, unknown>).images as unknown[])
+                                    .filter((img) => typeof img === "string")
+                                    .map((img) => String(img))
+                              : [],
+                          createdAt:
+                              typeof (item.review as Record<string, unknown>).createdAt === "string"
+                                  ? String((item.review as Record<string, unknown>).createdAt)
+                                  : undefined,
+                      }
+                    : undefined,
         };
     });
 

@@ -51,6 +51,10 @@ const orderInclude = {
         select: {
           id: true,
           rating: true,
+          title: true,
+          content: true,
+          images: true,
+          createdAt: true,
         },
       },
     },

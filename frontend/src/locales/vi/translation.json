@@ -477,6 +477,7 @@
             "messageSeller": "Nhắn người bán",
             "buyAgain": "Mua lại",
             "leaveReview": "Đánh giá",
+            "viewReview": "Xem đánh giá",
             "cancelOrder": "Hủy đơn hàng",
             "markAsReceived": "Đã nhận hàng"
         },
@@ -489,6 +490,31 @@
             "loadFailed": "Không thể tải chi tiết đơn hàng.",
             "notFound": "Không tìm thấy đơn hàng.",
             "updateStatusFailed": "Không thể cập nhật trạng thái đơn hàng."
+        },
+        "review": {
+            "reviewOrder": "Đánh giá đơn hàng",
+            "viewReviewed": "Xem sản phẩm đã đánh giá",
+            "title": "Đánh giá sản phẩm",
+            "close": "Đóng",
+            "productQuality": "Chất lượng sản phẩm",
+            "contentPlaceholder": "Hãy chia sẻ cảm nhận của bạn về sản phẩm này...",
+            "addMedia": "Thêm Hình ảnh/Video",
+            "cancel": "Hủy",
+            "submit": "Gửi đánh giá",
+            "submitting": "Đang gửi...",
+            "submitSuccess": "Gửi đánh giá thành công.",
+            "alreadyReviewed": "Sản phẩm này đã được đánh giá.",
+            "rating": {
+                "1": "Rất tệ",
+                "2": "Tệ",
+                "3": "Bình thường",
+                "4": "Hài lòng",
+                "5": "Tuyệt vời"
+            },
+            "errors": {
+                "ratingRequired": "Vui lòng đánh giá tất cả sản phẩm trước khi gửi.",
+                "submitFailed": "Gửi đánh giá thất bại."
+            }
         }
     }
 }
