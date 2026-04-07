@@ -105,6 +105,7 @@ const parseRefundMetadata = (cancellationReason) => {
  */
 export const createOrder = async (userId, orderData) => {
   const {
+    cartItemIds,
     shippingName,
     shippingPhone,
     shippingAddress,
@@ -139,8 +140,17 @@ export const createOrder = async (userId, orderData) => {
     throw new Error('Cart is empty');
   }
 
+  const selectedCartItems =
+    Array.isArray(cartItemIds) && cartItemIds.length > 0
+      ? cart.items.filter((item) => cartItemIds.includes(item.id))
+      : cart.items;
+
+  if (selectedCartItems.length === 0) {
+    throw new Error('Selected cart items not found');
+  }
+
   // Validate stock for all items
-  for (const item of cart.items) {
+  for (const item of selectedCartItems) {
     if (
       item.product.trackInventory &&
       (item.variant?.stockQuantity ?? item.product.stockQuantity) < item.quantity
@@ -154,7 +164,7 @@ export const createOrder = async (userId, orderData) => {
   }
 
   // Calculate totals
-  const subtotal = cart.items.reduce(
+  const subtotal = selectedCartItems.reduce(
     (sum, item) => sum + Number(item.price) * item.quantity,
     0
   );
@@ -191,7 +201,7 @@ export const createOrder = async (userId, orderData) => {
     });
 
     // Create order items
-    for (const item of cart.items) {
+    for (const item of selectedCartItems) {
       const unitPrice = item.variant?.price ?? item.price ?? item.product.price;
       const totalPrice = Number(unitPrice) * item.quantity;
       const variantInfo = item.variant?.options ?? null;
@@ -236,9 +246,12 @@ export const createOrder = async (userId, orderData) => {
       }
     }
 
-    // Clear cart
+    // Clear only purchased items from cart.
     await tx.cartItem.deleteMany({
-      where: { cartId: cart.id },
+      where: {
+        cartId: cart.id,
+        id: { in: selectedCartItems.map((item) => item.id) },
+      },
     });
 
     return newOrder;

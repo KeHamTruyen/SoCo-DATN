@@ -19,6 +19,14 @@ export const validate = (req, res, next) => {
  * Validate create order request
  */
 export const validateCreateOrder = [
+    body("cartItemIds")
+        .optional()
+        .isArray({ min: 1 })
+        .withMessage("cartItemIds must be a non-empty array"),
+    body("cartItemIds.*")
+        .optional()
+        .isUUID()
+        .withMessage("Each cartItemId must be a valid UUID"),
     body("shippingName")
         .notEmpty()
         .withMessage("Shipping name is required")

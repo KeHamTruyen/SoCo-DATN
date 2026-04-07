@@ -39,6 +39,13 @@ export const createOrder = async (req, res) => {
       });
     }
 
+    if (error.message === 'Selected cart items not found') {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to create order',
