@@ -1,9 +1,7 @@
 import { CreditCard, Smartphone, Truck } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { cartApi } from "../features/cart/api/cartApi";
-import { orderApi } from "../features/order/api/orderApi";
-import type { CartItem } from "../features/cart/types/cart.types";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useCheckoutPage } from "../features/checkout/hooks";
 import { formatCurrencyVnd } from "../shared/lib/formatCurrencyVnd";
 import { Button, UnifiedHeader } from "../shared/ui";
 
@@ -30,85 +28,20 @@ const PAYMENT_METHODS = [
 
 export default function Checkout() {
     const navigate = useNavigate();
-    const location = useLocation();
-    const selectedCartItemIds = useMemo<string[]>(
-        () => ((location.state as { selectedCartItemIds?: string[] } | null)?.selectedCartItemIds ?? []),
-        [location.state],
-    );
-    const [form, setForm] = useState({
-        fullName: "",
-        phone: "",
-        address: "",
-    });
-    const [paymentMethod, setPaymentMethod] = useState<"COD" | "BANK_TRANSFER" | "MOMO">("COD");
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isLoadingCart, setIsLoadingCart] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [selectedItems, setSelectedItems] = useState<CartItem[]>([]);
-
-    useEffect(() => {
-        let mounted = true;
-        void (async () => {
-            if (selectedCartItemIds.length === 0) {
-                if (mounted) {
-                    setError("No selected cart items. Please return to cart.");
-                    setIsLoadingCart(false);
-                }
-                return;
-            }
-            try {
-                const cart = await cartApi.getCart();
-                if (!mounted) return;
-                const items = (cart.items ?? []).filter((item) => selectedCartItemIds.includes(item.id));
-                setSelectedItems(items);
-                if (items.length === 0) {
-                    setError("Selected items are no longer in your cart.");
-                }
-            } catch {
-                if (!mounted) return;
-                setError("Unable to load selected cart items.");
-            } finally {
-                if (mounted) setIsLoadingCart(false);
-            }
-        })();
-        return () => {
-            mounted = false;
-        };
-    }, [selectedCartItemIds]);
-
-    const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const shipping = selectedItems.length > 0 ? 30000 : 0;
-    const total = subtotal + shipping;
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!form.fullName || !form.phone || !form.address) {
-            setError("Please fill in all required fields.");
-            return;
-        }
-        setIsSubmitting(true);
-        setError(null);
-        try {
-            const order = await orderApi.createOrder({
-                cartItemIds: selectedItems.map((item) => item.id),
-                shippingName: form.fullName,
-                shippingPhone: form.phone,
-                shippingAddress: form.address,
-                paymentMethod,
-            });
-            const orders = Array.isArray(order) ? order : [order];
-            const orderIds = orders.map((o) => o.id).filter(Boolean);
-            if (orderIds.length === 1) {
-                navigate(`/checkout/success?orderId=${orderIds[0]}`);
-            } else {
-                navigate(`/checkout/success?orderIds=${encodeURIComponent(orderIds.join(","))}`);
-            }
-        } catch {
-            setError("Failed to place order. Please try again.");
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+    const {
+        form,
+        paymentMethod,
+        isSubmitting,
+        isLoadingCart,
+        error,
+        selectedItems,
+        subtotal,
+        shipping,
+        total,
+        updateForm,
+        setPaymentMethod,
+        submitOrder,
+    } = useCheckoutPage();
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark">
@@ -127,7 +60,12 @@ export default function Checkout() {
                     </p>
                 </div>
 
-                <form onSubmit={(e) => void handleSubmit(e)}>
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        void submitOrder();
+                    }}
+                >
                     <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
                         <div className="space-y-6 lg:col-span-7">
                             <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
@@ -144,9 +82,7 @@ export default function Checkout() {
                                             <input
                                                 type="text"
                                                 value={form.fullName}
-                                                onChange={(e) =>
-                                                    setForm((f) => ({ ...f, fullName: e.target.value }))
-                                                }
+                                                onChange={(e) => updateForm("fullName", e.target.value)}
                                                 placeholder="John Doe"
                                                 className="w-full rounded-lg border border-neutral-200 bg-transparent px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-neutral-700"
                                             />
@@ -158,9 +94,7 @@ export default function Checkout() {
                                             <input
                                                 type="tel"
                                                 value={form.phone}
-                                                onChange={(e) =>
-                                                    setForm((f) => ({ ...f, phone: e.target.value }))
-                                                }
+                                                onChange={(e) => updateForm("phone", e.target.value)}
                                                 placeholder="+84 000 000 000"
                                                 className="w-full rounded-lg border border-neutral-200 bg-transparent px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-neutral-700"
                                             />
@@ -172,9 +106,7 @@ export default function Checkout() {
                                         </label>
                                         <textarea
                                             value={form.address}
-                                            onChange={(e) =>
-                                                setForm((f) => ({ ...f, address: e.target.value }))
-                                            }
+                                            onChange={(e) => updateForm("address", e.target.value)}
                                             placeholder="Street address, Apartment, Suite, Floor, etc."
                                             rows={3}
                                             className="w-full rounded-lg border border-neutral-200 bg-transparent px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-neutral-700"

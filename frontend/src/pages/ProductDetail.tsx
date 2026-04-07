@@ -1,21 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Star, X } from "lucide-react";
-import { cartApi } from "../features/cart/api/cartApi";
-import { profileApi } from "../features/profile/api/profileApi";
-import { productApi } from "../features/product/api/productApi";
+import { useProductDetailPage, type ProductDetailTab } from "../features/product/hooks";
 import { ProductDetailPanel } from "../features/product/components/ProductDetailPanel";
 import { ProductGallery } from "../features/product/components/ProductGallery";
-import type {
-    ProductDetail as ProductDetailType,
-    ProductReviewItem,
-    ProductReviewPhoto,
-} from "../features/product/types/product.types";
 import { Footer, UnifiedHeader } from "../shared/ui";
-
-type TabType = "reviews" | "details" | "shipping";
-const REVIEW_PAGE_SIZE = 3;
 
 function formatReviewDate(date: string): string {
     const value = new Date(date);
@@ -26,130 +16,29 @@ function formatReviewDate(date: string): string {
 export default function ProductDetail() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [product, setProduct] = useState<ProductDetailType | null>(null);
-    const [reviews, setReviews] = useState<ProductReviewItem[]>([]);
-    const [reviewsPage, setReviewsPage] = useState(1);
-    const [reviewsTotal, setReviewsTotal] = useState(0);
-    const [reviewsError, setReviewsError] = useState<string | null>(null);
-    const [isLoadingReviews, setIsLoadingReviews] = useState(false);
-    const [isLoadingMoreReviews, setIsLoadingMoreReviews] = useState(false);
-    const [cartActionError, setCartActionError] = useState<string | null>(null);
-    const [activePhotoIndex, setActivePhotoIndex] = useState(0);
-    const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<TabType>("reviews");
-
-    const reviewPhotos = useMemo<ProductReviewPhoto[]>(() => {
-        const map = new Map<string, ProductReviewPhoto>();
-        reviews.forEach((review) => {
-            review.photos.forEach((photo) => {
-                if (!map.has(photo.imageUrl)) {
-                    map.set(photo.imageUrl, photo);
-                }
-            });
-        });
-        return Array.from(map.values());
-    }, [reviews]);
-
-    const reviewDistribution = useMemo(() => {
-        const base = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } as Record<1 | 2 | 3 | 4 | 5, number>;
-        reviews.forEach((review) => {
-            const rounded = Math.max(1, Math.min(5, Math.round(review.rating))) as 1 | 2 | 3 | 4 | 5;
-            base[rounded] += 1;
-        });
-        return base;
-    }, [reviews]);
-
-    const canLoadMoreReviews = reviews.length < reviewsTotal;
-
-    useEffect(() => {
-        if (!id) return;
-        let mounted = true;
-        void (async () => {
-            setIsLoading(true);
-            setError(null);
-            setReviews([]);
-            setReviewsPage(1);
-            setReviewsTotal(0);
-            setReviewsError(null);
-            setIsLoadingReviews(true);
-            try {
-                const [productData, reviewData] = await Promise.all([
-                    productApi.getProductDetail(id),
-                    productApi.getProductReviews(id, { page: 1, limit: REVIEW_PAGE_SIZE }),
-                ]);
-                if (!mounted) return;
-                setProduct(productData);
-                if (productData.seller?.id) {
-                    try {
-                        const sellerProfile = await profileApi.getProfile(productData.seller.id);
-                        setProduct((prev) =>
-                            prev
-                                ? {
-                                      ...prev,
-                                      seller: prev.seller
-                                          ? {
-                                                ...prev.seller,
-                                                followersCount: sellerProfile.followersCount ?? 0,
-                                                shopRating: sellerProfile.shopRating ?? 0,
-                                            }
-                                          : prev.seller,
-                                  }
-                                : prev,
-                        );
-                    } catch {
-                        // Keep product details usable if seller profile lookup fails.
-                    }
-                }
-                setReviews(reviewData.items);
-                setReviewsTotal(reviewData.total);
-                setReviewsPage(reviewData.page);
-            } catch {
-                if (!mounted) return;
-                setError("Unable to load product detail.");
-                setReviewsError("Unable to load reviews.");
-            } finally {
-                if (mounted) setIsLoading(false);
-                if (mounted) setIsLoadingReviews(false);
-            }
-        })();
-        return () => {
-            mounted = false;
-        };
-    }, [id]);
-
-    async function handleLoadMoreReviews() {
-        if (!id || isLoadingMoreReviews || !canLoadMoreReviews) return;
-        const nextPage = reviewsPage + 1;
-        setIsLoadingMoreReviews(true);
-        setReviewsError(null);
-        try {
-            const data = await productApi.getProductReviews(id, { page: nextPage, limit: REVIEW_PAGE_SIZE });
-            setReviews((prev) => [...prev, ...data.items]);
-            setReviewsPage(data.page);
-            setReviewsTotal(data.total);
-        } catch {
-            setReviewsError("Unable to load more reviews.");
-        } finally {
-            setIsLoadingMoreReviews(false);
-        }
-    }
-
-    function openPhotoModal(startIndex = 0) {
-        if (reviewPhotos.length === 0) return;
-        const safeIndex = Math.max(0, Math.min(reviewPhotos.length - 1, startIndex));
-        setActivePhotoIndex(safeIndex);
-        setIsPhotoModalOpen(true);
-    }
-
-    function showPrevPhoto() {
-        setActivePhotoIndex((prev) => (prev - 1 + reviewPhotos.length) % reviewPhotos.length);
-    }
-
-    function showNextPhoto() {
-        setActivePhotoIndex((prev) => (prev + 1) % reviewPhotos.length);
-    }
+    const {
+        product,
+        reviews,
+        reviewsError,
+        isLoadingReviews,
+        isLoadingMoreReviews,
+        cartActionError,
+        activePhotoIndex,
+        isPhotoModalOpen,
+        isLoading,
+        error,
+        activeTab,
+        reviewPhotos,
+        reviewDistribution,
+        canLoadMoreReviews,
+        setActiveTab,
+        loadMoreReviews,
+        openPhotoModal,
+        closePhotoModal,
+        showPrevPhoto,
+        showNextPhoto,
+        addToCartWithStatus,
+    } = useProductDetailPage(id);
 
     const photoModal =
         isPhotoModalOpen && reviewPhotos.length > 0
@@ -157,7 +46,7 @@ export default function ProductDetail() {
                   <div
                       role="presentation"
                       className="fixed inset-0 z-9999 bg-black/70 backdrop-blur-sm"
-                      onClick={() => setIsPhotoModalOpen(false)}
+                      onClick={closePhotoModal}
                   >
                       <div
                           role="dialog"
@@ -168,7 +57,7 @@ export default function ProductDetail() {
                           <button
                               type="button"
                               className="absolute right-4 top-4 rounded-full bg-background/80 p-2 text-foreground"
-                              onClick={() => setIsPhotoModalOpen(false)}
+                              onClick={closePhotoModal}
                           >
                               <X className="h-5 w-5" />
                           </button>
@@ -199,22 +88,6 @@ export default function ProductDetail() {
                   document.body,
               )
             : null;
-
-    async function addToCartWithStatus(quantity: number, variantId?: string): Promise<boolean> {
-        if (!product) return false;
-        if (product.variants?.length && !variantId) {
-            setCartActionError("Please select a variant before adding to cart.");
-            return false;
-        }
-        try {
-            await cartApi.addItem(product.id, quantity, variantId);
-            setCartActionError(null);
-            return true;
-        } catch {
-            setCartActionError("Unable to add item to cart. Please try again.");
-            return false;
-        }
-    }
 
     async function handleAddToCart(quantity: number, variantId?: string) {
         await addToCartWithStatus(quantity, variantId);
@@ -297,7 +170,7 @@ export default function ProductDetail() {
                 {/* Tabs Section */}
                 <div className="mt-16 pt-10">
                     <div className="mb-10 flex border-b border-border">
-                        {(["reviews", "details", "shipping"] as TabType[]).map((tab) => (
+                        {(["reviews", "details", "shipping"] as ProductDetailTab[]).map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
@@ -472,7 +345,7 @@ export default function ProductDetail() {
                                 {canLoadMoreReviews && (
                                     <button
                                         type="button"
-                                        onClick={handleLoadMoreReviews}
+                                        onClick={loadMoreReviews}
                                         disabled={isLoadingMoreReviews}
                                         className="mt-8 w-full rounded-xl border-2 border-border py-4 font-bold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
                                     >

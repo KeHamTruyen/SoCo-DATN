@@ -7,16 +7,11 @@ import {
     ShoppingBag,
     Truck,
 } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { orderApi } from "../features/order/api/orderApi";
-import OrderReviewModal, {
-    type OrderReviewFormItem,
-} from "../features/order/components/OrderReviewModal";
+import { Link, useParams } from "react-router-dom";
+import OrderReviewModal from "../features/order/components/OrderReviewModal";
+import { useOrderDetailPage } from "../features/order/hooks";
 import type { Order, OrderStatus } from "../features/order/types/order.types";
-import { reviewApi } from "../features/review/api/reviewApi";
-import { uploadProductImages } from "../features/upload/api/uploadApi";
 import { cn } from "../shared/lib/cn";
 import { formatCurrencyVnd } from "../shared/lib/formatCurrencyVnd";
 import { Button, UnifiedHeader } from "../shared/ui";
@@ -33,75 +28,24 @@ const STATUS_STEPS: { key: OrderStatus; label: string; icon: React.ReactNode }[]
 export default function OrderDetail() {
     const { t, i18n } = useTranslation();
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
-    const [order, setOrder] = useState<Order | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isUpdating, setIsUpdating] = useState(false);
-    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-    const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-    const [reviewNotice, setReviewNotice] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (!id) return;
-        let mounted = true;
-        void (async () => {
-            setIsLoading(true);
-            try {
-                const data = await orderApi.getOrder(id);
-                if (!mounted) return;
-                setOrder(data);
-            } catch {
-                if (!mounted) return;
-                setError(t("orderDetail.errors.loadFailed", "Unable to load order details."));
-            } finally {
-                if (mounted) setIsLoading(false);
-            }
-        })();
-        return () => { mounted = false; };
-    }, [id, t]);
+    const {
+        order,
+        isLoading,
+        isUpdating,
+        isReviewModalOpen,
+        isSubmittingReview,
+        reviewNotice,
+        error,
+        setIsReviewModalOpen,
+        setReviewNotice,
+        cancelOrder,
+        markAsReceived,
+        submitReviews,
+    } = useOrderDetailPage(id);
 
     const currentStepIndex = order
         ? STATUS_STEPS.findIndex((s) => s.key === order.status)
         : -1;
-
-    const handleSubmitReviews = async (reviewItems: OrderReviewFormItem[]) => {
-        if (!order) return;
-        if (reviewItems.length === 0) {
-            setReviewNotice(t("orderDetail.review.alreadyReviewed", "This item has already been reviewed."));
-            setIsReviewModalOpen(false);
-            return;
-        }
-        setIsSubmittingReview(true);
-        setReviewNotice(null);
-        const result = await Promise.allSettled(
-            reviewItems.map(async (item) => {
-                const uploaded = item.files.length > 0
-                    ? await uploadProductImages(item.files)
-                    : [];
-                return reviewApi.createReview({
-                    orderItemId: item.orderItemId,
-                    rating: item.rating,
-                    content: item.content.trim() || undefined,
-                    images: uploaded.map((u) => u.url),
-                });
-            }),
-        );
-        const failed = result.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
-        if (failed.length === 0) {
-            setReviewNotice(t("orderDetail.review.submitSuccess", "Review submitted successfully."));
-            setIsReviewModalOpen(false);
-            setIsSubmittingReview(false);
-            return;
-        }
-        const firstReason = failed[0]?.reason;
-        const message =
-            firstReason instanceof Error
-                ? firstReason.message
-                : t("orderDetail.review.errors.submitFailed", "Failed to submit review.");
-        setReviewNotice(message);
-        setIsSubmittingReview(false);
-    };
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark">
@@ -393,10 +337,7 @@ export default function OrderDetail() {
                                         className="w-full"
                                         disabled={isUpdating}
                                         onClick={() => {
-                                            setIsUpdating(true);
-                                            void orderApi.cancelOrder(order.id).then(() => {
-                                                navigate("/orders");
-                                            }).finally(() => setIsUpdating(false));
+                                            void cancelOrder();
                                         }}
                                     >
                                         {t("orderDetail.actions.cancelOrder", "Cancel Order")}
@@ -407,13 +348,7 @@ export default function OrderDetail() {
                                         className="w-full"
                                         disabled={isUpdating}
                                         onClick={() => {
-                                            setIsUpdating(true);
-                                            void orderApi.updateOrderStatus(order.id, "completed")
-                                                .then((updated) => setOrder(updated))
-                                                .catch(() =>
-                                                    setError(t("orderDetail.errors.updateStatusFailed", "Unable to update order status.")),
-                                                )
-                                                .finally(() => setIsUpdating(false));
+                                            void markAsReceived();
                                         }}
                                     >
                                         {t("orderDetail.actions.markAsReceived", "Mark as Received")}
@@ -440,7 +375,7 @@ export default function OrderDetail() {
                                 if (isSubmittingReview) return;
                                 setIsReviewModalOpen(false);
                             }}
-                            onSubmit={handleSubmitReviews}
+                            onSubmit={submitReviews}
                         />
                     </>
                 )}

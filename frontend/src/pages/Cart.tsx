@@ -9,10 +9,9 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { cartApi } from "../features/cart/api/cartApi";
 import { CartItem } from "../features/cart/components/CartItem";
 import { CartSummary } from "../features/cart/components/CartSummary";
-import type { Cart as CartType } from "../features/cart/types/cart.types";
+import { useCartPage } from "../features/cart/hooks";
 import { marketplaceApi } from "../features/marketplace/api/marketplaceApi";
 import type { ProductListItem } from "../features/marketplace/types/marketplace.types";
 import { UnifiedHeader } from "../shared/ui";
@@ -95,104 +94,22 @@ function CartProductStrip({
 
 export default function Cart() {
     const navigate = useNavigate();
-    const [cart, setCart] = useState<CartType | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-    const [actionError, setActionError] = useState<string | null>(null);
-
-    useEffect(() => {
-        let mounted = true;
-        void (async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                const data = await cartApi.getCart();
-                if (!mounted) return;
-                setCart(data);
-                const allIds = (data.groups ?? []).flatMap((g) =>
-                    (g.items ?? []).map((i) => i.id),
-                );
-                setSelectedIds(new Set(allIds));
-            } catch {
-                if (!mounted) return;
-                setError("Unable to load your cart.");
-            } finally {
-                if (mounted) setIsLoading(false);
-            }
-        })();
-        return () => { mounted = false; };
-    }, []);
-
-    const handleSelect = (id: string, checked: boolean) => {
-        setSelectedIds((prev) => {
-            const next = new Set(prev);
-            if (checked) next.add(id);
-            else next.delete(id);
-            return next;
-        });
-    };
-
-    const handleSelectAll = (checked: boolean) => {
-        if (!cart) return;
-        if (checked) {
-            const allIds = (cart.groups ?? []).flatMap((g) =>
-                (g.items ?? []).map((i) => i.id),
-            );
-            setSelectedIds(new Set(allIds));
-        } else {
-            setSelectedIds(new Set());
-        }
-    };
-
-    const handleQuantityChange = async (cartItemId: string, quantity: number) => {
-        try {
-            const updated = await cartApi.updateItem(cartItemId, quantity);
-            setCart(updated);
-            setActionError(null);
-        } catch {
-            setActionError("Unable to update quantity. Please try again.");
-        }
-    };
-
-    const handleRemove = async (cartItemId: string) => {
-        try {
-            const updated = await cartApi.removeItem(cartItemId);
-            setCart(updated);
-            setActionError(null);
-            setSelectedIds((prev) => {
-                const next = new Set(prev);
-                next.delete(cartItemId);
-                return next;
-            });
-        } catch {
-            setActionError("Unable to remove item. Please try again.");
-        }
-    };
-
-    const handleDeleteSelected = async () => {
-        if (selectedIds.size === 0) return;
-        try {
-            for (const id of selectedIds) {
-                await cartApi.removeItem(id);
-            }
-            const updated = await cartApi.getCart();
-            setCart(updated);
-            setSelectedIds(new Set());
-            setActionError(null);
-        } catch {
-            setActionError("Unable to delete selected items.");
-        }
-    };
-
-    const allItems =
-        cart?.groups?.flatMap((g) => g.items ?? []) ?? [];
-    const allSelected =
-        allItems.length > 0 && allItems.every((i) => selectedIds.has(i.id));
-    const selectedCount = selectedIds.size;
-    const selectedSubtotal = allItems
-        .filter((i) => selectedIds.has(i.id))
-        .reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const {
+        cart,
+        isLoading,
+        error,
+        selectedIds,
+        actionError,
+        allSelected,
+        selectedCount,
+        selectedSubtotal,
+        setActionError,
+        handleSelect,
+        handleSelectAll,
+        handleQuantityChange,
+        handleRemove,
+        handleDeleteSelected,
+    } = useCartPage();
 
     const shell = (
         <>
