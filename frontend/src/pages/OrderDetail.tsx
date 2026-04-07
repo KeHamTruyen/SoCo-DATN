@@ -8,6 +8,7 @@ import {
     Truck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { orderApi } from "../features/order/api/orderApi";
 import type { Order, OrderStatus } from "../features/order/types/order.types";
@@ -16,22 +17,20 @@ import { Button, UnifiedHeader } from "../shared/ui";
 
 const STATUS_STEPS: { key: OrderStatus; label: string; icon: React.ReactNode }[] = [
     { key: "pending", label: "Order Placed", icon: <ShoppingBag className="h-5 w-5" /> },
-    { key: "confirmed", label: "Processing", icon: <Package className="h-5 w-5" /> },
+    { key: "confirmed", label: "Confirmed", icon: <Package className="h-5 w-5" /> },
+    { key: "processing", label: "Processing", icon: <Package className="h-5 w-5" /> },
     { key: "shipping", label: "In Transit", icon: <Truck className="h-5 w-5" /> },
-    { key: "delivered", label: "Completed", icon: <CheckCircle2 className="h-5 w-5" /> },
+    { key: "delivered", label: "Delivered", icon: <CheckCircle2 className="h-5 w-5" /> },
+    { key: "completed", label: "Completed", icon: <CheckCircle2 className="h-5 w-5" /> },
 ];
 
-const PAYMENT_LABEL: Record<string, string> = {
-    cod: "Cash on Delivery",
-    bank_transfer: "Bank Transfer",
-    e_wallet: "E-Wallet",
-};
-
 export default function OrderDetail() {
+    const { t, i18n } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [order, setOrder] = useState<Order | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isUpdating, setIsUpdating] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -45,13 +44,13 @@ export default function OrderDetail() {
                 setOrder(data);
             } catch {
                 if (!mounted) return;
-                setError("Unable to load order details.");
+                setError(t("orderDetail.errors.loadFailed", "Unable to load order details."));
             } finally {
                 if (mounted) setIsLoading(false);
             }
         })();
         return () => { mounted = false; };
-    }, [id]);
+    }, [id, t]);
 
     const currentStepIndex = order
         ? STATUS_STEPS.findIndex((s) => s.key === order.status)
@@ -61,8 +60,8 @@ export default function OrderDetail() {
         <div className="min-h-screen bg-background-light dark:bg-background-dark">
             <UnifiedHeader
                 navItems={[
-                    { label: "Feed", to: "/feed" },
-                    { label: "Marketplace", to: "/marketplace" },
+                    { label: t("messaging.navFeed", "Feed"), to: "/feed" },
+                    { label: t("messaging.navMarketplace", "Marketplace"), to: "/marketplace" },
                 ]}
             />
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -73,7 +72,7 @@ export default function OrderDetail() {
                     </div>
                 ) : error || !order ? (
                     <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-400">
-                        {error ?? "Order not found."}
+                        {error ?? t("orderDetail.errors.notFound", "Order not found.")}
                     </div>
                 ) : (
                     <>
@@ -81,33 +80,34 @@ export default function OrderDetail() {
                             <div>
                                 <nav className="mb-2 flex gap-2 text-sm text-neutral-500 dark:text-neutral-400">
                                     <Link to="/marketplace" className="hover:text-primary">
-                                        Marketplace
+                                        {t("navigation.marketplace", "Marketplace")}
                                     </Link>
                                     <span>/</span>
                                     <Link to="/orders" className="hover:text-primary">
-                                        Orders
+                                        {t("profile.orders", "Orders")}
                                     </Link>
                                 </nav>
                                 <h1 className="text-3xl font-extrabold tracking-tight">
-                                    Order #{order.orderNumber}
+                                    {t("orderDetail.title", "Order #{{orderNumber}}", { orderNumber: order.orderNumber })}
                                 </h1>
                                 <p className="mt-1 text-neutral-500 dark:text-neutral-400">
-                                    Placed on{" "}
-                                    {new Date(order.createdAt).toLocaleDateString("en-US", {
+                                    {t("orderDetail.placedOn", "Placed on {{date}}", {
+                                        date: new Date(order.createdAt).toLocaleDateString(i18n.language === "vi" ? "vi-VN" : "en-US", {
                                         year: "numeric",
                                         month: "long",
                                         day: "numeric",
+                                        }),
                                     })}
                                 </p>
                             </div>
                             <div className="flex gap-3">
                                 <Button variant="outline" className="gap-2">
                                     <Download className="h-4 w-4" />
-                                    Invoice
+                                    {t("orderDetail.actions.invoice", "Invoice")}
                                 </Button>
                                 <Button className="gap-2">
                                     <MessageCircle className="h-4 w-4" />
-                                    Message Seller
+                                    {t("orderDetail.actions.messageSeller", "Message Seller")}
                                 </Button>
                             </div>
                         </div>
@@ -116,9 +116,9 @@ export default function OrderDetail() {
                             <div className="space-y-8 lg:col-span-2">
                                 {order.status !== "cancelled" && order.status !== "refunded" ? (
                                     <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                        <h3 className="mb-8 text-lg font-bold">Order Status</h3>
+                                        <h3 className="mb-8 text-lg font-bold">{t("orderDetail.sections.status", "Order Status")}</h3>
                                         <div className="relative flex items-center justify-between">
-                                            <div className="absolute left-0 top-1/2 -z-0 h-1 w-full -translate-y-1/2 bg-neutral-100 dark:bg-neutral-800">
+                                            <div className="absolute left-0 top-1/2 z-0 h-1 w-full -translate-y-1/2 bg-neutral-100 dark:bg-neutral-800">
                                                 <div
                                                     className="h-full bg-primary transition-all"
                                                     style={{
@@ -166,7 +166,7 @@ export default function OrderDetail() {
                                 ) : (
                                     <section className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm dark:border-red-900/40 dark:bg-red-900/20">
                                         <p className="text-center text-sm font-medium text-red-600 dark:text-red-400">
-                                            This order has been {order.status}.
+                                            {t("orderDetail.statusNotice", "This order has been {{status}}.", { status: order.status })}
                                         </p>
                                     </section>
                                 )}
@@ -174,7 +174,7 @@ export default function OrderDetail() {
                                 <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                                     <div className="border-b border-neutral-100 p-6 dark:border-neutral-800">
                                         <h3 className="text-lg font-bold">
-                                            Items in Order ({order.items.length})
+                                            {t("orderDetail.sections.items", "Items in Order ({{count}})", { count: order.items.length })}
                                         </h3>
                                     </div>
                                     <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -205,14 +205,14 @@ export default function OrderDetail() {
                                                     </div>
                                                     <div className="mt-4 flex items-center justify-between">
                                                         <span className="text-sm text-neutral-500">
-                                                            Qty: {item.quantity}
+                                                            {t("orderDetail.qty", "Qty: {{qty}}", { qty: item.quantity })}
                                                         </span>
                                                         <div className="flex gap-2">
                                                             <button
                                                                 type="button"
                                                                 className="text-sm font-semibold text-primary hover:underline"
                                                             >
-                                                                Buy Again
+                                                                {t("orderDetail.actions.buyAgain", "Buy Again")}
                                                             </button>
                                                             {order.status === "delivered" && (
                                                                 <>
@@ -221,7 +221,7 @@ export default function OrderDetail() {
                                                                         type="button"
                                                                         className="text-sm font-semibold text-primary hover:underline"
                                                                     >
-                                                                        Leave Review
+                                                                        {t("orderDetail.actions.leaveReview", "Leave Review")}
                                                                     </button>
                                                                 </>
                                                             )}
@@ -235,7 +235,7 @@ export default function OrderDetail() {
 
                                 {order.timeline && order.timeline.length > 0 && (
                                     <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                        <h3 className="mb-6 text-lg font-bold">Tracking Timeline</h3>
+                                        <h3 className="mb-6 text-lg font-bold">{t("orderDetail.sections.timeline", "Tracking Timeline")}</h3>
                                         <div className="space-y-6">
                                             {order.timeline.map((entry, idx) => (
                                                 <div key={idx} className="flex gap-4">
@@ -265,29 +265,29 @@ export default function OrderDetail() {
 
                             <div className="space-y-6">
                                 <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                    <h3 className="mb-4 text-lg font-bold">Order Summary</h3>
+                                    <h3 className="mb-4 text-lg font-bold">{t("orderDetail.sections.summary", "Order Summary")}</h3>
                                     <div className="space-y-3 text-sm">
                                         <div className="flex justify-between">
-                                            <span className="text-neutral-500">Subtotal</span>
+                                            <span className="text-neutral-500">{t("orderDetail.summary.subtotal", "Subtotal")}</span>
                                             <span>${order.subtotal.toFixed(2)}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-neutral-500">Shipping</span>
+                                            <span className="text-neutral-500">{t("orderDetail.summary.shipping", "Shipping")}</span>
                                             {order.shipping === 0 ? (
-                                                <span className="text-success">Free</span>
+                                                <span className="text-success">{t("orderDetail.summary.free", "Free")}</span>
                                             ) : (
                                                 <span>${order.shipping.toFixed(2)}</span>
                                             )}
                                         </div>
                                         {order.discount > 0 && (
                                             <div className="flex justify-between">
-                                                <span className="text-neutral-500">Discount</span>
+                                                <span className="text-neutral-500">{t("orderDetail.summary.discount", "Discount")}</span>
                                                 <span className="text-success">-${order.discount.toFixed(2)}</span>
                                             </div>
                                         )}
                                         <div className="border-t border-neutral-100 pt-3 dark:border-neutral-800">
                                             <div className="flex justify-between font-bold">
-                                                <span>Total</span>
+                                                <span>{t("orderDetail.summary.total", "Total")}</span>
                                                 <span className="text-xl text-primary">
                                                     ${order.total.toFixed(2)}
                                                 </span>
@@ -299,7 +299,7 @@ export default function OrderDetail() {
                                 <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                                     <h3 className="mb-4 flex items-center gap-2 text-lg font-bold">
                                         <MapPin className="h-5 w-5 text-primary" />
-                                        Shipping Address
+                                        {t("orderDetail.sections.shippingAddress", "Shipping Address")}
                                     </h3>
                                     <p className="font-semibold">{order.shippingAddress.fullName}</p>
                                     <p className="mt-1 text-sm text-neutral-500">{order.shippingAddress.phone}</p>
@@ -307,9 +307,15 @@ export default function OrderDetail() {
                                 </div>
 
                                 <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                                    <h3 className="mb-4 text-lg font-bold">Payment</h3>
+                                    <h3 className="mb-4 text-lg font-bold">{t("orderDetail.sections.payment", "Payment")}</h3>
                                     <p className="text-sm font-medium">
-                                        {PAYMENT_LABEL[order.paymentMethod] ?? order.paymentMethod}
+                                        {order.paymentMethod === "cod"
+                                            ? t("orderDetail.payment.cod", "Cash on Delivery")
+                                            : order.paymentMethod === "bank_transfer"
+                                              ? t("orderDetail.payment.bankTransfer", "Bank Transfer")
+                                              : order.paymentMethod === "e_wallet"
+                                                ? t("orderDetail.payment.eWallet", "E-Wallet")
+                                                : order.paymentMethod}
                                     </p>
                                 </div>
 
@@ -317,13 +323,32 @@ export default function OrderDetail() {
                                     <Button
                                         variant="destructive"
                                         className="w-full"
+                                        disabled={isUpdating}
                                         onClick={() => {
+                                            setIsUpdating(true);
                                             void orderApi.cancelOrder(order.id).then(() => {
                                                 navigate("/orders");
-                                            });
+                                            }).finally(() => setIsUpdating(false));
                                         }}
                                     >
-                                        Cancel Order
+                                        {t("orderDetail.actions.cancelOrder", "Cancel Order")}
+                                    </Button>
+                                )}
+                                {order.status === "delivered" && (
+                                    <Button
+                                        className="w-full"
+                                        disabled={isUpdating}
+                                        onClick={() => {
+                                            setIsUpdating(true);
+                                            void orderApi.updateOrderStatus(order.id, "completed")
+                                                .then((updated) => setOrder(updated))
+                                                .catch(() =>
+                                                    setError(t("orderDetail.errors.updateStatusFailed", "Unable to update order status.")),
+                                                )
+                                                .finally(() => setIsUpdating(false));
+                                        }}
+                                    >
+                                        {t("orderDetail.actions.markAsReceived", "Mark as Received")}
                                     </Button>
                                 )}
                             </div>

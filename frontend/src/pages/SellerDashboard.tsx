@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Navigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { orderApi } from "../features/order/api/orderApi";
 import type { Order } from "../features/order/types/order.types";
 import { sellerDashboardApi } from "../features/seller-dashboard/api/sellerDashboardApi";
@@ -15,12 +16,13 @@ import {
     type SellerCenterTab,
 } from "../features/seller-dashboard/sellerDashboardTabs";
 import { profileApi } from "../features/profile/api/profileApi";
-import { SellerProfileHeader } from "../features/profile/components/SellerProfileHeader";
 import type {
     PublicUserProfile,
     SellerStats,
 } from "../features/profile/types/profile.types";
 import { useAuthSession } from "../shared/auth/useAuthSession";
+import { Avatar } from "../shared/ui/atoms/avatar";
+import { Button } from "../shared/ui/atoms/button";
 import { UnifiedHeader } from "../shared/ui";
 
 const EMPTY_STATS: SellerStats = {
@@ -33,6 +35,7 @@ const EMPTY_STATS: SellerStats = {
 };
 
 export default function SellerDashboard() {
+    const { t } = useTranslation();
     const { user } = useAuthSession();
     const role = (user?.role ?? "").toLowerCase();
     const isSeller = role === "seller";
@@ -70,6 +73,7 @@ export default function SellerDashboard() {
     const [productsReloadKey, setProductsReloadKey] = useState(0);
     const [orders, setOrders] = useState<Order[]>([]);
     const [ordersLoading, setOrdersLoading] = useState(false);
+    const [ordersReloadKey, setOrdersReloadKey] = useState(0);
 
     const productListParams = useMemo(() => {
         if (!isSeller || (tab !== "shop" && tab !== "inventory")) return null;
@@ -85,6 +89,9 @@ export default function SellerDashboard() {
 
     const reloadProducts = useCallback(() => {
         setProductsReloadKey((k) => k + 1);
+    }, []);
+    const reloadOrders = useCallback(() => {
+        setOrdersReloadKey((k) => k + 1);
     }, []);
 
     useEffect(() => {
@@ -178,7 +185,7 @@ export default function SellerDashboard() {
         return () => {
             mounted = false;
         };
-    }, [isSeller, tab]);
+    }, [isSeller, tab, ordersReloadKey]);
 
     if (!user) {
         return <Navigate to="/login" replace />;
@@ -193,8 +200,8 @@ export default function SellerDashboard() {
             <div className="min-h-screen bg-background-light dark:bg-background-dark">
                 <UnifiedHeader
                     navItems={[
-                        { label: "Feed", to: "/feed" },
-                        { label: "Marketplace", to: "/marketplace" },
+                        { label: t("messaging.navFeed", "Feed"), to: "/feed" },
+                        { label: t("messaging.navMarketplace", "Marketplace"), to: "/marketplace" },
                     ]}
                 />
                 <div className="mx-auto max-w-7xl px-4 py-16">
@@ -208,19 +215,35 @@ export default function SellerDashboard() {
         <div className="min-h-screen bg-background-light dark:bg-background-dark">
             <UnifiedHeader
                 navItems={[
-                    { label: "Feed", to: "/feed" },
-                    { label: "Marketplace", to: "/marketplace" },
+                    { label: t("messaging.navFeed", "Feed"), to: "/feed" },
+                    { label: t("messaging.navMarketplace", "Marketplace"), to: "/marketplace" },
                 ]}
             />
 
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex min-w-0 flex-col gap-6">
-                    <SellerProfileHeader
-                        profile={profile}
-                        isSelf
-                        onFollow={() => {}}
-                        onUnfollow={() => {}}
-                    />
+                    <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex items-center gap-3">
+                                <Avatar
+                                    src={profile.avatarUrl}
+                                    alt={profile.shopName ?? profile.fullName ?? "Seller"}
+                                    wrapperClassName="h-14 w-14 rounded-full ring-2 ring-primary/20"
+                                />
+                                <div>
+                                    <h1 className="text-xl font-bold text-foreground sm:text-2xl">
+                                        {profile.shopName ?? profile.fullName ?? t("sellerDashboard.page.sellerFallback", "Seller")}
+                                    </h1>
+                                    <p className="text-sm text-muted-foreground">
+                                        @{profile.username}
+                                    </p>
+                                </div>
+                            </div>
+                            <Link to="/settings">
+                                <Button variant="outline">{t("header.settings", "Settings")}</Button>
+                            </Link>
+                        </div>
+                    </section>
 
                     <SellerCreativeStudioBanner />
 
@@ -241,6 +264,7 @@ export default function SellerDashboard() {
                             shopStatusFilter={shopStatusFilter}
                             onShopStatusFilterChange={setShopStatusFilter}
                             onProductsUpdated={reloadProducts}
+                            onOrdersUpdated={reloadOrders}
                         />
                     </div>
                 </div>
