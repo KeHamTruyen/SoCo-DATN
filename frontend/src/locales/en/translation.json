@@ -261,6 +261,76 @@
         "twoFactorDisabledSuccess": "2FA has been disabled."
     },
     "sellerDashboard": {
+        "page": {
+            "sellerFallback": "Seller"
+        },
+        "orders": {
+            "searchPlaceholder": "Search by Order ID or Buyer Name",
+            "dateRange": "Date Range",
+            "from": "From",
+            "to": "To",
+            "clear": "Clear",
+            "apply": "Apply",
+            "customerFallback": "Customer",
+            "empty": "No customer orders yet.",
+            "loadingDetail": "Loading details...",
+            "tabs": {
+                "all": "All",
+                "completed": "Completed",
+                "cancelled": "Cancelled"
+            },
+            "status": {
+                "pending": "Pending",
+                "confirmed": "Confirmed",
+                "processing": "Processing",
+                "shipping": "Shipping",
+                "delivered": "Delivered",
+                "completed": "Completed",
+                "cancelled": "Cancelled",
+                "refunded": "Refunded"
+            },
+            "pagination": {
+                "showing": "Showing {{shown}} of {{total}} orders",
+                "prev": "Prev",
+                "next": "Next"
+            },
+            "table": {
+                "orderId": "Order ID",
+                "date": "Date",
+                "customer": "Customer",
+                "totalAmount": "Total Amount",
+                "status": "Status",
+                "action": "Action"
+            },
+            "actions": {
+                "viewDetails": "View Details",
+                "chatWithBuyer": "Chat with Buyer",
+                "cancelOrder": "Cancel Order",
+                "updateStatus": "Update Status"
+            },
+            "errors": {
+                "loadDetail": "Unable to load order details.",
+                "updateStatus": "Failed to update order status."
+            },
+            "modal": {
+                "title": "Order Details #{{orderNumber}}",
+                "customerInfo": "Customer Information",
+                "name": "Name",
+                "phone": "Phone",
+                "shippingAddress": "Shipping Address",
+                "itemsOrdered": "Items Ordered",
+                "product": "Product",
+                "qty": "Qty",
+                "price": "Price",
+                "total": "Total",
+                "timeline": "Order Timeline",
+                "paymentSummary": "Payment Summary",
+                "subtotal": "Subtotal",
+                "shipping": "Shipping",
+                "discount": "Discount",
+                "grandTotal": "Grand Total"
+            }
+        },
         "finances": {
             "title": "Finances",
             "subtitle": "Overview of your shop's revenue and available balance.",
@@ -380,6 +450,45 @@
             "productImages": "Product Images",
             "removeImage": "Remove image",
             "pendingImagesCount": "Selected {{count}} new images to upload upon saving."
+        }
+    },
+    "orderDetail": {
+        "title": "Order #{{orderNumber}}",
+        "placedOn": "Placed on {{date}}",
+        "qty": "Qty: {{qty}}",
+        "statusNotice": "This order has been {{status}}.",
+        "sections": {
+            "status": "Order Status",
+            "items": "Items in Order ({{count}})",
+            "timeline": "Tracking Timeline",
+            "summary": "Order Summary",
+            "shippingAddress": "Shipping Address",
+            "payment": "Payment"
+        },
+        "summary": {
+            "subtotal": "Subtotal",
+            "shipping": "Shipping",
+            "free": "Free",
+            "discount": "Discount",
+            "total": "Total"
+        },
+        "actions": {
+            "invoice": "Invoice",
+            "messageSeller": "Message Seller",
+            "buyAgain": "Buy Again",
+            "leaveReview": "Leave Review",
+            "cancelOrder": "Cancel Order",
+            "markAsReceived": "Mark as Received"
+        },
+        "payment": {
+            "cod": "Cash on Delivery",
+            "bankTransfer": "Bank Transfer",
+            "eWallet": "E-Wallet"
+        },
+        "errors": {
+            "loadFailed": "Unable to load order details.",
+            "notFound": "Order not found.",
+            "updateStatusFailed": "Unable to update order status."
         }
     }
 }

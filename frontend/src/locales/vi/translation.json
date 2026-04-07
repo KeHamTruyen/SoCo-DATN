@@ -261,6 +261,76 @@
         "twoFactorDisabledSuccess": "2FA đã được tắt."
     },
     "sellerDashboard": {
+        "page": {
+            "sellerFallback": "Người bán"
+        },
+        "orders": {
+            "searchPlaceholder": "Tìm theo mã đơn hoặc tên người mua",
+            "dateRange": "Khoảng ngày",
+            "from": "Từ ngày",
+            "to": "Đến ngày",
+            "clear": "Xóa",
+            "apply": "Áp dụng",
+            "customerFallback": "Khách hàng",
+            "empty": "Chưa có đơn hàng từ khách.",
+            "loadingDetail": "Đang tải chi tiết...",
+            "tabs": {
+                "all": "Tất cả",
+                "completed": "Hoàn thành",
+                "cancelled": "Đã hủy"
+            },
+            "status": {
+                "pending": "Chờ xử lý",
+                "confirmed": "Đã xác nhận",
+                "processing": "Đang xử lý",
+                "shipping": "Đang giao",
+                "delivered": "Đã giao",
+                "completed": "Hoàn thành",
+                "cancelled": "Đã hủy",
+                "refunded": "Hoàn tiền"
+            },
+            "pagination": {
+                "showing": "Hiển thị {{shown}} / {{total}} đơn hàng",
+                "prev": "Trước",
+                "next": "Sau"
+            },
+            "table": {
+                "orderId": "Mã đơn hàng",
+                "date": "Ngày",
+                "customer": "Khách hàng",
+                "totalAmount": "Tổng tiền",
+                "status": "Trạng thái",
+                "action": "Thao tác"
+            },
+            "actions": {
+                "viewDetails": "Xem chi tiết",
+                "chatWithBuyer": "Chat với người mua",
+                "cancelOrder": "Hủy đơn",
+                "updateStatus": "Cập nhật trạng thái"
+            },
+            "errors": {
+                "loadDetail": "Không thể tải chi tiết đơn hàng.",
+                "updateStatus": "Cập nhật trạng thái thất bại."
+            },
+            "modal": {
+                "title": "Chi tiết đơn hàng #{{orderNumber}}",
+                "customerInfo": "Thông tin khách hàng",
+                "name": "Tên",
+                "phone": "Điện thoại",
+                "shippingAddress": "Địa chỉ giao hàng",
+                "itemsOrdered": "Sản phẩm đã đặt",
+                "product": "Sản phẩm",
+                "qty": "SL",
+                "price": "Đơn giá",
+                "total": "Thành tiền",
+                "timeline": "Tiến trình đơn hàng",
+                "paymentSummary": "Tóm tắt thanh toán",
+                "subtotal": "Tạm tính",
+                "shipping": "Phí vận chuyển",
+                "discount": "Giảm giá",
+                "grandTotal": "Tổng thanh toán"
+            }
+        },
         "finances": {
             "title": "Doanh thu",
             "subtitle": "Tổng quan về doanh thu và số dư khả dụng của shop.",
@@ -380,6 +450,45 @@
             "productImages": "Ảnh sản phẩm",
             "removeImage": "Gỡ ảnh",
             "pendingImagesCount": "Đã chọn {{count}} ảnh mới để tải lên khi lưu."
+        }
+    },
+    "orderDetail": {
+        "title": "Đơn hàng #{{orderNumber}}",
+        "placedOn": "Đặt ngày {{date}}",
+        "qty": "SL: {{qty}}",
+        "statusNotice": "Đơn hàng này đã {{status}}.",
+        "sections": {
+            "status": "Trạng thái đơn hàng",
+            "items": "Sản phẩm trong đơn ({{count}})",
+            "timeline": "Dòng thời gian vận chuyển",
+            "summary": "Tóm tắt đơn hàng",
+            "shippingAddress": "Địa chỉ giao hàng",
+            "payment": "Thanh toán"
+        },
+        "summary": {
+            "subtotal": "Tạm tính",
+            "shipping": "Phí vận chuyển",
+            "free": "Miễn phí",
+            "discount": "Giảm giá",
+            "total": "Tổng cộng"
+        },
+        "actions": {
+            "invoice": "Hóa đơn",
+            "messageSeller": "Nhắn người bán",
+            "buyAgain": "Mua lại",
+            "leaveReview": "Đánh giá",
+            "cancelOrder": "Hủy đơn hàng",
+            "markAsReceived": "Đã nhận hàng"
+        },
+        "payment": {
+            "cod": "Thanh toán khi nhận hàng",
+            "bankTransfer": "Chuyển khoản ngân hàng",
+            "eWallet": "Ví điện tử"
+        },
+        "errors": {
+            "loadFailed": "Không thể tải chi tiết đơn hàng.",
+            "notFound": "Không tìm thấy đơn hàng.",
+            "updateStatusFailed": "Không thể cập nhật trạng thái đơn hàng."
         }
     }
 }
