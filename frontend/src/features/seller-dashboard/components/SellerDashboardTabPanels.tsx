@@ -23,6 +23,7 @@ interface SellerDashboardTabPanelsProps {
     shopStatusFilter: SellerShopStatusFilter;
     onShopStatusFilterChange: (next: SellerShopStatusFilter) => void;
     onProductsUpdated: () => void;
+    onOrdersUpdated: () => void;
 }
 
 export function SellerDashboardTabPanels({
@@ -35,6 +36,7 @@ export function SellerDashboardTabPanels({
     shopStatusFilter,
     onShopStatusFilterChange,
     onProductsUpdated,
+    onOrdersUpdated,
 }: SellerDashboardTabPanelsProps) {
     switch (tab) {
         case "dashboard":
@@ -62,6 +64,7 @@ export function SellerDashboardTabPanels({
                 <SellerDashboardOrdersTab
                     orders={orders}
                     loading={ordersLoading}
+                    onOrderChanged={onOrdersUpdated}
                 />
             );
         case "feedback":
