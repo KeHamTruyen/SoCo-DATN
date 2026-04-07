@@ -164,86 +164,101 @@ export const createOrder = async (userId, orderData) => {
   }
 
   // Calculate totals
-  const subtotal = selectedCartItems.reduce(
-    (sum, item) => sum + Number(item.price) * item.quantity,
-    0
-  );
-
-  // Mock shipping fee calculation (flat rate for now)
-  const shippingFee = 30000; // 30k VND flat rate
+  const shippingFeePerOrder = 30000; // 30k VND flat rate (per shop order)
   const tax = 0; // No tax for now
   const discount = 0; // No discount for now
-  const total = subtotal + shippingFee + tax - discount;
+
+  const itemsBySeller = new Map();
+  for (const item of selectedCartItems) {
+    const sellerId = item.product?.sellerId;
+    if (!sellerId) {
+      throw new Error(`Missing seller for ${item.product?.title ?? 'product'}`);
+    }
+    if (!itemsBySeller.has(sellerId)) itemsBySeller.set(sellerId, []);
+    itemsBySeller.get(sellerId).push(item);
+  }
 
   // Create order in transaction
-  const order = await prisma.$transaction(async (tx) => {
-    // Create order
-    const newOrder = await tx.order.create({
-      data: {
-        orderNumber: generateOrderNumber(),
-        buyerId: userId,
-        subtotal,
-        shippingFee,
-        tax,
-        discount,
-        total,
-        shippingName,
-        shippingPhone,
-        shippingAddress,
-        shippingCity,
-        shippingDistrict,
-        shippingWard,
-        shippingNote,
-        paymentMethod,
-        paymentStatus: 'PENDING',
-        status: 'PENDING',
-      },
-    });
+  const orders = await prisma.$transaction(async (tx) => {
+    const createdOrderIds = [];
 
-    // Create order items
-    for (const item of selectedCartItems) {
-      const unitPrice = item.variant?.price ?? item.price ?? item.product.price;
-      const totalPrice = Number(unitPrice) * item.quantity;
-      const variantInfo = item.variant?.options ?? null;
+    for (const [sellerId, items] of itemsBySeller.entries()) {
+      const subtotal = items.reduce((sum, item) => {
+        const unitPrice = item.variant?.price ?? item.price ?? item.product.price;
+        return sum + Number(unitPrice) * item.quantity;
+      }, 0);
+      const shippingFee = shippingFeePerOrder;
+      const total = subtotal + shippingFee + tax - discount;
 
-      await tx.orderItem.create({
+      const newOrder = await tx.order.create({
         data: {
-          orderId: newOrder.id,
-          productId: item.product.id,
-          variantId: item.variantId || null,
-          sellerId: item.product.sellerId,
-          productName: item.product.title,
-          productImageUrl: item.product.images[0]?.imageUrl || null,
-          variantInfo,
-          quantity: item.quantity,
-          unitPrice,
-          totalPrice,
-          status: 'pending',
+          orderNumber: generateOrderNumber(),
+          buyerId: userId,
+          subtotal,
+          shippingFee,
+          tax,
+          discount,
+          total,
+          shippingName,
+          shippingPhone,
+          shippingAddress,
+          shippingCity,
+          shippingDistrict,
+          shippingWard,
+          shippingNote,
+          paymentMethod,
+          paymentStatus: 'PENDING',
+          status: 'PENDING',
         },
       });
 
-      // Update product stock if tracking
-      if (item.product.trackInventory) {
-        if (item.variantId) {
-          await tx.productVariant.update({
-            where: { id: item.variantId },
-            data: {
-              stockQuantity: {
-                decrement: item.quantity,
+      // Create order items
+      for (const item of items) {
+        const unitPrice = item.variant?.price ?? item.price ?? item.product.price;
+        const totalPrice = Number(unitPrice) * item.quantity;
+        const variantInfo = item.variant?.options ?? null;
+
+        await tx.orderItem.create({
+          data: {
+            orderId: newOrder.id,
+            productId: item.product.id,
+            variantId: item.variantId || null,
+            sellerId,
+            productName: item.product.title,
+            productImageUrl: item.product.images[0]?.imageUrl || null,
+            variantInfo,
+            quantity: item.quantity,
+            unitPrice,
+            totalPrice,
+            status: 'pending',
+          },
+        });
+
+        // Update product stock if tracking
+        if (item.product.trackInventory) {
+          if (item.variantId) {
+            await tx.productVariant.update({
+              where: { id: item.variantId },
+              data: {
+                stockQuantity: {
+                  decrement: item.quantity,
+                },
               },
-            },
-          });
-        } else {
-          await tx.product.update({
-            where: { id: item.product.id },
-            data: {
-              stockQuantity: {
-                decrement: item.quantity,
+            });
+          } else {
+            await tx.product.update({
+              where: { id: item.product.id },
+              data: {
+                stockQuantity: {
+                  decrement: item.quantity,
+                },
               },
-            },
-          });
+            });
+          }
         }
       }
+
+      createdOrderIds.push(newOrder.id);
     }
 
     // Clear only purchased items from cart.
@@ -254,27 +269,20 @@ export const createOrder = async (userId, orderData) => {
       },
     });
 
-    return newOrder;
+    return createdOrderIds;
   });
 
-  const createdOrder = await getOrder(order.id, userId);
+  const createdOrders = await Promise.all(orders.map((id) => getOrder(id, userId)));
 
-  // Notify each seller once for this order.
-  const sellerIds = [
-    ...new Set(
-      createdOrder.items
-        .map((item) => item.sellerId)
-        .filter(Boolean)
-    ),
-  ];
-
+  // Notify each seller once for their corresponding order.
   await Promise.allSettled(
-    sellerIds.map((sellerId) =>
-      notificationService.notifyNewOrder(createdOrder, sellerId)
-    )
+    createdOrders.map((o) => {
+      const sellerId = o.items?.[0]?.sellerId;
+      return sellerId ? notificationService.notifyNewOrder(o, sellerId) : Promise.resolve();
+    })
   );
 
-  return createdOrder;
+  return createdOrders;
 };
 
 /**

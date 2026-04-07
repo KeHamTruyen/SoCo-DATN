@@ -150,12 +150,22 @@ export const orderApi = {
         return normalizeOrder(raw);
     },
     async createOrder(payload: CreateOrderPayload) {
-        const res = await httpClient.post<ApiResponse<Order> | Order>(
+        const res = await httpClient.post<ApiResponse<unknown> | unknown>(
             "/orders",
             payload,
             { requiresAuth: true },
         );
-        return unwrap<Order>(res);
+        const raw = unwrap<unknown>(res as ApiResponse<unknown> | unknown);
+        if (Array.isArray(raw)) {
+            return (raw as Record<string, unknown>[]).map(normalizeOrder);
+        }
+        if (typeof raw === "object" && raw !== null && "orders" in (raw as Record<string, unknown>)) {
+            const orders = (raw as Record<string, unknown>).orders;
+            return Array.isArray(orders)
+                ? (orders as Record<string, unknown>[]).map(normalizeOrder)
+                : [];
+        }
+        return normalizeOrder(raw as Record<string, unknown>);
     },
     async cancelOrder(orderId: string) {
         const res = await httpClient.post<ApiResponse<Order> | Order>(

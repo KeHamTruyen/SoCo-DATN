@@ -6,6 +6,9 @@ import { BrandLogo } from "../shared/ui/organisms/brand-logo/BrandLogo";
 export default function CheckoutSuccess() {
     const [searchParams] = useSearchParams();
     const orderId = searchParams.get("orderId");
+    const orderIdsParam = searchParams.get("orderIds");
+    const orderIds =
+        orderIdsParam?.split(",").map((id) => id.trim()).filter(Boolean) ?? [];
 
     return (
         <div className="flex min-h-screen flex-col items-center justify-center bg-background-light px-4 dark:bg-background-dark">
@@ -34,6 +37,22 @@ export default function CheckoutSuccess() {
                             <div className="flex items-center justify-between rounded-lg bg-neutral-50 p-4 dark:bg-neutral-800">
                                 <span className="text-sm text-neutral-500">Order ID</span>
                                 <span className="font-mono text-sm font-bold">#{orderId.slice(0, 8).toUpperCase()}</span>
+                            </div>
+                        )}
+                        {!orderId && orderIds.length > 0 && (
+                            <div className="rounded-lg bg-neutral-50 p-4 dark:bg-neutral-800">
+                                <div className="mb-2 text-sm text-neutral-500">Order IDs</div>
+                                <div className="flex flex-wrap gap-2">
+                                    {orderIds.map((id) => (
+                                        <Link
+                                            key={id}
+                                            to={`/orders/${id}`}
+                                            className="rounded-full bg-white px-3 py-1 font-mono text-xs font-bold text-neutral-900 shadow-sm ring-1 ring-neutral-200 hover:ring-primary dark:bg-neutral-900 dark:text-neutral-100 dark:ring-neutral-700"
+                                        >
+                                            #{id.slice(0, 8).toUpperCase()}
+                                        </Link>
+                                    ))}
+                                </div>
                             </div>
                         )}
                         <p className="text-center text-sm text-neutral-500 dark:text-neutral-400">

@@ -96,7 +96,13 @@ export default function Checkout() {
                 shippingAddress: form.address,
                 paymentMethod,
             });
-            navigate(`/checkout/success?orderId=${order.id}`);
+            const orders = Array.isArray(order) ? order : [order];
+            const orderIds = orders.map((o) => o.id).filter(Boolean);
+            if (orderIds.length === 1) {
+                navigate(`/checkout/success?orderId=${orderIds[0]}`);
+            } else {
+                navigate(`/checkout/success?orderIds=${encodeURIComponent(orderIds.join(","))}`);
+            }
         } catch {
             setError("Failed to place order. Please try again.");
         } finally {
