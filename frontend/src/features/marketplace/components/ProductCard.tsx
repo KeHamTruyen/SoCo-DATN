@@ -5,6 +5,7 @@ import { cartApi } from "../../cart/api/cartApi";
 import { savedItemsApi } from "../../saved-items/api/savedItemsApi";
 import type { ProductListItem } from "../types/marketplace.types";
 import { cn } from "../../../shared/lib/cn";
+import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 
 interface ProductCardProps {
     product: ProductListItem;
@@ -123,7 +124,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 </div>
                 <div className="mt-auto flex items-center justify-between pt-4">
                     <span className="text-xl font-black text-neutral-900 dark:text-white">
-                        ${product.price.toFixed(2)}
+                        {formatCurrencyVnd(product.price)}
                     </span>
                     <div className="flex flex-col items-end gap-1">
                         <button

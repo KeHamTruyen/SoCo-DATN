@@ -13,6 +13,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { orderApi } from "../features/order/api/orderApi";
 import type { Order, OrderStatus } from "../features/order/types/order.types";
 import { cn } from "../shared/lib/cn";
+import { formatCurrencyVnd } from "../shared/lib/formatCurrencyVnd";
 import { Button, UnifiedHeader } from "../shared/ui";
 
 const STATUS_STEPS: { key: OrderStatus; label: string; icon: React.ReactNode }[] = [
@@ -200,7 +201,7 @@ export default function OrderDetail() {
                                                             )}
                                                         </div>
                                                         <p className="font-bold">
-                                                            ${item.price.toFixed(2)}
+                                                            {formatCurrencyVnd(item.price)}
                                                         </p>
                                                     </div>
                                                     <div className="mt-4 flex items-center justify-between">
@@ -269,27 +270,27 @@ export default function OrderDetail() {
                                     <div className="space-y-3 text-sm">
                                         <div className="flex justify-between">
                                             <span className="text-neutral-500">{t("orderDetail.summary.subtotal", "Subtotal")}</span>
-                                            <span>${order.subtotal.toFixed(2)}</span>
+                                            <span>{formatCurrencyVnd(order.subtotal)}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-neutral-500">{t("orderDetail.summary.shipping", "Shipping")}</span>
                                             {order.shipping === 0 ? (
                                                 <span className="text-success">{t("orderDetail.summary.free", "Free")}</span>
                                             ) : (
-                                                <span>${order.shipping.toFixed(2)}</span>
+                                                <span>{formatCurrencyVnd(order.shipping)}</span>
                                             )}
                                         </div>
                                         {order.discount > 0 && (
                                             <div className="flex justify-between">
                                                 <span className="text-neutral-500">{t("orderDetail.summary.discount", "Discount")}</span>
-                                                <span className="text-success">-${order.discount.toFixed(2)}</span>
+                                                <span className="text-success">-{formatCurrencyVnd(order.discount)}</span>
                                             </div>
                                         )}
                                         <div className="border-t border-neutral-100 pt-3 dark:border-neutral-800">
                                             <div className="flex justify-between font-bold">
                                                 <span>{t("orderDetail.summary.total", "Total")}</span>
                                                 <span className="text-xl text-primary">
-                                                    ${order.total.toFixed(2)}
+                                                    {formatCurrencyVnd(order.total)}
                                                 </span>
                                             </div>
                                         </div>

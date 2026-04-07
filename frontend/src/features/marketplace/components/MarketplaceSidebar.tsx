@@ -1,5 +1,6 @@
 import { CreditCard, Star, TrendingUp } from "lucide-react";
 import { cn } from "../../../shared/lib/cn";
+import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 
 /** Slider at this value means no max price filter (omit from API). */
 export const MARKETPLACE_PRICE_CAP = 1000;
@@ -37,11 +38,11 @@ export function MarketplaceSidebar({
                         className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-neutral-200 accent-primary dark:bg-neutral-700"
                     />
                     <div className="mt-2 flex justify-between text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                        <span>$0</span>
+                        <span>{formatCurrencyVnd(0)}</span>
                         <span>
                             {maxPriceValue >= MARKETPLACE_PRICE_CAP
-                                ? `$${MARKETPLACE_PRICE_CAP}+`
-                                : `Up to $${maxPriceValue}`}
+                                ? `${formatCurrencyVnd(MARKETPLACE_PRICE_CAP)}+`
+                                : `Up to ${formatCurrencyVnd(maxPriceValue)}`}
                         </span>
                     </div>
                 </div>

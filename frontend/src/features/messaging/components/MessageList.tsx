@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { Message } from "../types/messaging.types";
 import { cn } from "../../../shared/lib/cn";
+import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 
 interface MessageListProps {
     messages: Message[];
@@ -80,7 +81,7 @@ export function MessageList({ messages, currentUserId }: MessageListProps) {
                                                 {msg.product.name}
                                             </h4>
                                             <span className="shrink-0 text-sm font-bold text-primary">
-                                                ${msg.product.price.toFixed(2)}
+                                                {formatCurrencyVnd(msg.product.price)}
                                             </span>
                                         </div>
                                         {msg.product.description && (

@@ -20,6 +20,7 @@ import type { Order } from "../../order/types/order.types";
 import { profileApi } from "../../profile/api/profileApi";
 import type { PublicUserProfile } from "../../profile/types/profile.types";
 import { DEFAULT_USER_AVATAR_URL } from "../../../shared/config/defaultAssets";
+import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 
 // ─── Left Sidebar ────────────────────────────────────────────────────────────
 
@@ -262,7 +263,7 @@ function TrendingProductsWidget({
                             </div>
                             <p className="line-clamp-1 text-[11px] font-bold dark:text-neutral-100">{product.name}</p>
                             <div className="flex items-center justify-between">
-                                <p className="text-[11px] font-bold text-primary">${product.price.toFixed(2)}</p>
+                                <p className="text-[11px] font-bold text-primary">{formatCurrencyVnd(product.price)}</p>
                                 {product.rating ? (
                                     <span className="flex items-center gap-0.5 text-[10px] text-neutral-500 dark:text-neutral-400">
                                         <Star className="h-3 w-3 fill-primary-400 text-primary-400" />

@@ -2,6 +2,7 @@ import { ShoppingCart, Tag } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { ShoppableProduct } from "../types/feed.types";
+import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 
 interface ShoppableProductHotspotProps {
     product: ShoppableProduct;
@@ -34,7 +35,7 @@ export function ShoppableProductHotspot({ product }: ShoppableProductHotspotProp
                         )}
                         <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-semibold">{product.productName}</p>
-                            <p className="text-sm font-bold text-primary">${product.price.toFixed(2)}</p>
+                            <p className="text-sm font-bold text-primary">{formatCurrencyVnd(product.price)}</p>
                         </div>
                     </div>
                     <Link

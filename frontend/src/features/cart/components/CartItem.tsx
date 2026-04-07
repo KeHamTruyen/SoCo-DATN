@@ -1,6 +1,7 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "../../../shared/ui/atoms/button";
 import type { CartItem as CartItemType } from "../types/cart.types";
+import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 
 interface CartItemProps {
     item: CartItemType;
@@ -64,12 +65,11 @@ export function CartItem({
                 <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
                     <div>
                         <span className="text-xl font-bold text-primary">
-                            ${item.price.toFixed(2)}
+                            {formatCurrencyVnd(item.price)}
                         </span>
                         {item.quantity > 1 && (
                             <p className="text-xs text-neutral-500">
-                                Line total · $
-                                {lineTotal.toFixed(2)}
+                                Line total · {formatCurrencyVnd(lineTotal)}
                             </p>
                         )}
                     </div>

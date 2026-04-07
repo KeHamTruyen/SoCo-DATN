@@ -4,6 +4,7 @@ import { Button } from "../../../shared/ui";
 import type { ProductDetail } from "../types/product.types";
 import { Link } from "react-router-dom";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
+import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 
 interface ProductDetailPanelProps {
     product: ProductDetail;
@@ -81,12 +82,12 @@ export function ProductDetailPanel({
 
             <div className="flex items-baseline gap-4">
                 <span className="text-4xl font-bold text-primary">
-                    ${displayPrice.toFixed(2)}
+                    {formatCurrencyVnd(displayPrice)}
                 </span>
                 {product.oldPrice ? (
                     <>
                         <span className="text-xl text-muted-foreground line-through">
-                            ${product.oldPrice.toFixed(2)}
+                            {formatCurrencyVnd(product.oldPrice)}
                         </span>
                         {discountPercent && (
                             <span className="text-sm font-bold bg-primary/20 text-primary px-2 py-1 rounded">

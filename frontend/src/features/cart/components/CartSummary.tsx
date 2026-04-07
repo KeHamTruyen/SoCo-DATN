@@ -8,6 +8,7 @@ import {
 import { useState } from "react";
 import { Button } from "../../../shared/ui/atoms/button";
 import type { Cart } from "../types/cart.types";
+import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 
 interface CartSummaryProps {
     cart: Cart;
@@ -38,26 +39,25 @@ export function CartSummary({
                 <div className="mb-6 space-y-4 text-sm">
                     <div className="flex justify-between text-neutral-600 dark:text-neutral-400">
                         <span>Items selected ({selectedCount})</span>
-                        <span>${selectedSubtotal.toFixed(2)}</span>
+                        <span>{formatCurrencyVnd(selectedSubtotal)}</span>
                     </div>
                     <div className="flex justify-between text-neutral-600 dark:text-neutral-400">
                         <span>Subtotal</span>
-                        <span>${selectedSubtotal.toFixed(2)}</span>
+                        <span>{formatCurrencyVnd(selectedSubtotal)}</span>
                     </div>
                     <div className="flex justify-between text-neutral-600 dark:text-neutral-400">
                         <span>Shipping (est.)</span>
                         {selectedCount === 0 || cart.shipping === 0 ? (
                             <span className="font-medium text-success">Free</span>
                         ) : (
-                            <span>${cart.shipping.toFixed(2)}</span>
+                            <span>{formatCurrencyVnd(cart.shipping)}</span>
                         )}
                     </div>
                     {proportionalDiscount > 0 && (
                         <div className="flex justify-between text-neutral-600 dark:text-neutral-400">
                             <span>Discount</span>
                             <span className="font-medium text-destructive">
-                                -$
-                                {proportionalDiscount.toFixed(2)}
+                                -{formatCurrencyVnd(proportionalDiscount)}
                             </span>
                         </div>
                     )}
@@ -87,8 +87,7 @@ export function CartSummary({
                         <span className="text-lg font-bold">Total</span>
                         <div className="text-right">
                             <span className="text-3xl font-bold text-primary">
-                                $
-                                {displayTotal.toFixed(2)}
+                                {formatCurrencyVnd(displayTotal)}
                             </span>
                             <p className="mt-1 text-[10px] uppercase tracking-widest text-neutral-400">
                                 Including VAT

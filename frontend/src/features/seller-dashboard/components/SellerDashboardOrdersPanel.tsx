@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { orderApi } from "../../order/api/orderApi";
 import type { Order, OrderStatus } from "../../order/types/order.types";
+import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 
 interface SellerDashboardOrdersPanelProps {
     orders: Order[];
@@ -89,7 +90,7 @@ export function SellerDashboardOrdersPanel({ orders, loading, onOrderChanged }: 
     }
 
     function formatMoney(value: number) {
-        return `$${value.toFixed(2)}`;
+        return formatCurrencyVnd(value);
     }
 
     function badgeClass(status: OrderStatus) {

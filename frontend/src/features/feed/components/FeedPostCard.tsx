@@ -14,6 +14,7 @@ import { FeedPostCardActions } from "./FeedPostCardActions";
 import { PostAuthorMetaHeader } from "./PostAuthorMetaHeader";
 import { useSavedPostItem } from "../hooks/useSavedPostItem";
 import { usePostCommentsPagination } from "../hooks/usePostCommentsPagination";
+import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 
 interface FeedPostCardProps {
     post: FeedPost;
@@ -270,7 +271,7 @@ export function FeedPostCard({
                                 <div className="relative">
                                     <div className="h-4 w-4 animate-pulse rounded-full border-2 border-white bg-primary" />
                                     <div className="absolute top-6 left-0 whitespace-nowrap rounded-lg bg-white/90 px-2 py-1 text-[10px] font-bold shadow-lg backdrop-blur dark:bg-neutral-900/90">
-                                        {tag.productName} • ${(tag.price ?? 0).toFixed(2)}
+                                        {tag.productName} • {formatCurrencyVnd(tag.price ?? 0)}
                                     </div>
                                 </div>
                             </div>

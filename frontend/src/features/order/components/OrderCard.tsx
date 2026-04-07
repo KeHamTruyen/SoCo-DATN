@@ -1,6 +1,7 @@
 import { ChevronRight, Package } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "../../../shared/lib/cn";
+import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 import type { Order, OrderStatus } from "../types/order.types";
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
@@ -81,7 +82,7 @@ export function OrderCard({ order }: OrderCardProps) {
                         </p>
                     </div>
                     <div className="shrink-0 text-right">
-                        <p className="text-lg font-bold text-primary">${order.total.toFixed(2)}</p>
+                        <p className="text-lg font-bold text-primary">{formatCurrencyVnd(order.total)}</p>
                         <p className="text-xs text-neutral-500">{order.items.length} item(s)</p>
                     </div>
                 </div>

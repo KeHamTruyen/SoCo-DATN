@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { cartApi } from "../features/cart/api/cartApi";
 import { orderApi } from "../features/order/api/orderApi";
 import type { CartItem } from "../features/cart/types/cart.types";
+import { formatCurrencyVnd } from "../shared/lib/formatCurrencyVnd";
 import { Button, UnifiedHeader } from "../shared/ui";
 
 const PAYMENT_METHODS = [
@@ -222,23 +223,23 @@ export default function Checkout() {
                                             {selectedItems.map((item) => (
                                                 <div key={item.id} className="flex justify-between gap-3">
                                                     <span className="line-clamp-1">{item.productName} x{item.quantity}</span>
-                                                    <span>${(item.price * item.quantity).toFixed(2)}</span>
+                                                    <span>{formatCurrencyVnd(item.price * item.quantity)}</span>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : null}
                                     <div className="flex justify-between text-sm">
                                         <span className="text-neutral-500">Subtotal</span>
-                                        <span className="font-medium">${subtotal.toFixed(2)}</span>
+                                        <span className="font-medium">{formatCurrencyVnd(subtotal)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-neutral-500">Shipping</span>
-                                        <span className="font-medium">{shipping > 0 ? `$${shipping.toFixed(2)}` : "Free"}</span>
+                                        <span className="font-medium">{shipping > 0 ? formatCurrencyVnd(shipping) : "Free"}</span>
                                     </div>
                                     <div className="border-t border-neutral-100 pt-4 dark:border-neutral-800">
                                         <div className="flex justify-between">
                                             <span className="font-bold">Total</span>
-                                            <span className="text-xl font-bold text-primary">${total.toFixed(2)}</span>
+                                            <span className="text-xl font-bold text-primary">{formatCurrencyVnd(total)}</span>
                                         </div>
                                     </div>
 

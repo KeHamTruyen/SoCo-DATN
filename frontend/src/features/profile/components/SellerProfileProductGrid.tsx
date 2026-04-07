@@ -2,6 +2,7 @@ import { ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { ProductListItem } from "../../marketplace/types/marketplace.types";
 import { useTranslation } from "react-i18next";
+import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 
 import { useProfileContext } from "../context/ProfileContext";
 
@@ -76,7 +77,7 @@ export function SellerProfileProductGrid() {
                         </Link>
                         <div className="mt-2 flex items-center justify-between gap-2">
                             <span className="text-lg font-bold text-primary">
-                                ${p.price.toFixed(2)}
+                                {formatCurrencyVnd(p.price)}
                             </span>
                             {p.soldCount != null ? (
                                 <span className="text-xs text-muted-foreground">

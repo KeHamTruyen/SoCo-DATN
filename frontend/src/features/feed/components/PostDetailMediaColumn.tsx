@@ -2,6 +2,7 @@ import { ShoppingCart, Tag } from "lucide-react";
 import { Button } from "../../../shared/ui/atoms/button";
 import type { FeedPost } from "../types/feed.types";
 import { ShoppableProductHotspot } from "./ShoppableProductHotspot";
+import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 
 interface PostDetailMediaColumnProps {
     post: FeedPost;
@@ -55,7 +56,7 @@ export function PostDetailMediaColumn({ post, primaryMedia, isVideo }: PostDetai
                                     <div>
                                         <p className="font-semibold">{product.productName}</p>
                                         <p className="text-sm font-bold text-primary">
-                                            ${product.price.toFixed(2)}
+                                            {formatCurrencyVnd(product.price)}
                                         </p>
                                     </div>
                                 </div>

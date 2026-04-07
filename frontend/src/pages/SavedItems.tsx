@@ -8,6 +8,7 @@ import type {
     SavedTab,
 } from "../features/saved-items/types/savedItems.types";
 import { httpClient } from "../shared/api/httpClient";
+import { formatCurrencyVnd } from "../shared/lib/formatCurrencyVnd";
 import { UnifiedHeader } from "../shared/ui";
 import { truncatePlainPreview } from "../shared/tiptap/postHtmlUtils";
 
@@ -233,9 +234,9 @@ export default function SavedItems() {
                                     className="rounded-xl border border-neutral-200 bg-white py-2.5 pl-3 pr-3 text-sm font-medium text-neutral-900 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                                 >
                                     <option value="">All prices</option>
-                                    <option value="under50">Under $50</option>
-                                    <option value="50to150">$50 – $150</option>
-                                    <option value="over150">Over $150</option>
+                                    <option value="under50">Dưới {formatCurrencyVnd(50)}</option>
+                                    <option value="50to150">{formatCurrencyVnd(50)} – {formatCurrencyVnd(150)}</option>
+                                    <option value="over150">Trên {formatCurrencyVnd(150)}</option>
                                 </select>
 
                                 <label
@@ -356,12 +357,8 @@ export default function SavedItems() {
                                                     {row.product.title}
                                                 </Link>
                                                 <p className="mt-2 text-lg font-black text-primary">
-                                                    $
-                                                    {typeof row.product
-                                                        .price === "number"
-                                                        ? row.product.price.toFixed(
-                                                              2,
-                                                          )
+                                                    {typeof row.product.price === "number"
+                                                        ? formatCurrencyVnd(row.product.price)
                                                         : "—"}
                                                 </p>
                                                 {row.product.seller ? (

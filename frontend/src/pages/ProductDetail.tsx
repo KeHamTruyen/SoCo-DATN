@@ -522,7 +522,7 @@ export default function ProductDetail() {
                             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                                 <div className="space-y-2">
                                     <h4 className="font-bold text-foreground">Shipping Policy</h4>
-                                    <p className="text-sm">We offer free standard shipping on all orders over $150. Standard delivery typically takes 3-5 business days.</p>
+                                    <p className="text-sm">We offer free standard shipping on all orders over 150.000 ₫. Standard delivery typically takes 3-5 business days.</p>
                                 </div>
                                 <div className="space-y-2">
                                     <h4 className="font-bold text-foreground">Returns & Exchanges</h4>
