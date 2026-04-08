@@ -43,12 +43,14 @@ export function SellerProductFormDialog({
         error,
         draftVariants,
         setDraftVariants,
-        variantsList,
-        newVariant,
-        setNewVariant,
+        variantGroups,
+        addVariantGroup,
+        updateVariantGroup,
+        removeVariantGroup,
+        loadModeOpen,
+        setLoadModeOpen,
+        loadVariantRows,
         handleSubmit,
-        handleAddVariantEdit,
-        handleDeleteVariant,
         visibleExisting,
         PRODUCT_STATUS_OPTIONS,
     } = formApi;
@@ -60,7 +62,7 @@ export function SellerProductFormDialog({
             <button
                 type="button"
                 className="absolute inset-0 bg-black/50"
-                aria-label="Đóng"
+                aria-label={t("sellerDashboard.productForm.close", "Đóng")}
                 onClick={() => {
                     if (!saving) onClose();
                 }}
@@ -70,7 +72,11 @@ export function SellerProductFormDialog({
                 aria-modal="true"
                 className="relative z-10 max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xl"
             >
-                <h2 className="text-lg font-bold">{mode === "create" ? "Thêm sản phẩm" : "Sửa sản phẩm"}</h2>
+                <h2 className="text-lg font-bold">
+                    {mode === "create"
+                        ? t("sellerDashboard.productForm.titleCreate", "Thêm sản phẩm")
+                        : t("sellerDashboard.productForm.titleEdit", "Sửa sản phẩm")}
+                </h2>
 
                 {loading ? (
                     <div className="mt-6 space-y-3">
@@ -79,27 +85,29 @@ export function SellerProductFormDialog({
                     </div>
                 ) : (
                     <div className="mt-4 space-y-6">
-                        <SellerProductFormBasicSection form={form} setForm={setForm} saving={saving} />
+                        <SellerProductFormBasicSection form={form} setForm={setForm} saving={saving} t={t} />
                         <SellerProductFormPriceCategorySection
                             form={form}
                             setForm={setForm}
                             saving={saving}
                             categories={categories}
+                            t={t}
                         />
                         <SellerProductFormInventorySection form={form} setForm={setForm} saving={saving} t={t} />
                         <SellerProductFormShippingSection form={form} setForm={setForm} saving={saving} t={t} />
                         <SellerProductFormSeoSection form={form} setForm={setForm} saving={saving} t={t} />
                         <SellerProductFormVariantsSection
-                            mode={mode}
                             draftVariants={draftVariants}
                             setDraftVariants={setDraftVariants}
-                            variantsList={variantsList}
-                            newVariant={newVariant}
-                            setNewVariant={setNewVariant}
+                            variantGroups={variantGroups}
+                            onAddVariantGroup={addVariantGroup}
+                            onUpdateVariantGroup={updateVariantGroup}
+                            onRemoveVariantGroup={removeVariantGroup}
+                            loadModeOpen={loadModeOpen}
+                            setLoadModeOpen={setLoadModeOpen}
+                            onLoadVariantRows={loadVariantRows}
                             saving={saving}
                             t={t}
-                            onAddVariantEdit={() => void handleAddVariantEdit()}
-                            onDeleteVariant={(id) => void handleDeleteVariant(id)}
                         />
                         {mode === "edit" ? (
                             <SellerProductFormEditStatusSection

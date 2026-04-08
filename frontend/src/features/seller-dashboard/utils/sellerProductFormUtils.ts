@@ -42,48 +42,92 @@ export function dimensionInputsValid(lengthStr: string, widthStr: string, height
     return true;
 }
 
-export function parseCommaKeywords(s: string): string[] {
-    return s
-        .split(",")
+export function normalizeKeywordList(list: string[]): string[] {
+    return list
         .map((k) => k.trim())
         .filter(Boolean)
+        .filter((k, idx, arr) => arr.findIndex((x) => x.toLowerCase() === k.toLowerCase()) === idx)
         .slice(0, 50);
-}
-
-export function parseOptionsJson(s: string): Record<string, string> {
-    const t = s.trim();
-    if (!t) return {};
-    try {
-        const o = JSON.parse(t) as unknown;
-        if (typeof o === "object" && o !== null && !Array.isArray(o)) {
-            return Object.fromEntries(
-                Object.entries(o as Record<string, unknown>).map(([k, v]) => [k, String(v ?? "")]),
-            );
-        }
-    } catch {
-        /* ignore */
-    }
-    return {};
 }
 
 export type DraftVariantRow = {
     id: string;
-    name: string;
-    sku: string;
+    optionMap: Record<string, string>;
     price: string;
     stock: string;
-    optionsJson: string;
+    isActive: boolean;
 };
 
-export function newDraftVariant(): DraftVariantRow {
-    return {
-        id: `draft-${Math.random().toString(36).slice(2)}`,
-        name: "",
-        sku: "",
-        price: "",
-        stock: "0",
-        optionsJson: "{}",
-    };
+export type VariantGroup = {
+    id: string;
+    name: string;
+    values: string[];
+};
+
+export type VariantLoadMode = "missing-only" | "regenerate-all";
+
+function optionMapKey(optionMap: Record<string, string>): string {
+    const parts = Object.entries(optionMap)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([k, v]) => `${k}=${v}`);
+    return parts.join("|||");
+}
+
+export function variantOptionMapDisplay(optionMap: Record<string, string>): string {
+    return Object.values(optionMap).join(" / ");
+}
+
+function buildOptionCombinations(groups: VariantGroup[]): Record<string, string>[] {
+    const normalized = groups
+        .map((g) => ({
+            name: g.name.trim(),
+            values: g.values
+                .map((v) => v.trim())
+                .filter(Boolean)
+                .filter((v, i, arr) => arr.findIndex((x) => x.toLowerCase() === v.toLowerCase()) === i),
+        }))
+        .filter((g) => g.name && g.values.length > 0);
+    if (normalized.length === 0) return [];
+
+    let acc: Record<string, string>[] = [{}];
+    for (const group of normalized) {
+        const next: Record<string, string>[] = [];
+        for (const prev of acc) {
+            for (const value of group.values) {
+                next.push({ ...prev, [group.name]: value });
+            }
+        }
+        acc = next;
+    }
+    return acc;
+}
+
+export function buildVariantMatrixRowsDynamic(
+    groups: VariantGroup[],
+    previousRows: DraftVariantRow[],
+    mode: VariantLoadMode,
+): DraftVariantRow[] {
+    const combinations = buildOptionCombinations(groups);
+    if (combinations.length === 0) return [];
+
+    const previousMap = new Map(previousRows.map((row) => [optionMapKey(row.optionMap), row]));
+    const rows: DraftVariantRow[] = [];
+
+    for (const optionMap of combinations) {
+        const key = optionMapKey(optionMap);
+        const prev = mode === "missing-only" ? previousMap.get(key) : undefined;
+        rows.push(
+            prev ?? {
+                id: `draft-${Math.random().toString(36).slice(2)}`,
+                optionMap,
+                price: "",
+                stock: "0",
+                isActive: true,
+            },
+        );
+    }
+
+    return rows;
 }
 
 export type SellerProductFormFields = {
@@ -92,7 +136,7 @@ export type SellerProductFormFields = {
     price: string;
     compareAtPrice: string;
     costPrice: string;
-    categoryId: string;
+    categoryIds: string[];
     stockQuantity: string;
     lowStockThreshold: string;
     trackInventory: boolean;
@@ -103,7 +147,7 @@ export type SellerProductFormFields = {
     dimHeight: string;
     metaTitle: string;
     metaDescription: string;
-    metaKeywords: string;
+    metaKeywords: string[];
     status: string;
 };
 
@@ -114,7 +158,7 @@ export function emptyForm(): SellerProductFormFields {
         price: "",
         compareAtPrice: "",
         costPrice: "",
-        categoryId: "",
+        categoryIds: [],
         stockQuantity: "0",
         lowStockThreshold: "10",
         trackInventory: true,
@@ -125,7 +169,7 @@ export function emptyForm(): SellerProductFormFields {
         dimHeight: "",
         metaTitle: "",
         metaDescription: "",
-        metaKeywords: "",
+        metaKeywords: [],
         status: "DRAFT",
     };
 }

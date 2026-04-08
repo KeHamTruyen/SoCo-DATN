@@ -78,10 +78,14 @@ export default function SellerDashboard() {
     const productListParams = useMemo(() => {
         if (!isSeller || (tab !== "shop" && tab !== "inventory")) return null;
         if (tab === "shop") {
+            const isDeletedFilter = shopStatusFilter === "DELETED";
             return {
                 page: 1,
                 limit: 100,
-                ...(shopStatusFilter ? { status: shopStatusFilter } : {}),
+                ...(isDeletedFilter ? { includeDeleted: true } : {}),
+                ...(shopStatusFilter
+                    ? { status: shopStatusFilter }
+                    : {}),
             };
         }
         return { page: 1, limit: 100 };

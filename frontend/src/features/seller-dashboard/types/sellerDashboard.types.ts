@@ -10,8 +10,13 @@ export interface SellerProductRow {
     categoryName?: string;
     /** ISO date from API */
     createdAt?: string;
+    /** ISO date from API */
+    updatedAt?: string;
     viewsCount?: number;
     salesCount?: number;
+    deletedAt?: string | null;
+    purgeAfter?: string | null;
+    deletionState?: string;
 }
 
 /** `""` = tất cả trạng thái */
@@ -20,7 +25,8 @@ export type SellerShopStatusFilter =
     | "DRAFT"
     | "ACTIVE"
     | "OUT_OF_STOCK"
-    | "ARCHIVED";
+    | "ARCHIVED"
+    | "DELETED";
 
 export interface SellerProductsListResponse {
     items: SellerProductRow[];
@@ -73,8 +79,8 @@ export interface SellerProductDetail {
     price: number;
     compareAtPrice: number | null;
     costPrice: number | null;
-    categoryId: string | null;
-    category: { id: string; name: string } | null;
+    categoryIds: string[];
+    categories: Array<{ id: string; name: string }>;
     stockQuantity: number;
     lowStockThreshold: number;
     trackInventory: boolean;
@@ -95,7 +101,7 @@ export interface SellerProductCreatePayload {
     price: number;
     compareAtPrice?: number;
     costPrice?: number;
-    categoryId?: string;
+    categoryIds?: string[];
     stockQuantity?: number;
     lowStockThreshold?: number;
     trackInventory?: boolean;
@@ -121,7 +127,7 @@ export interface SellerProductUpdatePayload {
     price?: number;
     compareAtPrice?: number | null;
     costPrice?: number | null;
-    categoryId?: string | null;
+    categoryIds?: string[];
     stockQuantity?: number;
     lowStockThreshold?: number;
     trackInventory?: boolean;

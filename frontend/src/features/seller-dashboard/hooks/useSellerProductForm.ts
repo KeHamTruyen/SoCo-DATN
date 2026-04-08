@@ -10,14 +10,17 @@ import type {
 } from "../types/sellerDashboard.types";
 import { HttpError } from "../../../shared/api/httpClient";
 import {
+    buildVariantMatrixRowsDynamic,
     buildDimensions,
     dimensionInputsValid,
     emptyForm,
-    parseCommaKeywords,
+    normalizeKeywordList,
     parseIntSafe,
-    parseOptionsJson,
     parseOptionalFieldNumber,
     parsePrice,
+    variantOptionMapDisplay,
+    type VariantGroup,
+    type VariantLoadMode,
     type DraftVariantRow,
 } from "../utils/sellerProductFormUtils";
 
@@ -52,13 +55,8 @@ export function useSellerProductForm(
     const [error, setError] = useState<string | null>(null);
     const [draftVariants, setDraftVariants] = useState<DraftVariantRow[]>([]);
     const [variantsList, setVariantsList] = useState<SellerProductVariantRow[]>([]);
-    const [newVariant, setNewVariant] = useState({
-        name: "",
-        sku: "",
-        price: "",
-        stock: "0",
-        optionsJson: "{}",
-    });
+    const [variantGroups, setVariantGroups] = useState<VariantGroup[]>([]);
+    const [loadModeOpen, setLoadModeOpen] = useState(false);
 
     useEffect(() => {
         if (!open) return;
@@ -89,6 +87,7 @@ export function useSellerProductForm(
             setPendingFiles([]);
             setDraftVariants([]);
             setVariantsList([]);
+            setVariantGroups([]);
             setError(null);
             return;
         }
@@ -100,13 +99,38 @@ export function useSellerProductForm(
                     const p: SellerProductDetail = await sellerDashboardApi.getMyProduct(productId);
                     const d = p.dimensions;
                     setVariantsList(p.variants ?? []);
+                    const groupMap = new Map<string, Set<string>>();
+                    for (const variant of p.variants ?? []) {
+                        for (const [name, value] of Object.entries(variant.options ?? {})) {
+                            if (!groupMap.has(name)) groupMap.set(name, new Set());
+                            groupMap.get(name)?.add(String(value));
+                        }
+                    }
+                    const groups = Array.from(groupMap.entries()).map(([name, values], idx) => ({
+                        id: `group-${idx}-${name}`,
+                        name,
+                        values: Array.from(values),
+                    }));
+                    setVariantGroups(groups);
+                    setDraftVariants(
+                        (p.variants ?? [])
+                            .map((v) => ({
+                                id: v.id,
+                                optionMap: Object.fromEntries(
+                                    Object.entries(v.options ?? {}).map(([k, val]) => [k, String(val)]),
+                                ),
+                                price: v.price != null ? String(v.price) : "",
+                                stock: String(v.stockQuantity ?? 0),
+                                isActive: v.isActive !== false,
+                            })),
+                    );
                     setForm({
                         title: p.title,
                         description: p.description ?? "",
                         price: String(p.price),
                         compareAtPrice: p.compareAtPrice != null ? String(p.compareAtPrice) : "",
                         costPrice: p.costPrice != null ? String(p.costPrice) : "",
-                        categoryId: p.categoryId ?? "",
+                        categoryIds: p.categoryIds ?? [],
                         stockQuantity: String(p.stockQuantity),
                         lowStockThreshold: String(p.lowStockThreshold),
                         trackInventory: p.trackInventory,
@@ -117,7 +141,7 @@ export function useSellerProductForm(
                         dimHeight: d?.height != null ? String(d.height) : "",
                         metaTitle: p.metaTitle ?? "",
                         metaDescription: p.metaDescription ?? "",
-                        metaKeywords: p.metaKeywords?.length ? p.metaKeywords.join(", ") : "",
+                        metaKeywords: p.metaKeywords ?? [],
                         status: p.status || "DRAFT",
                     });
                     setExistingImages(p.images);
@@ -183,35 +207,44 @@ export function useSellerProductForm(
             return;
         }
 
-        const categoryIdTrim = form.categoryId.trim();
+        const categoryIds = [...new Set(form.categoryIds)];
         const stockQuantity = parseIntSafe(form.stockQuantity, 0);
         const lowStockThreshold = parseIntSafe(form.lowStockThreshold, 10);
         const skuTrim = form.sku.trim();
         const sku = skuTrim || undefined;
 
         const dimensions = buildDimensions(form.dimLength, form.dimWidth, form.dimHeight);
-        const metaKeywordsArr = parseCommaKeywords(form.metaKeywords);
+        const metaKeywordsArr = normalizeKeywordList(form.metaKeywords);
         const metaTitleTrim = form.metaTitle.trim();
         const metaDescTrim = form.metaDescription.trim();
+        const finalImageCount = visibleExisting.length + pendingFiles.length;
+        const targetStatus = mode === "edit" ? form.status : "DRAFT";
 
-        for (const d of draftVariants.filter((x) => x.name.trim())) {
+        if (targetStatus === "ACTIVE") {
+            if (!description) {
+                setError(
+                    t(
+                        "sellerDashboard.productForm.errActiveNeedsDescription",
+                        "Sản phẩm đang đăng bán cần có mô tả.",
+                    ),
+                );
+                return;
+            }
+            if (finalImageCount <= 0) {
+                setError(
+                    t(
+                        "sellerDashboard.productForm.errActiveNeedsImage",
+                        "Sản phẩm đang đăng bán cần có ít nhất một ảnh.",
+                    ),
+                );
+                return;
+            }
+        }
+
+        for (const d of draftVariants) {
             if (d.price.trim() !== "" && parsePrice(d.price) === undefined) {
                 setError(t("sellerDashboard.productForm.errVariantPriceInvalid", "Giá biến thể không hợp lệ."));
                 return;
-            }
-            const oj = d.optionsJson.trim();
-            if (oj) {
-                try {
-                    JSON.parse(oj);
-                } catch {
-                    setError(
-                        t(
-                            "sellerDashboard.productForm.errVariantOptionsInvalid",
-                            "Options JSON của biến thể không hợp lệ.",
-                        ),
-                    );
-                    return;
-                }
             }
         }
 
@@ -227,16 +260,16 @@ export function useSellerProductForm(
                     }));
                 }
                 const variantBodies = draftVariants
-                    .filter((d) => d.name.trim())
                     .map((d) => {
                         const pVar = parsePrice(d.price);
-                        const opts = parseOptionsJson(d.optionsJson);
+                        const options: Record<string, string> = d.optionMap;
                         return {
-                            name: d.name.trim(),
-                            sku: d.sku.trim() || undefined,
+                            name: variantOptionMapDisplay(options),
+                            sku: undefined,
                             price: pVar,
                             stockQuantity: parseIntSafe(d.stock, 0),
-                            options: Object.keys(opts).length ? opts : undefined,
+                            options,
+                            isActive: d.isActive,
                         };
                     });
                 await sellerDashboardApi.createProduct({
@@ -245,7 +278,7 @@ export function useSellerProductForm(
                     price,
                     ...(compareRaw !== undefined ? { compareAtPrice: compareRaw } : {}),
                     ...(costParsed.value != null ? { costPrice: costParsed.value } : {}),
-                    categoryId: categoryIdTrim || undefined,
+                    ...(categoryIds.length > 0 ? { categoryIds } : {}),
                     stockQuantity,
                     lowStockThreshold,
                     trackInventory: form.trackInventory,
@@ -265,7 +298,7 @@ export function useSellerProductForm(
                     price,
                     compareAtPrice: form.compareAtPrice.trim() === "" ? null : (compareRaw ?? null),
                     costPrice: costParsed.value,
-                    categoryId: categoryIdTrim ? categoryIdTrim : null,
+                    categoryIds,
                     stockQuantity,
                     lowStockThreshold,
                     trackInventory: form.trackInventory,
@@ -292,6 +325,23 @@ export function useSellerProductForm(
                         })),
                     );
                 }
+
+                for (const existing of variantsList) {
+                    await sellerDashboardApi.deleteProductVariant(productId, existing.id);
+                }
+                const recreatedRows: SellerProductVariantRow[] = [];
+                for (const row of draftVariants) {
+                    const created = await sellerDashboardApi.createProductVariant(productId, {
+                        name: variantOptionMapDisplay(row.optionMap),
+                        sku: undefined,
+                        price: row.price.trim() === "" ? undefined : parsePrice(row.price),
+                        stockQuantity: parseIntSafe(row.stock, 0),
+                        options: row.optionMap,
+                        isActive: row.isActive,
+                    });
+                    recreatedRows.push(created);
+                }
+                setVariantsList(recreatedRows);
             }
             onSuccess();
             onClose();
@@ -306,64 +356,55 @@ export function useSellerProductForm(
         }
     }
 
-    async function handleAddVariantEdit() {
-        if (!productId || mode !== "edit") return;
-        const name = newVariant.name.trim();
-        if (!name) {
-            setError(t("sellerDashboard.productForm.errVariantNameRequired", "Nhập tên biến thể."));
-            return;
-        }
-        const pr = parsePrice(newVariant.price);
-        if (newVariant.price.trim() !== "" && pr === undefined) {
-            setError(t("sellerDashboard.productForm.errVariantPriceInvalid", "Giá biến thể không hợp lệ."));
-            return;
-        }
-        setSaving(true);
-        setError(null);
-        try {
-            const created = await sellerDashboardApi.createProductVariant(productId, {
-                name,
-                sku: newVariant.sku.trim() || undefined,
-                price: pr,
-                stockQuantity: parseIntSafe(newVariant.stock, 0),
-                options: parseOptionsJson(newVariant.optionsJson),
-            });
-            setVariantsList((v) => [...v, created]);
-            setNewVariant({
-                name: "",
-                sku: "",
-                price: "",
-                stock: "0",
-                optionsJson: "{}",
-            });
-        } catch (e) {
-            setError(
-                e instanceof HttpError
-                    ? e.message
-                    : t("sellerDashboard.productForm.errAddVariantFailed", "Không thêm được biến thể."),
-            );
-        } finally {
-            setSaving(false);
-        }
+    function addVariantGroup() {
+        setVariantGroups((prev) => [
+            ...prev,
+            { id: `group-${Math.random().toString(36).slice(2)}`, name: "", values: [] },
+        ]);
     }
 
-    async function handleDeleteVariant(variantId: string) {
-        if (!productId) return;
-        if (!window.confirm(t("sellerDashboard.productForm.confirmDeleteVariant", "Xóa biến thể này?"))) return;
-        setSaving(true);
-        setError(null);
-        try {
-            await sellerDashboardApi.deleteProductVariant(productId, variantId);
-            setVariantsList((v) => v.filter((x) => x.id !== variantId));
-        } catch (e) {
-            setError(
-                e instanceof HttpError
-                    ? e.message
-                    : t("sellerDashboard.productForm.errDeleteVariantFailed", "Không xóa được biến thể."),
-            );
-        } finally {
-            setSaving(false);
+    function updateVariantGroup(id: string, patch: Partial<VariantGroup>) {
+        setVariantGroups((prev) => prev.map((g) => (g.id === id ? { ...g, ...patch } : g)));
+    }
+
+    function removeVariantGroup(id: string) {
+        setVariantGroups((prev) => prev.filter((g) => g.id !== id));
+    }
+
+    function loadVariantRows(mode: VariantLoadMode) {
+        const validGroups = variantGroups
+            .map((g) => ({
+                ...g,
+                name: g.name.trim(),
+                values: g.values
+                    .map((v) => v.trim())
+                    .filter(Boolean)
+                    .filter((v, idx, arr) => arr.findIndex((x) => x.toLowerCase() === v.toLowerCase()) === idx),
+            }))
+            .filter((g) => g.name.length > 0);
+        if (!validGroups.length) {
+            setError(t("sellerDashboard.productForm.variantNoGroupsHint", "Add at least one variant name."));
+            return;
         }
+        const hasEmptyValues = validGroups.some((g) => g.values.length === 0);
+        if (hasEmptyValues) {
+            setError(t("sellerDashboard.productForm.errVariantValuesRequired", "At least one value is required for each option."));
+            return;
+        }
+        const duplicateName = validGroups.find(
+            (g, idx, arr) => arr.findIndex((x) => x.name.toLowerCase() === g.name.toLowerCase()) !== idx,
+        );
+        if (duplicateName) {
+            setError(t("sellerDashboard.productForm.errVariantDuplicateName", "Variant names must be unique."));
+            return;
+        }
+        const rows = buildVariantMatrixRowsDynamic(validGroups, draftVariants, mode);
+        if (rows.length > 200) {
+            setError(t("sellerDashboard.productForm.errVariantTooManyCombinations", "Too many combinations. Please reduce variant values."));
+            return;
+        }
+        setError(null);
+        setDraftVariants(rows);
     }
 
     return {
@@ -381,13 +422,15 @@ export function useSellerProductForm(
         error,
         draftVariants,
         setDraftVariants,
-        variantsList,
-        newVariant,
-        setNewVariant,
         handleSubmit,
-        handleAddVariantEdit,
-        handleDeleteVariant,
         visibleExisting,
+        variantGroups,
+        addVariantGroup,
+        updateVariantGroup,
+        removeVariantGroup,
+        loadModeOpen,
+        setLoadModeOpen,
+        loadVariantRows,
         PRODUCT_STATUS_OPTIONS,
     };
 }

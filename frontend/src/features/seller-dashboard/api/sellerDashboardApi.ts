@@ -103,11 +103,14 @@ function unwrapData<T>(res: unknown): T {
 
 function mapProduct(p: Record<string, unknown>): SellerProductRow {
     const images = (p.images as { imageUrl?: string }[] | undefined) ?? [];
-    const category = p.category as { name?: string } | null | undefined;
+    const categoriesRaw = Array.isArray(p.categories) ? (p.categories as Array<{ name?: string }>) : [];
     const priceRaw = p.price;
     const price =
         typeof priceRaw === "number" ? priceRaw : Number(priceRaw ?? 0);
     const createdAt = p.createdAt;
+    const updatedAt = p.updatedAt;
+    const deletedAt = p.deletedAt;
+    const purgeAfter = p.purgeAfter;
     return {
         id: String(p.id),
         title: String(p.title ?? ""),
@@ -117,23 +120,44 @@ function mapProduct(p: Record<string, unknown>): SellerProductRow {
         stockQuantity: Number(p.stockQuantity ?? 0),
         lowStockThreshold: Number(p.lowStockThreshold ?? 10),
         primaryImageUrl: images[0]?.imageUrl,
-        categoryName: category?.name,
+        categoryName: categoriesRaw[0]?.name,
         createdAt:
             typeof createdAt === "string"
                 ? createdAt
                 : createdAt instanceof Date
                   ? createdAt.toISOString()
                   : undefined,
+        updatedAt:
+            typeof updatedAt === "string"
+                ? updatedAt
+                : updatedAt instanceof Date
+                  ? updatedAt.toISOString()
+                  : undefined,
         viewsCount:
             typeof p.viewsCount === "number" ? p.viewsCount : Number(p.viewsCount ?? 0),
         salesCount:
             typeof p.salesCount === "number" ? p.salesCount : Number(p.salesCount ?? 0),
+        deletedAt:
+            typeof deletedAt === "string"
+                ? deletedAt
+                : deletedAt instanceof Date
+                  ? deletedAt.toISOString()
+                  : null,
+        purgeAfter:
+            typeof purgeAfter === "string"
+                ? purgeAfter
+                : purgeAfter instanceof Date
+                  ? purgeAfter.toISOString()
+                  : null,
+        deletionState: typeof p.deletionState === "string" ? p.deletionState : undefined,
     };
 }
 
 function mapProductDetail(raw: Record<string, unknown>): SellerProductDetail {
     const imgs = (raw.images as Record<string, unknown>[] | undefined) ?? [];
-    const cat = raw.category as { id?: string; name?: string } | null | undefined;
+    const categoriesRaw = Array.isArray(raw.categories)
+        ? (raw.categories as Array<{ id?: string; name?: string }>)
+        : [];
     const tr = raw.trackInventory;
     const trackInventory =
         tr === false || tr === "false" ? false : true;
@@ -151,14 +175,10 @@ function mapProductDetail(raw: Record<string, unknown>): SellerProductDetail {
                 ? null
                 : num(raw.compareAtPrice),
         costPrice: numOrNull(raw.costPrice),
-        categoryId:
-            raw.categoryId === null || raw.categoryId === undefined
-                ? null
-                : String(raw.categoryId),
-        category:
-            cat?.id && cat?.name
-                ? { id: String(cat.id), name: String(cat.name) }
-                : null,
+        categoryIds: categoriesRaw.map((category) => String(category.id ?? "")).filter(Boolean),
+        categories: categoriesRaw
+            .filter((category) => category.id && category.name)
+            .map((category) => ({ id: String(category.id), name: String(category.name) })),
         stockQuantity: num(raw.stockQuantity, 0),
         lowStockThreshold: num(raw.lowStockThreshold, 10),
         trackInventory,
@@ -187,11 +207,12 @@ function mapProductDetail(raw: Record<string, unknown>): SellerProductDetail {
 }
 
 export const sellerDashboardApi = {
-    async listMyProducts(params: { page?: number; limit?: number; status?: string } = {}) {
+    async listMyProducts(params: { page?: number; limit?: number; status?: string; includeDeleted?: boolean } = {}) {
         const q = new URLSearchParams();
         if (params.page) q.set("page", String(params.page));
         if (params.limit) q.set("limit", String(params.limit));
         if (params.status) q.set("status", params.status);
+        if (params.includeDeleted) q.set("includeDeleted", "true");
         const qs = q.toString();
         const res = await httpClient.get<unknown>(
             `/products/seller/me${qs ? `?${qs}` : ""}`,
@@ -247,6 +268,12 @@ export const sellerDashboardApi = {
 
     async deleteProduct(productId: string): Promise<void> {
         await httpClient.delete(`/products/${productId}`, { requiresAuth: true });
+    },
+
+    async restoreProduct(productId: string): Promise<void> {
+        await httpClient.post(`/products/${productId}/restore`, undefined, {
+            requiresAuth: true,
+        });
     },
 
     async publishProduct(productId: string): Promise<void> {

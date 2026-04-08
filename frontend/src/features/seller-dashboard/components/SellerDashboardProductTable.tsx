@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { SellerProductRow } from "../types/sellerDashboard.types";
-import { formatSellerProductStatus } from "../sellerProductLabels";
 import { cn } from "../../../shared/lib/cn";
 
 interface SellerDashboardProductTableProps {
@@ -12,6 +11,9 @@ interface SellerDashboardProductTableProps {
     /** My Shop — CRUD actions */
     onEditProduct?: (product: SellerProductRow) => void;
     onArchiveProduct?: (product: SellerProductRow) => void;
+    onDeleteProduct?: (product: SellerProductRow) => void;
+    onUnarchiveProduct?: (product: SellerProductRow) => void;
+    onRestoreProduct?: (product: SellerProductRow) => void;
     onPublishProduct?: (product: SellerProductRow) => void;
     busyProductId?: string | null;
 }
@@ -23,6 +25,9 @@ export function SellerDashboardProductTable({
     onAdjustStock,
     onEditProduct,
     onArchiveProduct,
+    onDeleteProduct,
+    onUnarchiveProduct,
+    onRestoreProduct,
     onPublishProduct,
     busyProductId,
 }: SellerDashboardProductTableProps) {
@@ -117,7 +122,7 @@ export function SellerDashboardProductTable({
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                     <span className="inline-flex rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium dark:bg-neutral-800 whitespace-nowrap">
-                                        {formatSellerProductStatus(p.status)}
+                                        {t(`sellerDashboard.productForm.status${p.status === "OUT_OF_STOCK" ? "OutOfStock" : p.status.charAt(0) + p.status.slice(1).toLowerCase()}`, p.status)}
                                     </span>
                                 </td>
                                 {mode === "shop" && (
@@ -163,22 +168,31 @@ export function SellerDashboardProductTable({
                                                 onClick={() => onEditProduct(p)}
                                                 className="inline-flex items-center justify-center rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
                                             >
-                                                {t("common.edit", "Sửa")}
+                                                {t("sellerDashboard.shop.editAction", "Edit")}
                                             </button>
                                         ) : null}
-                                        {mode === "shop" &&
-                                        p.status !== "ARCHIVED" &&
-                                        onArchiveProduct ? (
+                                        {mode === "shop" && !p.deletedAt && p.status !== "ARCHIVED" && onArchiveProduct ? (
                                             <button
                                                 type="button"
                                                 disabled={busyProductId === p.id}
                                                 onClick={() => onArchiveProduct(p)}
                                                 className="inline-flex items-center justify-center rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 shadow-sm transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-rose-400 dark:hover:border-rose-800 dark:hover:bg-rose-950/30"
                                             >
-                                                {t("sellerDashboard.shop.archive", "Lưu trữ")}
+                                                {t("sellerDashboard.shop.archiveAction", "Lưu trữ")}
+                                            </button>
+                                        ) : null}
+                                        {mode === "shop" && !p.deletedAt && p.status === "ARCHIVED" && onUnarchiveProduct ? (
+                                            <button
+                                                type="button"
+                                                disabled={busyProductId === p.id}
+                                                onClick={() => onUnarchiveProduct(p)}
+                                                className="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 shadow-sm transition-colors hover:bg-blue-100 disabled:opacity-50 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
+                                            >
+                                                {t("sellerDashboard.shop.unarchiveAction", "Bỏ lưu trữ")}
                                             </button>
                                         ) : null}
                                         {mode === "shop" &&
+                                        !p.deletedAt &&
                                         p.status === "DRAFT" &&
                                         onPublishProduct ? (
                                             <button
@@ -187,7 +201,27 @@ export function SellerDashboardProductTable({
                                                 onClick={() => onPublishProduct(p)}
                                                 className="inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
                                             >
-                                                {t("sellerDashboard.shop.publish", "Đăng bán")}
+                                                {t("sellerDashboard.shop.publishAction", "Đăng bán")}
+                                            </button>
+                                        ) : null}
+                                        {mode === "shop" && !p.deletedAt && onDeleteProduct ? (
+                                            <button
+                                                type="button"
+                                                disabled={busyProductId === p.id}
+                                                onClick={() => onDeleteProduct(p)}
+                                                className="inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm transition-colors hover:bg-rose-100 disabled:opacity-50 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300 dark:hover:bg-rose-900/40"
+                                            >
+                                                {t("sellerDashboard.shop.deleteAction", "Xóa")}
+                                            </button>
+                                        ) : null}
+                                        {mode === "shop" && p.deletedAt && onRestoreProduct ? (
+                                            <button
+                                                type="button"
+                                                disabled={busyProductId === p.id}
+                                                onClick={() => onRestoreProduct(p)}
+                                                className="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 shadow-sm transition-colors hover:bg-blue-100 disabled:opacity-50 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
+                                            >
+                                                {t("sellerDashboard.shop.restoreAction", "Khôi phục")}
                                             </button>
                                         ) : null}
                                         {mode === "inventory" && onAdjustStock ? (
@@ -196,7 +230,7 @@ export function SellerDashboardProductTable({
                                                 onClick={() => onAdjustStock(p)}
                                                 className="inline-flex items-center justify-center rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
                                             >
-                                                {t("sellerDashboard.shop.adjustStock", "Sửa tồn")}
+                                                {t("sellerDashboard.shop.adjustStockAction", "Kho")}
                                             </button>
                                         ) : null}
                                     </div>

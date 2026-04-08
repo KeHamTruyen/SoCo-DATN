@@ -33,7 +33,9 @@ function sortToBackend(sort: ProductQueryParams["sort"] | undefined) {
 function mapApiProductToListItem(raw: Record<string, unknown>): ProductListItem {
     const images = (raw.images as { imageUrl?: string }[] | undefined) ?? [];
     const seller = raw.seller as { fullName?: string; username?: string } | undefined;
-    const category = raw.category as { name?: string } | null | undefined;
+    const categories = Array.isArray(raw.categories)
+        ? (raw.categories as Array<{ name?: string }>)
+        : [];
     const priceRaw = raw.price;
     const price =
         typeof priceRaw === "number"
@@ -48,7 +50,7 @@ function mapApiProductToListItem(raw: Record<string, unknown>): ProductListItem 
         price: Number.isFinite(price) ? price : 0,
         imageUrl: images[0]?.imageUrl,
         sellerName: seller?.fullName ?? seller?.username,
-        category: category?.name,
+        category: categories[0]?.name,
         soldCount: typeof raw.salesCount === "number" ? raw.salesCount : undefined,
     };
 }
@@ -68,9 +70,9 @@ export const marketplaceApi = {
         searchParams.set("sortOrder", sortOrder);
         searchParams.set("page", String(params.page ?? 1));
         searchParams.set("limit", String(params.pageSize ?? 12));
+        searchParams.set("status", "ACTIVE");
         if (params.sellerId?.trim()) {
             searchParams.set("sellerId", params.sellerId.trim());
-            searchParams.set("status", "ACTIVE");
         }
 
         const res = await httpClient.get<ProductsListEnvelope>(

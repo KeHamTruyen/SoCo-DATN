@@ -20,10 +20,12 @@ function useStatusFilters() {
         { value: "DRAFT", label: t("sellerDashboard.shop.filterDraft", "Bản nháp") },
         { value: "OUT_OF_STOCK", label: t("sellerDashboard.shop.filterOutOfStock", "Hết hàng") },
         { value: "ARCHIVED", label: t("sellerDashboard.shop.filterArchived", "Lưu trữ") },
+        { value: "DELETED", label: t("sellerDashboard.shop.filterDeleted", "Đã xóa") },
     ] as { value: SellerShopStatusFilter; label: string }[];
 }
 
 type ShopSort = "newest" | "priceAsc" | "priceDesc" | "title";
+type ConfirmActionType = "archive" | "unarchive" | "publish" | "delete";
 
 interface SellerDashboardShopPanelProps {
     items: SellerProductRow[];
@@ -49,6 +51,17 @@ export function SellerDashboardShopPanel({
     const [editProductId, setEditProductId] = useState<string | null>(null);
     const [busyProductId, setBusyProductId] = useState<string | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
+    const [confirmState, setConfirmState] = useState<{
+        open: boolean;
+        action: ConfirmActionType | null;
+        product: SellerProductRow | null;
+    }>({ open: false, action: null, product: null });
+    const STATUS_PRIORITY: Record<string, number> = {
+        ACTIVE: 0,
+        DRAFT: 1,
+        OUT_OF_STOCK: 2,
+        ARCHIVED: 3,
+    };
 
     const filtered = useMemo(() => {
         const q = search.trim().toLowerCase();
@@ -63,15 +76,24 @@ export function SellerDashboardShopPanel({
             sorted.sort((a, b) => b.price - a.price);
         } else if (sort === "title") {
             sorted.sort((a, b) => a.title.localeCompare(b.title, "vi"));
+        } else if (statusFilter === "") {
+            sorted.sort((a, b) => {
+                const pa = STATUS_PRIORITY[a.status] ?? 99;
+                const pb = STATUS_PRIORITY[b.status] ?? 99;
+                if (pa !== pb) return pa - pb;
+                const ta = Date.parse(a.updatedAt ?? a.createdAt ?? "") || 0;
+                const tb = Date.parse(b.updatedAt ?? b.createdAt ?? "") || 0;
+                return tb - ta;
+            });
         } else {
             sorted.sort((a, b) => {
-                const ta = a.createdAt ? Date.parse(a.createdAt) : 0;
-                const tb = b.createdAt ? Date.parse(b.createdAt) : 0;
+                const ta = Date.parse(a.updatedAt ?? a.createdAt ?? "") || 0;
+                const tb = Date.parse(b.updatedAt ?? b.createdAt ?? "") || 0;
                 return tb - ta;
             });
         }
         return sorted;
-    }, [items, search, sort]);
+    }, [items, search, sort, statusFilter]);
 
     function openCreate() {
         setFormMode("create");
@@ -85,15 +107,19 @@ export function SellerDashboardShopPanel({
         setFormOpen(true);
     }
 
-    async function handleArchive(p: SellerProductRow) {
-        const ok = window.confirm(
-            t("sellerDashboard.shop.archiveConfirm", 'Lưu trữ sản phẩm "{{title}}"? Sản phẩm sẽ chuyển sang trạng thái lưu trữ.', { title: p.title }),
-        );
-        if (!ok) return;
+    function openConfirm(action: ConfirmActionType, product: SellerProductRow) {
+        setConfirmState({ open: true, action, product });
+    }
+
+    function closeConfirm() {
+        setConfirmState({ open: false, action: null, product: null });
+    }
+
+    async function runArchive(p: SellerProductRow) {
         setActionError(null);
         setBusyProductId(p.id);
         try {
-            await sellerDashboardApi.deleteProduct(p.id);
+            await sellerDashboardApi.updateSellerProduct(p.id, { status: "ARCHIVED" });
             onProductsUpdated();
         } catch (e) {
             setActionError(
@@ -104,7 +130,47 @@ export function SellerDashboardShopPanel({
         }
     }
 
-    async function handlePublish(p: SellerProductRow) {
+    async function runDelete(p: SellerProductRow) {
+        setActionError(null);
+        setBusyProductId(p.id);
+        try {
+            await sellerDashboardApi.deleteProduct(p.id);
+            onProductsUpdated();
+        } catch (e) {
+            setActionError(
+                e instanceof HttpError
+                    ? e.message
+                    : t("sellerDashboard.shop.deleteError", "Không xóa được sản phẩm."),
+            );
+        } finally {
+            setBusyProductId(null);
+        }
+    }
+
+    async function handleRestore(p: SellerProductRow) {
+        const ok = window.confirm(
+            t("sellerDashboard.shop.restoreConfirm", 'Khôi phục sản phẩm "{{title}}"?', {
+                title: p.title,
+            }),
+        );
+        if (!ok) return;
+        setActionError(null);
+        setBusyProductId(p.id);
+        try {
+            await sellerDashboardApi.restoreProduct(p.id);
+            onProductsUpdated();
+        } catch (e) {
+            setActionError(
+                e instanceof HttpError
+                    ? e.message
+                    : t("sellerDashboard.shop.restoreError", "Không khôi phục được sản phẩm."),
+            );
+        } finally {
+            setBusyProductId(null);
+        }
+    }
+
+    async function runPublish(p: SellerProductRow) {
         setActionError(null);
         setBusyProductId(p.id);
         try {
@@ -120,6 +186,47 @@ export function SellerDashboardShopPanel({
             setBusyProductId(null);
         }
     }
+
+    async function runUnarchive(p: SellerProductRow) {
+        setActionError(null);
+        setBusyProductId(p.id);
+        try {
+            await sellerDashboardApi.updateSellerProduct(p.id, { status: "DRAFT" });
+            onProductsUpdated();
+        } catch (e) {
+            setActionError(
+                e instanceof HttpError
+                    ? e.message
+                    : t("sellerDashboard.shop.unarchiveError", "Không bỏ lưu trữ được."),
+            );
+        } finally {
+            setBusyProductId(null);
+        }
+    }
+
+    async function onConfirmAction() {
+        if (!confirmState.product || !confirmState.action) return;
+        const target = confirmState.product;
+        const action = confirmState.action;
+        closeConfirm();
+        if (action === "archive") await runArchive(target);
+        if (action === "unarchive") await runUnarchive(target);
+        if (action === "publish") await runPublish(target);
+        if (action === "delete") await runDelete(target);
+    }
+
+    const confirmMessage =
+        confirmState.action === "archive"
+            ? t("sellerDashboard.shop.archiveConfirm", 'Lưu trữ sản phẩm "{{title}}"? Sản phẩm sẽ chuyển sang trạng thái lưu trữ.', { title: confirmState.product?.title ?? "" })
+            : confirmState.action === "unarchive"
+              ? t("sellerDashboard.shop.unarchiveConfirm", 'Bỏ lưu trữ sản phẩm "{{title}}"?', { title: confirmState.product?.title ?? "" })
+              : confirmState.action === "publish"
+                ? t("sellerDashboard.shop.publishConfirm", 'Đăng bán sản phẩm "{{title}}"?', { title: confirmState.product?.title ?? "" })
+                : t(
+                      "sellerDashboard.shop.deleteConfirm",
+                      'Xóa sản phẩm "{{title}}"? Sản phẩm sẽ bị ẩn ngay và có thể khôi phục trong 180 ngày.',
+                      { title: confirmState.product?.title ?? "" },
+                  );
 
     const statusLabel =
         STATUS_FILTERS.find((x) => x.value === statusFilter)?.label ?? t("sellerDashboard.shop.filterAll", "Tất cả");
@@ -260,12 +367,53 @@ export function SellerDashboardShopPanel({
                         items={filtered}
                         loading={loading}
                         onEditProduct={openEdit}
-                        onArchiveProduct={handleArchive}
-                        onPublishProduct={handlePublish}
+                        onArchiveProduct={(p) => openConfirm("archive", p)}
+                        onDeleteProduct={(p) => openConfirm("delete", p)}
+                        onUnarchiveProduct={(p) => openConfirm("unarchive", p)}
+                        onRestoreProduct={handleRestore}
+                        onPublishProduct={(p) => openConfirm("publish", p)}
                         busyProductId={busyProductId}
                     />
                 )}
             </div>
+
+            {confirmState.open ? (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="presentation">
+                    <button
+                        type="button"
+                        className="absolute inset-0 bg-black/50"
+                        aria-label={t("auth.closeModal", "Đóng")}
+                        onClick={closeConfirm}
+                    />
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="shop-confirm-title"
+                        className="relative z-10 w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-xl dark:border-neutral-700 dark:bg-neutral-900"
+                    >
+                        <h3 id="shop-confirm-title" className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                            {t("sellerDashboard.shop.confirmTitle", "Xác nhận thao tác")}
+                        </h3>
+                        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{confirmMessage}</p>
+                        <div className="mt-6 flex justify-end gap-2">
+                            <button
+                                type="button"
+                                onClick={closeConfirm}
+                                className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                            >
+                                {t("auth.cancel", "Hủy")}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => void onConfirmAction()}
+                                className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+                            >
+                                {t("sellerDashboard.shop.confirmAction", "Xác nhận")}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
 
             <SellerProductFormDialog
                 open={formOpen}
