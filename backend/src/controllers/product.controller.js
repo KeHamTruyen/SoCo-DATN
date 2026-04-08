@@ -51,6 +51,12 @@ class ProductController {
         data: product
       });
     } catch (error) {
+      if (error.message === 'Product not found') {
+        return res.status(404).json({
+          success: false,
+          message: error.message
+        });
+      }
       next(error);
     }
   }
@@ -85,11 +91,27 @@ class ProductController {
   async deleteProduct(req, res, next) {
     try {
       const sellerId = req.user.id;
-      await productService.deleteProduct(req.params.id, sellerId);
+      const reason =
+        req.body && typeof req.body.reason === 'string' ? req.body.reason : undefined;
+      await productService.deleteProduct(req.params.id, sellerId, reason);
 
       res.json({
         success: true,
         message: 'Product deleted successfully'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async restoreProduct(req, res, next) {
+    try {
+      const sellerId = req.user.id;
+      const product = await productService.restoreProduct(req.params.id, sellerId);
+      res.json({
+        success: true,
+        message: 'Product restored successfully',
+        data: product
       });
     } catch (error) {
       next(error);

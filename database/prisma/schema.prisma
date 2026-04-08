@@ -41,6 +41,14 @@ enum ProductStatus {
   ARCHIVED
 }
 
+enum ProductDeletionState {
+  ACTIVE
+  SOFT_DELETED
+  PURGED_PENDING
+  PURGED_DONE
+  PURGE_FAILED
+}
+
 enum OrderStatus {
   PENDING
   CONFIRMED
@@ -340,7 +348,7 @@ model Category {
 
   parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   children Category[] @relation("CategoryHierarchy")
-  products Product[]
+  products Product[] @relation("ProductCategories")
 
   @@map("categories")
 }
@@ -352,7 +360,6 @@ model Category {
 model Product {
   id             String   @id @default(uuid())
   sellerId       String   @map("seller_id")
-  categoryId     String?  @map("category_id")
   title          String
   slug           String   @unique
   description    String?
@@ -371,7 +378,13 @@ model Product {
   dimensions Json?
 
   // Status
-  status ProductStatus @default(DRAFT)
+  status         ProductStatus        @default(DRAFT)
+  deletionState  ProductDeletionState @default(ACTIVE) @map("deletion_state")
+  deletedAt      DateTime?            @map("deleted_at")
+  deletedBy      String?              @map("deleted_by")
+  deleteReason   String?              @map("delete_reason")
+  purgeAfter     DateTime?            @map("purge_after")
+  lastPurgeError String?              @map("last_purge_error")
 
   // SEO
   metaTitle       String?  @map("meta_title")
@@ -389,7 +402,7 @@ model Product {
   publishedAt DateTime? @map("published_at")
 
   seller         User             @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  category       Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categories     Category[]       @relation("ProductCategories")
   images         ProductImage[]
   variants       ProductVariant[]
   orderItems     OrderItem[]
@@ -400,7 +413,23 @@ model Product {
   scheduledPosts ScheduledPost[]
   messages       Message[]
 
+  @@index([deletionState, purgeAfter])
+  @@index([sellerId, deletedAt])
   @@map("products")
+}
+
+model ProductDeletionAudit {
+  id         String   @id @default(uuid())
+  productId  String   @map("product_id")
+  actorId    String?  @map("actor_id")
+  actorRole  String?  @map("actor_role")
+  event      String   @db.VarChar(80)
+  reason     String?  @db.VarChar(300)
+  meta       Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([productId, createdAt])
+  @@map("product_deletion_audits")
 }
 
 model ProductImage {

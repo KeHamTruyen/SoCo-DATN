@@ -9,6 +9,8 @@ import {
     productIdValidation,
     sellerProductIdParamValidation,
     addImagesValidation,
+    deleteProductValidation,
+    restoreProductValidation,
     sellerProductVariantParams,
     createSellerVariantValidation,
     updateSellerVariantValidation,
@@ -275,9 +277,18 @@ router.delete(
     "/:id",
     protect,
     restrictTo("SELLER"),
-    productIdValidation,
+    deleteProductValidation,
     validate,
     productController.deleteProduct,
+);
+
+router.post(
+    "/:id/restore",
+    protect,
+    restrictTo("SELLER"),
+    restoreProductValidation,
+    validate,
+    productController.restoreProduct,
 );
 
 /**

@@ -28,7 +28,7 @@ const POST_INCLUDE = {
 
 const PRODUCT_INCLUDE = {
   images: { orderBy: { displayOrder: 'asc' }, take: 1 },
-  category: true,
+  categories: true,
   seller: {
     select: {
       id: true,
@@ -134,7 +134,11 @@ export const listSavedItems = async (userId, query = {}) => {
   }
 
   if (categoryId) {
-    items = items.filter((it) => it.post || it.product?.categoryId === categoryId);
+    items = items.filter(
+      (it) =>
+        it.post ||
+        it.product?.categories?.some((category) => category.id === categoryId),
+    );
   }
 
   const minP = minPrice != null && minPrice !== '' ? parseFloat(minPrice) : null;

@@ -74,7 +74,12 @@ export const createProductValidation = [
         .isFloat({ min: 0 })
         .withMessage("Cost price must be a positive number"),
 
-    body("categoryId").optional().isUUID().withMessage("Invalid category ID"),
+    body("categoryIds")
+        .optional()
+        .isArray({ max: 20 })
+        .withMessage("categoryIds must be an array with at most 20 items"),
+
+    body("categoryIds.*").optional().isUUID().withMessage("Each category ID must be a valid UUID"),
 
     body("stockQuantity")
         .optional()
@@ -194,7 +199,12 @@ export const updateProductValidation = [
         .isFloat({ min: 0 })
         .withMessage("Cost price must be a positive number"),
 
-    body("categoryId").optional().isUUID().withMessage("Invalid category ID"),
+    body("categoryIds")
+        .optional({ nullable: true })
+        .isArray({ max: 20 })
+        .withMessage("categoryIds must be an array with at most 20 items"),
+
+    body("categoryIds.*").optional().isUUID().withMessage("Each category ID must be a valid UUID"),
 
     body("stockQuantity")
         .optional()
@@ -291,10 +301,28 @@ export const getProductsValidation = [
         .trim()
         .notEmpty()
         .withMessage("sellerId must be a non-empty string"),
+
+    query("includeDeleted")
+        .optional()
+        .isBoolean()
+        .withMessage("includeDeleted must be a boolean"),
 ];
 
 export const productIdValidation = [
     param("id").notEmpty().withMessage("Product ID is required"),
+];
+
+export const deleteProductValidation = [
+    ...productIdValidation,
+    body("reason")
+        .optional({ nullable: true })
+        .trim()
+        .isLength({ max: 300 })
+        .withMessage("Reason must not exceed 300 characters"),
+];
+
+export const restoreProductValidation = [
+    ...productIdValidation,
 ];
 
 export const sellerProductIdParamValidation = [

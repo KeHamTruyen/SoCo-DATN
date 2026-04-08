@@ -1,12 +1,53 @@
 import prisma from '../config/database.js';
 import slugify from 'slugify';
+import { deleteImage, getPublicIdFromUrl } from '../config/cloudinary.js';
+
+const RETENTION_DAYS = 180;
+
+function computePurgeAfter(from = new Date()) {
+  const out = new Date(from);
+  out.setDate(out.getDate() + RETENTION_DAYS);
+  return out;
+}
+
+function withPrimaryCategory(product) {
+  if (!product || !Array.isArray(product.categories)) return product;
+  const primaryCategory = product.categories[0] || null;
+  return {
+    ...product,
+    categoryId: primaryCategory?.id || null,
+    category: primaryCategory,
+  };
+}
+
+function assertPublishReady({ description, imageCount }) {
+  if (!description || description.trim() === '') {
+    throw new Error('Product must have a description');
+  }
+  if (!Number.isFinite(imageCount) || imageCount <= 0) {
+    throw new Error('Product must have at least one image');
+  }
+}
 
 class ProductService {
+  async appendDeletionAudit(productId, event, { actorId = null, actorRole = null, reason = null, meta = {} } = {}) {
+    await prisma.productDeletionAudit.create({
+      data: {
+        productId,
+        event,
+        actorId,
+        actorRole,
+        reason,
+        meta
+      }
+    });
+  }
+
   /**
    * Create a new product
    */
   async createProduct(sellerId, data) {
-    const { title, description, price, categoryId, images, variants, ...rest } = data;
+    const { title, description, price, categoryIds, images, variants, ...rest } = data;
 
     // Generate unique slug
     let slug = slugify(title, { lower: true, strict: true });
@@ -23,7 +64,10 @@ class ProductService {
         slug,
         description,
         price,
-        categoryId,
+        categories:
+          Array.isArray(categoryIds) && categoryIds.length > 0
+            ? { connect: categoryIds.map((id) => ({ id })) }
+            : undefined,
         ...rest,
         status: 'DRAFT',
         images: images && images.length > 0 ? {
@@ -47,7 +91,7 @@ class ProductService {
       include: {
         images: true,
         variants: true,
-        category: true,
+        categories: true,
         seller: {
           select: {
             id: true,
@@ -59,7 +103,7 @@ class ProductService {
       }
     });
 
-    return product;
+    return withPrimaryCategory(product);
   }
 
   /**
@@ -82,10 +126,14 @@ class ProductService {
     const skip = (page - 1) * limit;
 
     // Build where clause
+    const isPublicListing = !sellerId;
+    const effectiveStatus = isPublicListing ? 'ACTIVE' : status;
+
     const where = {
-      ...(categoryId && { categoryId }),
+      deletedAt: null,
+      ...(categoryId && { categories: { some: { id: categoryId } } }),
       ...(sellerId && { sellerId }),
-      ...(status && { status }),
+      ...(effectiveStatus && { status: effectiveStatus }),
       ...(search && {
         OR: [
           { title: { contains: search, mode: 'insensitive' } },
@@ -111,7 +159,7 @@ class ProductService {
           images: {
             orderBy: { displayOrder: 'asc' }
           },
-          category: true,
+          categories: true,
           seller: {
             select: {
               id: true,
@@ -129,7 +177,7 @@ class ProductService {
     ]);
 
     return {
-      products,
+      products: products.map(withPrimaryCategory),
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -145,6 +193,8 @@ class ProductService {
   async getProduct(identifier) {
     const product = await prisma.product.findFirst({
       where: {
+        deletedAt: null,
+        status: 'ACTIVE',
         OR: [
           { id: identifier },
           { slug: identifier }
@@ -157,7 +207,7 @@ class ProductService {
         variants: {
           where: { isActive: true }
         },
-        category: true,
+        categories: true,
         seller: {
           select: {
             id: true,
@@ -197,7 +247,7 @@ class ProductService {
       data: { viewsCount: { increment: 1 } }
     });
 
-    return product;
+    return withPrimaryCategory(product);
   }
 
   /**
@@ -206,7 +256,8 @@ class ProductService {
   async updateProduct(productId, sellerId, data) {
     // Verify ownership
     const product = await prisma.product.findUnique({
-      where: { id: productId }
+      where: { id: productId },
+      include: { images: true }
     });
 
     if (!product) {
@@ -231,14 +282,31 @@ class ProductService {
       updateData.slug = slug;
     }
 
+    const finalStatus = updateData.status ?? product.status;
+    const finalDescription = updateData.description !== undefined ? updateData.description : product.description;
+    if (finalStatus === 'ACTIVE') {
+      assertPublishReady({
+        description: finalDescription,
+        imageCount: product.images?.length ?? 0
+      });
+    }
+
     // Update product
+    const updatePayload = { ...updateData };
+    if (updateData.categoryIds !== undefined) {
+      updatePayload.categories = {
+        set: (updateData.categoryIds || []).map((id) => ({ id }))
+      };
+      delete updatePayload.categoryIds;
+    }
+
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
-      data: updateData,
+      data: updatePayload,
       include: {
         images: true,
         variants: true,
-        category: true,
+        categories: true,
         seller: {
           select: {
             id: true,
@@ -250,13 +318,13 @@ class ProductService {
       }
     });
 
-    return updatedProduct;
+    return withPrimaryCategory(updatedProduct);
   }
 
   /**
    * Delete product
    */
-  async deleteProduct(productId, sellerId) {
+  async deleteProduct(productId, sellerId, reason) {
     // Verify ownership
     const product = await prisma.product.findUnique({
       where: { id: productId }
@@ -270,13 +338,149 @@ class ProductService {
       throw new Error('Unauthorized to delete this product');
     }
 
-    // Soft delete by archiving
-    await prisma.product.update({
+    const now = new Date();
+    const purgeAfter = computePurgeAfter(now);
+
+    await prisma.$transaction([
+      prisma.product.update({
+        where: { id: productId },
+        data: {
+          deletionState: 'SOFT_DELETED',
+          deletedAt: now,
+          deletedBy: sellerId,
+          purgeAfter,
+          deleteReason: reason || null
+        }
+      }),
+      prisma.productDeletionAudit.create({
+        data: {
+          productId,
+          actorId: sellerId,
+          actorRole: 'SELLER',
+          event: 'PRODUCT_SOFT_DELETED',
+          reason: reason || null,
+          meta: { purgeAfter: purgeAfter.toISOString() }
+        }
+      })
+    ]);
+
+    return { message: 'Product deleted successfully' };
+  }
+
+  async restoreProduct(productId, sellerId) {
+    const product = await prisma.product.findUnique({
+      where: { id: productId }
+    });
+    if (!product) throw new Error('Product not found');
+    if (product.sellerId !== sellerId) throw new Error('Unauthorized to restore this product');
+    if (!product.deletedAt || product.deletionState !== 'SOFT_DELETED') {
+      throw new Error('Product is not deleted');
+    }
+    if (product.purgeAfter && product.purgeAfter <= new Date()) {
+      throw new Error('Restore window expired');
+    }
+
+    const restored = await prisma.product.update({
       where: { id: productId },
-      data: { status: 'ARCHIVED' }
+      data: {
+        deletedAt: null,
+        deletedBy: null,
+        deleteReason: null,
+        purgeAfter: null,
+        deletionState: 'ACTIVE',
+        lastPurgeError: null,
+        status: 'DRAFT'
+      },
+      include: { images: true, variants: true, categories: true }
     });
 
-    return { message: 'Product archived successfully' };
+    await this.appendDeletionAudit(productId, 'PRODUCT_RESTORED', {
+      actorId: sellerId,
+      actorRole: 'SELLER'
+    });
+
+    return withPrimaryCategory(restored);
+  }
+
+  async listPurgeCandidates(now = new Date(), take = 50) {
+    return prisma.product.findMany({
+      where: {
+        purgeAfter: { lte: now },
+        deletionState: { in: ['SOFT_DELETED', 'PURGE_FAILED'] }
+      },
+      take,
+      orderBy: { purgeAfter: 'asc' },
+      include: {
+        images: { select: { id: true, imageUrl: true } }
+      }
+    });
+  }
+
+  async purgeProduct(productId) {
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      include: { images: { select: { imageUrl: true } } }
+    });
+    if (!product) return { id: productId, purged: true, skipped: 'NOT_FOUND' };
+
+    await prisma.product.update({
+      where: { id: productId },
+      data: { deletionState: 'PURGED_PENDING', lastPurgeError: null }
+    });
+
+    await this.appendDeletionAudit(productId, 'PRODUCT_PURGE_STARTED', {
+      actorRole: 'SYSTEM',
+      meta: { imageCount: product.images.length }
+    });
+
+    const assetErrors = [];
+    for (const image of product.images) {
+      const publicId = getPublicIdFromUrl(image.imageUrl);
+      if (!publicId) continue;
+      try {
+        await deleteImage(publicId);
+      } catch (error) {
+        assetErrors.push(error?.message || 'Asset deletion failed');
+      }
+    }
+
+    if (assetErrors.length > 0) {
+      await prisma.product.update({
+        where: { id: productId },
+        data: {
+          deletionState: 'PURGE_FAILED',
+          lastPurgeError: assetErrors[0]
+        }
+      });
+      await this.appendDeletionAudit(productId, 'PRODUCT_PURGE_FAILED', {
+        actorRole: 'SYSTEM',
+        reason: assetErrors[0],
+        meta: { errors: assetErrors }
+      });
+      throw new Error(assetErrors[0]);
+    }
+
+    await this.appendDeletionAudit(productId, 'PRODUCT_PURGE_COMPLETED', {
+      actorRole: 'SYSTEM'
+    });
+    await prisma.product.delete({ where: { id: productId } });
+    return { id: productId, purged: true };
+  }
+
+  async purgeExpiredProducts({ now = new Date(), take = 25 } = {}) {
+    const candidates = await this.listPurgeCandidates(now, take);
+    const result = { total: candidates.length, purged: 0, failed: 0 };
+
+    for (const candidate of candidates) {
+      try {
+        await this.purgeProduct(candidate.id);
+        result.purged += 1;
+      } catch {
+        result.failed += 1;
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -296,14 +500,10 @@ class ProductService {
       throw new Error('Unauthorized to publish this product');
     }
 
-    // Validation before publishing
-    if (!product.images || product.images.length === 0) {
-      throw new Error('Product must have at least one image');
-    }
-
-    if (!product.description || product.description.trim() === '') {
-      throw new Error('Product must have a description');
-    }
+    assertPublishReady({
+      description: product.description,
+      imageCount: product.images?.length ?? 0
+    });
 
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
@@ -314,11 +514,11 @@ class ProductService {
       include: {
         images: true,
         variants: true,
-        category: true
+        categories: true
       }
     });
 
-    return updatedProduct;
+    return withPrimaryCategory(updatedProduct);
   }
 
   /**
@@ -363,11 +563,20 @@ class ProductService {
    */
   async deleteProductImage(productId, imageId, sellerId) {
     const product = await prisma.product.findUnique({
-      where: { id: productId }
+      where: { id: productId },
+      include: { images: { select: { id: true } } }
     });
 
     if (!product || product.sellerId !== sellerId) {
       throw new Error('Unauthorized');
+    }
+
+    const hasTargetImage = product.images.some((image) => image.id === imageId);
+    if (!hasTargetImage) {
+      throw new Error('Image not found');
+    }
+    if (product.status === 'ACTIVE' && product.images.length <= 1) {
+      throw new Error('Active product must keep at least one image');
     }
 
     await prisma.productImage.delete({
@@ -382,12 +591,12 @@ class ProductService {
    */
   async getSellerProductById(sellerId, productId) {
     const product = await prisma.product.findFirst({
-      where: { id: productId, sellerId },
+      where: { id: productId, sellerId, deletedAt: null },
       include: {
         images: {
           orderBy: { displayOrder: 'asc' }
         },
-        category: true,
+        categories: true,
         variants: {
           orderBy: { createdAt: 'asc' }
         }
@@ -398,7 +607,7 @@ class ProductService {
       throw new Error('Product not found');
     }
 
-    return product;
+    return withPrimaryCategory(product);
   }
 
   /**
@@ -520,12 +729,18 @@ class ProductService {
    * Get seller's products
    */
   async getSellerProducts(sellerId, filters = {}) {
-    const { status, page = 1, limit = 20 } = filters;
+    const { status, page = 1, limit = 20, includeDeleted } = filters;
     const skip = (page - 1) * limit;
+    const deletedOnly = status === 'DELETED';
 
     const where = {
       sellerId,
-      ...(status && { status })
+      ...(deletedOnly
+        ? { deletedAt: { not: null } }
+        : includeDeleted === 'true'
+          ? {}
+          : { deletedAt: null }),
+      ...(status && status !== 'DELETED' ? { status } : {})
     };
 
     const [products, total] = await Promise.all([
@@ -539,7 +754,7 @@ class ProductService {
             where: { isPrimary: true },
             take: 1
           },
-          category: true,
+          categories: true,
           _count: {
             select: { reviews: true, orderItems: true }
           }
@@ -549,7 +764,7 @@ class ProductService {
     ]);
 
     return {
-      products,
+      products: products.map(withPrimaryCategory),
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),

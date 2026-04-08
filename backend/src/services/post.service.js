@@ -225,7 +225,7 @@ export const getPostById = async (postId, userId = null) => {
       product: {
         include: {
           images: { orderBy: { displayOrder: 'asc' }, take: 1 },
-          category: true,
+          categories: true,
           seller: { select: AUTHOR_SELECT },
         },
       },

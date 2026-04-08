@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import prisma from '../config/database.js';
+import productService from '../services/product.service.js';
 
 /**
  * Publish scheduled posts whose scheduledTime has passed.
@@ -68,4 +69,16 @@ export function startScheduler() {
   // Run every minute
   cron.schedule('* * * * *', publishScheduledPosts);
   console.log('✅ Cron scheduler started (checking scheduled posts every minute)');
+
+  // Purge soft-deleted products every hour
+  cron.schedule('0 * * * *', async () => {
+    try {
+      const result = await productService.purgeExpiredProducts({ take: 25 });
+      if (result.total > 0) {
+        console.log(`🧹 Product purge run: total=${result.total}, purged=${result.purged}, failed=${result.failed}`);
+      }
+    } catch (error) {
+      console.error('❌ Product purge scheduler error:', error.message);
+    }
+  });
 }
