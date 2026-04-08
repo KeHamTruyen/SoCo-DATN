@@ -12,12 +12,16 @@ import { HttpError } from "../../../shared/api/httpClient";
 import {
     buildVariantMatrixRowsDynamic,
     buildDimensions,
+    draftRowsFromVariants,
     dimensionInputsValid,
     emptyForm,
+    hasDuplicateVariantGroupNames,
     normalizeKeywordList,
+    normalizeVariantGroups,
     parseIntSafe,
     parseOptionalFieldNumber,
     parsePrice,
+    variantGroupsFromRows,
     variantOptionMapDisplay,
     type VariantGroup,
     type VariantLoadMode,
@@ -58,6 +62,17 @@ export function useSellerProductForm(
     const [variantGroups, setVariantGroups] = useState<VariantGroup[]>([]);
     const [loadModeOpen, setLoadModeOpen] = useState(false);
 
+    function resetFormState() {
+        setForm(emptyForm());
+        setExistingImages([]);
+        setRemovedImageIds(new Set());
+        setPendingFiles([]);
+        setDraftVariants([]);
+        setVariantsList([]);
+        setVariantGroups([]);
+        setError(null);
+    }
+
     useEffect(() => {
         if (!open) return;
         void (async () => {
@@ -72,23 +87,12 @@ export function useSellerProductForm(
 
     useEffect(() => {
         if (!open) {
-            setForm(emptyForm());
-            setExistingImages([]);
-            setRemovedImageIds(new Set());
-            setPendingFiles([]);
-            setError(null);
+            resetFormState();
             setLoading(false);
             return;
         }
         if (mode === "create") {
-            setForm(emptyForm());
-            setExistingImages([]);
-            setRemovedImageIds(new Set());
-            setPendingFiles([]);
-            setDraftVariants([]);
-            setVariantsList([]);
-            setVariantGroups([]);
-            setError(null);
+            resetFormState();
             return;
         }
         if (mode === "edit" && productId) {
@@ -98,32 +102,10 @@ export function useSellerProductForm(
                 try {
                     const p: SellerProductDetail = await sellerDashboardApi.getMyProduct(productId);
                     const d = p.dimensions;
-                    setVariantsList(p.variants ?? []);
-                    const groupMap = new Map<string, Set<string>>();
-                    for (const variant of p.variants ?? []) {
-                        for (const [name, value] of Object.entries(variant.options ?? {})) {
-                            if (!groupMap.has(name)) groupMap.set(name, new Set());
-                            groupMap.get(name)?.add(String(value));
-                        }
-                    }
-                    const groups = Array.from(groupMap.entries()).map(([name, values], idx) => ({
-                        id: `group-${idx}-${name}`,
-                        name,
-                        values: Array.from(values),
-                    }));
-                    setVariantGroups(groups);
-                    setDraftVariants(
-                        (p.variants ?? [])
-                            .map((v) => ({
-                                id: v.id,
-                                optionMap: Object.fromEntries(
-                                    Object.entries(v.options ?? {}).map(([k, val]) => [k, String(val)]),
-                                ),
-                                price: v.price != null ? String(v.price) : "",
-                                stock: String(v.stockQuantity ?? 0),
-                                isActive: v.isActive !== false,
-                            })),
-                    );
+                    const variants = p.variants ?? [];
+                    setVariantsList(variants);
+                    setVariantGroups(variantGroupsFromRows(variants));
+                    setDraftVariants(draftRowsFromVariants(variants));
                     setForm({
                         title: p.title,
                         description: p.description ?? "",
@@ -259,19 +241,7 @@ export function useSellerProductForm(
                         altText: title.slice(0, 80) + (uploaded.length > 1 ? ` ${i + 1}` : ""),
                     }));
                 }
-                const variantBodies = draftVariants
-                    .map((d) => {
-                        const pVar = parsePrice(d.price);
-                        const options: Record<string, string> = d.optionMap;
-                        return {
-                            name: variantOptionMapDisplay(options),
-                            sku: undefined,
-                            price: pVar,
-                            stockQuantity: parseIntSafe(d.stock, 0),
-                            options,
-                            isActive: d.isActive,
-                        };
-                    });
+                const variantBodies = buildVariantBodies(draftVariants);
                 await sellerDashboardApi.createProduct({
                     title,
                     description: description || undefined,
@@ -326,22 +296,7 @@ export function useSellerProductForm(
                     );
                 }
 
-                for (const existing of variantsList) {
-                    await sellerDashboardApi.deleteProductVariant(productId, existing.id);
-                }
-                const recreatedRows: SellerProductVariantRow[] = [];
-                for (const row of draftVariants) {
-                    const created = await sellerDashboardApi.createProductVariant(productId, {
-                        name: variantOptionMapDisplay(row.optionMap),
-                        sku: undefined,
-                        price: row.price.trim() === "" ? undefined : parsePrice(row.price),
-                        stockQuantity: parseIntSafe(row.stock, 0),
-                        options: row.optionMap,
-                        isActive: row.isActive,
-                    });
-                    recreatedRows.push(created);
-                }
-                setVariantsList(recreatedRows);
+                await replaceExistingVariants(productId, draftVariants);
             }
             onSuccess();
             onClose();
@@ -372,16 +327,7 @@ export function useSellerProductForm(
     }
 
     function loadVariantRows(mode: VariantLoadMode) {
-        const validGroups = variantGroups
-            .map((g) => ({
-                ...g,
-                name: g.name.trim(),
-                values: g.values
-                    .map((v) => v.trim())
-                    .filter(Boolean)
-                    .filter((v, idx, arr) => arr.findIndex((x) => x.toLowerCase() === v.toLowerCase()) === idx),
-            }))
-            .filter((g) => g.name.length > 0);
+        const validGroups = normalizeVariantGroups(variantGroups);
         if (!validGroups.length) {
             setError(t("sellerDashboard.productForm.variantNoGroupsHint", "Add at least one variant name."));
             return;
@@ -391,10 +337,7 @@ export function useSellerProductForm(
             setError(t("sellerDashboard.productForm.errVariantValuesRequired", "At least one value is required for each option."));
             return;
         }
-        const duplicateName = validGroups.find(
-            (g, idx, arr) => arr.findIndex((x) => x.name.toLowerCase() === g.name.toLowerCase()) !== idx,
-        );
-        if (duplicateName) {
+        if (hasDuplicateVariantGroupNames(validGroups)) {
             setError(t("sellerDashboard.productForm.errVariantDuplicateName", "Variant names must be unique."));
             return;
         }
@@ -405,6 +348,29 @@ export function useSellerProductForm(
         }
         setError(null);
         setDraftVariants(rows);
+    }
+
+    function buildVariantBodies(rows: DraftVariantRow[]) {
+        return rows.map((row) => ({
+            name: variantOptionMapDisplay(row.optionMap),
+            sku: undefined,
+            price: row.price.trim() === "" ? undefined : parsePrice(row.price),
+            stockQuantity: parseIntSafe(row.stock, 0),
+            options: row.optionMap,
+            isActive: row.isActive,
+        }));
+    }
+
+    async function replaceExistingVariants(productIdValue: string, rows: DraftVariantRow[]) {
+        for (const existing of variantsList) {
+            await sellerDashboardApi.deleteProductVariant(productIdValue, existing.id);
+        }
+        const recreatedRows: SellerProductVariantRow[] = [];
+        for (const body of buildVariantBodies(rows)) {
+            const created = await sellerDashboardApi.createProductVariant(productIdValue, body);
+            recreatedRows.push(created);
+        }
+        setVariantsList(recreatedRows);
     }
 
     return {

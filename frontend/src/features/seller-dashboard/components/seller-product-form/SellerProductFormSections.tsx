@@ -532,30 +532,33 @@ export function SellerProductFormImagesSection({
 }
 
 export function SellerProductFormVariantsSection({
-    draftVariants,
-    setDraftVariants,
-    variantGroups,
-    onAddVariantGroup,
-    onUpdateVariantGroup,
-    onRemoveVariantGroup,
-    loadModeOpen,
-    setLoadModeOpen,
-    onLoadVariantRows,
+    variantState,
+    groupActions,
+    loadMode,
     saving,
     t,
 }: {
-    draftVariants: DraftVariantRow[];
-    setDraftVariants: Dispatch<SetStateAction<DraftVariantRow[]>>;
-    variantGroups: VariantGroup[];
-    onAddVariantGroup: () => void;
-    onUpdateVariantGroup: (id: string, patch: Partial<VariantGroup>) => void;
-    onRemoveVariantGroup: (id: string) => void;
-    loadModeOpen: boolean;
-    setLoadModeOpen: Dispatch<SetStateAction<boolean>>;
-    onLoadVariantRows: (mode: VariantLoadMode) => void;
+    variantState: {
+        draftVariants: DraftVariantRow[];
+        setDraftVariants: Dispatch<SetStateAction<DraftVariantRow[]>>;
+        variantGroups: VariantGroup[];
+    };
+    groupActions: {
+        onAddVariantGroup: () => void;
+        onUpdateVariantGroup: (id: string, patch: Partial<VariantGroup>) => void;
+        onRemoveVariantGroup: (id: string) => void;
+    };
+    loadMode: {
+        open: boolean;
+        setOpen: Dispatch<SetStateAction<boolean>>;
+        onLoadVariantRows: (mode: VariantLoadMode) => void;
+    };
     saving: boolean;
     t: TFunction;
 }) {
+    const { draftVariants, setDraftVariants, variantGroups } = variantState;
+    const { onAddVariantGroup, onUpdateVariantGroup, onRemoveVariantGroup } = groupActions;
+    const { open: loadModeOpen, setOpen: setLoadModeOpen, onLoadVariantRows } = loadMode;
     const variantRowsSorted = [...draftVariants].sort((a, b) =>
         variantOptionMapDisplay(a.optionMap).localeCompare(variantOptionMapDisplay(b.optionMap)),
     );
@@ -565,153 +568,224 @@ export function SellerProductFormVariantsSection({
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {t("sellerDashboard.productForm.variantsSection", "Biến thể (SKU / size / màu)")}
             </h3>
-            <div className="space-y-3 rounded-lg border border-border p-3">
-                {variantGroups.length === 0 ? (
+            <VariantGroupsEditor
+                variantGroups={variantGroups}
+                onAddVariantGroup={onAddVariantGroup}
+                onUpdateVariantGroup={onUpdateVariantGroup}
+                onRemoveVariantGroup={onRemoveVariantGroup}
+                setLoadModeOpen={setLoadModeOpen}
+                saving={saving}
+                t={t}
+            />
+            <VariantRowsTable
+                variantRows={variantRowsSorted}
+                setDraftVariants={setDraftVariants}
+                saving={saving}
+                t={t}
+            />
+            <VariantLoadModeModal
+                open={loadModeOpen}
+                onClose={() => setLoadModeOpen(false)}
+                onLoadVariantRows={onLoadVariantRows}
+                t={t}
+            />
+        </section>
+    );
+}
+
+function VariantGroupsEditor({
+    variantGroups,
+    onAddVariantGroup,
+    onUpdateVariantGroup,
+    onRemoveVariantGroup,
+    setLoadModeOpen,
+    saving,
+    t,
+}: {
+    variantGroups: VariantGroup[];
+    onAddVariantGroup: () => void;
+    onUpdateVariantGroup: (id: string, patch: Partial<VariantGroup>) => void;
+    onRemoveVariantGroup: (id: string) => void;
+    setLoadModeOpen: Dispatch<SetStateAction<boolean>>;
+    saving: boolean;
+    t: TFunction;
+}) {
+    return (
+        <div className="space-y-3 rounded-lg border border-border p-3">
+            {variantGroups.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                    {t("sellerDashboard.productForm.variantNoGroupsHint", "Add at least one variant name.")}
+                </p>
+            ) : null}
+            {variantGroups.map((group) => (
+                <div key={group.id} className="grid gap-2 rounded-lg border border-border bg-card p-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto]">
+                    <label className="block text-sm font-medium">
+                        {t("sellerDashboard.productForm.variantNameLabel", "Variant name")}
+                        <input
+                            type="text"
+                            value={group.name}
+                            onChange={(e) => onUpdateVariantGroup(group.id, { name: e.target.value })}
+                            className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-sm"
+                            disabled={saving}
+                        />
+                    </label>
+                    <ChipInput
+                        label={t("sellerDashboard.productForm.variantValuesLabel", "Variant values")}
+                        placeholder={t("sellerDashboard.productForm.variantValuePlaceholder", "Type value then press Enter")}
+                        values={group.values}
+                        onChange={(values) => onUpdateVariantGroup(group.id, { values })}
+                        saving={saving}
+                    />
+                    <button
+                        type="button"
+                        className="self-end rounded border border-destructive/30 px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
+                        onClick={() => onRemoveVariantGroup(group.id)}
+                        disabled={saving}
+                    >
+                        {t("common.delete", "Delete")}
+                    </button>
+                </div>
+            ))}
+            <div className="flex flex-wrap gap-2">
+                <button
+                    type="button"
+                    className="rounded-lg border border-border bg-muted px-3 py-1.5 text-sm font-medium hover:bg-muted/70"
+                    disabled={saving}
+                    onClick={onAddVariantGroup}
+                >
+                    + {t("sellerDashboard.productForm.addVariantNameAction", "Add Variant")}
+                </button>
+                <button
+                    type="button"
+                    className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground"
+                    disabled={saving}
+                    onClick={() => setLoadModeOpen(true)}
+                >
+                    {t("sellerDashboard.productForm.loadVariantsAction", "Load variants")}
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function VariantRowsTable({
+    variantRows,
+    setDraftVariants,
+    saving,
+    t,
+}: {
+    variantRows: DraftVariantRow[];
+    setDraftVariants: Dispatch<SetStateAction<DraftVariantRow[]>>;
+    saving: boolean;
+    t: TFunction;
+}) {
+    return (
+        <div className="space-y-3 rounded-lg border border-border">
+            <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 border-b border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-muted-foreground md:grid">
+                <span>{t("sellerDashboard.productForm.variantCombination", "Combination")}</span>
+                <span>{t("sellerDashboard.productForm.variantPricePlaceholder", "Giá (đ)")}</span>
+                <span>{t("sellerDashboard.productForm.variantStockPlaceholder", "Tồn")}</span>
+                <span>{t("common.actions", "Thao tác")}</span>
+            </div>
+            <div className="space-y-2 p-3">
+                {variantRows.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
-                        {t("sellerDashboard.productForm.variantNoGroupsHint", "Add at least one variant name.")}
+                        {t("sellerDashboard.productForm.variantNoRowsHint", "No variant rows. Click Load variants.")}
                     </p>
                 ) : null}
-                {variantGroups.map((group) => (
-                    <div key={group.id} className="grid gap-2 rounded-lg border border-border bg-card p-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto]">
-                        <label className="block text-sm font-medium">
-                            {t("sellerDashboard.productForm.variantNameLabel", "Variant name")}
-                            <input
-                                type="text"
-                                value={group.name}
-                                onChange={(e) => onUpdateVariantGroup(group.id, { name: e.target.value })}
-                                className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-sm"
-                                disabled={saving}
-                            />
-                        </label>
-                        <ChipInput
-                            label={t("sellerDashboard.productForm.variantValuesLabel", "Variant values")}
-                            placeholder={t("sellerDashboard.productForm.variantValuePlaceholder", "Type value then press Enter")}
-                            values={group.values}
-                            onChange={(values) => onUpdateVariantGroup(group.id, { values })}
-                            saving={saving}
+                {variantRows.map((row) => (
+                    <div
+                        key={row.id}
+                        className="grid gap-2 rounded-lg border border-border bg-card p-2 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
+                    >
+                        <span className="self-center text-sm font-medium">{variantOptionMapDisplay(row.optionMap)}</span>
+                        <input
+                            placeholder={t("sellerDashboard.productForm.variantPricePlaceholder", "Giá (đ)")}
+                            inputMode="decimal"
+                            className="rounded border border-border bg-background px-2 py-1.5 text-sm"
+                            value={row.price}
+                            onChange={(e) =>
+                                setDraftVariants((list) =>
+                                    list.map((r) => (r.id === row.id ? { ...r, price: e.target.value } : r)),
+                                )
+                            }
+                            disabled={saving}
+                        />
+                        <input
+                            placeholder={t("sellerDashboard.productForm.variantStockPlaceholder", "Tồn")}
+                            type="number"
+                            min={0}
+                            className="rounded border border-border bg-background px-2 py-1.5 text-sm"
+                            value={row.stock}
+                            onChange={(e) =>
+                                setDraftVariants((list) =>
+                                    list.map((r) => (r.id === row.id ? { ...r, stock: e.target.value } : r)),
+                                )
+                            }
+                            disabled={saving}
                         />
                         <button
                             type="button"
-                            className="self-end rounded border border-destructive/30 px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
-                            onClick={() => onRemoveVariantGroup(group.id)}
+                            className="rounded border border-destructive/30 px-2 py-1 text-sm text-destructive hover:bg-destructive/10"
                             disabled={saving}
+                            onClick={() => setDraftVariants((list) => list.filter((r) => r.id !== row.id))}
                         >
-                            {t("common.delete", "Delete")}
+                            {t("common.delete", "Xóa")}
                         </button>
                     </div>
                 ))}
-                <div className="flex flex-wrap gap-2">
+            </div>
+        </div>
+    );
+}
+
+function VariantLoadModeModal({
+    open,
+    onClose,
+    onLoadVariantRows,
+    t,
+}: {
+    open: boolean;
+    onClose: () => void;
+    onLoadVariantRows: (mode: VariantLoadMode) => void;
+    t: TFunction;
+}) {
+    if (!open) return null;
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="presentation">
+            <button
+                type="button"
+                className="absolute inset-0 bg-black/50"
+                aria-label={t("sellerDashboard.productForm.variantLoadModeCancel", "Cancel")}
+                onClick={onClose}
+            />
+            <div className="relative z-10 w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
+                <h4 className="text-base font-bold">
+                    {t("sellerDashboard.productForm.variantLoadModeTitle", "Choose load mode")}
+                </h4>
+                <div className="mt-4 space-y-2">
                     <button
                         type="button"
-                        className="rounded-lg border border-border bg-muted px-3 py-1.5 text-sm font-medium hover:bg-muted/70"
-                        disabled={saving}
-                        onClick={onAddVariantGroup}
+                        className="w-full rounded-lg border border-border px-3 py-2 text-left text-sm hover:bg-muted"
+                        onClick={() => {
+                            onLoadVariantRows("missing-only");
+                            onClose();
+                        }}
                     >
-                        + {t("sellerDashboard.productForm.addVariantNameAction", "Add Variant")}
+                        {t("sellerDashboard.productForm.variantLoadModeMissingOnly", "Generate missing only")}
                     </button>
                     <button
                         type="button"
-                        className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground"
-                        disabled={saving}
-                        onClick={() => setLoadModeOpen(true)}
+                        className="w-full rounded-lg border border-border px-3 py-2 text-left text-sm hover:bg-muted"
+                        onClick={() => {
+                            onLoadVariantRows("regenerate-all");
+                            onClose();
+                        }}
                     >
-                        {t("sellerDashboard.productForm.loadVariantsAction", "Load variants")}
+                        {t("sellerDashboard.productForm.variantLoadModeRegenerateAll", "Regenerate all (reset)")}
                     </button>
                 </div>
             </div>
-            <div className="space-y-3 rounded-lg border border-border">
-                <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 border-b border-border bg-muted/40 px-3 py-2 text-xs font-semibold text-muted-foreground md:grid">
-                    <span>{t("sellerDashboard.productForm.variantCombination", "Combination")}</span>
-                    <span>{t("sellerDashboard.productForm.variantPricePlaceholder", "Giá (đ)")}</span>
-                    <span>{t("sellerDashboard.productForm.variantStockPlaceholder", "Tồn")}</span>
-                    <span>{t("common.actions", "Thao tác")}</span>
-                </div>
-                <div className="space-y-2 p-3">
-                    {variantRowsSorted.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">
-                            {t("sellerDashboard.productForm.variantNoRowsHint", "No variant rows. Click Load variants.")}
-                        </p>
-                    ) : null}
-                    {variantRowsSorted.map((row) => (
-                        <div
-                            key={row.id}
-                            className="grid gap-2 rounded-lg border border-border bg-card p-2 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
-                        >
-                            <span className="self-center text-sm font-medium">{variantOptionMapDisplay(row.optionMap)}</span>
-                            <input
-                                placeholder={t("sellerDashboard.productForm.variantPricePlaceholder", "Giá (đ)")}
-                                inputMode="decimal"
-                                className="rounded border border-border bg-background px-2 py-1.5 text-sm"
-                                value={row.price}
-                                onChange={(e) =>
-                                    setDraftVariants((list) =>
-                                        list.map((r) => (r.id === row.id ? { ...r, price: e.target.value } : r)),
-                                    )
-                                }
-                                disabled={saving}
-                            />
-                            <input
-                                placeholder={t("sellerDashboard.productForm.variantStockPlaceholder", "Tồn")}
-                                type="number"
-                                min={0}
-                                className="rounded border border-border bg-background px-2 py-1.5 text-sm"
-                                value={row.stock}
-                                onChange={(e) =>
-                                    setDraftVariants((list) =>
-                                        list.map((r) => (r.id === row.id ? { ...r, stock: e.target.value } : r)),
-                                    )
-                                }
-                                disabled={saving}
-                            />
-                            <button
-                                type="button"
-                                className="rounded border border-destructive/30 px-2 py-1 text-sm text-destructive hover:bg-destructive/10"
-                                disabled={saving}
-                                onClick={() => setDraftVariants((list) => list.filter((r) => r.id !== row.id))}
-                            >
-                                {t("common.delete", "Xóa")}
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            </div>
-            {loadModeOpen ? (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="presentation">
-                    <button
-                        type="button"
-                        className="absolute inset-0 bg-black/50"
-                        aria-label={t("sellerDashboard.productForm.variantLoadModeCancel", "Cancel")}
-                        onClick={() => setLoadModeOpen(false)}
-                    />
-                    <div className="relative z-10 w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
-                        <h4 className="text-base font-bold">
-                            {t("sellerDashboard.productForm.variantLoadModeTitle", "Choose load mode")}
-                        </h4>
-                        <div className="mt-4 space-y-2">
-                            <button
-                                type="button"
-                                className="w-full rounded-lg border border-border px-3 py-2 text-left text-sm hover:bg-muted"
-                                onClick={() => {
-                                    onLoadVariantRows("missing-only");
-                                    setLoadModeOpen(false);
-                                }}
-                            >
-                                {t("sellerDashboard.productForm.variantLoadModeMissingOnly", "Generate missing only")}
-                            </button>
-                            <button
-                                type="button"
-                                className="w-full rounded-lg border border-border px-3 py-2 text-left text-sm hover:bg-muted"
-                                onClick={() => {
-                                    onLoadVariantRows("regenerate-all");
-                                    setLoadModeOpen(false);
-                                }}
-                            >
-                                {t("sellerDashboard.productForm.variantLoadModeRegenerateAll", "Regenerate all (reset)")}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            ) : null}
-        </section>
+        </div>
     );
 }

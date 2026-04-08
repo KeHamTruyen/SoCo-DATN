@@ -97,15 +97,21 @@ export function SellerProductFormDialog({
                         <SellerProductFormShippingSection form={form} setForm={setForm} saving={saving} t={t} />
                         <SellerProductFormSeoSection form={form} setForm={setForm} saving={saving} t={t} />
                         <SellerProductFormVariantsSection
-                            draftVariants={draftVariants}
-                            setDraftVariants={setDraftVariants}
-                            variantGroups={variantGroups}
-                            onAddVariantGroup={addVariantGroup}
-                            onUpdateVariantGroup={updateVariantGroup}
-                            onRemoveVariantGroup={removeVariantGroup}
-                            loadModeOpen={loadModeOpen}
-                            setLoadModeOpen={setLoadModeOpen}
-                            onLoadVariantRows={loadVariantRows}
+                            variantState={{
+                                draftVariants,
+                                setDraftVariants,
+                                variantGroups,
+                            }}
+                            groupActions={{
+                                onAddVariantGroup: addVariantGroup,
+                                onUpdateVariantGroup: updateVariantGroup,
+                                onRemoveVariantGroup: removeVariantGroup,
+                            }}
+                            loadMode={{
+                                open: loadModeOpen,
+                                setOpen: setLoadModeOpen,
+                                onLoadVariantRows: loadVariantRows,
+                            }}
                             saving={saving}
                             t={t}
                         />

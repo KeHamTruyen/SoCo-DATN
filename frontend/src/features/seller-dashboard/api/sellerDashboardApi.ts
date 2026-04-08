@@ -59,6 +59,28 @@ function mapMetaKeywords(raw: unknown): string[] {
         .filter((k) => k.length > 0);
 }
 
+function asIsoStringOrNull(v: unknown): string | null {
+    if (typeof v === "string") return v;
+    if (v instanceof Date) return v.toISOString();
+    return null;
+}
+
+function asIsoStringOrUndefined(v: unknown): string | undefined {
+    if (typeof v === "string") return v;
+    if (v instanceof Date) return v.toISOString();
+    return undefined;
+}
+
+function mapImageRow(im: Record<string, unknown>): SellerProductImageRow {
+    return {
+        id: String(im.id ?? ""),
+        imageUrl: String(im.imageUrl ?? ""),
+        altText: im.altText === undefined ? null : (im.altText as string | null),
+        displayOrder: typeof im.displayOrder === "number" ? im.displayOrder : 0,
+        isPrimary: Boolean(im.isPrimary),
+    };
+}
+
 function mapVariantRow(v: Record<string, unknown>): SellerProductVariantRow {
     const opts = v.options;
     const options: Record<string, string> = {};
@@ -107,10 +129,6 @@ function mapProduct(p: Record<string, unknown>): SellerProductRow {
     const priceRaw = p.price;
     const price =
         typeof priceRaw === "number" ? priceRaw : Number(priceRaw ?? 0);
-    const createdAt = p.createdAt;
-    const updatedAt = p.updatedAt;
-    const deletedAt = p.deletedAt;
-    const purgeAfter = p.purgeAfter;
     return {
         id: String(p.id),
         title: String(p.title ?? ""),
@@ -121,34 +139,14 @@ function mapProduct(p: Record<string, unknown>): SellerProductRow {
         lowStockThreshold: Number(p.lowStockThreshold ?? 10),
         primaryImageUrl: images[0]?.imageUrl,
         categoryName: categoriesRaw[0]?.name,
-        createdAt:
-            typeof createdAt === "string"
-                ? createdAt
-                : createdAt instanceof Date
-                  ? createdAt.toISOString()
-                  : undefined,
-        updatedAt:
-            typeof updatedAt === "string"
-                ? updatedAt
-                : updatedAt instanceof Date
-                  ? updatedAt.toISOString()
-                  : undefined,
+        createdAt: asIsoStringOrUndefined(p.createdAt),
+        updatedAt: asIsoStringOrUndefined(p.updatedAt),
         viewsCount:
             typeof p.viewsCount === "number" ? p.viewsCount : Number(p.viewsCount ?? 0),
         salesCount:
             typeof p.salesCount === "number" ? p.salesCount : Number(p.salesCount ?? 0),
-        deletedAt:
-            typeof deletedAt === "string"
-                ? deletedAt
-                : deletedAt instanceof Date
-                  ? deletedAt.toISOString()
-                  : null,
-        purgeAfter:
-            typeof purgeAfter === "string"
-                ? purgeAfter
-                : purgeAfter instanceof Date
-                  ? purgeAfter.toISOString()
-                  : null,
+        deletedAt: asIsoStringOrNull(p.deletedAt),
+        purgeAfter: asIsoStringOrNull(p.purgeAfter),
         deletionState: typeof p.deletionState === "string" ? p.deletionState : undefined,
     };
 }
@@ -195,13 +193,7 @@ function mapProductDetail(raw: Record<string, unknown>): SellerProductDetail {
                 : String(raw.metaDescription),
         metaKeywords: mapMetaKeywords(raw.metaKeywords),
         status: String(raw.status ?? "DRAFT"),
-        images: imgs.map((im) => ({
-            id: String(im.id),
-            imageUrl: String(im.imageUrl ?? ""),
-            altText: im.altText === undefined ? null : (im.altText as string | null),
-            displayOrder: typeof im.displayOrder === "number" ? im.displayOrder : 0,
-            isPrimary: Boolean(im.isPrimary),
-        })),
+        images: imgs.map(mapImageRow),
         variants: mapVariants(raw.variants),
     };
 }
@@ -293,11 +285,7 @@ export const sellerDashboardApi = {
         );
         const r = res as ApiEnvelope<Record<string, unknown>[]>;
         const raw = Array.isArray(r.data) ? r.data : [];
-        return raw.map((im) => ({
-            id: String(im.id ?? ""),
-            imageUrl: String(im.imageUrl ?? ""),
-            altText: im.altText === undefined ? null : (im.altText as string | null),
-        }));
+        return raw.map(mapImageRow);
     },
 
     async deleteProductImage(productId: string, imageId: string): Promise<void> {

@@ -66,7 +66,7 @@ export type VariantGroup = {
 
 export type VariantLoadMode = "missing-only" | "regenerate-all";
 
-function optionMapKey(optionMap: Record<string, string>): string {
+export function variantOptionMapKey(optionMap: Record<string, string>): string {
     const parts = Object.entries(optionMap)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([k, v]) => `${k}=${v}`);
@@ -77,16 +77,25 @@ export function variantOptionMapDisplay(optionMap: Record<string, string>): stri
     return Object.values(optionMap).join(" / ");
 }
 
+export function normalizeVariantGroup(group: VariantGroup): VariantGroup {
+    const name = group.name.trim();
+    const values = group.values
+        .map((v) => v.trim())
+        .filter(Boolean)
+        .filter((v, i, arr) => arr.findIndex((x) => x.toLowerCase() === v.toLowerCase()) === i);
+    return { ...group, name, values };
+}
+
+export function normalizeVariantGroups(groups: VariantGroup[]): VariantGroup[] {
+    return groups.map(normalizeVariantGroup).filter((g) => g.name.length > 0);
+}
+
+export function hasDuplicateVariantGroupNames(groups: VariantGroup[]): boolean {
+    return groups.some((g, idx, arr) => arr.findIndex((x) => x.name.toLowerCase() === g.name.toLowerCase()) !== idx);
+}
+
 function buildOptionCombinations(groups: VariantGroup[]): Record<string, string>[] {
-    const normalized = groups
-        .map((g) => ({
-            name: g.name.trim(),
-            values: g.values
-                .map((v) => v.trim())
-                .filter(Boolean)
-                .filter((v, i, arr) => arr.findIndex((x) => x.toLowerCase() === v.toLowerCase()) === i),
-        }))
-        .filter((g) => g.name && g.values.length > 0);
+    const normalized = normalizeVariantGroups(groups).filter((g) => g.values.length > 0);
     if (normalized.length === 0) return [];
 
     let acc: Record<string, string>[] = [{}];
@@ -110,11 +119,11 @@ export function buildVariantMatrixRowsDynamic(
     const combinations = buildOptionCombinations(groups);
     if (combinations.length === 0) return [];
 
-    const previousMap = new Map(previousRows.map((row) => [optionMapKey(row.optionMap), row]));
+    const previousMap = new Map(previousRows.map((row) => [variantOptionMapKey(row.optionMap), row]));
     const rows: DraftVariantRow[] = [];
 
     for (const optionMap of combinations) {
-        const key = optionMapKey(optionMap);
+        const key = variantOptionMapKey(optionMap);
         const prev = mode === "missing-only" ? previousMap.get(key) : undefined;
         rows.push(
             prev ?? {
@@ -128,6 +137,39 @@ export function buildVariantMatrixRowsDynamic(
     }
 
     return rows;
+}
+
+type VariantLike = {
+    id: string;
+    price?: number | null;
+    stockQuantity?: number | null;
+    isActive?: boolean;
+    options?: Record<string, unknown> | null;
+};
+
+export function variantGroupsFromRows(rows: VariantLike[]): VariantGroup[] {
+    const groupMap = new Map<string, Set<string>>();
+    for (const variant of rows) {
+        for (const [name, value] of Object.entries(variant.options ?? {})) {
+            if (!groupMap.has(name)) groupMap.set(name, new Set());
+            groupMap.get(name)?.add(String(value));
+        }
+    }
+    return Array.from(groupMap.entries()).map(([name, values], idx) => ({
+        id: `group-${idx}-${name}`,
+        name,
+        values: Array.from(values),
+    }));
+}
+
+export function draftRowsFromVariants(rows: VariantLike[]): DraftVariantRow[] {
+    return rows.map((v) => ({
+        id: v.id,
+        optionMap: Object.fromEntries(Object.entries(v.options ?? {}).map(([k, val]) => [k, String(val)])),
+        price: v.price != null ? String(v.price) : "",
+        stock: String(v.stockQuantity ?? 0),
+        isActive: v.isActive !== false,
+    }));
 }
 
 export type SellerProductFormFields = {

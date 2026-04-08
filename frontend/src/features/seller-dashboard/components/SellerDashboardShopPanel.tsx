@@ -26,6 +26,11 @@ function useStatusFilters() {
 
 type ShopSort = "newest" | "priceAsc" | "priceDesc" | "title";
 type ConfirmActionType = "archive" | "unarchive" | "publish" | "delete";
+type ConfirmState = {
+    open: boolean;
+    action: ConfirmActionType | null;
+    product: SellerProductRow | null;
+};
 
 interface SellerDashboardShopPanelProps {
     items: SellerProductRow[];
@@ -51,11 +56,11 @@ export function SellerDashboardShopPanel({
     const [editProductId, setEditProductId] = useState<string | null>(null);
     const [busyProductId, setBusyProductId] = useState<string | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
-    const [confirmState, setConfirmState] = useState<{
-        open: boolean;
-        action: ConfirmActionType | null;
-        product: SellerProductRow | null;
-    }>({ open: false, action: null, product: null });
+    const [confirmState, setConfirmState] = useState<ConfirmState>({
+        open: false,
+        action: null,
+        product: null,
+    });
     const STATUS_PRIORITY: Record<string, number> = {
         ACTIVE: 0,
         DRAFT: 1,
@@ -115,36 +120,37 @@ export function SellerDashboardShopPanel({
         setConfirmState({ open: false, action: null, product: null });
     }
 
-    async function runArchive(p: SellerProductRow) {
+    async function runWithBusyAction(
+        product: SellerProductRow,
+        action: () => Promise<void>,
+        fallbackError: string,
+    ) {
         setActionError(null);
-        setBusyProductId(p.id);
+        setBusyProductId(product.id);
         try {
-            await sellerDashboardApi.updateSellerProduct(p.id, { status: "ARCHIVED" });
+            await action();
             onProductsUpdated();
         } catch (e) {
-            setActionError(
-                e instanceof HttpError ? e.message : t("sellerDashboard.shop.archiveError", "Không lưu trữ được."),
-            );
+            setActionError(e instanceof HttpError ? e.message : fallbackError);
         } finally {
             setBusyProductId(null);
         }
     }
 
+    async function runArchive(p: SellerProductRow) {
+        await runWithBusyAction(
+            p,
+            () => sellerDashboardApi.updateSellerProduct(p.id, { status: "ARCHIVED" }),
+            t("sellerDashboard.shop.archiveError", "Không lưu trữ được."),
+        );
+    }
+
     async function runDelete(p: SellerProductRow) {
-        setActionError(null);
-        setBusyProductId(p.id);
-        try {
-            await sellerDashboardApi.deleteProduct(p.id);
-            onProductsUpdated();
-        } catch (e) {
-            setActionError(
-                e instanceof HttpError
-                    ? e.message
-                    : t("sellerDashboard.shop.deleteError", "Không xóa được sản phẩm."),
-            );
-        } finally {
-            setBusyProductId(null);
-        }
+        await runWithBusyAction(
+            p,
+            () => sellerDashboardApi.deleteProduct(p.id),
+            t("sellerDashboard.shop.deleteError", "Không xóa được sản phẩm."),
+        );
     }
 
     async function handleRestore(p: SellerProductRow) {
@@ -171,37 +177,19 @@ export function SellerDashboardShopPanel({
     }
 
     async function runPublish(p: SellerProductRow) {
-        setActionError(null);
-        setBusyProductId(p.id);
-        try {
-            await sellerDashboardApi.publishProduct(p.id);
-            onProductsUpdated();
-        } catch (e) {
-            setActionError(
-                e instanceof HttpError
-                    ? e.message
-                    : t("sellerDashboard.shop.publishError", "Không đăng bán được. Cần ít nhất một ảnh và mô tả."),
-            );
-        } finally {
-            setBusyProductId(null);
-        }
+        await runWithBusyAction(
+            p,
+            () => sellerDashboardApi.publishProduct(p.id),
+            t("sellerDashboard.shop.publishError", "Không đăng bán được. Cần ít nhất một ảnh và mô tả."),
+        );
     }
 
     async function runUnarchive(p: SellerProductRow) {
-        setActionError(null);
-        setBusyProductId(p.id);
-        try {
-            await sellerDashboardApi.updateSellerProduct(p.id, { status: "DRAFT" });
-            onProductsUpdated();
-        } catch (e) {
-            setActionError(
-                e instanceof HttpError
-                    ? e.message
-                    : t("sellerDashboard.shop.unarchiveError", "Không bỏ lưu trữ được."),
-            );
-        } finally {
-            setBusyProductId(null);
-        }
+        await runWithBusyAction(
+            p,
+            () => sellerDashboardApi.updateSellerProduct(p.id, { status: "DRAFT" }),
+            t("sellerDashboard.shop.unarchiveError", "Không bỏ lưu trữ được."),
+        );
     }
 
     async function onConfirmAction() {
@@ -209,24 +197,34 @@ export function SellerDashboardShopPanel({
         const target = confirmState.product;
         const action = confirmState.action;
         closeConfirm();
-        if (action === "archive") await runArchive(target);
-        if (action === "unarchive") await runUnarchive(target);
-        if (action === "publish") await runPublish(target);
-        if (action === "delete") await runDelete(target);
+        const actionHandlers: Record<ConfirmActionType, (p: SellerProductRow) => Promise<void>> = {
+            archive: runArchive,
+            unarchive: runUnarchive,
+            publish: runPublish,
+            delete: runDelete,
+        };
+        await actionHandlers[action](target);
     }
 
-    const confirmMessage =
-        confirmState.action === "archive"
-            ? t("sellerDashboard.shop.archiveConfirm", 'Lưu trữ sản phẩm "{{title}}"? Sản phẩm sẽ chuyển sang trạng thái lưu trữ.', { title: confirmState.product?.title ?? "" })
-            : confirmState.action === "unarchive"
-              ? t("sellerDashboard.shop.unarchiveConfirm", 'Bỏ lưu trữ sản phẩm "{{title}}"?', { title: confirmState.product?.title ?? "" })
-              : confirmState.action === "publish"
-                ? t("sellerDashboard.shop.publishConfirm", 'Đăng bán sản phẩm "{{title}}"?', { title: confirmState.product?.title ?? "" })
-                : t(
-                      "sellerDashboard.shop.deleteConfirm",
-                      'Xóa sản phẩm "{{title}}"? Sản phẩm sẽ bị ẩn ngay và có thể khôi phục trong 180 ngày.',
-                      { title: confirmState.product?.title ?? "" },
-                  );
+    const confirmMessageByAction: Record<ConfirmActionType, string> = {
+        archive: t(
+            "sellerDashboard.shop.archiveConfirm",
+            'Lưu trữ sản phẩm "{{title}}"? Sản phẩm sẽ chuyển sang trạng thái lưu trữ.',
+            { title: confirmState.product?.title ?? "" },
+        ),
+        unarchive: t("sellerDashboard.shop.unarchiveConfirm", 'Bỏ lưu trữ sản phẩm "{{title}}"?', {
+            title: confirmState.product?.title ?? "",
+        }),
+        publish: t("sellerDashboard.shop.publishConfirm", 'Đăng bán sản phẩm "{{title}}"?', {
+            title: confirmState.product?.title ?? "",
+        }),
+        delete: t(
+            "sellerDashboard.shop.deleteConfirm",
+            'Xóa sản phẩm "{{title}}"? Sản phẩm sẽ bị ẩn ngay và có thể khôi phục trong 180 ngày.',
+            { title: confirmState.product?.title ?? "" },
+        ),
+    };
+    const confirmMessage = confirmState.action ? confirmMessageByAction[confirmState.action] : "";
 
     const statusLabel =
         STATUS_FILTERS.find((x) => x.value === statusFilter)?.label ?? t("sellerDashboard.shop.filterAll", "Tất cả");
