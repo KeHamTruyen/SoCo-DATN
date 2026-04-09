@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { cartApi } from "../../cart/api/cartApi";
+import { marketplaceApi } from "../../marketplace/api/marketplaceApi";
 import { profileApi } from "../../profile/api/profileApi";
 import { productApi } from "../api/productApi";
 import type {
@@ -66,6 +67,20 @@ export function useProductDetailPage(productId?: string) {
                 ]);
                 if (!mounted) return;
                 setProduct(productData);
+                const lastViewedKey = "marketplace-last-viewed-product-id";
+                const sessionKey = "marketplace-session-id";
+                const sessionId =
+                    window.sessionStorage.getItem(sessionKey) ??
+                    `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+                window.sessionStorage.setItem(sessionKey, sessionId);
+                const previousProductId = window.sessionStorage.getItem(lastViewedKey) ?? undefined;
+                window.sessionStorage.setItem(lastViewedKey, productData.id);
+                void marketplaceApi
+                    .trackProductView(productData.id, {
+                        sessionId,
+                        previousProductId,
+                    })
+                    .catch(() => {});
                 if (productData.seller?.id) {
                     try {
                         const sellerProfile = await profileApi.getProfile(productData.seller.id);

@@ -1,27 +1,32 @@
 import { cn } from "../../../shared/lib/cn";
-
-const OPTIONS: { value: string; label: string }[] = [
-    { value: "", label: "All" },
-    { value: "fashion", label: "Fashion" },
-    { value: "electronics", label: "Electronics" },
-    { value: "home", label: "Home Decor" },
-];
+import { useTranslation } from "react-i18next";
+import type { MarketplaceCategoryOption } from "../types/marketplace.types";
 
 interface MarketplaceCategoryPillsProps {
     value: string | undefined;
-    onChange: (category: string | undefined) => void;
+    options: MarketplaceCategoryOption[];
+    onChange: (categoryId: string | undefined) => void;
 }
 
-export function MarketplaceCategoryPills({ value, onChange }: MarketplaceCategoryPillsProps) {
+export function MarketplaceCategoryPills({
+    value,
+    options,
+    onChange,
+}: MarketplaceCategoryPillsProps) {
+    const { t } = useTranslation();
+    const displayOptions = [
+        { id: "", name: t("marketplace.allCategories") },
+        ...options,
+    ];
     return (
         <div className="flex flex-wrap justify-center gap-2">
-            {OPTIONS.map((opt) => {
-                const active = (opt.value || undefined) === (value || undefined);
+            {displayOptions.map((opt) => {
+                const active = (opt.id || undefined) === (value || undefined);
                 return (
                     <button
-                        key={opt.label}
+                        key={opt.id || "all"}
                         type="button"
-                        onClick={() => onChange(opt.value || undefined)}
+                        onClick={() => onChange(opt.id || undefined)}
                         className={cn(
                             "rounded-full px-5 py-2 text-sm font-medium transition-colors",
                             active
@@ -29,7 +34,7 @@ export function MarketplaceCategoryPills({ value, onChange }: MarketplaceCategor
                                 : "border border-neutral-200 bg-white text-neutral-600 hover:border-primary/50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
                         )}
                     >
-                        {opt.label}
+                        {opt.name}
                     </button>
                 );
             })}

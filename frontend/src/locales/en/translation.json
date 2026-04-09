@@ -502,6 +502,50 @@
             "pendingImagesCount": "Selected {{count}} new images to upload upon saving."
         }
     },
+    "marketplace": {
+        "searchPlaceholder": "Search products, categories, or hashtags...",
+        "explore": "Explore",
+        "allCategories": "All",
+        "loadingProducts": "Loading products...",
+        "noProductsFound": "No products found.",
+        "loading": "Loading...",
+        "loadMoreProducts": "Load more products",
+        "sold": "sold",
+        "added": "Added",
+        "failed": "Failed",
+        "addToCart": "Add to cart",
+        "removeFromSaved": "Remove from saved",
+        "saveToWishlist": "Save to wishlist",
+        "priceRange": "Price range",
+        "minPrice": "Min",
+        "maxPrice": "Max",
+        "upTo": "Up to",
+        "apply": "Apply",
+        "rating": "Rating",
+        "status": "Status",
+        "inStock": "In stock",
+        "personalizedTags": "Personalized tags",
+        "noTags": "No tags available yet.",
+        "loadProductsError": "Unable to load marketplace products.",
+        "recommendedProducts": "Recommended products",
+        "allProducts": "All products",
+        "productsFound": "{{count}} products found",
+        "sort": {
+            "relevance": "Relevant",
+            "popular": "Popular",
+            "newest": "Newest",
+            "priceAsc": "Price Low to High",
+            "priceDesc": "Price High to Low",
+            "priceDropdown": "Sort by price"
+        },
+        "ratingOptions": {
+            "1_plus": "1 star and up",
+            "2_plus": "2 stars and up",
+            "3_plus": "3 stars and up",
+            "4_plus": "4 stars and up",
+            "5_only": "5 stars only"
+        }
+    },
     "orderDetail": {
         "title": "Order #{{orderNumber}}",
         "placedOn": "Placed on {{date}}",

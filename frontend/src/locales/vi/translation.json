@@ -502,6 +502,50 @@
             "pendingImagesCount": "Đã chọn {{count}} ảnh mới để tải lên khi lưu."
         }
     },
+    "marketplace": {
+        "searchPlaceholder": "Tìm sản phẩm, danh mục hoặc hashtag...",
+        "explore": "Khám phá",
+        "allCategories": "Tất cả",
+        "loadingProducts": "Đang tải sản phẩm...",
+        "noProductsFound": "Không tìm thấy sản phẩm.",
+        "loading": "Đang tải...",
+        "loadMoreProducts": "Tải thêm sản phẩm",
+        "sold": "đã bán",
+        "added": "Đã thêm",
+        "failed": "Thất bại",
+        "addToCart": "Thêm vào giỏ hàng",
+        "removeFromSaved": "Bỏ khỏi đã lưu",
+        "saveToWishlist": "Lưu vào yêu thích",
+        "priceRange": "Khoảng giá",
+        "minPrice": "Tối thiểu",
+        "maxPrice": "Tối đa",
+        "upTo": "Tối đa",
+        "apply": "Áp dụng",
+        "rating": "Đánh giá",
+        "status": "Trạng thái",
+        "inStock": "Còn hàng",
+        "personalizedTags": "Thẻ gợi ý cá nhân",
+        "noTags": "Chưa có thẻ gợi ý.",
+        "loadProductsError": "Không thể tải sản phẩm marketplace.",
+        "recommendedProducts": "Sản phẩm gợi ý",
+        "allProducts": "Tất cả sản phẩm",
+        "productsFound": "Tìm thấy {{count}} sản phẩm",
+        "sort": {
+            "relevance": "Liên quan",
+            "popular": "Phổ biến",
+            "newest": "Mới nhất",
+            "priceAsc": "Giá thấp đến cao",
+            "priceDesc": "Giá cao đến thấp",
+            "priceDropdown": "Sắp xếp theo giá"
+        },
+        "ratingOptions": {
+            "1_plus": "Từ 1 sao trở lên",
+            "2_plus": "Từ 2 sao trở lên",
+            "3_plus": "Từ 3 sao trở lên",
+            "4_plus": "Từ 4 sao trở lên",
+            "5_only": "Chỉ 5 sao"
+        }
+    },
     "orderDetail": {
         "title": "Đơn hàng #{{orderNumber}}",
         "placedOn": "Đặt ngày {{date}}",

@@ -1,5 +1,6 @@
 import { Bookmark, Package, ShoppingCart, Star } from "lucide-react";
 import { type MouseEvent, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { cartApi } from "../../cart/api/cartApi";
 import { savedItemsApi } from "../../saved-items/api/savedItemsApi";
@@ -11,13 +12,14 @@ interface ProductCardProps {
     product: ProductListItem;
 }
 
-function formatSold(n: number | undefined): string {
+function formatSold(n: number | undefined, soldLabel: string): string {
     if (n == null || Number.isNaN(n)) return "";
-    if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k sold`;
-    return `${n} sold`;
+    if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k ${soldLabel}`;
+    return `${n} ${soldLabel}`;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+    const { t } = useTranslation();
     const [cartBusy, setCartBusy] = useState(false);
     const [cartHint, setCartHint] = useState<string | null>(null);
     const [savedId, setSavedId] = useState<string | null>(null);
@@ -38,7 +40,7 @@ export function ProductCard({ product }: ProductCardProps) {
         };
     }, [product.id]);
 
-    const soldLabel = formatSold(product.soldCount);
+    const soldLabel = formatSold(product.soldCount, t("marketplace.sold"));
 
     const handleAddCart = async (e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -47,10 +49,10 @@ export function ProductCard({ product }: ProductCardProps) {
         setCartHint(null);
         try {
             await cartApi.addItem(product.id, 1);
-            setCartHint("Added");
+            setCartHint(t("marketplace.added"));
             window.setTimeout(() => setCartHint(null), 2000);
         } catch {
-            setCartHint("Failed");
+            setCartHint(t("marketplace.failed"));
             window.setTimeout(() => setCartHint(null), 2500);
         } finally {
             setCartBusy(false);
@@ -101,7 +103,11 @@ export function ProductCard({ product }: ProductCardProps) {
                         "absolute right-3 top-3 z-10 rounded-full bg-white/80 p-2 backdrop-blur-md transition-colors dark:bg-neutral-900/80",
                         savedId ? "text-primary" : "text-neutral-400 hover:text-primary",
                     )}
-                    aria-label={savedId ? "Remove from saved" : "Save to wishlist"}
+                    aria-label={
+                        savedId
+                            ? t("marketplace.removeFromSaved")
+                            : t("marketplace.saveToWishlist")
+                    }
                     aria-pressed={!!savedId}
                 >
                     <Bookmark className={cn("h-5 w-5", savedId && "fill-current")} />
@@ -132,7 +138,7 @@ export function ProductCard({ product }: ProductCardProps) {
                             disabled={cartBusy}
                             onClick={handleAddCart}
                             className="rounded-xl bg-primary/10 p-2 text-primary transition-all hover:bg-primary hover:text-white disabled:opacity-50"
-                            aria-label="Add to cart"
+                            aria-label={t("marketplace.addToCart")}
                         >
                             <ShoppingCart className="h-5 w-5" />
                         </button>

@@ -7,7 +7,10 @@ class CategoryController {
    */
   async getCategories(req, res, next) {
     try {
-      const categories = await categoryService.getCategories();
+      const onlyWithPublishedProducts =
+        req.query.onlyWithPublishedProducts === 'true' ||
+        req.query.onlyWithPublishedProducts === '1';
+      const categories = await categoryService.getCategories({ onlyWithPublishedProducts });
 
       res.json({
         success: true,

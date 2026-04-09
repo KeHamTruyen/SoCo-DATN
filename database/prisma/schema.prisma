@@ -192,6 +192,7 @@ model User {
   reviews                  Review[]
   aiContentHistory         AiContentHistory[]
   productViews             ProductView[]
+  searchEvents             UserSearchEvent[]
   sellerStats              SellerStats[]
   orderItems               OrderItem[]
   createdGroups            Group[]
@@ -410,6 +411,9 @@ model Product {
   posts          Post[]
   reviews        Review[]
   productViews   ProductView[]
+  referrerViews  ProductView[] @relation("ProductViewReferrer")
+  coViewSources  ProductCoView[] @relation("CoViewSource")
+  coViewTargets  ProductCoView[] @relation("CoViewTarget")
   scheduledPosts ScheduledPost[]
   messages       Message[]
 
@@ -958,16 +962,53 @@ model AiContentHistory {
 model ProductView {
   id        String   @id @default(uuid())
   productId String   @map("product_id")
+  viewedFromProductId String? @map("viewed_from_product_id")
   userId    String?  @map("user_id")
   sessionId String?  @map("session_id") @db.VarChar(100)
   ipAddress String?  @map("ip_address")
   userAgent String?  @map("user_agent")
   createdAt DateTime @default(now()) @map("created_at")
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  viewedFromProduct Product? @relation("ProductViewReferrer", fields: [viewedFromProductId], references: [id], onDelete: SetNull)
+  user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([sessionId, createdAt(sort: Desc)])
   @@map("product_views")
+}
+
+model UserSearchEvent {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  query        String   @db.VarChar(200)
+  normalizedQuery String @map("normalized_query") @db.VarChar(200)
+  sessionId    String?  @map("session_id") @db.VarChar(100)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([normalizedQuery, createdAt(sort: Desc)])
+  @@map("user_search_events")
+}
+
+model ProductCoView {
+  id                String   @id @default(uuid())
+  sourceProductId   String   @map("source_product_id")
+  targetProductId   String   @map("target_product_id")
+  score             Float    @default(1)
+  lastViewedAt      DateTime @default(now()) @map("last_viewed_at")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  sourceProduct Product @relation("CoViewSource", fields: [sourceProductId], references: [id], onDelete: Cascade)
+  targetProduct Product @relation("CoViewTarget", fields: [targetProductId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceProductId, targetProductId])
+  @@index([sourceProductId, score(sort: Desc)])
+  @@index([targetProductId, score(sort: Desc)])
+  @@map("product_co_views")
 }
 
 model SellerStats {

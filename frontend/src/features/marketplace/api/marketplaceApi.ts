@@ -1,6 +1,8 @@
 import { httpClient } from "../../../shared/api/httpClient";
 import type {
+    MarketplaceCategoryOption,
     MarketplaceListResponse,
+    MarketplaceRecommendationsResponse,
     ProductListItem,
     ProductQueryParams,
 } from "../types/marketplace.types";
@@ -18,6 +20,8 @@ interface ProductsListEnvelope {
 
 function sortToBackend(sort: ProductQueryParams["sort"] | undefined) {
     switch (sort) {
+        case "relevance":
+            return { sortBy: "salesCount", sortOrder: "desc" as const };
         case "price_asc":
             return { sortBy: "price", sortOrder: "asc" as const };
         case "price_desc":
@@ -34,7 +38,7 @@ function mapApiProductToListItem(raw: Record<string, unknown>): ProductListItem 
     const images = (raw.images as { imageUrl?: string }[] | undefined) ?? [];
     const seller = raw.seller as { fullName?: string; username?: string } | undefined;
     const categories = Array.isArray(raw.categories)
-        ? (raw.categories as Array<{ name?: string }>)
+        ? (raw.categories as Array<{ id?: string; name?: string }>)
         : [];
     const priceRaw = raw.price;
     const price =
@@ -51,6 +55,12 @@ function mapApiProductToListItem(raw: Record<string, unknown>): ProductListItem 
         imageUrl: images[0]?.imageUrl,
         sellerName: seller?.fullName ?? seller?.username,
         category: categories[0]?.name,
+        categoryId: categories[0]?.id ? String(categories[0]?.id) : undefined,
+        metaKeywords: Array.isArray(raw.metaKeywords)
+            ? (raw.metaKeywords as unknown[])
+                  .map((value) => String(value ?? "").trim())
+                  .filter((value) => value.length > 0)
+            : [],
         soldCount: typeof raw.salesCount === "number" ? raw.salesCount : undefined,
     };
 }
@@ -59,11 +69,15 @@ export const marketplaceApi = {
     async listProducts(params: ProductQueryParams): Promise<MarketplaceListResponse> {
         const searchParams = new URLSearchParams();
         if (params.q) searchParams.set("search", params.q);
+        if (params.categoryId) searchParams.set("categoryId", params.categoryId);
         if (params.minPrice != null && params.minPrice > 0) {
             searchParams.set("minPrice", String(params.minPrice));
         }
         if (params.maxPrice != null && params.maxPrice > 0) {
             searchParams.set("maxPrice", String(params.maxPrice));
+        }
+        if (params.ratingFilter) {
+            searchParams.set("ratingFilter", params.ratingFilter);
         }
         const { sortBy, sortOrder } = sortToBackend(params.sort);
         searchParams.set("sortBy", sortBy);
@@ -92,6 +106,77 @@ export const marketplaceApi = {
             total: pagination?.total ?? rawList.length,
             page: pagination?.page ?? (params.page ?? 1),
             pageSize: pagination?.limit ?? (params.pageSize ?? 12),
+        };
+    },
+    async listCategories(options?: {
+        onlyWithPublishedProducts?: boolean;
+    }): Promise<MarketplaceCategoryOption[]> {
+        const query = new URLSearchParams();
+        if (options?.onlyWithPublishedProducts) {
+            query.set("onlyWithPublishedProducts", "true");
+        }
+        const path = query.toString() ? `/categories?${query.toString()}` : "/categories";
+        const response = await httpClient.get<
+            { data?: Array<{ id?: unknown; name?: unknown }> } | Array<{ id?: unknown; name?: unknown }>
+        >(path);
+        const raw = Array.isArray(response)
+            ? response
+            : Array.isArray(response.data)
+              ? response.data
+              : [];
+        return raw
+            .map((category) => ({
+                id: String(category.id ?? ""),
+                name: String(category.name ?? ""),
+            }))
+            .filter((category) => category.id && category.name);
+    },
+    async trackSearchEvent(query: string): Promise<void> {
+        await httpClient.post(
+            "/products/search-events",
+            { query },
+            { requiresAuth: true },
+        );
+    },
+    async trackProductView(
+        productId: string,
+        payload?: { sessionId?: string; previousProductId?: string },
+    ): Promise<void> {
+        await httpClient.post(
+            `/products/${productId}/view`,
+            payload ?? {},
+            { requiresAuth: true },
+        );
+    },
+    async getRecommendations(limit = 24): Promise<MarketplaceRecommendationsResponse> {
+        const res = await httpClient.get<{
+            data?: {
+                products?: unknown[];
+                categories?: Array<{ id?: unknown; name?: unknown }>;
+                tags?: unknown[];
+            };
+        }>(`/products/recommendations/me?limit=${limit}`, { requiresAuth: true });
+        const data = res.data ?? {};
+        const rawProducts = Array.isArray(data.products) ? data.products : [];
+        const categories = Array.isArray(data.categories)
+            ? data.categories
+                  .map((category) => ({
+                      id: String(category.id ?? ""),
+                      name: String(category.name ?? ""),
+                  }))
+                  .filter((category) => category.id && category.name)
+            : [];
+        const tags = Array.isArray(data.tags)
+            ? data.tags
+                  .map((tag) => String(tag ?? "").trim())
+                  .filter((tag) => tag.length > 0)
+            : [];
+        return {
+            products: rawProducts.map((row) =>
+                mapApiProductToListItem(row as Record<string, unknown>),
+            ),
+            categories,
+            tags,
         };
     },
 };

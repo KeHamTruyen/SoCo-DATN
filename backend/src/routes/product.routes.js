@@ -14,6 +14,8 @@ import {
     sellerProductVariantParams,
     createSellerVariantValidation,
     updateSellerVariantValidation,
+    trackProductViewValidation,
+    trackSearchEventValidation,
 } from "../validators/product.validator.js";
 
 const router = express.Router();
@@ -66,6 +68,20 @@ const router = express.Router();
  *         description: Products retrieved successfully
  */
 router.get("/", getProductsValidation, validate, productController.getProducts);
+
+router.get(
+    "/recommendations/me",
+    protect,
+    productController.getMyRecommendations,
+);
+
+router.post(
+    "/search-events",
+    protect,
+    trackSearchEventValidation,
+    validate,
+    productController.trackSearchEvent,
+);
 
 /**
  * @swagger
@@ -162,6 +178,14 @@ router.delete(
  *         description: Product not found
  */
 router.get("/:id", productIdValidation, validate, productController.getProduct);
+
+router.post(
+    "/:id/view",
+    protect,
+    trackProductViewValidation,
+    validate,
+    productController.trackProductView,
+);
 
 /**
  * @swagger

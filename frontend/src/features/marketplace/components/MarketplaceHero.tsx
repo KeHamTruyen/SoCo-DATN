@@ -1,4 +1,5 @@
 import { Compass, Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../../../shared/ui";
 
 interface MarketplaceHeroProps {
@@ -8,6 +9,7 @@ interface MarketplaceHeroProps {
 }
 
 export function MarketplaceHero({ value, onChange, onExplore }: MarketplaceHeroProps) {
+    const { t } = useTranslation();
     return (
         <div className="mb-10 flex w-full max-w-3xl flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-2">
             <div className="relative flex-1">
@@ -15,7 +17,7 @@ export function MarketplaceHero({ value, onChange, onExplore }: MarketplaceHeroP
                 <input
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
-                    placeholder="Search products, categories, or hashtags..."
+                    placeholder={t("marketplace.searchPlaceholder")}
                     className="block w-full rounded-2xl border border-neutral-200 bg-white py-4 pl-12 pr-4 text-base text-neutral-900 shadow-sm outline-none transition-all placeholder:text-neutral-400 focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500"
                 />
             </div>
@@ -25,7 +27,7 @@ export function MarketplaceHero({ value, onChange, onExplore }: MarketplaceHeroP
                 onClick={onExplore}
             >
                 <Compass className="h-5 w-5" />
-                Explore
+                {t("marketplace.explore")}
             </Button>
         </div>
     );

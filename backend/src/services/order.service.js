@@ -104,6 +104,26 @@ const parseRefundMetadata = (cancellationReason) => {
   return { state: null, reason: null };
 };
 
+async function applySalesCountDelta(tx, items, delta = 1) {
+  const productQty = new Map();
+  for (const item of items) {
+    if (!item.productId) continue;
+    const qty = Number(item.quantity || 0);
+    if (!Number.isFinite(qty) || qty <= 0) continue;
+    productQty.set(item.productId, (productQty.get(item.productId) || 0) + qty);
+  }
+  for (const [productId, qty] of productQty.entries()) {
+    await tx.product.update({
+      where: { id: productId },
+      data: {
+        salesCount: {
+          increment: qty * delta,
+        },
+      },
+    });
+  }
+}
+
 /**
  * Create order from cart
  */
@@ -479,6 +499,10 @@ export const updateOrderStatus = async (orderId, userId, newStatus) => {
       }
     }
 
+    if (newStatus === 'COMPLETED' && order.status !== 'COMPLETED') {
+      await applySalesCountDelta(tx, order.items, 1);
+    }
+
     return nextOrder;
   });
 
@@ -734,15 +758,21 @@ export const processRefund = async (orderId, sellerId, { accept, reason }) => {
 
   let updatedOrder;
   if (accept) {
-    updatedOrder = await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        status: 'REFUNDED',
-        paymentStatus:
-          order.paymentStatus === 'PAID' ? 'REFUNDED' : order.paymentStatus,
-        cancellationReason: `REFUND_ACCEPTED::${reason || metadata.reason || ''}`,
-      },
-      include: orderInclude,
+    updatedOrder = await prisma.$transaction(async (tx) => {
+      const nextOrder = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: 'REFUNDED',
+          paymentStatus:
+            order.paymentStatus === 'PAID' ? 'REFUNDED' : order.paymentStatus,
+          cancellationReason: `REFUND_ACCEPTED::${reason || metadata.reason || ''}`,
+        },
+        include: orderInclude,
+      });
+      if (order.status === 'COMPLETED') {
+        await applySalesCountDelta(tx, order.items, -1);
+      }
+      return nextOrder;
     });
   } else {
     updatedOrder = await prisma.order.update({

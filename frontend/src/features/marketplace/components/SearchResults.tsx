@@ -1,4 +1,5 @@
 import type { ProductListItem } from "../types/marketplace.types";
+import { useTranslation } from "react-i18next";
 import { ProductCard } from "./ProductCard";
 import { Button } from "../../../shared/ui";
 
@@ -19,10 +20,11 @@ export function SearchResults({
     hasMore = false,
     onLoadMore,
 }: SearchResultsProps) {
+    const { t } = useTranslation();
     if (isLoading) {
         return (
             <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300">
-                Loading products...
+                {t("marketplace.loadingProducts")}
             </div>
         );
     }
@@ -38,7 +40,7 @@ export function SearchResults({
     if (items.length === 0) {
         return (
             <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300">
-                No products found.
+                {t("marketplace.noProductsFound")}
             </div>
         );
     }
@@ -59,7 +61,9 @@ export function SearchResults({
                         disabled={isLoadingMore}
                         onClick={onLoadMore}
                     >
-                        {isLoadingMore ? "Loading..." : "Load more products"}
+                        {isLoadingMore
+                            ? t("marketplace.loading")
+                            : t("marketplace.loadMoreProducts")}
                     </Button>
                 </div>
             ) : null}

@@ -29,6 +29,44 @@ function assertPublishReady({ description, imageCount }) {
   }
 }
 
+function normalizeSearchQuery(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .slice(0, 200);
+}
+
+function tokenize(value) {
+  return normalizeSearchQuery(value)
+    .split(' ')
+    .map((part) => part.trim())
+    .filter((part) => part.length > 1);
+}
+
+const SEARCH_STOPWORDS = new Set([
+  'va',
+  'và',
+  'the',
+  'for',
+  'with',
+  'san',
+  'pham',
+  'product'
+]);
+
+function hasDelegate(name) {
+  return Boolean(prisma?.[name] && typeof prisma[name].findMany === 'function');
+}
+
+function isMissingTableError(error) {
+  return (
+    error?.code === 'P2021' ||
+    error?.code === 'P2022' ||
+    /does not exist|Unknown arg|Cannot read properties of undefined/i.test(String(error?.message || ''))
+  );
+}
+
 class ProductService {
   async appendDeletionAudit(productId, event, { actorId = null, actorRole = null, reason = null, meta = {} } = {}) {
     await prisma.productDeletionAudit.create({
@@ -119,6 +157,7 @@ class ProductService {
       search,
       minPrice,
       maxPrice,
+      ratingFilter,
       sortBy = 'createdAt',
       sortOrder = 'desc'
     } = filters;
@@ -129,6 +168,30 @@ class ProductService {
     const isPublicListing = !sellerId;
     const effectiveStatus = isPublicListing ? 'ACTIVE' : status;
 
+    const ratingWhere =
+      ratingFilter === '5_only'
+        ? {
+            reviews: {
+              some: {
+                isPublished: true,
+                rating: 5
+              },
+              none: {
+                isPublished: true,
+                rating: { lt: 5 }
+              }
+            }
+          }
+        : ratingFilter === '4_plus'
+          ? { reviews: { some: { isPublished: true, rating: { gte: 4 } } } }
+          : ratingFilter === '3_plus'
+            ? { reviews: { some: { isPublished: true, rating: { gte: 3 } } } }
+            : ratingFilter === '2_plus'
+              ? { reviews: { some: { isPublished: true, rating: { gte: 2 } } } }
+              : ratingFilter === '1_plus'
+                ? { reviews: { some: { isPublished: true, rating: { gte: 1 } } } }
+                : {};
+
     const where = {
       deletedAt: null,
       ...(categoryId && { categories: { some: { id: categoryId } } }),
@@ -137,7 +200,10 @@ class ProductService {
       ...(search && {
         OR: [
           { title: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } }
+          { description: { contains: search, mode: 'insensitive' } },
+          { metaTitle: { contains: search, mode: 'insensitive' } },
+          { metaDescription: { contains: search, mode: 'insensitive' } },
+          { metaKeywords: { has: search } }
         ]
       }),
       ...(minPrice || maxPrice) && {
@@ -145,7 +211,8 @@ class ProductService {
           ...(minPrice && { gte: parseFloat(minPrice) }),
           ...(maxPrice && { lte: parseFloat(maxPrice) })
         }
-      }
+      },
+      ...ratingWhere
     };
 
     // Get products and total count
@@ -248,6 +315,291 @@ class ProductService {
     });
 
     return withPrimaryCategory(product);
+  }
+
+  async trackProductView(productId, userId, payload = {}) {
+    const viewedFromProductId =
+      payload.previousProductId && payload.previousProductId !== productId
+        ? payload.previousProductId
+        : null;
+    const sessionId = typeof payload.sessionId === 'string' ? payload.sessionId.slice(0, 100) : null;
+
+    try {
+      await prisma.productView.create({
+        data: {
+          productId,
+          userId: userId || null,
+          viewedFromProductId,
+          sessionId
+        }
+      });
+    } catch (error) {
+      if (!isMissingTableError(error)) throw error;
+      return;
+    }
+
+    if (viewedFromProductId && hasDelegate('productCoView')) {
+      try {
+        await prisma.productCoView.upsert({
+          where: {
+            sourceProductId_targetProductId: {
+              sourceProductId: viewedFromProductId,
+              targetProductId: productId
+            }
+          },
+          update: {
+            score: { increment: 1 },
+            lastViewedAt: new Date()
+          },
+          create: {
+            sourceProductId: viewedFromProductId,
+            targetProductId: productId,
+            score: 1,
+            lastViewedAt: new Date()
+          }
+        });
+      } catch (error) {
+        if (!isMissingTableError(error)) throw error;
+      }
+    }
+  }
+
+  async trackSearchEvent(userId, payload = {}) {
+    const normalizedQuery = normalizeSearchQuery(payload.query);
+    if (!normalizedQuery) return;
+    if (!hasDelegate('userSearchEvent')) return;
+    const sessionId = typeof payload.sessionId === 'string' ? payload.sessionId.slice(0, 100) : null;
+    try {
+      await prisma.userSearchEvent.create({
+        data: {
+          userId,
+          query: String(payload.query).trim().slice(0, 200),
+          normalizedQuery,
+          sessionId
+        }
+      });
+    } catch (error) {
+      if (!isMissingTableError(error)) throw error;
+    }
+  }
+
+  async getPersonalizedRecommendations(userId, options = {}) {
+    const take = Number.isFinite(Number(options.limit))
+      ? Math.min(Math.max(parseInt(options.limit, 10), 4), 48)
+      : 24;
+    const now = Date.now();
+    const recentViews = await prisma.productView.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 60,
+      include: {
+        product: {
+          select: {
+            id: true,
+            categories: { select: { id: true, name: true } }
+          }
+        }
+      }
+    });
+    let searchEvents = [];
+    if (hasDelegate('userSearchEvent')) {
+      try {
+        searchEvents = await prisma.userSearchEvent.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+          take: 40
+        });
+      } catch (error) {
+        if (!isMissingTableError(error)) throw error;
+      }
+    }
+
+    const candidateScores = new Map();
+    const categoryWeights = new Map();
+    const tagWeights = new Map();
+
+    for (const view of recentViews) {
+      const ageHours = Math.max(1, (now - new Date(view.createdAt).getTime()) / (1000 * 60 * 60));
+      const recencyWeight = 1 / (1 + ageHours / 24);
+      for (const category of view.product?.categories || []) {
+        categoryWeights.set(
+          category.id,
+          (categoryWeights.get(category.id) || 0) + recencyWeight * 2
+        );
+      }
+    }
+
+    for (const event of searchEvents) {
+      const ageHours = Math.max(1, (now - new Date(event.createdAt).getTime()) / (1000 * 60 * 60));
+      const recencyWeight = 1 / (1 + ageHours / 24);
+      for (const token of tokenize(event.normalizedQuery)) {
+        if (SEARCH_STOPWORDS.has(token)) continue;
+        tagWeights.set(token, (tagWeights.get(token) || 0) + recencyWeight * 3);
+      }
+    }
+
+    const viewedProductIds = Array.from(new Set(recentViews.map((view) => view.productId)));
+    if (viewedProductIds.length > 0) {
+      let coViews = [];
+      if (hasDelegate('productCoView')) {
+        try {
+          coViews = await prisma.productCoView.findMany({
+            where: { sourceProductId: { in: viewedProductIds } },
+            orderBy: [{ score: 'desc' }, { lastViewedAt: 'desc' }],
+            take: 120
+          });
+        } catch (error) {
+          if (!isMissingTableError(error)) throw error;
+        }
+      }
+      for (const edge of coViews) {
+        candidateScores.set(
+          edge.targetProductId,
+          (candidateScores.get(edge.targetProductId) || 0) + edge.score * 1.5
+        );
+      }
+    }
+
+    const topCategoryIds = Array.from(categoryWeights.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([categoryId]) => categoryId);
+    const topTags = Array.from(tagWeights.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 12)
+      .map(([tag]) => tag);
+
+    const queryTokens = topTags.slice(0, 6);
+    const products = await prisma.product.findMany({
+      where: {
+        deletedAt: null,
+        status: 'ACTIVE',
+        OR: [
+          ...(topCategoryIds.length > 0
+            ? [{ categories: { some: { id: { in: topCategoryIds } } } }]
+            : []),
+          ...(queryTokens.length > 0
+            ? queryTokens.flatMap((token) => [
+                { title: { contains: token, mode: 'insensitive' } },
+                { description: { contains: token, mode: 'insensitive' } },
+                { metaTitle: { contains: token, mode: 'insensitive' } },
+                { metaDescription: { contains: token, mode: 'insensitive' } },
+                { metaKeywords: { has: token } }
+              ])
+            : []),
+          { id: { in: Array.from(candidateScores.keys()) } }
+        ]
+      },
+      include: {
+        images: { orderBy: { displayOrder: 'asc' } },
+        categories: true,
+        seller: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            avatarUrl: true
+          }
+        },
+        _count: {
+          select: { reviews: true }
+        }
+      },
+      take: take * 3
+    });
+
+    const ranked = products
+      .map((product) => {
+        const productCategories = product.categories || [];
+        const categoryScore = productCategories.reduce(
+          (sum, category) => sum + (categoryWeights.get(category.id) || 0),
+          0
+        );
+        const keywordScore = (product.metaKeywords || []).reduce(
+          (sum, keyword) => sum + (tagWeights.get(normalizeSearchQuery(keyword)) || 0),
+          0
+        );
+        const behaviorScore = candidateScores.get(product.id) || 0;
+        const popularityScore = product.salesCount * 0.25 + product.viewsCount * 0.03;
+        const freshnessDays =
+          (now - new Date(product.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+        const freshnessBoost = Math.max(0, 12 - freshnessDays) * 0.3;
+        const score =
+          behaviorScore * 1.4 +
+          categoryScore * 1.2 +
+          keywordScore * 1.3 +
+          popularityScore +
+          freshnessBoost;
+        return { product, score };
+      })
+      .sort((a, b) => b.score - a.score);
+
+    const selected = [];
+    const sellerSeen = new Map();
+    for (const row of ranked) {
+      const sellerId = row.product.sellerId;
+      const count = sellerSeen.get(sellerId) || 0;
+      if (count >= 3) continue;
+      selected.push(withPrimaryCategory(row.product));
+      sellerSeen.set(sellerId, count + 1);
+      if (selected.length >= take) break;
+    }
+
+    if (selected.length < Math.min(8, take)) {
+      const fallback = await prisma.product.findMany({
+        where: { deletedAt: null, status: 'ACTIVE' },
+        include: {
+          images: { orderBy: { displayOrder: 'asc' } },
+          categories: true,
+          seller: {
+            select: {
+              id: true,
+              username: true,
+              fullName: true,
+              avatarUrl: true
+            }
+          },
+          _count: { select: { reviews: true } }
+        },
+        orderBy: [{ salesCount: 'desc' }, { createdAt: 'desc' }],
+        take: take
+      });
+      const existing = new Set(selected.map((product) => product.id));
+      for (const product of fallback) {
+        if (existing.has(product.id)) continue;
+        selected.push(withPrimaryCategory(product));
+        if (selected.length >= take) break;
+      }
+    }
+
+    const categoryIdsInReco = new Set(
+      selected
+        .flatMap((product) => product.categories || [])
+        .map((category) => category.id)
+    );
+    const categories = await prisma.category.findMany({
+      where: {
+        id: { in: Array.from(categoryIdsInReco) },
+        isActive: true
+      },
+      select: { id: true, name: true },
+      take: 12
+    });
+
+    const productTags = selected
+      .flatMap((product) => product.metaKeywords || [])
+      .map((keyword) => normalizeSearchQuery(keyword))
+      .filter((keyword) => keyword && !SEARCH_STOPWORDS.has(keyword));
+
+    const mergedTags = Array.from(
+      new Set([...topTags, ...productTags].filter(Boolean))
+    ).slice(0, 12);
+
+    return {
+      products: selected,
+      categories,
+      tags: mergedTags
+    };
   }
 
   /**

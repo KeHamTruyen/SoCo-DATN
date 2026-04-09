@@ -61,6 +61,42 @@ class ProductController {
     }
   }
 
+  async trackProductView(req, res, next) {
+    try {
+      await productService.trackProductView(req.params.id, req.user.id, req.body || {});
+      res.status(201).json({
+        success: true,
+        message: 'Product view tracked'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async trackSearchEvent(req, res, next) {
+    try {
+      await productService.trackSearchEvent(req.user.id, req.body || {});
+      res.status(201).json({
+        success: true,
+        message: 'Search event tracked'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getMyRecommendations(req, res, next) {
+    try {
+      const data = await productService.getPersonalizedRecommendations(req.user.id, req.query);
+      res.json({
+        success: true,
+        data
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   /**
    * Update product
    * PUT /api/products/:id

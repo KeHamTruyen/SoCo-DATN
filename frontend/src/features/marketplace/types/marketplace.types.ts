@@ -7,6 +7,8 @@ export interface ProductListItem {
     soldCount?: number;
     sellerName?: string;
     category?: string;
+    categoryId?: string;
+    metaKeywords?: string[];
 }
 
 export interface MarketplaceListResponse {
@@ -18,13 +20,25 @@ export interface MarketplaceListResponse {
 
 export interface ProductQueryParams {
     q?: string;
-    category?: string;
-    sort?: "newest" | "price_asc" | "price_desc" | "popular";
+    categoryId?: string;
+    sort?: "relevance" | "newest" | "price_asc" | "price_desc" | "popular";
+    ratingFilter?: "1_plus" | "2_plus" | "3_plus" | "4_plus" | "5_only";
     minPrice?: number;
     maxPrice?: number;
     page?: number;
     pageSize?: number;
     /** Filter public catalog by seller (user id). */
     sellerId?: string;
+}
+
+export interface MarketplaceCategoryOption {
+    id: string;
+    name: string;
+}
+
+export interface MarketplaceRecommendationsResponse {
+    products: ProductListItem[];
+    categories: MarketplaceCategoryOption[];
+    tags: string[];
 }
 

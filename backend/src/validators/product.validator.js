@@ -281,6 +281,16 @@ export const getProductsValidation = [
         .isFloat({ min: 0 })
         .withMessage("Max price must be a positive number"),
 
+    query("categoryId")
+        .optional()
+        .isUUID()
+        .withMessage("categoryId must be a valid UUID"),
+
+    query("ratingFilter")
+        .optional()
+        .isIn(["1_plus", "2_plus", "3_plus", "4_plus", "5_only"])
+        .withMessage("ratingFilter must be one of: 1_plus, 2_plus, 3_plus, 4_plus, 5_only"),
+
     query("sortBy")
         .optional()
         .isIn(["createdAt", "price", "viewsCount", "salesCount", "title"])
@@ -346,6 +356,33 @@ export const addImagesValidation = [
 export const sellerProductVariantParams = [
     param("productId").notEmpty().withMessage("Product ID is required"),
     param("variantId").isUUID().withMessage("Invalid variant ID"),
+];
+
+export const trackProductViewValidation = [
+    param("id").notEmpty().withMessage("Product ID is required"),
+    body("sessionId")
+        .optional()
+        .isString()
+        .isLength({ max: 100 })
+        .withMessage("sessionId must be a string of max 100 characters"),
+    body("previousProductId")
+        .optional({ nullable: true })
+        .isString()
+        .withMessage("previousProductId must be a string"),
+];
+
+export const trackSearchEventValidation = [
+    body("query")
+        .trim()
+        .notEmpty()
+        .withMessage("query is required")
+        .isLength({ max: 200 })
+        .withMessage("query must not exceed 200 characters"),
+    body("sessionId")
+        .optional()
+        .isString()
+        .isLength({ max: 100 })
+        .withMessage("sessionId must be a string of max 100 characters"),
 ];
 
 export const createSellerVariantValidation = [

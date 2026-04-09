@@ -177,9 +177,24 @@ class CategoryService {
   /**
    * Get all categories with hierarchy
    */
-  async getCategories() {
+  async getCategories(options = {}) {
+    const onlyWithPublishedProducts = Boolean(options.onlyWithPublishedProducts);
+    const publishedProductFilter = {
+      status: 'ACTIVE',
+      deletedAt: null,
+      deletionState: 'ACTIVE'
+    };
     const categories = await prisma.category.findMany({
-      where: { isActive: true },
+      where: {
+        isActive: true,
+        ...(onlyWithPublishedProducts
+          ? {
+              products: {
+                some: publishedProductFilter
+              }
+            }
+          : {})
+      },
       orderBy: [
         { displayOrder: 'asc' },
         { name: 'asc' }
@@ -187,7 +202,16 @@ class CategoryService {
       include: {
         parent: true,
         children: {
-          where: { isActive: true },
+          where: {
+            isActive: true,
+            ...(onlyWithPublishedProducts
+              ? {
+                  products: {
+                    some: publishedProductFilter
+                  }
+                }
+              : {})
+          },
           orderBy: { displayOrder: 'asc' }
         },
         _count: {
