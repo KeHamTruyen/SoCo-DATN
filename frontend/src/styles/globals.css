@@ -29,7 +29,7 @@
   --color-background-light: #fafaf9;
   --color-background-dark:  #1c1917;
 
-  --font-display: "Public Sans", sans-serif;
+  --font-display: "Be Vietnam Pro", "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {

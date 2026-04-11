@@ -26,6 +26,7 @@ export const POST_EDITOR_EXTENSIONS = createPostEditorExtensions();
 
 const PROSEMIRROR_INNER_CLASS =
     "min-h-[160px] w-full max-w-none px-1 py-2 text-base leading-relaxed outline-none " +
+    "font-[family-name:var(--font-display)] " +
     "text-neutral-900 dark:text-neutral-100 " +
     "[&_p]:my-2 [&_p:first-child]:mt-0 " +
     "[&_h2]:mb-2 [&_h2]:mt-3 [&_h2]:text-xl [&_h2]:font-extrabold [&_h2]:tracking-tight " +
@@ -43,6 +44,7 @@ export const POST_EDITOR_HTML_PROPS = {
 /** Editor nhỏ gọn cho modal (chiều cao tối thiểu thấp hơn AI Lab). */
 const MODAL_EDITOR_CLASS =
     "min-h-[120px] w-full max-w-none px-1 py-2 text-base leading-relaxed outline-none " +
+    "font-[family-name:var(--font-display)] " +
     "text-neutral-900 dark:text-neutral-100 " +
     "[&_p]:my-2 [&_p:first-child]:mt-0 " +
     "[&_h2]:mb-2 [&_h2]:mt-2 [&_h2]:text-lg [&_h2]:font-bold " +
