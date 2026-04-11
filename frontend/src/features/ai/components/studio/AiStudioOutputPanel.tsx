@@ -1,20 +1,50 @@
 import { Calendar, CheckCircle, Loader2, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../../../shared/lib/cn";
 import { Button } from "../../../../shared/ui";
 import { AiLabRichOutput } from "../../components/AiLabRichOutput";
 import { useAiStudio } from "../../context/AiStudioContext";
+import type { GenerateTextResult, GenerateVideoImagesTextResult } from "../../api/aiApi";
+
+type GeneratedUnion = GenerateTextResult | GenerateVideoImagesTextResult | null | undefined;
+
+function weightedScoreFrom(obj: unknown): number | undefined {
+    if (obj && typeof obj === "object" && "weightedScore" in obj) {
+        const w = (obj as { weightedScore?: unknown }).weightedScore;
+        return typeof w === "number" ? w : undefined;
+    }
+    return undefined;
+}
 
 export function AiStudioOutputPanel() {
-    const { 
-        form, generator, publisher, 
-        onEditorPlainTextChange, onEditorHtmlChange 
+    const { t } = useTranslation();
+    const {
+        form,
+        generator,
+        publisher,
+        onEditorPlainTextChange,
+        onEditorHtmlChange,
     } = useAiStudio();
 
-    const generatedImage = generator.generated?.generatedImage ?? null;
+    const g = generator.generated as GeneratedUnion;
+
+    const generatedImage =
+        g && "generatedImage" in g
+            ? ((g as GenerateVideoImagesTextResult).generatedImage ?? null)
+            : null;
     const textWeightedScore =
-        generator.generated?.evaluationScores?.weightedScore ??
-        generator.generated?.textScores?.weightedScore;
-    const imageWeightedScore = generator.generated?.imageScores?.weightedScore;
+        weightedScoreFrom(
+            g && "evaluationScores" in g ? (g as GenerateTextResult).evaluationScores : undefined,
+        ) ??
+        weightedScoreFrom(
+            g && "textScores" in g ? (g as GenerateVideoImagesTextResult).textScores : undefined,
+        );
+    const imageWeightedScore =
+        g && "imageScores" in g
+            ? weightedScoreFrom((g as GenerateVideoImagesTextResult).imageScores)
+            : undefined;
+
+    const statusLabel = g?.status ?? "—";
 
     return (
         <section className="relative flex w-full flex-1 flex-col gap-6 overflow-hidden bg-white p-6 dark:bg-neutral-950 lg:w-3/5 lg:p-10">
@@ -22,7 +52,7 @@ export function AiStudioOutputPanel() {
 
             <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="text-xl font-extrabold text-neutral-900 dark:text-neutral-50 lg:text-2xl">
-                    Soạn và chỉnh sửa bài đăng
+                    {t("aiCreativeLab.output.title")}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                     <Button
@@ -33,7 +63,7 @@ export function AiStudioOutputPanel() {
                         onClick={generator.handleGenerate}
                     >
                         <RefreshCw className="h-4 w-4" />
-                        Tạo lại
+                        {t("aiCreativeLab.output.regenerate")}
                     </Button>
                 </div>
             </div>
@@ -41,7 +71,7 @@ export function AiStudioOutputPanel() {
             <div className="relative z-10 flex min-h-70 flex-1 flex-col rounded-2xl border border-neutral-200 bg-neutral-50/80 p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900/40 lg:p-8">
                 <div className="flex min-h-0 flex-1 flex-col gap-4">
                     <AiLabRichOutput
-                        generated={generator.generated}
+                        generated={g}
                         outputRevision={generator.outputRevision}
                         editorResetNonce={generator.editorResetNonce}
                         withHashtags={form.withHashtags}
@@ -54,38 +84,57 @@ export function AiStudioOutputPanel() {
                     {form.mode === "image" && generatedImage?.data && (
                         <div>
                             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-                                Ảnh AI
+                                {t("aiCreativeLab.output.aiImageLabel")}
                             </p>
                             <img
-                                alt="AI generated image"
+                                alt={t("aiCreativeLab.output.aiImageAlt")}
                                 className="max-h-80 w-auto rounded-xl border border-neutral-200 object-contain dark:border-neutral-800"
                                 src={`data:${generatedImage.mimeType || "image/jpeg"};base64,${generatedImage.data}`}
                             />
                         </div>
                     )}
 
-                    {generator.generated && form.mode === "video" && (
+                    {form.mode === "image" &&
+                        !generatedImage?.data &&
+                        g &&
+                        "imageMessage" in g &&
+                        (g as GenerateVideoImagesTextResult).imageMessage && (
+                            <p className="text-sm text-amber-800 dark:text-amber-200">
+                                {(g as GenerateVideoImagesTextResult).imageMessage}
+                            </p>
+                        )}
+
+                    {g && form.mode === "video" && "videoStatus" in g && (
                         <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                            {generator.generated?.videoStatus === "unavailable"
-                                ? generator.generated?.message ?? "Video generation hiện chưa khả dụng."
-                                : "Đã có kết quả video."}
+                            {(g as GenerateVideoImagesTextResult).videoStatus === "unavailable"
+                                ? (g as GenerateVideoImagesTextResult).message ??
+                                  t("aiCreativeLab.output.videoUnavailable")
+                                : t("aiCreativeLab.output.videoReady")}
                         </p>
                     )}
 
-                    {generator.generated && (
+                    {g && (
                         <div className="border-t border-neutral-200 pt-3 dark:border-neutral-700">
                             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                                Mode: {form.mode} · Tone: {form.displayTone} · Length: {form.length} · Status:{" "}
-                                {generator.generated?.status ?? "—"}
+                                {t("aiCreativeLab.output.metaLine", {
+                                    mode: form.mode,
+                                    tone: form.displayTone,
+                                    length: form.length,
+                                    status: statusLabel,
+                                })}
                             </p>
                             {typeof textWeightedScore === "number" && (
                                 <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                                    Text score: {textWeightedScore.toFixed(1)}
+                                    {t("aiCreativeLab.output.textScore", {
+                                        score: textWeightedScore.toFixed(1),
+                                    })}
                                 </p>
                             )}
                             {form.mode === "image" && typeof imageWeightedScore === "number" && (
                                 <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                                    Image score: {imageWeightedScore.toFixed(1)}
+                                    {t("aiCreativeLab.output.imageScore", {
+                                        score: imageWeightedScore.toFixed(1),
+                                    })}
                                 </p>
                             )}
                         </div>
@@ -111,7 +160,7 @@ export function AiStudioOutputPanel() {
                     onClick={() => publisher.setScheduleModalOpen(true)}
                 >
                     <Calendar className="h-5 w-5" />
-                    Lên lịch đăng
+                    {t("aiCreativeLab.publish.schedule")}
                 </Button>
                 <Button
                     type="button"
@@ -124,7 +173,7 @@ export function AiStudioOutputPanel() {
                     ) : (
                         <CheckCircle className="h-5 w-5" />
                     )}
-                    Đăng ngay
+                    {t("aiCreativeLab.publish.publishNow")}
                 </Button>
             </div>
         </section>
