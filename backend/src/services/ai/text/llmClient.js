@@ -1,5 +1,7 @@
 /**
- * Text LLM: primary Google Gemini + optional free-tier backup (OpenRouter or Groq).
+ * Text LLM: primary Google Gemini; optional backup via AI_TEXT_BACKUP_PROVIDER (openrouter|groq|none).
+ * Default: openrouter when OPENROUTER_API_KEY is set (fallback if Gemini quota exhausted).
+ * Set AI_TEXT_BACKUP_PROVIDER=none to use Gemini only.
  * Image generation lives under ../image/.
  */
 import { getGeminiModel } from "../../../config/gemini.js";
@@ -256,8 +258,17 @@ function createCompositeTextLlm() {
             if (geminiLlm) {
                 try {
                     return await geminiLlm.generate({ text, images });
-                } catch (e) {
-                    if (!backup) throw e;
+                } catch (primaryErr) {
+                    if (!backup) throw primaryErr;
+                    try {
+                        return await backup.generate({ text, images });
+                    } catch (backupErr) {
+                        const p = String(primaryErr?.message ?? primaryErr);
+                        const b = String(backupErr?.message ?? backupErr);
+                        throw new Error(
+                            `Gemini failed: ${p.slice(0, 600)} | Backup failed: ${b.slice(0, 600)}`,
+                        );
+                    }
                 }
             }
             if (!backup) {
