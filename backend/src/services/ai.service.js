@@ -1,8 +1,32 @@
-import { getGeminiModel } from "../config/gemini.js";
+import { getLlmClient } from "./ai/text/llmClient.js";
 import prisma from "../config/database.js";
+import {
+    generateImageFromPrompt,
+    resolveImageProviderChain,
+} from "./ai/image/generateImageFromPrompt.js";
+import { ensureEnglishImagePrompt } from "./ai/image/promptEnglish.js";
 
-const MAX_RETRIES = 3;
+/** Refine attempts (1–5). Env AI_MAX_RETRIES, default 2. */
+function getMaxRetries() {
+    const v = parseInt(process.env.AI_MAX_RETRIES ?? "2", 10);
+    if (Number.isFinite(v) && v >= 1 && v <= 5) return v;
+    return 2;
+}
+
+/** Image++ refine attempts (1–3). Default 1 — image endpoints have stricter free-tier quotas. */
+function getImageMaxRetries() {
+    const v = parseInt(process.env.AI_IMAGE_MAX_RETRIES ?? "1", 10);
+    if (Number.isFinite(v) && v >= 1 && v <= 3) return v;
+    return 1;
+}
+
 const QUALITY_THRESHOLD = 7.0;
+
+const IMAGE_SKIPPED_MSG =
+    "Tạo ảnh marketing tắt (chưa cấu hình HF_TOKEN / REPLICATE_API_TOKEN hoặc đặt AI_IMAGE_PRIMARY=none). Xem AI_IMAGE_PRIMARY / AI_IMAGE_BACKUP trong backend/.env.";
+
+const QUOTA_IMAGE_MSG =
+    "Không thể tạo ảnh: dịch vụ báo hết quota hoặc giới hạn tần suất. Nội dung chữ phía trên vẫn dùng được. Thử lại sau hoặc kiểm tra billing/API key.";
 
 class AIService {
     /**
@@ -17,8 +41,8 @@ class AIService {
         withCta = true,
         length = "Medium",
     }) {
-        const model = getGeminiModel();
-        const analysis = await this._analyzeInput(model, {
+        const llm = getLlmClient();
+        const analysis = await this._analyzeInput(llm, {
             description,
             tone,
             imageBase64,
@@ -31,21 +55,22 @@ class AIService {
 
         let bestResult = null;
         let bestScore = 0;
+        const maxRetries = getMaxRetries();
 
-        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-            const parts = [{ text: prompt }];
-            if (imageBase64 && attempt === 0) {
-                parts.push({
-                    inlineData: { mimeType: "image/jpeg", data: imageBase64 },
-                });
-            }
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            const images =
+                imageBase64 && attempt === 0
+                    ? [{ mimeType: "image/jpeg", base64: imageBase64 }]
+                    : [];
 
-            const result = await model.generateContent(parts);
-            const generated = result.response.text();
+            const { text: generated } = await llm.generate({
+                text: prompt,
+                images,
+            });
 
             const parsed = this._parseJsonOutput(generated);
             const evaluation = await this._evaluateText(
-                model,
+                llm,
                 description,
                 parsed,
                 { length },
@@ -57,13 +82,19 @@ class AIService {
             }
 
             if (evaluation.weightedScore >= QUALITY_THRESHOLD) break;
-            if (attempt < MAX_RETRIES - 1) {
+            if (attempt < maxRetries - 1) {
                 prompt = this._refineTextPrompt(prompt, evaluation, {
                     withHashtags,
                     withCta,
                     length,
                 });
             }
+        }
+
+        if (!bestResult) {
+            throw new Error(
+                "AI text generation did not return valid JSON content after retries.",
+            );
         }
 
         await this._saveHistory(
@@ -102,48 +133,75 @@ class AIService {
             withCta,
             length,
         });
-        const model = getGeminiModel();
 
-        const imagePrompt = this._buildImagePrompt(
-            textResult.generatedText,
-            description,
+        if (resolveImageProviderChain().length === 0) {
+            return {
+                generatedText: textResult.generatedText,
+                generatedImage: null,
+                textScores: textResult.evaluationScores,
+                imageScores: null,
+                status: textResult.status,
+                imageGenerationStatus: "skipped",
+                imageMessage: IMAGE_SKIPPED_MSG,
+            };
+        }
+
+        const llmForImage = getLlmClient();
+        let imagePromptStr = await ensureEnglishImagePrompt(
+            llmForImage,
+            this._buildImagePrompt(
+                textResult.generatedText,
+                description,
+            ),
         );
 
+        const maxImgRetries = getImageMaxRetries();
         let bestImage = null;
-        let bestImgScore = 0;
 
-        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-            const imgResult = await model.generateContent(imagePrompt);
-            const imgResponse = imgResult.response;
-
-            const imageData = this._extractImageFromResponse(imgResponse);
-            const imgEval = await this._evaluateImage(
-                model,
-                description,
-                textResult.generatedText,
-                imageData,
-            );
-
-            if (imgEval.weightedScore > bestImgScore) {
-                bestImgScore = imgEval.weightedScore;
+        for (let attempt = 0; attempt < maxImgRetries; attempt++) {
+            try {
+                const imageData = await generateImageFromPrompt(imagePromptStr);
+                const imgEval = await this._evaluateImage();
                 bestImage = { data: imageData, evaluation: imgEval };
-            }
-
-            if (imgEval.weightedScore >= QUALITY_THRESHOLD) break;
-            if (attempt < MAX_RETRIES - 1) {
-                imagePrompt.text = this._refineImagePrompt(
-                    imagePrompt.text,
-                    imgEval,
+                break;
+            } catch (err) {
+                if (this._isImageQuotaOrRateLimitError(err)) {
+                    return {
+                        generatedText: textResult.generatedText,
+                        generatedImage: null,
+                        textScores: textResult.evaluationScores,
+                        imageScores: null,
+                        status: textResult.status,
+                        imageGenerationStatus: "quota_exceeded",
+                        imageMessage: QUOTA_IMAGE_MSG,
+                    };
+                }
+                if (attempt === maxImgRetries - 1) {
+                    return {
+                        generatedText: textResult.generatedText,
+                        generatedImage: null,
+                        textScores: textResult.evaluationScores,
+                        imageScores: null,
+                        status: textResult.status,
+                        imageGenerationStatus: "error",
+                        imageMessage: String(err?.message ?? err ?? ""),
+                    };
+                }
+                const imgEval = await this._evaluateImage();
+                imagePromptStr = await ensureEnglishImagePrompt(
+                    llmForImage,
+                    this._refineImagePrompt(imagePromptStr, imgEval),
                 );
             }
         }
 
         return {
             generatedText: textResult.generatedText,
-            generatedImage: bestImage?.data,
+            generatedImage: bestImage?.data ?? null,
             textScores: textResult.evaluationScores,
             imageScores: bestImage?.evaluation,
             status: textResult.status,
+            imageGenerationStatus: bestImage?.data ? "ok" : "no_image_inline",
         };
     }
 
@@ -169,8 +227,6 @@ class AIService {
             length,
         });
 
-        // Video generation placeholder — Google Veo 2 API access is limited.
-        // When available, integrate here with the storyboard prompt builder.
         const videoResult = {
             generatedVideo: null,
             videoScores: null,
@@ -187,7 +243,7 @@ class AIService {
 
     // ─── Internal helpers ───────────────────────────────────────
 
-    async _analyzeInput(model, { description, tone, imageBase64 }) {
+    async _analyzeInput(llm, { description, tone, imageBase64 }) {
         const analysisPrompt = `Analyze this input for a social commerce post and return JSON:
 {
   "entities": ["main product/subject"],
@@ -199,15 +255,15 @@ class AIService {
 User input: "${description}"
 Desired tone: "${tone || "auto-detect"}"`;
 
-        const parts = [{ text: analysisPrompt }];
-        if (imageBase64) {
-            parts.push({
-                inlineData: { mimeType: "image/jpeg", data: imageBase64 },
-            });
-        }
+        const images = imageBase64
+            ? [{ mimeType: "image/jpeg", base64: imageBase64 }]
+            : [];
 
-        const result = await model.generateContent(parts);
-        return this._parseJsonOutput(result.response.text());
+        const { text } = await llm.generate({
+            text: analysisPrompt,
+            images,
+        });
+        return this._parseJsonOutput(text);
     }
 
     _buildTextPrompt(
@@ -279,7 +335,7 @@ CONSTRAINTS:
     }
 
     async _evaluateText(
-        model,
+        llm,
         originalInput,
         generatedContent,
         { length = "Medium" } = {},
@@ -290,7 +346,6 @@ CONSTRAINTS:
                 : JSON.stringify(generatedContent);
         const body = generatedContent?.body || text;
         const wordCount = body.split(/\s+/).length;
-        const hashtagCount = (generatedContent?.hashtags || []).length;
         const hasCTA = !!generatedContent?.callToAction;
         const hasTitle = !!generatedContent?.title;
 
@@ -307,12 +362,6 @@ CONSTRAINTS:
             wordCount >= min && wordCount <= max
                 ? 9
                 : wordCount >= 50 && wordCount <= 400
-                  ? 6
-                  : 3;
-        const hashtagScore =
-            hashtagCount >= 5 && hashtagCount <= 10
-                ? 9
-                : hashtagCount >= 3 && hashtagCount <= 15
                   ? 6
                   : 3;
 
@@ -337,8 +386,11 @@ GENERATED POST: ${text}`;
             commercialValue: 5,
         };
         try {
-            const evalResult = await model.generateContent(evalPrompt);
-            aiScores = this._parseJsonOutput(evalResult.response.text());
+            const { text: evalOut } = await llm.generate({
+                text: evalPrompt,
+                images: [],
+            });
+            aiScores = this._parseJsonOutput(evalOut);
         } catch {
             /* fallback to defaults */
         }
@@ -373,8 +425,19 @@ GENERATED POST: ${text}`;
         };
     }
 
-    async _evaluateImage(model, description, textContent, imageData) {
-        // Placeholder: real evaluation would send image to Gemini Vision
+    _isImageQuotaOrRateLimitError(err) {
+        const msg = String(err?.message ?? err ?? "");
+        return (
+            msg.includes("429") ||
+            msg.includes("Too Many Requests") ||
+            msg.includes("RESOURCE_EXHAUSTED") ||
+            msg.includes("Quota exceeded") ||
+            /quota|rate\s*limit/i.test(msg)
+        );
+    }
+
+    /** Placeholder scores until vision-based evaluation is wired. */
+    async _evaluateImage() {
         return {
             criteria: {
                 relevance: { score: 7, weight: 0.3 },
@@ -426,18 +489,6 @@ GENERATED POST: ${text}`;
 
     _refineImagePrompt(currentPrompt, evaluation) {
         return `${currentPrompt}\n\nREFINEMENT: Make the image more relevant to the product. Ensure clean composition.`;
-    }
-
-    _extractImageFromResponse(response) {
-        try {
-            const parts = response.candidates?.[0]?.content?.parts || [];
-            for (const part of parts) {
-                if (part.inlineData) return part.inlineData;
-            }
-        } catch {
-            /* no image */
-        }
-        return null;
     }
 
     _parseJsonOutput(text) {

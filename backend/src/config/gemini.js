@@ -15,10 +15,10 @@ export function getGeminiClient() {
     return genAI;
 }
 
-/**
- * Get a Gemini model instance with default generation config
- */
-export function getGeminiModel(modelName = "gemini-2.0-flash") {
+const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
+
+/** @param {string} [modelName] */
+export function getGeminiModel(modelName = process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL) {
     const client = getGeminiClient();
     return client.getGenerativeModel({
         model: modelName,
@@ -26,7 +26,7 @@ export function getGeminiModel(modelName = "gemini-2.0-flash") {
             temperature: parseFloat(process.env.GEMINI_TEMPERATURE || "0.8"),
             topP: 0.95,
             topK: 40,
-            maxOutputTokens: parseInt(process.env.GEMINI_MAX_TOKENS || "4096"),
+            maxOutputTokens: parseInt(process.env.GEMINI_MAX_TOKENS || "4096", 10),
         },
     });
 }
