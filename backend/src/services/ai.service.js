@@ -28,6 +28,28 @@ const IMAGE_SKIPPED_MSG =
 const QUOTA_IMAGE_MSG =
     "Không thể tạo ảnh: dịch vụ báo hết quota hoặc giới hạn tần suất. Nội dung chữ phía trên vẫn dùng được. Thử lại sau hoặc kiểm tra billing/API key.";
 
+/** @param {Record<string, unknown>} [query] */
+export function parseHistoryListQuery(query = {}) {
+    const page = Math.max(1, parseInt(String(query.page ?? "1"), 10) || 1);
+    const limitRaw = parseInt(String(query.limit ?? "20"), 10) || 20;
+    const limit = Math.min(50, Math.max(1, limitRaw));
+    const skip = (page - 1) * limit;
+    const filterRaw = String(query.filter ?? "all").toLowerCase();
+    /** @type {"all"|"draft"|"scheduled"|"posted"|"completed"} */
+    let filter = "all";
+    if (
+        filterRaw === "draft" ||
+        filterRaw === "scheduled" ||
+        filterRaw === "posted" ||
+        filterRaw === "completed"
+    ) {
+        filter = filterRaw === "completed" ? "posted" : filterRaw;
+    }
+    const sortRaw = String(query.sort ?? "desc").toLowerCase();
+    const sortOrder = sortRaw === "asc" ? "asc" : "desc";
+    return { page, limit, skip, filter, sortOrder };
+}
+
 class AIService {
     /**
      * UC5.1 – Generate text content from description/idea/image
@@ -40,6 +62,11 @@ class AIService {
         withHashtags = true,
         withCta = true,
         length = "Medium",
+        historyContentType = "text",
+        sourceIdea,
+        linkedProductId,
+        productTitle,
+        productImageUrl,
     }) {
         const llm = getLlmClient();
         const analysis = await this._analyzeInput(llm, {
@@ -97,11 +124,17 @@ class AIService {
             );
         }
 
-        await this._saveHistory(
+        const historyId = await this._saveHistory(
             userId,
             description,
-            "text",
+            historyContentType,
             JSON.stringify(bestResult.content),
+            {
+                sourceIdea,
+                linkedProductId,
+                productTitle,
+                productImageUrl,
+            },
         );
 
         return {
@@ -109,6 +142,7 @@ class AIService {
             evaluationScores: bestResult.evaluation,
             status:
                 bestScore >= QUALITY_THRESHOLD ? "approved" : "needs_review",
+            historyId,
         };
     }
 
@@ -123,6 +157,11 @@ class AIService {
         withHashtags = true,
         withCta = true,
         length = "Medium",
+        historyContentType = "image_text",
+        sourceIdea,
+        linkedProductId,
+        productTitle,
+        productImageUrl,
     }) {
         const textResult = await this.generateText({
             userId,
@@ -132,6 +171,11 @@ class AIService {
             withHashtags,
             withCta,
             length,
+            historyContentType,
+            sourceIdea,
+            linkedProductId,
+            productTitle,
+            productImageUrl,
         });
 
         if (resolveImageProviderChain().length === 0) {
@@ -143,6 +187,7 @@ class AIService {
                 status: textResult.status,
                 imageGenerationStatus: "skipped",
                 imageMessage: IMAGE_SKIPPED_MSG,
+                historyId: textResult.historyId,
             };
         }
 
@@ -174,6 +219,7 @@ class AIService {
                         status: textResult.status,
                         imageGenerationStatus: "quota_exceeded",
                         imageMessage: QUOTA_IMAGE_MSG,
+                        historyId: textResult.historyId,
                     };
                 }
                 if (attempt === maxImgRetries - 1) {
@@ -185,6 +231,7 @@ class AIService {
                         status: textResult.status,
                         imageGenerationStatus: "error",
                         imageMessage: String(err?.message ?? err ?? ""),
+                        historyId: textResult.historyId,
                     };
                 }
                 const imgEval = await this._evaluateImage();
@@ -202,6 +249,7 @@ class AIService {
             imageScores: bestImage?.evaluation,
             status: textResult.status,
             imageGenerationStatus: bestImage?.data ? "ok" : "no_image_inline",
+            historyId: textResult.historyId,
         };
     }
 
@@ -216,6 +264,10 @@ class AIService {
         withHashtags = true,
         withCta = true,
         length = "Medium",
+        sourceIdea,
+        linkedProductId,
+        productTitle,
+        productImageUrl,
     }) {
         const imageTextResult = await this.generateImageText({
             userId,
@@ -225,6 +277,11 @@ class AIService {
             withHashtags,
             withCta,
             length,
+            historyContentType: "video_text",
+            sourceIdea,
+            linkedProductId,
+            productTitle,
+            productImageUrl,
         });
 
         const videoResult = {
@@ -239,6 +296,113 @@ class AIService {
             ...imageTextResult,
             ...videoResult,
         };
+    }
+
+    /**
+     * Paginated AI text generation history (Creative Lab Library).
+     */
+    async listContentHistory(userId, query = {}) {
+        const { page, limit, skip, filter, sortOrder } =
+            parseHistoryListQuery(query);
+
+        const where = { userId };
+        if (filter === "draft") {
+            where.usedForId = null;
+        } else if (filter === "scheduled") {
+            where.usedForType = "scheduled_post";
+        } else if (filter === "posted") {
+            where.OR = [
+                { usedForType: "post" },
+                {
+                    usedForId: { not: null },
+                    usedForType: null,
+                },
+            ];
+        }
+
+        const [items, total] = await Promise.all([
+            prisma.aiContentHistory.findMany({
+                where,
+                orderBy: { createdAt: sortOrder },
+                skip,
+                take: limit,
+                select: {
+                    id: true,
+                    prompt: true,
+                    contentType: true,
+                    generatedContent: true,
+                    sourceIdea: true,
+                    linkedProductId: true,
+                    productTitle: true,
+                    productImageUrl: true,
+                    usedForId: true,
+                    usedForType: true,
+                    createdAt: true,
+                },
+            }),
+            prisma.aiContentHistory.count({ where }),
+        ]);
+
+        const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+
+        return {
+            items,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages,
+            },
+        };
+    }
+
+    /**
+     * Mark history row as linked to a published post or a scheduled post row (Creative Lab).
+     * @param {"post"|"scheduled_post"} [linkTarget] post = feed Post.id; scheduled_post = ScheduledPost.id
+     */
+    async linkHistoryToPost(userId, historyId, postId, linkTarget = "post") {
+        if (!historyId || !postId) {
+            throw new Error("historyId and postId are required");
+        }
+        const usedForType =
+            linkTarget === "scheduled_post" ? "scheduled_post" : "post";
+        const row = await prisma.aiContentHistory.findFirst({
+            where: { id: historyId, userId },
+        });
+        if (!row) {
+            const err = new Error("History entry not found");
+            err.code = "AI_HISTORY_NOT_FOUND";
+            throw err;
+        }
+        await prisma.aiContentHistory.update({
+            where: { id: historyId },
+            data: {
+                usedForId: postId,
+                usedForType,
+            },
+        });
+        return { success: true };
+    }
+
+    /**
+     * Delete one AI history row owned by the user (Creative Lab Library).
+     */
+    async deleteContentHistory(userId, historyId) {
+        if (!historyId) {
+            throw new Error("historyId is required");
+        }
+        const row = await prisma.aiContentHistory.findFirst({
+            where: { id: historyId, userId },
+        });
+        if (!row) {
+            const err = new Error("History entry not found");
+            err.code = "AI_HISTORY_NOT_FOUND";
+            throw err;
+        }
+        await prisma.aiContentHistory.delete({
+            where: { id: historyId },
+        });
+        return { deleted: true };
     }
 
     // ─── Internal helpers ───────────────────────────────────────
@@ -501,13 +665,42 @@ GENERATED POST: ${text}`;
         return { raw: text };
     }
 
-    async _saveHistory(userId, prompt, contentType, generatedContent) {
+    async _saveHistory(userId, prompt, contentType, generatedContent, meta = {}) {
+        const {
+            sourceIdea,
+            linkedProductId,
+            productTitle,
+            productImageUrl,
+        } = meta;
         try {
-            await prisma.aiContentHistory.create({
-                data: { userId, prompt, contentType, generatedContent },
+            const row = await prisma.aiContentHistory.create({
+                data: {
+                    userId,
+                    prompt,
+                    contentType,
+                    generatedContent,
+                    sourceIdea:
+                        typeof sourceIdea === "string" && sourceIdea.trim()
+                            ? sourceIdea.trim()
+                            : null,
+                    linkedProductId:
+                        typeof linkedProductId === "string" && linkedProductId.trim()
+                            ? linkedProductId.trim()
+                            : null,
+                    productTitle:
+                        typeof productTitle === "string" && productTitle.trim()
+                            ? productTitle.trim()
+                            : null,
+                    productImageUrl:
+                        typeof productImageUrl === "string" && productImageUrl.trim()
+                            ? productImageUrl.trim()
+                            : null,
+                },
             });
+            return row.id;
         } catch {
             /* non-critical */
+            return null;
         }
     }
 }
