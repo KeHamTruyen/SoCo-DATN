@@ -46,8 +46,3 @@ export function base64ToFile(base64: string, mimeType: string, filename: string)
     return new File([byteArray], filename, { type: mimeType });
 }
 
-export function lengthOptionLabel(l: (typeof AI_LAB_LENGTHS)[number]): string {
-    if (l === "Short") return "Short (100-140 chữ)";
-    if (l === "Medium") return "Medium (140-220 chữ)";
-    return "Long (220-300 chữ)";
-}

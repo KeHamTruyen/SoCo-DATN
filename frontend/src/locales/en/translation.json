@@ -610,5 +610,75 @@
                 "submitFailed": "Failed to submit review."
             }
         }
+    },
+    "aiCreativeLab": {
+        "sidebar": {
+            "title": "Content Studio",
+            "subtitle": "With AI",
+            "navStudio": "Studio",
+            "navAnalytics": "Analytics",
+            "navCampaigns": "Campaigns",
+            "navLibrary": "Library"
+        },
+        "config": {
+            "title": "AI Studio",
+            "subtitle": "Synthesize premium marketing content using advanced AI models tailored for social commerce.",
+            "modeText": "Text",
+            "modeImage": "Image++",
+            "modeVideo": "Video++",
+            "describeIdea": "Describe your idea",
+            "promptPlaceholder": "Example: Create an ad post for new running shoes with an excited tone.",
+            "tone": "Tone",
+            "toneCustom": "Custom tone",
+            "toneCustomPlaceholder": "Example: Excited but refined",
+            "length": "Length",
+            "lengthShort": "Short (100-140 words)",
+            "lengthMedium": "Medium (140-220 words)",
+            "lengthLong": "Long (220-300 words)",
+            "hashtags": "Hashtags",
+            "cta": "Call-to-Action",
+            "linkedProduct": "Linked Product",
+            "smartSync": "SMART SYNC",
+            "searchProducts": "Search product catalogue...",
+            "loadingProducts": "Loading products...",
+            "noProducts": "No matching products.",
+            "priceLabel": "Price",
+            "generate": "Generate content",
+            "generating": "Generating..."
+        },
+        "output": {
+            "title": "Compose and edit post",
+            "regenerate": "Regenerate",
+            "aiImageLabel": "AI image",
+            "aiImageAlt": "AI generated image",
+            "videoUnavailable": "Video generation is not available yet.",
+            "videoReady": "Video result is ready.",
+            "metaLine": "Mode: {{mode}} · Tone: {{tone}} · Length: {{length}} · Status: {{status}}",
+            "textScore": "Text score: {{score}}",
+            "imageScore": "Image score: {{score}}"
+        },
+        "publish": {
+            "schedule": "Schedule post",
+            "publishNow": "Publish now"
+        },
+        "schedule": {
+            "successScheduled": "Post scheduled successfully.",
+            "successPublished": "Post published successfully.",
+            "close": "Close",
+            "title": "Schedule post",
+            "confirm": "Confirm",
+            "hint": "Pick date and time for your post (same as creating a post on Feed).",
+            "dateTimeLabel": "Date & time",
+            "timeLabel": "Time"
+        },
+        "errors": {
+            "toneRequired": "Please enter a custom tone or pick a suggested tone.",
+            "descriptionRequired": "Please enter a product or idea description before generating.",
+            "generationFailed": "Generation failed."
+        },
+        "editor": {
+            "placeholder": "Write your post here — use AI on the left for suggestions.",
+            "insertImagePrompt": "Paste image URL (https://…)"
+        }
     }
 }

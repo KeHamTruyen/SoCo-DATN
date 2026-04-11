@@ -1,7 +1,9 @@
 import { Sparkles, BarChart3, Megaphone, FolderOpen } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../../../shared/lib/cn";
 
 export function AiStudioSidebar() {
+    const { t } = useTranslation();
     return (
         <aside
             className={cn(
@@ -15,9 +17,11 @@ export function AiStudioSidebar() {
                 </div>
                 <div>
                     <p className="text-lg font-bold leading-tight text-neutral-900 dark:text-neutral-50">
-                        Content Studio
+                        {t("aiCreativeLab.sidebar.title")}
                     </p>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">With AI</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                        {t("aiCreativeLab.sidebar.subtitle")}
+                    </p>
                 </div>
             </div>
             <nav className="flex flex-1 flex-col gap-1 px-2 pb-4 lg:px-3">
@@ -26,28 +30,28 @@ export function AiStudioSidebar() {
                     className="flex items-center gap-3 rounded-lg bg-white px-3 py-3 text-sm font-semibold text-primary shadow-sm dark:bg-neutral-950"
                 >
                     <Sparkles className="h-5 w-5" />
-                    Studio
+                    {t("aiCreativeLab.sidebar.navStudio")}
                 </button>
                 <button
                     type="button"
                     className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-200/80 dark:text-neutral-400 dark:hover:bg-neutral-800"
                 >
                     <BarChart3 className="h-5 w-5" />
-                    Analytics
+                    {t("aiCreativeLab.sidebar.navAnalytics")}
                 </button>
                 <button
                     type="button"
                     className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-200/80 dark:text-neutral-400 dark:hover:bg-neutral-800"
                 >
                     <Megaphone className="h-5 w-5" />
-                    Campaigns
+                    {t("aiCreativeLab.sidebar.navCampaigns")}
                 </button>
                 <button
                     type="button"
                     className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-200/80 dark:text-neutral-400 dark:hover:bg-neutral-800"
                 >
                     <FolderOpen className="h-5 w-5" />
-                    Library
+                    {t("aiCreativeLab.sidebar.navLibrary")}
                 </button>
             </nav>
         </aside>

@@ -610,5 +610,75 @@
                 "submitFailed": "Gửi đánh giá thất bại."
             }
         }
+    },
+    "aiCreativeLab": {
+        "sidebar": {
+            "title": "Content Studio",
+            "subtitle": "Cùng AI",
+            "navStudio": "Studio",
+            "navAnalytics": "Phân tích",
+            "navCampaigns": "Chiến dịch",
+            "navLibrary": "Thư viện"
+        },
+        "config": {
+            "title": "AI Studio",
+            "subtitle": "Tổng hợp nội dung marketing chất lượng với các mô hình AI phù hợp thương mại xã hội.",
+            "modeText": "Chữ",
+            "modeImage": "Ảnh++",
+            "modeVideo": "Video++",
+            "describeIdea": "Mô tả ý tưởng",
+            "promptPlaceholder": "Ví dụ: Tạo bài viết quảng cáo cho đôi giày chạy bộ mới với tone giọng hào hứng.",
+            "tone": "Tone",
+            "toneCustom": "Tự nhập tone",
+            "toneCustomPlaceholder": "Ví dụ: Hào hứng nhưng tinh tế",
+            "length": "Độ dài",
+            "lengthShort": "Ngắn (100-140 chữ)",
+            "lengthMedium": "Vừa (140-220 chữ)",
+            "lengthLong": "Dài (220-300 chữ)",
+            "hashtags": "Hashtag",
+            "cta": "Kêu gọi hành động",
+            "linkedProduct": "Sản phẩm liên kết",
+            "smartSync": "SMART SYNC",
+            "searchProducts": "Tìm trong danh mục sản phẩm...",
+            "loadingProducts": "Đang tải sản phẩm...",
+            "noProducts": "Không tìm thấy sản phẩm phù hợp.",
+            "priceLabel": "Giá",
+            "generate": "Tạo nội dung",
+            "generating": "Đang tạo..."
+        },
+        "output": {
+            "title": "Soạn và chỉnh sửa bài đăng",
+            "regenerate": "Tạo lại",
+            "aiImageLabel": "Ảnh AI",
+            "aiImageAlt": "Ảnh tạo bởi AI",
+            "videoUnavailable": "Tạo video hiện chưa khả dụng.",
+            "videoReady": "Đã có kết quả video.",
+            "metaLine": "Chế độ: {{mode}} · Tone: {{tone}} · Độ dài: {{length}} · Trạng thái: {{status}}",
+            "textScore": "Điểm nội dung: {{score}}",
+            "imageScore": "Điểm ảnh: {{score}}"
+        },
+        "publish": {
+            "schedule": "Lên lịch đăng",
+            "publishNow": "Đăng ngay"
+        },
+        "schedule": {
+            "successScheduled": "Đã lên lịch đăng thành công.",
+            "successPublished": "Đã đăng bài thành công.",
+            "close": "Đóng",
+            "title": "Lên lịch đăng",
+            "confirm": "Xác nhận",
+            "hint": "Chọn ngày và giờ đăng bài (giống khi tạo bài trên Bảng tin).",
+            "dateTimeLabel": "Ngày & giờ",
+            "timeLabel": "Giờ"
+        },
+        "errors": {
+            "toneRequired": "Vui lòng nhập tone tùy chỉnh, hoặc chọn tone gợi ý.",
+            "descriptionRequired": "Vui lòng nhập mô tả sản phẩm/ý tưởng trước khi tạo nội dung.",
+            "generationFailed": "Tạo nội dung thất bại."
+        },
+        "editor": {
+            "placeholder": "Soạn bài đăng tại đây — có thể dùng AI bên trái để gợi ý nội dung.",
+            "insertImagePrompt": "Dán URL ảnh (https://…)"
+        }
     }
 }

@@ -1,34 +1,42 @@
 import { Search, Sparkles, Wand2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../../../shared/lib/cn";
 import { Button } from "../../../../shared/ui";
 import { useAiStudio } from "../../context/AiStudioContext";
-import { AI_LAB_TONES, AI_LAB_LENGTHS, lengthOptionLabel } from "../../utils/aiCreativeLabUtils";
+import { AI_LAB_TONES, AI_LAB_LENGTHS } from "../../utils/aiCreativeLabUtils";
 
 const TONES = AI_LAB_TONES;
 const LENGTHS = AI_LAB_LENGTHS;
 
+const LENGTH_I18N: Record<(typeof LENGTHS)[number], string> = {
+    Short: "lengthShort",
+    Medium: "lengthMedium",
+    Long: "lengthLong",
+};
+
 export function AiStudioConfigPanel() {
+    const { t } = useTranslation();
     const { form, products, generator, canLinkProduct } = useAiStudio();
-    
+
     return (
         <section className="flex w-full flex-col gap-8 border-neutral-200 bg-neutral-50 p-6 dark:border-neutral-800 dark:bg-neutral-950/40 lg:w-2/5 lg:border-r lg:p-10">
             <header>
                 <h2 className="mb-2 text-2xl font-extrabold tracking-tight text-neutral-900 dark:text-neutral-50 lg:text-3xl">
-                    AI Studio
+                    {t("aiCreativeLab.config.title")}
                 </h2>
                 <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
-                    Synthesize premium marketing content using advanced AI models tailored for social commerce.
+                    {t("aiCreativeLab.config.subtitle")}
                 </p>
             </header>
 
             <div className="flex rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800/80">
                 {(
                     [
-                        { id: "text" as const, label: "Text" },
-                        { id: "image" as const, label: "Image++" },
-                        { id: "video" as const, label: "Video++" },
+                        { id: "text" as const, labelKey: "modeText" },
+                        { id: "image" as const, labelKey: "modeImage" },
+                        { id: "video" as const, labelKey: "modeVideo" },
                     ] as const
-                ).map(({ id, label }) => (
+                ).map(({ id, labelKey }) => (
                     <button
                         key={id}
                         type="button"
@@ -40,27 +48,27 @@ export function AiStudioConfigPanel() {
                                 : "font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100",
                         )}
                     >
-                        {label}
+                        {t(`aiCreativeLab.config.${labelKey}`)}
                     </button>
                 ))}
             </div>
 
             <div className="flex flex-col gap-3">
                 <label className="text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
-                    Describe your idea
+                    {t("aiCreativeLab.config.describeIdea")}
                 </label>
                 <textarea
                     value={form.prompt}
                     onChange={(e) => form.setPrompt(e.target.value)}
                     className="min-h-40 w-full resize-none rounded-xl border border-neutral-200 bg-white p-4 text-neutral-900 placeholder:text-neutral-400 focus:ring-2 focus:ring-primary dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-                    placeholder="Ví dụ: Tạo bài viết quảng cáo cho đôi giày chạy bộ mới với tone giọng hào hứng"
+                    placeholder={t("aiCreativeLab.config.promptPlaceholder")}
                 />
             </div>
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
-                        Tone
+                        {t("aiCreativeLab.config.tone")}
                     </label>
                     <select
                         value={form.toneMode === "preset" ? form.tonePreset : "custom"}
@@ -71,38 +79,38 @@ export function AiStudioConfigPanel() {
                                 return;
                             }
                             form.setToneMode("preset");
-                            form.setTonePreset(v as any);
+                            form.setTonePreset(v as (typeof TONES)[number]);
                         }}
                         className="w-full appearance-none rounded-xl border border-neutral-200 bg-white py-3 pl-4 pr-10 text-sm text-neutral-900 focus:ring-2 focus:ring-primary dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                     >
-                        {TONES.map((t) => (
-                            <option key={t} value={t}>
-                                {t}
+                        {TONES.map((tone) => (
+                            <option key={tone} value={tone}>
+                                {tone}
                             </option>
                         ))}
-                        <option value="custom">Tự nhập tone</option>
+                        <option value="custom">{t("aiCreativeLab.config.toneCustom")}</option>
                     </select>
                     {form.toneMode === "custom" && (
                         <input
                             value={form.toneCustom}
                             onChange={(e) => form.setToneCustom(e.target.value)}
                             className="w-full rounded-xl border border-neutral-200 bg-white py-3 pl-4 pr-4 text-sm text-neutral-900 focus:ring-2 focus:ring-primary dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-                            placeholder="Ví dụ: Hào hứng nhưng tinh tế"
+                            placeholder={t("aiCreativeLab.config.toneCustomPlaceholder")}
                         />
                     )}
                 </div>
                 <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
-                        Length
+                        {t("aiCreativeLab.config.length")}
                     </label>
                     <select
                         value={form.length}
-                        onChange={(e) => form.setLength(e.target.value as any)}
+                        onChange={(e) => form.setLength(e.target.value as (typeof LENGTHS)[number])}
                         className="w-full appearance-none rounded-xl border border-neutral-200 bg-white py-3 pl-4 pr-10 text-sm text-neutral-900 focus:ring-2 focus:ring-primary dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                     >
                         {LENGTHS.map((l) => (
                             <option key={l} value={l}>
-                                {lengthOptionLabel(l)}
+                                {t(`aiCreativeLab.config.${LENGTH_I18N[l]}`)}
                             </option>
                         ))}
                     </select>
@@ -118,7 +126,7 @@ export function AiStudioConfigPanel() {
                         className="h-5 w-5 rounded border-neutral-300 text-primary focus:ring-primary dark:border-neutral-600"
                     />
                     <span className="text-sm font-medium text-neutral-600 group-hover:text-neutral-900 dark:text-neutral-400 dark:group-hover:text-neutral-100">
-                        Hashtags
+                        {t("aiCreativeLab.config.hashtags")}
                     </span>
                 </label>
                 <label className="group flex cursor-pointer items-center gap-3">
@@ -129,7 +137,7 @@ export function AiStudioConfigPanel() {
                         className="h-5 w-5 rounded border-neutral-300 text-primary focus:ring-primary dark:border-neutral-600"
                     />
                     <span className="text-sm font-medium text-neutral-600 group-hover:text-neutral-900 dark:text-neutral-400 dark:group-hover:text-neutral-100">
-                        Call-to-Action
+                        {t("aiCreativeLab.config.cta")}
                     </span>
                 </label>
             </div>
@@ -138,10 +146,10 @@ export function AiStudioConfigPanel() {
                 <div className="rounded-2xl border border-neutral-200 bg-neutral-100 p-6 dark:border-neutral-700 dark:bg-neutral-800/50">
                     <div className="mb-4 flex items-center justify-between">
                         <span className="text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
-                            Linked Product
+                            {t("aiCreativeLab.config.linkedProduct")}
                         </span>
                         <span className="rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-bold text-primary-700 dark:bg-primary-950/60 dark:text-primary-400">
-                            SMART SYNC
+                            {t("aiCreativeLab.config.smartSync")}
                         </span>
                     </div>
                     <div className="relative">
@@ -155,7 +163,7 @@ export function AiStudioConfigPanel() {
                                 products.setProductDropdownOpen(true);
                             }}
                             className="w-full rounded-xl border border-neutral-200 bg-white py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-                            placeholder="Search product catalogue..."
+                            placeholder={t("aiCreativeLab.config.searchProducts")}
                             onFocus={() => products.setProductDropdownOpen(true)}
                             onBlur={() => {
                                 setTimeout(() => products.setProductDropdownOpen(false), 200);
@@ -165,7 +173,7 @@ export function AiStudioConfigPanel() {
                             <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 max-h-60 overflow-auto rounded-xl border border-neutral-200 bg-white py-2 shadow-sm dark:border-neutral-700 dark:bg-neutral-950">
                                 {products.isLoadingMyProducts ? (
                                     <div className="px-3 py-2 text-sm text-neutral-500 dark:text-neutral-400">
-                                        Đang tải sản phẩm...
+                                        {t("aiCreativeLab.config.loadingProducts")}
                                     </div>
                                 ) : products.filteredMyProducts.length ? (
                                     products.filteredMyProducts.map((p) => (
@@ -180,14 +188,14 @@ export function AiStudioConfigPanel() {
                                             </span>
                                             {p.price != null && (
                                                 <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                                                    Giá: {p.price}
+                                                    {t("aiCreativeLab.config.priceLabel")}: {p.price}
                                                 </span>
                                             )}
                                         </button>
                                     ))
                                 ) : (
                                     <div className="px-3 py-2 text-sm text-neutral-500 dark:text-neutral-400">
-                                        Không tìm thấy sản phẩm phù hợp.
+                                        {t("aiCreativeLab.config.noProducts")}
                                     </div>
                                 )}
                             </div>
@@ -204,7 +212,9 @@ export function AiStudioConfigPanel() {
                 onClick={generator.handleGenerate}
             >
                 <Wand2 className={cn("h-5 w-5", generator.isGenerating && "animate-pulse")} />
-                {generator.isGenerating ? "Đang tạo..." : "Tạo nội dung"}
+                {generator.isGenerating
+                    ? t("aiCreativeLab.config.generating")
+                    : t("aiCreativeLab.config.generate")}
             </Button>
         </section>
     );

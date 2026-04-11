@@ -2,6 +2,7 @@ import { CalendarClock, CheckCircle, Loader2, X } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { startOfDay } from "date-fns";
 import type { CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../../../../shared/ui";
 import { useAiStudio } from "../../context/AiStudioContext";
 
@@ -15,6 +16,7 @@ const rdpThemeStyle = {
 } as CSSProperties;
 
 export function AiStudioScheduleModal() {
+    const { t } = useTranslation();
     const { publisher } = useAiStudio();
 
     if (publisher.successModal !== "none") {
@@ -26,15 +28,15 @@ export function AiStudioScheduleModal() {
                     </div>
                     <p className="mb-6 text-lg font-semibold text-neutral-900 dark:text-neutral-50">
                         {publisher.successModal === "scheduled"
-                            ? "Đã lên lịch đăng thành công."
-                            : "Đã đăng bài thành công."}
+                            ? t("aiCreativeLab.schedule.successScheduled")
+                            : t("aiCreativeLab.schedule.successPublished")}
                     </p>
                     <Button
                         type="button"
                         className="w-full font-semibold"
                         onClick={() => publisher.setSuccessModal("none")}
                     >
-                        Đóng
+                        {t("aiCreativeLab.schedule.close")}
                     </Button>
                 </div>
             </div>
@@ -62,7 +64,7 @@ export function AiStudioScheduleModal() {
                     >
                         <X className="h-5 w-5" />
                     </Button>
-                    <h2 className="text-lg font-semibold">Lên lịch đăng</h2>
+                    <h2 className="text-lg font-semibold">{t("aiCreativeLab.schedule.title")}</h2>
                     <Button
                         type="button"
                         size="sm"
@@ -73,17 +75,17 @@ export function AiStudioScheduleModal() {
                         {publisher.postActionBusy ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                            "Xác nhận"
+                            t("aiCreativeLab.schedule.confirm")
                         )}
                     </Button>
                 </div>
                 <div className="space-y-3 overflow-y-auto px-4 py-4">
                     <div className="flex items-center gap-2 text-sm font-medium text-neutral-600 dark:text-neutral-400">
                         <CalendarClock className="h-4 w-4 shrink-0 text-primary" />
-                        Chọn ngày và giờ đăng bài (giống khi tạo bài trên Feed).
+                        {t("aiCreativeLab.schedule.hint")}
                     </div>
                     <label className="block text-center text-sm font-semibold text-neutral-900 dark:text-neutral-50">
-                        Ngày &amp; giờ
+                        {t("aiCreativeLab.schedule.dateTimeLabel")}
                     </label>
                     <div className="flex w-full justify-center">
                         <div className="inline-flex max-w-full rounded-xl border border-neutral-200 bg-card p-3 text-card-foreground dark:border-neutral-700">
@@ -103,7 +105,7 @@ export function AiStudioScheduleModal() {
                             htmlFor="ai-lab-schedule-time"
                             className="shrink-0 text-sm font-medium text-neutral-900 dark:text-neutral-50"
                         >
-                            Giờ
+                            {t("aiCreativeLab.schedule.timeLabel")}
                         </label>
                         <input
                             id="ai-lab-schedule-time"

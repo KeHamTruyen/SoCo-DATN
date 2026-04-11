@@ -1,16 +1,12 @@
 import { EditorContent, useEditor } from "@tiptap/react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { PostEditorToolbar } from "../../../shared/tiptap/PostEditorToolbar";
 import {
     createPostEditorExtensions,
     POST_EDITOR_HTML_PROPS,
 } from "../../../shared/tiptap/postEditorConfig";
 import { cn } from "../../../shared/lib/cn";
-
-const AI_LAB_PLACEHOLDER =
-    "Soạn bài đăng tại đây — có thể dùng AI bên trái để gợi ý nội dung.";
-
-const AI_LAB_EXTENSIONS = createPostEditorExtensions(AI_LAB_PLACEHOLDER);
 
 function escapeHtml(s: string): string {
     return s
@@ -68,16 +64,22 @@ export function AiLabRichOutput({
     onPlainTextChange,
     onHtmlChange,
 }: AiLabRichOutputProps) {
+    const { t, i18n } = useTranslation();
     const onPlainTextChangeRef = useRef(onPlainTextChange);
     onPlainTextChangeRef.current = onPlainTextChange;
     const onHtmlChangeRef = useRef(onHtmlChange);
     onHtmlChangeRef.current = onHtmlChange;
 
+    const extensions = useMemo(
+        () => createPostEditorExtensions(t("aiCreativeLab.editor.placeholder")),
+        [t, i18n.language],
+    );
+
     const editor = useEditor(
         {
             immediatelyRender: true,
             shouldRerenderOnTransaction: false,
-            extensions: AI_LAB_EXTENSIONS,
+            extensions,
             content: "<p></p>",
             editorProps: POST_EDITOR_HTML_PROPS,
             onUpdate: ({ editor: ed }) => {
@@ -89,7 +91,7 @@ export function AiLabRichOutput({
                 });
             },
         },
-        [],
+        [extensions],
     );
 
     useEffect(() => {
@@ -116,10 +118,10 @@ export function AiLabRichOutput({
 
     const insertImageFromUrl = useCallback(() => {
         if (!editor) return;
-        const url = window.prompt("Dán URL ảnh (https://…)");
+        const url = window.prompt(t("aiCreativeLab.editor.insertImagePrompt"));
         if (!url?.trim()) return;
         editor.chain().focus().setImage({ src: url.trim() }).run();
-    }, [editor]);
+    }, [editor, t]);
 
     if (!editor) {
         return (
@@ -128,7 +130,7 @@ export function AiLabRichOutput({
     }
 
     return (
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col font-[family-name:var(--font-display)]">
             <PostEditorToolbar editor={editor} onInsertImageUrl={insertImageFromUrl} />
             <div
                 className={cn(
