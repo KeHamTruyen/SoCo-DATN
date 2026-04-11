@@ -14,6 +14,7 @@ import {
     type StudioMode,
 } from "../utils/aiCreativeLabUtils";
 import type { CreatePostPayload, PostMediaType } from "../../feed/types/feed.types";
+import { aiApi } from "../api/aiApi";
 
 interface UseAiStudioPublisherProps {
     mode: StudioMode;
@@ -27,11 +28,14 @@ interface UseAiStudioPublisherProps {
     canLinkProduct: boolean;
     selectedProduct: { id: string } | null;
     resetPageState: () => void;
+    /** Latest AI history row to mark completed in Library after publish/schedule. */
+    lastHistoryIdRef: React.MutableRefObject<string | null>;
 }
 
 export function useAiStudioPublisher({
     mode, generated, hasDraftText, outputHtmlRef, outputPlainTextRef,
-    length, withHashtags, withCta, canLinkProduct, selectedProduct, resetPageState
+    length, withHashtags, withCta, canLinkProduct, selectedProduct, resetPageState,
+    lastHistoryIdRef,
 }: UseAiStudioPublisherProps) {
     const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
     const [successModal, setSuccessModal] = useState<"none" | "scheduled" | "published">("none");
@@ -110,7 +114,20 @@ export function useAiStudioPublisher({
                 setErrorMessage("Không có nội dung để đăng.");
                 return;
             }
-            await feedApi.createPost(payload);
+            const created = await feedApi.createPost(payload);
+            const postId = created?.id?.trim();
+            if (postId && lastHistoryIdRef.current) {
+                try {
+                    await aiApi.patchHistoryLinkPost(
+                        lastHistoryIdRef.current,
+                        postId,
+                        "post",
+                    );
+                } catch {
+                    /* Library link is best-effort */
+                }
+                lastHistoryIdRef.current = null;
+            }
             resetPageState();
             setSuccessModal("published");
         } catch (err) {
@@ -118,7 +135,13 @@ export function useAiStudioPublisher({
         } finally {
             setPostActionBusy(false);
         }
-    }, [buildCreatePayload, hasPostableContent, postActionBusy, resetPageState]);
+    }, [
+        buildCreatePayload,
+        hasPostableContent,
+        postActionBusy,
+        resetPageState,
+        lastHistoryIdRef,
+    ]);
 
     const handleConfirmSchedule = useCallback(async () => {
         if (!hasPostableContent || postActionBusy) return;
@@ -139,7 +162,23 @@ export function useAiStudioPublisher({
                 setErrorMessage("Không có nội dung để lên lịch.");
                 return;
             }
-            await feedApi.createScheduledPost({ ...base, scheduledAt });
+            const post = await feedApi.createScheduledPost({
+                ...base,
+                scheduledAt,
+            });
+            const postId = post?.id;
+            if (postId && lastHistoryIdRef.current) {
+                try {
+                    await aiApi.patchHistoryLinkPost(
+                        lastHistoryIdRef.current,
+                        postId,
+                        "scheduled_post",
+                    );
+                } catch {
+                    /* Library link is best-effort */
+                }
+                lastHistoryIdRef.current = null;
+            }
             resetPageState();
             setSuccessModal("scheduled");
         } catch (err) {
@@ -153,6 +192,7 @@ export function useAiStudioPublisher({
         postActionBusy,
         resetPageState,
         scheduledAt,
+        lastHistoryIdRef,
     ]);
 
     const resetPublisher = useCallback(() => {

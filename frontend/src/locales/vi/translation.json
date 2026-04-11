@@ -618,7 +618,8 @@
             "navStudio": "Studio",
             "navAnalytics": "Phân tích",
             "navCampaigns": "Chiến dịch",
-            "navLibrary": "Thư viện"
+            "navLibrary": "Thư viện",
+            "comingSoon": "Sắp có"
         },
         "config": {
             "title": "AI Studio",
@@ -679,6 +680,38 @@
         "editor": {
             "placeholder": "Soạn bài đăng tại đây — có thể dùng AI bên trái để gợi ý nội dung.",
             "insertImagePrompt": "Dán URL ảnh (https://…)"
+        },
+        "library": {
+            "title": "Thư viện nội dung",
+            "subtitle": "Mỗi lần Generate lưu một bản; đăng ngay hoặc lên lịch sẽ gắn trạng thái tương ứng.",
+            "mediaNote": "Ảnh và video không được lưu trong lịch sử — chỉ lưu phần nội dung chữ.",
+            "loading": "Đang tải lịch sử…",
+            "loadError": "Không tải được lịch sử.",
+            "empty": "Chưa có bản lưu. Hãy tạo nội dung ở Studio để có thư viện.",
+            "restore": "Mở trong Studio",
+            "invalidSnapshot": "Không đọc được nội dung đã lưu.",
+            "typeText": "Chữ",
+            "typeImage": "Ảnh++",
+            "typeVideo": "Video++",
+            "prev": "Trước",
+            "next": "Sau",
+            "pageOf": "Trang {{page}} / {{totalPages}}",
+            "filterAll": "Tất cả",
+            "filterDraft": "Bản nháp",
+            "filterScheduled": "Đã lên lịch",
+            "filterPosted": "Đã đăng",
+            "filterCompleted": "Đã đăng",
+            "sortLabel": "Sắp xếp",
+            "sortNewest": "Mới nhất trước",
+            "sortOldest": "Cũ nhất trước",
+            "statusDraft": "Nháp",
+            "statusScheduled": "Đã lên lịch",
+            "statusPosted": "Đã đăng",
+            "statusCompleted": "Đã đăng",
+            "delete": "Xóa",
+            "deleteConfirm": "Xóa mục này khỏi thư viện? Hành động không thể hoàn tác.",
+            "linkedProductPrefix": "Sản phẩm liên kết:",
+            "typeUnknown": "Studio"
         }
     }
 }

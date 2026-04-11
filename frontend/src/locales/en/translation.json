@@ -618,7 +618,8 @@
             "navStudio": "Studio",
             "navAnalytics": "Analytics",
             "navCampaigns": "Campaigns",
-            "navLibrary": "Library"
+            "navLibrary": "Library",
+            "comingSoon": "Coming soon"
         },
         "config": {
             "title": "AI Studio",
@@ -679,6 +680,38 @@
         "editor": {
             "placeholder": "Write your post here — use AI on the left for suggestions.",
             "insertImagePrompt": "Paste image URL (https://…)"
+        },
+        "library": {
+            "title": "Content library",
+            "subtitle": "Each Generate saves a row; publishing or scheduling updates its status.",
+            "mediaNote": "Images and video previews are not stored in history — only the text output is saved.",
+            "loading": "Loading history…",
+            "loadError": "Could not load history.",
+            "empty": "No saved generations yet. Create content in Studio to build your library.",
+            "restore": "Open in Studio",
+            "invalidSnapshot": "Could not read saved content.",
+            "typeText": "Text",
+            "typeImage": "Image++",
+            "typeVideo": "Video++",
+            "prev": "Previous",
+            "next": "Next",
+            "pageOf": "Page {{page}} of {{totalPages}}",
+            "filterAll": "All",
+            "filterDraft": "Draft",
+            "filterScheduled": "Scheduled",
+            "filterPosted": "Posted",
+            "filterCompleted": "Posted",
+            "sortLabel": "Sort",
+            "sortNewest": "Newest first",
+            "sortOldest": "Oldest first",
+            "statusDraft": "Draft",
+            "statusScheduled": "Scheduled",
+            "statusPosted": "Posted",
+            "statusCompleted": "Posted",
+            "delete": "Delete",
+            "deleteConfirm": "Remove this item from the library? This cannot be undone.",
+            "linkedProductPrefix": "Linked product:",
+            "typeUnknown": "Studio"
         }
     }
 }

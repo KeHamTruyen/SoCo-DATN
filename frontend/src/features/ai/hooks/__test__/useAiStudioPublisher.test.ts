@@ -15,9 +15,17 @@ vi.mock("../../upload/api/uploadApi", () => ({
     },
 }));
 
+vi.mock("../../api/aiApi", () => ({
+    aiApi: {
+        patchHistoryLinkPost: vi.fn().mockResolvedValue({ linked: true }),
+        deleteHistory: vi.fn(),
+    },
+}));
+
 import { useAiStudioPublisher } from "../useAiStudioPublisher";
 
 describe("useAiStudioPublisher", () => {
+    const lastHistoryIdRef = { current: null as string | null };
     const defaultProps = {
         mode: "text" as const,
         generated: null,
@@ -30,6 +38,7 @@ describe("useAiStudioPublisher", () => {
         canLinkProduct: true,
         selectedProduct: null,
         resetPageState: vi.fn(),
+        lastHistoryIdRef,
     };
 
     it("should initialize default states", () => {

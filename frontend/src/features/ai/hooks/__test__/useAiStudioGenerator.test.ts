@@ -36,7 +36,7 @@ describe("useAiStudioGenerator", () => {
         withCta: true,
         length: "Medium",
         canLinkProduct: true,
-        selectedProduct: { title: "Product 1" },
+        selectedProduct: { id: "p1", title: "Product 1" },
         productQuery: "",
     };
 
@@ -54,5 +54,27 @@ describe("useAiStudioGenerator", () => {
             await result.current.handleGenerate();
         });
         expect(result.current.errorMessage).toBe("aiCreativeLab.errors.toneRequired");
+    });
+
+    it("applyHistorySnapshot restores generated text from JSON", () => {
+        const { result } = renderHook(() => useAiStudioGenerator(defaultProps));
+        const json = JSON.stringify({
+            title: "Hello",
+            body: "World",
+        });
+        act(() => {
+            result.current.applyHistorySnapshot(json);
+        });
+        const gen = result.current.generated as { generatedText?: { title?: string } };
+        expect(gen?.generatedText?.title).toBe("Hello");
+        expect(result.current.outputRevision).toBe(1);
+    });
+
+    it("applyHistorySnapshot sets error on invalid JSON", () => {
+        const { result } = renderHook(() => useAiStudioGenerator(defaultProps));
+        act(() => {
+            result.current.applyHistorySnapshot("not-json");
+        });
+        expect(result.current.errorMessage).toBe("aiCreativeLab.library.invalidSnapshot");
     });
 });

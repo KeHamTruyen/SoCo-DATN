@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type { StudioMode } from "../utils/aiCreativeLabUtils";
+import type { GeneratedText, GenerateTextResult } from "../api/aiApi";
 import { useAiTextGeneration } from "./useAiTextGeneration";
 import { useAiImageGeneration } from "./useAiImageGeneration";
 
@@ -13,12 +14,15 @@ interface UseAiStudioGeneratorProps {
     length: string;
     canLinkProduct: boolean;
     selectedProduct: {
+        id: string;
         title: string;
         description?: string;
         price?: number | null;
         imageUrl?: string | null;
     } | null;
     productQuery: string;
+    /** Latest AI history row id for linking after publish (Creative Lab Library). */
+    onHistoryId?: (id: string | null) => void;
 }
 
 export function useAiStudioGenerator({
@@ -31,6 +35,7 @@ export function useAiStudioGenerator({
     canLinkProduct,
     selectedProduct,
     productQuery,
+    onHistoryId,
 }: UseAiStudioGeneratorProps) {
     const { t } = useTranslation();
     const {
@@ -91,12 +96,28 @@ export function useAiStudioGenerator({
         setGenerated(null);
         setEditorResetNonce((n) => n + 1);
 
+        const historyExtras: {
+            sourceIdea?: string;
+            linkedProductId?: string;
+            productTitle?: string;
+            productImageUrl?: string;
+        } = {};
+        if (idea.trim()) historyExtras.sourceIdea = idea.trim();
+        if (canLinkProduct && selectedProduct) {
+            historyExtras.linkedProductId = selectedProduct.id;
+            historyExtras.productTitle = selectedProduct.title;
+            if (selectedProduct.imageUrl?.trim()) {
+                historyExtras.productImageUrl = selectedProduct.imageUrl.trim();
+            }
+        }
+
         const payload = {
             description,
             tone: effectiveTone,
             withHashtags,
             withCta,
             length: length as "Short" | "Medium" | "Long",
+            ...historyExtras,
         };
 
         try {
@@ -110,6 +131,10 @@ export function useAiStudioGenerator({
             }
             setGenerated(res);
             setOutputRevision((v) => v + 1);
+            const hid = (res as { historyId?: string | null }).historyId;
+            onHistoryId?.(
+                typeof hid === "string" && hid.length > 0 ? hid : null,
+            );
         } catch (err) {
             setErrorMessage(
                 err instanceof Error
@@ -133,6 +158,7 @@ export function useAiStudioGenerator({
         generateImageText,
         generateVideoImagesText,
         t,
+        onHistoryId,
     ]);
 
     const resetGenerator = useCallback(() => {
@@ -142,7 +168,32 @@ export function useAiStudioGenerator({
         setErrorMessage(null);
         setOutputRevision(0);
         setEditorResetNonce((n) => n + 1);
-    }, [resetText, resetImage]);
+        onHistoryId?.(null);
+    }, [resetText, resetImage, onHistoryId]);
+
+    const applyHistorySnapshot = useCallback(
+        (generatedContentJson: string) => {
+            let parsed: GeneratedText;
+            try {
+                parsed = JSON.parse(generatedContentJson) as GeneratedText;
+            } catch {
+                setErrorMessage(t("aiCreativeLab.library.invalidSnapshot"));
+                return;
+            }
+            resetText();
+            resetImage();
+            setErrorMessage(null);
+            const snapshot: GenerateTextResult = {
+                generatedText: parsed,
+                status: "approved",
+            };
+            setGenerated(snapshot);
+            setEditorResetNonce((n) => n + 1);
+            setOutputRevision((v) => v + 1);
+            onHistoryId?.(null);
+        },
+        [resetText, resetImage, t, onHistoryId],
+    );
 
     return {
         isGenerating,
@@ -154,5 +205,6 @@ export function useAiStudioGenerator({
         setEditorResetNonce,
         handleGenerate,
         resetGenerator,
+        applyHistorySnapshot,
     };
 }

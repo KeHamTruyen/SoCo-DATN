@@ -19,16 +19,29 @@ interface AiStudioContextValue {
     resetAll: () => void;
     outputPlainTextRef: React.MutableRefObject<string>;
     outputHtmlRef: React.MutableRefObject<string>;
+    /** Restore prompt + generated text from Library (no API call). */
+    restoreFromHistoryItem: (item: { prompt: string; generatedContent: string }) => void;
 }
 
 const AiStudioContext = createContext<AiStudioContextValue | null>(null);
 
-export function AiStudioProvider({ children }: { children: React.ReactNode }) {
+export function AiStudioProvider({
+    children,
+    onSwitchToStudioTab,
+}: {
+    children: React.ReactNode;
+    onSwitchToStudioTab?: () => void;
+}) {
     const { user } = useAuthSession();
     const canLinkProduct = isSellerRole(user?.role);
 
     const form = useAiStudioForm();
     const products = useAiStudioProducts(canLinkProduct);
+    const lastHistoryIdRef = useRef<string | null>(null);
+    const setLastHistoryId = useCallback((id: string | null) => {
+        lastHistoryIdRef.current = id;
+    }, []);
+
     const generator = useAiStudioGenerator({
         mode: form.mode,
         prompt: form.prompt,
@@ -38,7 +51,8 @@ export function AiStudioProvider({ children }: { children: React.ReactNode }) {
         length: form.length,
         canLinkProduct,
         selectedProduct: products.selectedProduct,
-        productQuery: products.productQuery
+        productQuery: products.productQuery,
+        onHistoryId: setLastHistoryId,
     });
 
     const [hasDraftText, setHasDraftText] = useState(false);
@@ -49,7 +63,7 @@ export function AiStudioProvider({ children }: { children: React.ReactNode }) {
         form.resetForm();
         products.resetProducts();
         generator.resetGenerator();
-        // Publisher reset logic
+        lastHistoryIdRef.current = null;
         setHasDraftText(false);
         outputPlainTextRef.current = "";
         outputHtmlRef.current = "<p></p>";
@@ -66,7 +80,8 @@ export function AiStudioProvider({ children }: { children: React.ReactNode }) {
         withCta: form.withCta,
         canLinkProduct,
         selectedProduct: products.selectedProduct,
-        resetPageState: resetAll
+        resetPageState: resetAll,
+        lastHistoryIdRef,
     });
 
     const onEditorPlainTextChange = useCallback((plain: string) => {
@@ -79,20 +94,46 @@ export function AiStudioProvider({ children }: { children: React.ReactNode }) {
         outputHtmlRef.current = html;
     }, []);
 
-    const value = useMemo(() => ({
-        form,
-        products,
-        generator,
-        publisher,
-        canLinkProduct,
-        hasDraftText,
-        setHasDraftText,
-        onEditorPlainTextChange,
-        onEditorHtmlChange,
-        resetAll,
-        outputPlainTextRef,
-        outputHtmlRef
-    }), [form, products, generator, publisher, canLinkProduct, hasDraftText, onEditorPlainTextChange, onEditorHtmlChange, resetAll]);
+    const restoreFromHistoryItem = useCallback(
+        (item: { prompt: string; generatedContent: string }) => {
+            lastHistoryIdRef.current = null;
+            form.setPrompt(item.prompt);
+            generator.applyHistorySnapshot(item.generatedContent);
+            setHasDraftText(true);
+            onSwitchToStudioTab?.();
+        },
+        [form, generator, onSwitchToStudioTab],
+    );
+
+    const value = useMemo(
+        () => ({
+            form,
+            products,
+            generator,
+            publisher,
+            canLinkProduct,
+            hasDraftText,
+            setHasDraftText,
+            onEditorPlainTextChange,
+            onEditorHtmlChange,
+            resetAll,
+            outputPlainTextRef,
+            outputHtmlRef,
+            restoreFromHistoryItem,
+        }),
+        [
+            form,
+            products,
+            generator,
+            publisher,
+            canLinkProduct,
+            hasDraftText,
+            onEditorPlainTextChange,
+            onEditorHtmlChange,
+            resetAll,
+            restoreFromHistoryItem,
+        ],
+    );
 
     return (
         <AiStudioContext.Provider value={value}>

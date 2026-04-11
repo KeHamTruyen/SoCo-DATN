@@ -2,7 +2,23 @@ import { Sparkles, BarChart3, Megaphone, FolderOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../../../shared/lib/cn";
 
-export function AiStudioSidebar() {
+export type CreativeLabMainTab = "studio" | "library";
+
+const navBtn = (active: boolean) =>
+    cn(
+        "flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors",
+        active
+            ? "bg-white font-semibold text-primary shadow-sm dark:bg-neutral-950"
+            : "font-medium text-neutral-600 hover:bg-neutral-200/80 dark:text-neutral-400 dark:hover:bg-neutral-800",
+    );
+
+export function AiStudioSidebar({
+    activeTab,
+    onSelectTab,
+}: {
+    activeTab: CreativeLabMainTab;
+    onSelectTab: (tab: CreativeLabMainTab) => void;
+}) {
     const { t } = useTranslation();
     return (
         <aside
@@ -27,30 +43,36 @@ export function AiStudioSidebar() {
             <nav className="flex flex-1 flex-col gap-1 px-2 pb-4 lg:px-3">
                 <button
                     type="button"
-                    className="flex items-center gap-3 rounded-lg bg-white px-3 py-3 text-sm font-semibold text-primary shadow-sm dark:bg-neutral-950"
+                    className={navBtn(activeTab === "studio")}
+                    onClick={() => onSelectTab("studio")}
                 >
-                    <Sparkles className="h-5 w-5" />
+                    <Sparkles className="h-5 w-5 shrink-0" />
                     {t("aiCreativeLab.sidebar.navStudio")}
                 </button>
                 <button
                     type="button"
-                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-200/80 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                    disabled
+                    title={t("aiCreativeLab.sidebar.comingSoon")}
+                    className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-neutral-400 opacity-60 dark:text-neutral-500"
                 >
-                    <BarChart3 className="h-5 w-5" />
+                    <BarChart3 className="h-5 w-5 shrink-0" />
                     {t("aiCreativeLab.sidebar.navAnalytics")}
                 </button>
                 <button
                     type="button"
-                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-200/80 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                    disabled
+                    title={t("aiCreativeLab.sidebar.comingSoon")}
+                    className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-neutral-400 opacity-60 dark:text-neutral-500"
                 >
-                    <Megaphone className="h-5 w-5" />
+                    <Megaphone className="h-5 w-5 shrink-0" />
                     {t("aiCreativeLab.sidebar.navCampaigns")}
                 </button>
                 <button
                     type="button"
-                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-200/80 dark:text-neutral-400 dark:hover:bg-neutral-800"
+                    className={navBtn(activeTab === "library")}
+                    onClick={() => onSelectTab("library")}
                 >
-                    <FolderOpen className="h-5 w-5" />
+                    <FolderOpen className="h-5 w-5 shrink-0" />
                     {t("aiCreativeLab.sidebar.navLibrary")}
                 </button>
             </nav>
