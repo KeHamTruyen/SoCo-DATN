@@ -945,6 +945,13 @@ model AiContentHistory {
 
   generatedContent String @map("generated_content")
 
+  /// User-facing idea (textarea) for Library cards; optional for legacy rows.
+  sourceIdea String? @map("source_idea") @db.Text
+
+  linkedProductId String? @map("linked_product_id")
+  productTitle      String? @map("product_title") @db.VarChar(500)
+  productImageUrl   String? @map("product_image_url") @db.VarChar(2048)
+
   usedForId   String? @map("used_for_id")
   usedForType String? @map("used_for_type") @db.VarChar(50)
 
