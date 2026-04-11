@@ -1,13 +1,28 @@
 import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 
-// Mock the aiApi
-vi.mock("../api/aiApi", () => ({
-    aiApi: {
+vi.mock("react-i18next", () => ({
+    useTranslation: () => ({
+        t: (key: string) => key,
+        i18n: { language: "en" },
+    }),
+}));
+
+vi.mock("../useAiTextGeneration", () => ({
+    useAiTextGeneration: () => ({
         generateText: vi.fn(),
+        isGenerating: false,
+        reset: vi.fn(),
+    }),
+}));
+
+vi.mock("../useAiImageGeneration", () => ({
+    useAiImageGeneration: () => ({
         generateImageText: vi.fn(),
         generateVideoImagesText: vi.fn(),
-    },
+        isGenerating: false,
+        reset: vi.fn(),
+    }),
 }));
 
 import { useAiStudioGenerator } from "../useAiStudioGenerator";
@@ -32,10 +47,12 @@ describe("useAiStudioGenerator", () => {
     });
 
     it("should report error if tone is missing", async () => {
-        const { result } = renderHook(() => useAiStudioGenerator({ ...defaultProps, effectiveTone: "" }));
+        const { result } = renderHook(() =>
+            useAiStudioGenerator({ ...defaultProps, effectiveTone: "" }),
+        );
         await act(async () => {
             await result.current.handleGenerate();
         });
-        expect(result.current.errorMessage).toBe("Vui lòng nhập tone tùy chỉnh, hoặc chọn tone gợi ý.");
+        expect(result.current.errorMessage).toBe("aiCreativeLab.errors.toneRequired");
     });
 });

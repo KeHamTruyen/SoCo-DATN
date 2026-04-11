@@ -37,6 +37,15 @@ export type GenerateImageTextResult = {
     textScores?: unknown;
     imageScores?: unknown;
     status?: string;
+    /** Image step status (HF/Replicate chain; skipped when no HF/Rep tokens or both disabled). */
+    imageGenerationStatus?:
+        | "ok"
+        | "skipped"
+        | "unavailable"
+        | "no_image_inline"
+        | "quota_exceeded"
+        | "error";
+    imageMessage?: string;
 };
 
 export type GenerateVideoImagesTextResult = GenerateImageTextResult & {
