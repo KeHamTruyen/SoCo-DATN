@@ -1,0 +1,146 @@
+services:
+  - type: web
+    name: soco-api
+    env: node
+    plan: free
+    rootDir: .
+    buildCommand: npm ci --prefix backend && npm ci --prefix database && npm run generate --prefix database
+    startCommand: npm start --prefix backend
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: FRONTEND_URL
+        sync: false
+      - key: DEFAULT_USER_AVATAR_URL
+        sync: false
+      - key: SENSITIVE_DATA_KEY
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_SECURE
+        value: "false"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_TEMPERATURE
+        value: "0.8"
+      - key: GEMINI_MAX_TOKENS
+        value: "4096"
+      - key: AI_MAX_RETRIES
+        value: "2"
+      - key: AI_TEXT_BACKUP_PROVIDER
+        value: none
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_BACKUP_MODEL
+        value: meta-llama/llama-3.3-70b-instruct:free
+      - key: OPENROUTER_BACKUP_VISION_MODEL
+        sync: false
+      - key: OPENROUTER_BASE_URL
+        value: https://openrouter.ai/api/v1
+      - key: OPENROUTER_HTTP_REFERER
+        sync: false
+      - key: OPENROUTER_APP_TITLE
+        value: SoCo-DATN
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_BACKUP_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GROQ_BACKUP_VISION_MODEL
+        value: llama-3.2-11b-vision-preview
+      - key: GROQ_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: AI_IMAGE_PRIMARY
+        value: huggingface
+      - key: AI_IMAGE_BACKUP
+        value: replicate
+      - key: AI_IMAGE_PROVIDER
+        value: huggingface
+      - key: HF_TOKEN
+        sync: false
+      - key: HF_IMAGE_MODEL
+        value: black-forest-labs/FLUX.1-schnell
+      - key: HF_INFERENCE_BASE_URL
+        value: https://router.huggingface.co/hf-inference/models
+      - key: REPLICATE_API_TOKEN
+        sync: false
+      - key: REPLICATE_IMAGE_MODEL
+        value: black-forest-labs/flux-schnell
+      - key: REPLICATE_IMAGE_ASPECT_RATIO
+        value: "1:1"
+      - key: AI_IMAGE_MAX_RETRIES
+        value: "1"
+
+  - type: web
+    name: soco-admin-api
+    env: node
+    plan: free
+    rootDir: .
+    buildCommand: npm ci --prefix backend && npm ci --prefix database && npm run generate --prefix database && npm ci --prefix admin/backend
+    startCommand: npm start --prefix admin/backend
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: ADMIN_JWT_SECRET
+        sync: false
+      - key: ADMIN_JWT_EXPIRE
+        value: 7d
+      - key: ADMIN_CORS_ORIGIN
+        sync: false
+      - key: ADMIN_CORS_ORIGIN_EXTRA
+        sync: false
+
+  - type: static
+    name: soco-main
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false
+      - key: VITE_DEFAULT_USER_AVATAR_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  - type: static
+    name: soco-admin
+    rootDir: admin/frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_ADMIN_API_BASE_URL
+        sync: false
+      - key: VITE_CORE_PUBLIC_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
