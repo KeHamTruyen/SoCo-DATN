@@ -1,0 +1,119 @@
+# Continuous Integration: lint, test, build per package.
+# Requires: DATABASE_URL present for Prisma validate/generate (dummy URL is enough).
+
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            database/package-lock.json
+      - name: Install Prisma package
+        working-directory: database
+        run: npm ci
+      - name: Install backend
+        working-directory: backend
+        run: npm ci
+      - name: Validate Prisma schema
+        working-directory: database
+        run: npx prisma validate
+      - name: Generate Prisma client (writes to backend/node_modules)
+        working-directory: database
+        run: npm run generate
+      - name: Apply migrations (tests import modules that open a DB connection)
+        working-directory: database
+        run: npx prisma migrate deploy
+      - name: Test backend
+        working-directory: backend
+        run: npm test
+
+  admin-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: admin/frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  admin-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            admin/backend/package-lock.json
+            backend/package-lock.json
+            database/package-lock.json
+      - name: Install Prisma package
+        working-directory: database
+        run: npm ci
+      - name: Install backend (Prisma client output target)
+        working-directory: backend
+        run: npm ci
+      - name: Generate Prisma client for admin API
+        working-directory: database
+        run: npm run generate
+      - name: Install admin API
+        working-directory: admin/backend
+        run: npm ci
