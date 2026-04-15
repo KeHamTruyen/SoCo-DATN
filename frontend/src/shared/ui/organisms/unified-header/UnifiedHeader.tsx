@@ -84,6 +84,13 @@ export function UnifiedHeader({
     } = useNotificationCenter();
     const messaging = useMessagingOptional();
     const unreadChatsCount = messaging?.unreadChatsCount ?? 0;
+    const [internalSearch, setInternalSearch] = useState(searchValue ?? "");
+
+    useEffect(() => {
+        if (searchValue !== undefined) {
+            setInternalSearch(searchValue);
+        }
+    }, [searchValue]);
 
     const toggleLanguage = () => {
         const newLang = i18n.language === "vi" ? "en" : "vi";
@@ -126,6 +133,20 @@ export function UnifiedHeader({
         setThemeModalOpen(true);
     };
 
+    const handleSearchChange = (value: string) => {
+        if (searchValue === undefined) {
+            setInternalSearch(value);
+        }
+        onSearch?.(value);
+    };
+
+    const submitSearch = (rawValue: string) => {
+        const value = rawValue.trim();
+        if (!value) return;
+        navigate(`/search?q=${encodeURIComponent(value)}`);
+        setMobileOpen(false);
+    };
+
     return (
         <>
             <header className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/90 backdrop-blur-md dark:border-neutral-800 dark:bg-background-dark/90">
@@ -156,18 +177,17 @@ export function UnifiedHeader({
                         <Input
                             className="h-10 pl-9"
                             placeholder={t("header.searchPlaceholder")}
-                            {...(searchValue !== undefined
-                                ? {
-                                      value: searchValue,
-                                      onChange: (
-                                          e: ChangeEvent<HTMLInputElement>,
-                                      ) => onSearch?.(e.target.value),
-                                  }
-                                : {
-                                      onChange: (
-                                          e: ChangeEvent<HTMLInputElement>,
-                                      ) => onSearch?.(e.target.value),
-                                  })}
+                            value={searchValue !== undefined ? searchValue : internalSearch}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                handleSearchChange(e.target.value)
+                            }
+                            onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                    submitSearch(
+                                        searchValue !== undefined ? searchValue : internalSearch,
+                                    );
+                                }
+                            }}
                         />
                     </div>
                 </div>
@@ -240,8 +260,9 @@ export function UnifiedHeader({
                                 type="button"
                                 onClick={() => setProfileOpen((v) => !v)}
                                 className="rounded-full ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                aria-expanded={profileOpen}
                                 aria-haspopup="menu"
+                                aria-label="Open account menu"
+                                title="Open account menu"
                             >
                                 <Avatar
                                     wrapperClassName=""
@@ -336,18 +357,17 @@ export function UnifiedHeader({
                         <Input
                             className="h-10 pl-9"
                             placeholder={t("header.searchPlaceholder")}
-                            {...(searchValue !== undefined
-                                ? {
-                                      value: searchValue,
-                                      onChange: (
-                                          e: ChangeEvent<HTMLInputElement>,
-                                      ) => onSearch?.(e.target.value),
-                                  }
-                                : {
-                                      onChange: (
-                                          e: ChangeEvent<HTMLInputElement>,
-                                      ) => onSearch?.(e.target.value),
-                                  })}
+                            value={searchValue !== undefined ? searchValue : internalSearch}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                handleSearchChange(e.target.value)
+                            }
+                            onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                    submitSearch(
+                                        searchValue !== undefined ? searchValue : internalSearch,
+                                    );
+                                }
+                            }}
                         />
                     </div>
                     <nav className="flex flex-col gap-1">

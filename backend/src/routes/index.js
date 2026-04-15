@@ -17,6 +17,7 @@ import reportRoutes from "./report.routes.js";
 import reviewRoutes from "./review.routes.js";
 import savedItemRoutes from "./savedItem.routes.js";
 import adminRoutes from "./admin.routes.js";
+import searchRoutes from "./search.routes.js";
 
 const router = express.Router();
 
@@ -32,6 +33,7 @@ router.use("/cart", cartRoutes);
 router.use("/orders", orderRoutes);
 router.use("/reviews", reviewRoutes);
 router.use("/saved-items", savedItemRoutes);
+router.use("/search", searchRoutes);
 
 // Infrastructure routes
 router.use("/notifications", notificationRoutes);

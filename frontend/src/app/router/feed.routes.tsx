@@ -8,6 +8,7 @@ import Feed from "../../pages/Feed";
 import PostDetail from "../../pages/PostDetail";
 import AccountSettings from "../../pages/AccountSettings";
 import Profile from "../../pages/Profile";
+import SearchPage from "../../pages/Search";
 import SavedItems from "../../pages/SavedItems";
 import ScheduledPosts from "../../pages/ScheduledPosts";
 import ScheduledPostsAnalytics from "../../pages/ScheduledPostsAnalytics";
@@ -32,6 +33,7 @@ export function FeedRoutes() {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:id" element={<Profile />} />
                 <Route path="/settings" element={<AccountSettings />} />
+                <Route path="/search" element={<SearchPage />} />
             </Route>
             <Route element={<AppShellWithFooterLayout />}>
                 <Route path="/saved-items" element={<SavedItems />} />
