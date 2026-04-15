@@ -5,16 +5,16 @@
 ### ✅ Đã hoàn thành (cốt lõi)
 
 - **Backend:** Auth, Products, Categories, Cart, Orders, Posts/Feed, Upload/Cloudinary (`/api/upload/*`), Users & follow (`/api/users/*`), Messages (`/api/messages/*` + Socket.IO), Notifications (`/api/notifications/*`), Groups (`/api/groups/*`), Reviews (`/api/reviews/*`), Saved items (`/api/saved-items/*`), Reports (`/api/reports/*`), Scheduled posts (`/api/scheduled-posts/*` + cron), Seller (`/api/seller/*`: đăng ký + upload, **`GET /seller/stats`**), Admin (`/api/admin/*`), AI Gemini (`/api/ai/*`)
-- **Frontend:** Auth, **UnifiedHeader** (dropdown thông báo + **Socket realtime**), **Feed**, **`/scheduled-posts`** (list + tạo + xóa), Post detail, Cart / Checkout / Orders (buyer), **Seller Center** (`/seller/dashboard`: CRUD sản phẩm, tab đơn bán, stats), **Marketplace**, Messages, Notifications (**page + realtime sync + preferences + live toast**), Groups (discover + detail + create + “My groups” từ API + member management + invites), Profile + **Account Settings**, Saved items, i18n toggle (VI/EN)
+- **Frontend:** Auth, **UnifiedHeader** (dropdown thông báo + **Socket realtime**), **Feed**, **`/scheduled-posts`** (list + tạo + sửa + xóa), Post detail, Cart / Checkout / Orders (buyer), **Seller Center** (`/seller/dashboard`: CRUD sản phẩm, tab đơn bán, stats), **Marketplace**, Messages, Notifications (**page + realtime sync + preferences + live toast**), Groups (discover + detail + create + “My groups” từ API + member management + invites), Profile + **Account Settings**, Saved items, i18n toggle (VI/EN), review submit từ Order Detail
 - **Admin (`admin/frontend`):** Reports, **Users**, **Seller applications**, Categories, Content, v.v.
 
 ### ⏳ Đang làm / tinh chỉnh
 
-- Reviews: form + list trên **ProductDetail**, seller reply (BE có; FE chưa đủ)
+- Reviews: luồng submit review từ đơn hàng đã có; phần hiển thị list/filter/reply trên **ProductDetail** còn thiếu
 - Scheduled posts: timezone/preview nâng cao (UX)
 - Realtime chat: Tinh chỉnh cơ chế presence/typing (Socket BE/FE đã có payload tin nhắn)
 - AI: `AiCreativeLab` UI và API wiring đã nối `/api/ai/*` qua `aiApi`
-- Production: **`express-rate-limit` có trong dependencies nhưng chưa gắn `app.js`**; **Helmet chưa thêm dependency**; Winston chưa dùng trong code; test; **seed** chỉ admin (`database/prisma/seed.js`)
+- Production: đã gắn **rate limit** (global + auth + auth-sensitive), thêm **Helmet**, thêm request/error logging với `requestId`; còn thiếu monitoring sâu hơn và seed dữ liệu business
 
 ---
 
@@ -268,7 +268,7 @@
 
 ---
 
-## ⭐ 10. REVIEWS & RATINGS (✅ Backend — ❌ Frontend đầy đủ)
+## ⭐ 10. REVIEWS & RATINGS (✅ Backend — ✅ Frontend core flow)
 
 ### Backend
 
@@ -282,26 +282,28 @@
 ### Frontend
 
 - [x] Hiển thị **rating tổng hợp** trên `ProductDetailPanel` (số sao + số review từ API sản phẩm)
-- [ ] **TODO: Review form component** (gửi review)
-- [ ] **TODO: Review list component** (chi tiết từng review)
+- [x] Review form từ luồng đơn hàng (`OrderReviewModal` + `reviewApi.createReview`)
+- [x] Review list component hiển thị chi tiết review trên ProductDetail
 - [ ] **TODO: Star rating component tái sử dụng** (tách khỏi inline)
-- [ ] **TODO: Review filters & sorting**
-- [ ] **TODO: Seller response to reviews**
+- [x] Review filters & sorting (rating/media/reply + sort theo thời gian/rating/helpful)
+- [x] Seller response hiển thị trực tiếp dưới review item
 
 ---
 
-## 🔍 11. SEARCH & MARKETPLACE (⏳ Không có `/api/search` thống nhất — Marketplace OK)
+## 🔍 11. SEARCH & MARKETPLACE (🟡 Unified Search v1 đã có)
 
 ### Backend
 
 - [x] Product list + filter + sort qua `GET /api/products` (query: search, category, sort, v.v.)
 - [x] User search — `GET /api/users/search`
-- [ ] **TODO: Endpoint search thống nhất hoặc post search riêng nếu cần**
+- [x] Unified endpoint `GET /api/search` (fan-out products/users/posts)
 - [ ] **TODO: Full-text / Elasticsearch (tùy chọn)**
 
 ### Frontend
 
 - [x] MarketplacePage — `marketplaceApi`, filter sidebar, sort, URL `searchParams`
+- [x] Search page thống nhất `/search?q=...` + kết quả theo section Products/Users/Posts
+- [x] UnifiedHeader submit Enter điều hướng về `/search`
 - [ ] **TODO: SearchResultsPage riêng nếu tách khỏi Marketplace**
 - [ ] **TODO: Search autocomplete toàn app**
 - [ ] **TODO: Lọc nâng cao (đã có một phần)**
@@ -405,8 +407,8 @@
 - [x] Password hashing (bcrypt)
 - [x] CORS configuration
 - [x] Input validation (express-validator)
-- [ ] **TODO: Gắn rate limiting** — `express-rate-limit` có trong `backend/package.json` nhưng **chưa import trong `app.js`**
-- [ ] **TODO: Helmet** — **chưa có trong dependencies**; cần `npm i helmet` rồi gắn middleware
+- [x] Rate limiting đã gắn: global `/api` + auth limiter + auth-sensitive limiter
+- [x] Helmet đã cài và bật tại `app.js`
 - [x] SQL injection prevention (Prisma)
 - [ ] **TODO: XSS / CSRF / caching Redis / tối ưu query & index**
 
@@ -418,19 +420,20 @@
 
 ---
 
-## 🧪 18. TESTING (❌ Chưa làm)
+## 🧪 18. TESTING (🟡 Đã có nền tảng, chưa đủ gate production)
 
 ### Backend
 
-- [ ] **TODO: Unit tests (Jest)**
-- [ ] **TODO: Integration tests**
-- [ ] **TODO: API endpoint tests**
+- [x] Unit test cơ bản (`node --test`) cho AI/Groups flows
+- [x] Backend API integration smoke tests cho critical flows (`auth`, `orders`, `seller order status`, `notifications`) trong `backend/test/critical-flows-api.test.js`
+- [ ] **TODO: Mở rộng Integration tests cho auth/order/notifications**
+- [ ] **TODO: API endpoint tests cho critical endpoints**
 - [ ] **TODO: Test coverage >= 70%**
 - [x] Groups v1 flow tests (join/leave/invite/approve + race simulation) với `node --test` (`backend/test/groups-v1-flow.test.js`)
 
 ### Frontend
 
-- [ ] **TODO: Component tests (React Testing Library)**
+- [x] Component/hook tests đã có ở nhiều module (cart, checkout, order, marketplace, messaging, profile, AI, groups)
 - [ ] **TODO: E2E tests (Cypress/Playwright)**
 - [ ] **TODO: Test coverage >= 70%**
 
@@ -462,7 +465,8 @@
 - [x] Environment variables (dev — `dotenv`)
 - [ ] **TODO: Production database & secrets**
 - [x] File storage dev (Cloudinary)
-- [ ] **TODO: Logging** — `winston` có trong `package.json` nhưng **chưa dùng trong `src/`**; monitoring, CI/CD, Docker, cloud deploy
+- [x] Request/error logging JSON có `requestId` đã dùng trong middleware/runtime
+- [ ] **TODO: Monitoring nâng cao + log shipping** (ngoài logging runtime hiện có), CI/CD, Docker, cloud deploy
 
 ### Frontend
 
@@ -495,7 +499,7 @@
 ### Seed Data
 
 - [x] **`database/prisma/seed.js`** (admin seed; `npm run prisma:seed` từ `backend`)
-- [ ] **TODO: Sample categories, products, users, orders, reviews**
+- [x] Sample categories, products, users, orders, reviews (idempotent QA/UAT seed)
 
 ### Migrations
 
@@ -505,26 +509,26 @@
 
 ---
 
-## 🎯 PRIORITY ORDER (Đề xuất)
+## 🎯 PRIORITY ORDER (MVP-first đề xuất)
 
 ### 🔥 HIGH PRIORITY
 
-1. **Mở rộng `database/prisma/seed.js`** — sample categories, users, orders, reviews (hiện chỉ admin)
-2. **Reviews UI** đầy đủ trên trang sản phẩm (form + list + seller reply)
-3. **Gắn rate limit** (`app.js`) **+ cài Helmet** trước khi public
+1. ✅ **Security hardening trước khi public** — đã gắn rate limit (`app.js`) + thêm Helmet + chuẩn hóa logging runtime
+2. ✅ **Test gate cho luồng critical** — đã có backend API smoke tests cho auth/order/seller order status/notifications
+3. ✅ **Chuẩn hóa error handling + env production baseline** — đã có global error format + validate env production fail-fast
 
 ### 🟡 MEDIUM PRIORITY
 
-4. **Nối nút AI** trong CreatePostModal / Add product với `/api/ai/*`
-5. **Admin** — polish moderation sản phẩm, analytics charts
-6. **Scheduled posts** — timezone/preview nâng cao
-7. **Profile/settings polish** — route theo username, settings nâng cao
+1. ✅ **Reviews FE trên ProductDetail** — list/filter/reply hiển thị đầy đủ để tăng trust chuyển đổi
+2. ✅ **Unified search v1** — endpoint/tầng tìm kiếm thống nhất + entry FE đồng nhất
+3. ✅ **Mở rộng seed data QA/UAT** — categories/products/orders/reviews/users mẫu
+4. **Admin** — polish moderation + analytics charts giai đoạn 2
 
 ### 🟢 LOW PRIORITY
 
-9. **Analytics** nâng cao (seller + admin)
-10. **Testing & documentation**
-11. **Deployment production**
+1. **AI inline flows** trong CreatePostModal / Add product
+2. **Scheduled posts UX nâng cao** (timezone/preview)
+3. **Analytics nâng cao + deployment production đầy đủ**
 
 ---
 
@@ -542,8 +546,8 @@
 | Messages           | ✅ ~90%  | ✅ ~90%  | ✅ Socket FE done      |
 | Notifications      | ✅ 100%  | ✅ 100%  | ✅ Done                |
 | Groups             | ✅ ~95%  | ✅ ~92%  | ✅ Feature-complete v1 |
-| Reviews            | ✅ ~90%  | 🟡 ~25%  | ⏳ Form + list         |
-| Search/Marketplace | 🟡 ~70%  | ✅ ~80%  | ⏳ Unified search      |
+| Reviews            | ✅ ~95%  | ✅ ~80%  | ✅ Core flow complete  |
+| Search/Marketplace | ✅ ~85%  | ✅ ~88%  | ✅ Unified Search v1   |
 | Seller             | ✅ ~90%  | ✅ ~80%  | ⏳ Store public        |
 | Profile/Social     | ✅ ~95%  | ✅ ~90%  | ✅ Settings cơ bản     |
 | Admin              | 🟡 ~55%  | 🟡 ~60%  | ⏳ Charts, mod         |
@@ -551,7 +555,7 @@
 | Saved items        | ✅ ~100% | ✅ ~90%  | ✅ Done                |
 | Reports            | ✅ ~90%  | 🟡 ~55%  | ⏳ Admin flow          |
 
-**Tổng tiến độ ước tính: ~91%**
+**Tổng tiến độ ước tính: ~94%**
 
 ---
 
@@ -561,8 +565,9 @@
 2. ✅ ~~Phase 2: Cart & Orders~~ (DONE)
 3. ✅ ~~Phase 3: Posts & Social Feed~~ (DONE)
 4. ✅ ~~Phase 3b: Scheduled posts (BE + cron), Marketplace, nhiều API social~~ (DONE cốt lõi)
-5. 🎯 **Tiếp theo:** Reviews FE + seed dữ liệu mẫu + hardening (rate limit, Helmet, Winston)
-6. 🎯 **Sau đó:** Realtime chat FE, AI trên FE, scheduled post edit, admin analytics, test & deploy
+5. ✅ ~~MVP must-have: security hardening + test gate critical flows + production env baseline~~
+6. ✅ ~~MVP usability: reviews FE trên product detail + unified search v1 + seed data QA/UAT~~
+7. 🎯 **Tiếp theo:** AI inline flows + scheduled posts UX nâng cao + admin analytics + mở rộng deploy
 
 ---
 
@@ -671,4 +676,4 @@
 
 ---
 
-_Last updated: March 31, 2026 (updated to reflect current implementation state)_
+*Last updated: April 16, 2026 (completed MVP usability phase: reviews FE, unified search v1, QA/UAT seed data)*
