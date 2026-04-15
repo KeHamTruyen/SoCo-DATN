@@ -5,6 +5,7 @@ import { profileApi } from "../../profile/api/profileApi";
 import { productApi } from "../api/productApi";
 import type {
     ProductDetail,
+    ProductReviewFilters,
     ProductReviewItem,
     ProductReviewPhoto,
 } from "../types/product.types";
@@ -18,6 +19,13 @@ export function useProductDetailPage(productId?: string) {
     const [reviews, setReviews] = useState<ProductReviewItem[]>([]);
     const [reviewsPage, setReviewsPage] = useState(1);
     const [reviewsTotal, setReviewsTotal] = useState(0);
+    const [reviewDistribution, setReviewDistribution] = useState<
+        Record<1 | 2 | 3 | 4 | 5, number>
+    >({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
+    const [reviewFilters, setReviewFilters] = useState<ProductReviewFilters>({
+        sortBy: "createdAt",
+        sortOrder: "desc",
+    });
     const [reviewsError, setReviewsError] = useState<string | null>(null);
     const [isLoadingReviews, setIsLoadingReviews] = useState(false);
     const [isLoadingMoreReviews, setIsLoadingMoreReviews] = useState(false);
@@ -38,15 +46,6 @@ export function useProductDetailPage(productId?: string) {
         return Array.from(map.values());
     }, [reviews]);
 
-    const reviewDistribution = useMemo(() => {
-        const base = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } as Record<1 | 2 | 3 | 4 | 5, number>;
-        reviews.forEach((review) => {
-            const rounded = Math.max(1, Math.min(5, Math.round(review.rating))) as 1 | 2 | 3 | 4 | 5;
-            base[rounded] += 1;
-        });
-        return base;
-    }, [reviews]);
-
     const canLoadMoreReviews = reviews.length < reviewsTotal;
 
     useEffect(() => {
@@ -58,12 +57,17 @@ export function useProductDetailPage(productId?: string) {
             setReviews([]);
             setReviewsPage(1);
             setReviewsTotal(0);
+            setReviewDistribution({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
             setReviewsError(null);
             setIsLoadingReviews(true);
             try {
                 const [productData, reviewData] = await Promise.all([
                     productApi.getProductDetail(productId),
-                    productApi.getProductReviews(productId, { page: 1, limit: REVIEW_PAGE_SIZE }),
+                    productApi.getProductReviews(productId, {
+                        page: 1,
+                        limit: REVIEW_PAGE_SIZE,
+                        ...reviewFilters,
+                    }),
                 ]);
                 if (!mounted) return;
                 setProduct(productData);
@@ -106,6 +110,7 @@ export function useProductDetailPage(productId?: string) {
                 setReviews(reviewData.items);
                 setReviewsTotal(reviewData.total);
                 setReviewsPage(reviewData.page);
+                setReviewDistribution(reviewData.ratingDistribution);
             } catch {
                 if (!mounted) return;
                 setError("Unable to load product detail.");
@@ -120,7 +125,7 @@ export function useProductDetailPage(productId?: string) {
         return () => {
             mounted = false;
         };
-    }, [productId]);
+    }, [productId, reviewFilters]);
 
     const loadMoreReviews = async () => {
         if (!productId || isLoadingMoreReviews || !canLoadMoreReviews) return;
@@ -131,15 +136,24 @@ export function useProductDetailPage(productId?: string) {
             const data = await productApi.getProductReviews(productId, {
                 page: nextPage,
                 limit: REVIEW_PAGE_SIZE,
+                ...reviewFilters,
             });
             setReviews((prev) => [...prev, ...data.items]);
             setReviewsPage(data.page);
             setReviewsTotal(data.total);
+            setReviewDistribution(data.ratingDistribution);
         } catch {
             setReviewsError("Unable to load more reviews.");
         } finally {
             setIsLoadingMoreReviews(false);
         }
+    };
+
+    const applyReviewFilters = (nextFilters: ProductReviewFilters) => {
+        setReviewFilters((prev) => ({
+            ...prev,
+            ...nextFilters,
+        }));
     };
 
     const openPhotoModal = (startIndex = 0) => {
@@ -189,8 +203,10 @@ export function useProductDetailPage(productId?: string) {
         activeTab,
         reviewPhotos,
         reviewDistribution,
+        reviewFilters,
         canLoadMoreReviews,
         setActiveTab,
+        applyReviewFilters,
         loadMoreReviews,
         openPhotoModal,
         closePhotoModal,

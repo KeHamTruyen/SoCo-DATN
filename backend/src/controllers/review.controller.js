@@ -34,10 +34,17 @@ export const createReview = async (req, res) => {
 
 export const getProductReviews = async (req, res) => {
   try {
-    const { page, limit } = req.query;
+    const { page, limit, rating, hasMedia, hasSellerReply, sortBy, sortOrder } = req.query;
     const result = await reviewService.getProductReviews(req.params.productId, {
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
+      rating: rating ? parseInt(rating, 10) : undefined,
+      hasMedia:
+        typeof hasMedia === 'string' ? hasMedia === 'true' : undefined,
+      hasSellerReply:
+        typeof hasSellerReply === 'string' ? hasSellerReply === 'true' : undefined,
+      sortBy: typeof sortBy === 'string' ? sortBy : undefined,
+      sortOrder: typeof sortOrder === 'string' ? sortOrder : undefined,
     });
 
     res.json({

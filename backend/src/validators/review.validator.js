@@ -58,6 +58,26 @@ export const validateGetProductReviews = [
         .optional()
         .isInt({ min: 1, max: 100 })
         .withMessage("limit must be between 1 and 100"),
+    query("rating")
+        .optional()
+        .isInt({ min: 1, max: 5 })
+        .withMessage("rating must be between 1 and 5"),
+    query("hasMedia")
+        .optional()
+        .isIn(["true", "false"])
+        .withMessage("hasMedia must be true or false"),
+    query("hasSellerReply")
+        .optional()
+        .isIn(["true", "false"])
+        .withMessage("hasSellerReply must be true or false"),
+    query("sortBy")
+        .optional()
+        .isIn(["createdAt", "rating", "helpfulCount"])
+        .withMessage("sortBy must be one of createdAt, rating, helpfulCount"),
+    query("sortOrder")
+        .optional()
+        .isIn(["asc", "desc"])
+        .withMessage("sortOrder must be asc or desc"),
     validate,
 ];
 

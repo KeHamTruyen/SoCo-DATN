@@ -30,8 +30,10 @@ export default function ProductDetail() {
         activeTab,
         reviewPhotos,
         reviewDistribution,
+        reviewFilters,
         canLoadMoreReviews,
         setActiveTab,
+        applyReviewFilters,
         loadMoreReviews,
         openPhotoModal,
         closePhotoModal,
@@ -58,6 +60,8 @@ export default function ProductDetail() {
                               type="button"
                               className="absolute right-4 top-4 rounded-full bg-background/80 p-2 text-foreground"
                               onClick={closePhotoModal}
+                              title="Close photo viewer"
+                              aria-label="Close photo viewer"
                           >
                               <X className="h-5 w-5" />
                           </button>
@@ -65,6 +69,8 @@ export default function ProductDetail() {
                               type="button"
                               onClick={showPrevPhoto}
                               className="absolute left-4 rounded-full bg-background/80 p-2 text-foreground"
+                              title="Previous photo"
+                              aria-label="Previous photo"
                           >
                               <ChevronLeft className="h-6 w-6" />
                           </button>
@@ -77,6 +83,8 @@ export default function ProductDetail() {
                               type="button"
                               onClick={showNextPhoto}
                               className="absolute right-4 rounded-full bg-background/80 p-2 text-foreground"
+                              title="Next photo"
+                              aria-label="Next photo"
                           >
                               <ChevronRight className="h-6 w-6" />
                           </button>
@@ -218,16 +226,24 @@ export default function ProductDetail() {
                                                     className="h-full bg-primary" 
                                                     style={{
                                                         width: `${
-                                                            reviews.length > 0
-                                                                ? Math.round((reviewDistribution[star as 1 | 2 | 3 | 4 | 5] / reviews.length) * 100)
+                                                            (product.rating?.total ?? 0) > 0
+                                                                ? Math.round(
+                                                                      (reviewDistribution[star as 1 | 2 | 3 | 4 | 5] /
+                                                                          (product.rating?.total ?? 1)) *
+                                                                          100,
+                                                                  )
                                                                 : 0
                                                         }%`,
                                                     }}
                                                 ></div>
                                             </div>
                                             <span className="w-10 text-xs text-muted-foreground/60">
-                                                {reviews.length > 0
-                                                    ? `${Math.round((reviewDistribution[star as 1 | 2 | 3 | 4 | 5] / reviews.length) * 100)}%`
+                                                {(product.rating?.total ?? 0) > 0
+                                                    ? `${Math.round(
+                                                          (reviewDistribution[star as 1 | 2 | 3 | 4 | 5] /
+                                                              (product.rating?.total ?? 1)) *
+                                                              100,
+                                                      )}%`
                                                     : "0%"}
                                             </span>
                                         </div>
@@ -286,6 +302,92 @@ export default function ProductDetail() {
                                     )}
                                 </div>
 
+                                <div className="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-border p-4 md:grid-cols-4">
+                                    <select
+                                        aria-label="Filter reviews by rating"
+                                        title="Filter reviews by rating"
+                                        className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                                        value={reviewFilters.rating ?? ""}
+                                        onChange={(event) =>
+                                            applyReviewFilters({
+                                                rating: event.target.value
+                                                    ? (Number(event.target.value) as 1 | 2 | 3 | 4 | 5)
+                                                    : undefined,
+                                            })
+                                        }
+                                    >
+                                        <option value="">All ratings</option>
+                                        <option value="5">5 stars</option>
+                                        <option value="4">4 stars</option>
+                                        <option value="3">3 stars</option>
+                                        <option value="2">2 stars</option>
+                                        <option value="1">1 star</option>
+                                    </select>
+                                    <select
+                                        aria-label="Filter reviews by media"
+                                        title="Filter reviews by media"
+                                        className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                                        value={
+                                            reviewFilters.hasMedia === undefined
+                                                ? ""
+                                                : String(reviewFilters.hasMedia)
+                                        }
+                                        onChange={(event) =>
+                                            applyReviewFilters({
+                                                hasMedia:
+                                                    event.target.value === ""
+                                                        ? undefined
+                                                        : event.target.value === "true",
+                                            })
+                                        }
+                                    >
+                                        <option value="">All media</option>
+                                        <option value="true">With photos</option>
+                                        <option value="false">No photos</option>
+                                    </select>
+                                    <select
+                                        aria-label="Filter reviews by seller reply"
+                                        title="Filter reviews by seller reply"
+                                        className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                                        value={
+                                            reviewFilters.hasSellerReply === undefined
+                                                ? ""
+                                                : String(reviewFilters.hasSellerReply)
+                                        }
+                                        onChange={(event) =>
+                                            applyReviewFilters({
+                                                hasSellerReply:
+                                                    event.target.value === ""
+                                                        ? undefined
+                                                        : event.target.value === "true",
+                                            })
+                                        }
+                                    >
+                                        <option value="">All replies</option>
+                                        <option value="true">Seller replied</option>
+                                        <option value="false">No seller reply</option>
+                                    </select>
+                                    <select
+                                        aria-label="Sort reviews"
+                                        title="Sort reviews"
+                                        className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                                        value={`${reviewFilters.sortBy ?? "createdAt"}:${reviewFilters.sortOrder ?? "desc"}`}
+                                        onChange={(event) => {
+                                            const [sortBy, sortOrder] = event.target.value.split(":");
+                                            applyReviewFilters({
+                                                sortBy: sortBy as "createdAt" | "rating" | "helpfulCount",
+                                                sortOrder: sortOrder as "asc" | "desc",
+                                            });
+                                        }}
+                                    >
+                                        <option value="createdAt:desc">Newest first</option>
+                                        <option value="createdAt:asc">Oldest first</option>
+                                        <option value="rating:desc">Highest rating</option>
+                                        <option value="rating:asc">Lowest rating</option>
+                                        <option value="helpfulCount:desc">Most helpful</option>
+                                    </select>
+                                </div>
+
                                 <div className="space-y-8">
                                     {isLoadingReviews && (
                                         <p className="text-sm text-muted-foreground">Loading reviews...</p>
@@ -336,6 +438,19 @@ export default function ProductDetail() {
                                                     Helpful ({review.helpfulCount})
                                                 </p>
                                             )}
+                                            {review.sellerResponse ? (
+                                                <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3">
+                                                    <p className="text-xs font-bold text-foreground">Seller response</p>
+                                                    <p className="mt-1 text-sm text-muted-foreground">
+                                                        {review.sellerResponse}
+                                                    </p>
+                                                    {review.sellerResponseAt ? (
+                                                        <p className="mt-1 text-[11px] text-muted-foreground/70">
+                                                            {formatReviewDate(review.sellerResponseAt)}
+                                                        </p>
+                                                    ) : null}
+                                                </div>
+                                            ) : null}
                                         </div>
                                     ))}
                                 </div>

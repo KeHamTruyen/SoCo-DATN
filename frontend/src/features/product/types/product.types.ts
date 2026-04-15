@@ -24,6 +24,8 @@ export interface ProductReviewItem {
     author: ProductReviewAuthor;
     isVerifiedBuyer: boolean;
     photos: ProductReviewPhoto[];
+    sellerResponse?: string;
+    sellerResponseAt?: string;
 }
 
 export interface ProductReviewsResponse {
@@ -31,6 +33,15 @@ export interface ProductReviewsResponse {
     page: number;
     limit: number;
     total: number;
+    ratingDistribution: Record<1 | 2 | 3 | 4 | 5, number>;
+}
+
+export interface ProductReviewFilters {
+    rating?: 1 | 2 | 3 | 4 | 5;
+    hasMedia?: boolean;
+    hasSellerReply?: boolean;
+    sortBy?: "createdAt" | "rating" | "helpfulCount";
+    sortOrder?: "asc" | "desc";
 }
 
 /** Storefront row mapped from ProductVariant */

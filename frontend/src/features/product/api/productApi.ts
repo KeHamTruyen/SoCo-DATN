@@ -1,6 +1,7 @@
 import { httpClient } from "../../../shared/api/httpClient";
 import type {
     ProductDetail,
+    ProductReviewFilters,
     ProductReviewItem,
     ProductReviewsResponse,
     ProductVariantRow,
@@ -104,6 +105,14 @@ function mapReviewItem(raw: Record<string, unknown>, idx: number): ProductReview
         },
         isVerifiedBuyer: Boolean(raw.isVerifiedBuyer ?? raw.isVerifiedPurchase),
         photos,
+        sellerResponse:
+            typeof raw.sellerResponse === "string" && raw.sellerResponse.trim() !== ""
+                ? raw.sellerResponse.trim()
+                : undefined,
+        sellerResponseAt:
+            typeof raw.sellerResponseAt === "string" && raw.sellerResponseAt.trim() !== ""
+                ? raw.sellerResponseAt
+                : undefined,
     };
 }
 
@@ -167,11 +176,18 @@ export const productApi = {
 
     async getProductReviews(
         productId: string,
-        params: { page: number; limit: number },
+        params: { page: number; limit: number } & ProductReviewFilters,
     ): Promise<ProductReviewsResponse> {
         const searchParams = new URLSearchParams();
         searchParams.set("page", String(params.page));
         searchParams.set("limit", String(params.limit));
+        if (params.rating) searchParams.set("rating", String(params.rating));
+        if (typeof params.hasMedia === "boolean")
+            searchParams.set("hasMedia", String(params.hasMedia));
+        if (typeof params.hasSellerReply === "boolean")
+            searchParams.set("hasSellerReply", String(params.hasSellerReply));
+        if (params.sortBy) searchParams.set("sortBy", params.sortBy);
+        if (params.sortOrder) searchParams.set("sortOrder", params.sortOrder);
 
         const res = await httpClient.get<ApiResponse<Record<string, unknown>> | Record<string, unknown>>(
             `/reviews/product/${productId}?${searchParams.toString()}`,
@@ -189,6 +205,14 @@ export const productApi = {
         const total = num(pagination.total ?? data.total ?? rawItems.length, rawItems.length);
         const page = num(pagination.page ?? data.page ?? params.page, params.page);
         const limit = num(pagination.limit ?? data.limit ?? params.limit, params.limit);
+        const rawDistribution = (data.ratingDistribution as Record<string, unknown> | undefined) ?? {};
+        const ratingDistribution: Record<1 | 2 | 3 | 4 | 5, number> = {
+            1: num(rawDistribution["1"], 0),
+            2: num(rawDistribution["2"], 0),
+            3: num(rawDistribution["3"], 0),
+            4: num(rawDistribution["4"], 0),
+            5: num(rawDistribution["5"], 0),
+        };
 
         return {
             items: rawItems
@@ -197,6 +221,7 @@ export const productApi = {
             page,
             limit,
             total,
+            ratingDistribution,
         };
     },
 };

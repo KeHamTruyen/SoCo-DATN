@@ -95,18 +95,41 @@ export const createReview = async (userId, data) => {
   return mapReview(review);
 };
 
-export const getProductReviews = async (productId, { page = 1, limit = 10 } = {}) => {
+export const getProductReviews = async (
+  productId,
+  {
+    page = 1,
+    limit = 10,
+    rating,
+    hasMedia,
+    hasSellerReply,
+    sortBy = 'createdAt',
+    sortOrder = 'desc',
+  } = {}
+) => {
   const skip = (page - 1) * limit;
   const where = {
     productId,
     isPublished: true,
   };
+  if (typeof rating === 'number') {
+    where.rating = rating;
+  }
+  if (typeof hasMedia === 'boolean') {
+    where.images = hasMedia ? { isEmpty: false } : { isEmpty: true };
+  }
+  if (typeof hasSellerReply === 'boolean') {
+    where.sellerResponse = hasSellerReply ? { not: null } : null;
+  }
+  const safeSortBy =
+    sortBy === 'rating' || sortBy === 'helpfulCount' ? sortBy : 'createdAt';
+  const safeSortOrder = sortOrder === 'asc' ? 'asc' : 'desc';
 
   const [reviews, total, ratingStats] = await Promise.all([
     prisma.review.findMany({
       where,
       include: reviewInclude,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { [safeSortBy]: safeSortOrder },
       skip,
       take: limit,
     }),
