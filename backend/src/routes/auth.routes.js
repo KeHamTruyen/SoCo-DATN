@@ -2,6 +2,10 @@ import express from "express";
 import authController from "../controllers/auth.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
 import {
+    authRateLimiter,
+    authSensitiveRateLimiter,
+} from "../middlewares/rateLimit.middleware.js";
+import {
     validate,
     registerValidation,
     loginValidation,
@@ -18,6 +22,8 @@ import {
 } from "../validators/auth.validator.js";
 
 const router = express.Router();
+
+router.use(authRateLimiter);
 
 // ─── Public routes ────────────────────────────────────────────
 
@@ -121,6 +127,7 @@ router.post(
  */
 router.post(
     "/forgot-password",
+    authSensitiveRateLimiter,
     forgotPasswordValidation,
     validate,
     authController.forgotPassword,
@@ -135,6 +142,7 @@ router.post(
  */
 router.post(
     "/reset-password",
+    authSensitiveRateLimiter,
     resetPasswordValidation,
     validate,
     authController.resetPassword,

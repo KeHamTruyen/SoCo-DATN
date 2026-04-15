@@ -2,8 +2,11 @@ import { createServer } from "http";
 import app from "./app.js";
 import { initSocket } from "./config/socket.js";
 import { startScheduler } from "./jobs/scheduler.js";
+import { validateEnv } from "./config/env.js";
+import { logInfo } from "./utils/logger.js";
 
 const PORT = process.env.PORT || 5000;
+validateEnv();
 
 const httpServer = createServer(app);
 
@@ -12,8 +15,11 @@ initSocket(httpServer);
 startScheduler();
 
 httpServer.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
-    console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
-    console.log(`🔗 API: http://localhost:${PORT}/api`);
-    console.log(`🔌 WebSocket: ws://localhost:${PORT}`);
+    const environment = process.env.NODE_ENV || "development";
+    logInfo("Server started", {
+        port: PORT,
+        environment,
+        apiUrl: `http://localhost:${PORT}/api`,
+        websocketUrl: `ws://localhost:${PORT}`,
+    });
 });
