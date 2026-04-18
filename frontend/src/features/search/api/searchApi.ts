@@ -1,6 +1,8 @@
 import { httpClient } from "../../../shared/api/httpClient";
 
 type SearchType = "products" | "users" | "posts";
+type SourceScope = "all" | "follower" | "followee";
+type PostsSort = "latest";
 
 export interface UnifiedSearchResponse {
     products: { items: unknown[]; total: number; page: number; limit: number };
@@ -17,7 +19,16 @@ interface SearchApiResponse {
 export const searchApi = {
     async search(
         q: string,
-        options: { page?: number; limit?: number; types?: SearchType[] } = {},
+        options: {
+            page?: number;
+            limit?: number;
+            types?: SearchType[];
+            postsSource?: SourceScope;
+            peopleSource?: SourceScope;
+            postsSort?: PostsSort;
+            postedFrom?: string;
+            postedTo?: string;
+        } = {},
     ): Promise<UnifiedSearchResponse> {
         const params = new URLSearchParams();
         params.set("q", q);
@@ -26,6 +37,11 @@ export const searchApi = {
         if (options.types && options.types.length > 0) {
             params.set("types", options.types.join(","));
         }
+        if (options.postsSource) params.set("postsSource", options.postsSource);
+        if (options.peopleSource) params.set("peopleSource", options.peopleSource);
+        if (options.postsSort) params.set("postsSort", options.postsSort);
+        if (options.postedFrom) params.set("postedFrom", options.postedFrom);
+        if (options.postedTo) params.set("postedTo", options.postedTo);
         const response = await httpClient.get<SearchApiResponse>(
             `/search?${params.toString()}`,
             { requiresAuth: true },
