@@ -69,7 +69,7 @@ async function main() {
             passwordHash,
             isActive: true,
         },
-        data: {
+        create: {
             email,
             username,
             passwordHash,
