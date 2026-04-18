@@ -7,7 +7,15 @@
     "scripts": {
         "start": "node src/server.js",
         "dev": "nodemon src/server.js",
-        "test": "node --test",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:ui": "vitest --ui",
+        "test:ui:run": "vitest run --ui",
+        "test:coverage": "vitest run --coverage",
+        "test:coverage:integration": "vitest run --config vitest.integration.config.js --coverage",
+        "test:integration": "vitest run --config vitest.integration.config.js",
+        "test:integration:ui": "vitest --config vitest.integration.config.js --ui",
+        "test:all": "npm run test && npm run test:integration",
         "prisma:generate": "npm run generate --prefix ../database",
         "prisma:push": "npm run db:push --prefix ../database",
         "prisma:reset": "npm run db:reset --prefix ../database",
@@ -49,6 +57,11 @@
         "winston": "^3.11.0"
     },
     "devDependencies": {
-        "nodemon": "^3.0.3"
+        "@types/supertest": "^7.2.0",
+        "@vitest/coverage-v8": "^4.1.4",
+        "@vitest/ui": "^4.1.4",
+        "nodemon": "^3.0.3",
+        "supertest": "^7.2.2",
+        "vitest": "^4.1.4"
     }
 }
