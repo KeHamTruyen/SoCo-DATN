@@ -40,9 +40,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use("/api", apiRateLimiter);
 
-// Static files
-app.use("/uploads", express.static("src/uploads"));
-
 // API Documentation (Swagger)
 app.use(
     "/api-docs",
