@@ -74,9 +74,19 @@ jobs:
       - name: Apply migrations (tests import modules that open a DB connection)
         working-directory: database
         run: npx prisma migrate deploy
-      - name: Test backend
+      - name: Seed database (QA users & products for integration tests)
+        working-directory: database
+        env:
+          SEED_ADMIN_EMAIL: ci-seed-admin@soco.local
+          SEED_ADMIN_PASSWORD: CiSeedAdmin123!
+          SEED_ADMIN_USERNAME: ci_seed_admin
+          SEED_QA_USER_PASSWORD: QaUser@123
+        run: npx prisma db seed
+      - name: Test backend (unit, HTTP smoke, integration)
         working-directory: backend
-        run: npm test
+        env:
+          JWT_SECRET: ci-jwt-secret-for-integration-tests-min-32-chars
+        run: npm run test:all
 
   admin-frontend:
     runs-on: ubuntu-latest
