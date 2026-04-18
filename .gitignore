@@ -58,6 +58,7 @@ desktop.ini
 
 # Testing
 coverage/
+coverage-integration/
 .nyc_output/
 
 # Cache
