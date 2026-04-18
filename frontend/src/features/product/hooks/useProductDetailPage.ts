@@ -77,7 +77,8 @@ export function useProductDetailPage(productId?: string) {
                     window.sessionStorage.getItem(sessionKey) ??
                     `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
                 window.sessionStorage.setItem(sessionKey, sessionId);
-                const previousProductId = window.sessionStorage.getItem(lastViewedKey) ?? undefined;
+                const previousProductId =
+                    window.sessionStorage.getItem(lastViewedKey) ?? undefined;
                 window.sessionStorage.setItem(lastViewedKey, productData.id);
                 void marketplaceApi
                     .trackProductView(productData.id, {
@@ -87,7 +88,9 @@ export function useProductDetailPage(productId?: string) {
                     .catch(() => {});
                 if (productData.seller?.id) {
                     try {
-                        const sellerProfile = await profileApi.getProfile(productData.seller.id);
+                        const sellerProfile = await profileApi.getProfile(
+                            productData.seller.id,
+                        );
                         if (!mounted) return;
                         setProduct((prev) =>
                             prev
@@ -96,8 +99,12 @@ export function useProductDetailPage(productId?: string) {
                                       seller: prev.seller
                                           ? {
                                                 ...prev.seller,
-                                                followersCount: sellerProfile.followersCount ?? 0,
-                                                shopRating: sellerProfile.shopRating ?? 0,
+                                                followersCount:
+                                                    sellerProfile.followersCount ??
+                                                    0,
+                                                shopRating:
+                                                    sellerProfile.shopRating ??
+                                                    0,
                                             }
                                           : prev.seller,
                                   }
@@ -158,7 +165,10 @@ export function useProductDetailPage(productId?: string) {
 
     const openPhotoModal = (startIndex = 0) => {
         if (reviewPhotos.length === 0) return;
-        const safeIndex = Math.max(0, Math.min(reviewPhotos.length - 1, startIndex));
+        const safeIndex = Math.max(
+            0,
+            Math.min(reviewPhotos.length - 1, startIndex),
+        );
         setActivePhotoIndex(safeIndex);
         setIsPhotoModalOpen(true);
     };
@@ -166,17 +176,24 @@ export function useProductDetailPage(productId?: string) {
     const closePhotoModal = () => setIsPhotoModalOpen(false);
 
     const showPrevPhoto = () => {
-        setActivePhotoIndex((prev) => (prev - 1 + reviewPhotos.length) % reviewPhotos.length);
+        setActivePhotoIndex(
+            (prev) => (prev - 1 + reviewPhotos.length) % reviewPhotos.length,
+        );
     };
 
     const showNextPhoto = () => {
         setActivePhotoIndex((prev) => (prev + 1) % reviewPhotos.length);
     };
 
-    const addToCartWithStatus = async (quantity: number, variantId?: string): Promise<boolean> => {
+    const addToCartWithStatus = async (
+        quantity: number,
+        variantId?: string,
+    ): Promise<boolean> => {
         if (!product) return false;
         if (product.variants?.length && !variantId) {
-            setCartActionError("Please select a variant before adding to cart.");
+            setCartActionError(
+                "Please select a variant before adding to cart.",
+            );
             return false;
         }
         try {
