@@ -229,14 +229,31 @@ class UserService {
     });
   }
 
-  async searchUsers(query, { page = 1, limit = 20 } = {}) {
+  async searchUsers(query, { page = 1, limit = 20, viewerId = null, sourceScope = "all" } = {}) {
     const skip = (page - 1) * limit;
+    let scopedUserIds = null;
+    if (viewerId && (sourceScope === "follower" || sourceScope === "followee")) {
+      if (sourceScope === "followee") {
+        const rows = await prisma.follow.findMany({
+          where: { followerId: viewerId },
+          select: { followingId: true },
+        });
+        scopedUserIds = rows.map((row) => row.followingId);
+      } else {
+        const rows = await prisma.follow.findMany({
+          where: { followingId: viewerId },
+          select: { followerId: true },
+        });
+        scopedUserIds = rows.map((row) => row.followerId);
+      }
+    }
     const where = {
       isActive: true,
       OR: [
         { username: { contains: query, mode: 'insensitive' } },
         { fullName: { contains: query, mode: 'insensitive' } },
       ],
+      ...(scopedUserIds ? { id: { in: scopedUserIds } } : {}),
     };
     const [users, total] = await Promise.all([
       prisma.user.findMany({

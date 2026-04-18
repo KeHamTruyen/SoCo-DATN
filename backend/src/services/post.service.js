@@ -168,9 +168,30 @@ export const getPosts = async (filters = {}) => {
     status = 'PUBLISHED',
     search,
     userId,
+    sourceScope = 'all',
+    postedFrom,
+    postedTo,
+    sortBy = 'latest',
   } = filters;
 
   const skip = (page - 1) * limit;
+
+  let scopedAuthorIds = null;
+  if (userId && (sourceScope === 'follower' || sourceScope === 'followee')) {
+    if (sourceScope === 'followee') {
+      const rows = await prisma.follow.findMany({
+        where: { followerId: userId },
+        select: { followingId: true },
+      });
+      scopedAuthorIds = rows.map((row) => row.followingId);
+    } else {
+      const rows = await prisma.follow.findMany({
+        where: { followingId: userId },
+        select: { followerId: true },
+      });
+      scopedAuthorIds = rows.map((row) => row.followerId);
+    }
+  }
 
   const where = {
     status,
@@ -178,6 +199,15 @@ export const getPosts = async (filters = {}) => {
     ...(productId && { productId }),
     ...(visibility && { visibility }),
     ...(search && { content: { contains: search, mode: 'insensitive' } }),
+    ...(scopedAuthorIds ? { authorId: { in: scopedAuthorIds } } : {}),
+    ...((postedFrom || postedTo)
+      ? {
+          createdAt: {
+            ...(postedFrom ? { gte: postedFrom } : {}),
+            ...(postedTo ? { lte: postedTo } : {}),
+          },
+        }
+      : {}),
   };
 
   const [posts, total] = await Promise.all([
@@ -185,7 +215,7 @@ export const getPosts = async (filters = {}) => {
       where,
       skip,
       take: limit,
-      orderBy: { createdAt: 'desc' },
+      orderBy: sortBy === 'latest' ? { createdAt: 'desc' } : { createdAt: 'desc' },
       include: {
         ...POST_INCLUDE,
         ...(userId && { likes: { where: { userId }, select: { id: true } } }),

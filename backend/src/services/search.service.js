@@ -13,6 +13,11 @@ export const searchAll = async ({
     limit = 6,
     types = ["products", "users", "posts"],
     userId = null,
+    postsSource = "all",
+    peopleSource = "all",
+    postsSort = "latest",
+    postedFrom = null,
+    postedTo = null,
 }) => {
     const q = String(query ?? "").trim();
     if (!q) {
@@ -51,7 +56,14 @@ export const searchAll = async ({
     }
     if (requested.has("users")) {
         tasks.push(
-            userService.searchUsers(q, { page: safePage, limit: safeLimit }).then((result) => ({
+            userService
+                .searchUsers(q, {
+                    page: safePage,
+                    limit: safeLimit,
+                    viewerId: userId,
+                    sourceScope: peopleSource,
+                })
+                .then((result) => ({
                 key: "users",
                 value: {
                     items: result.users ?? [],
@@ -70,6 +82,10 @@ export const searchAll = async ({
                     limit: safeLimit,
                     search: q,
                     userId,
+                    sourceScope: postsSource,
+                    postedFrom,
+                    postedTo,
+                    sortBy: postsSort,
                 })
                 .then((result) => ({
                     key: "posts",
