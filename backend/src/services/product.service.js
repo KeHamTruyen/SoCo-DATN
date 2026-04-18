@@ -396,6 +396,8 @@ class ProductService {
         product: {
           select: {
             id: true,
+            title: true,
+            metaKeywords: true,
             categories: { select: { id: true, name: true } }
           }
         }
@@ -417,6 +419,7 @@ class ProductService {
     const candidateScores = new Map();
     const categoryWeights = new Map();
     const tagWeights = new Map();
+    const viewedTagWeights = new Map();
 
     for (const view of recentViews) {
       const ageHours = Math.max(1, (now - new Date(view.createdAt).getTime()) / (1000 * 60 * 60));
@@ -426,6 +429,21 @@ class ProductService {
           category.id,
           (categoryWeights.get(category.id) || 0) + recencyWeight * 2
         );
+        for (const token of tokenize(category.name)) {
+          if (SEARCH_STOPWORDS.has(token)) continue;
+          viewedTagWeights.set(token, (viewedTagWeights.get(token) || 0) + recencyWeight * 2.4);
+        }
+      }
+
+      for (const keyword of view.product?.metaKeywords || []) {
+        const token = normalizeSearchQuery(keyword);
+        if (!token || SEARCH_STOPWORDS.has(token)) continue;
+        viewedTagWeights.set(token, (viewedTagWeights.get(token) || 0) + recencyWeight * 3.2);
+      }
+
+      for (const token of tokenize(view.product?.title || '')) {
+        if (SEARCH_STOPWORDS.has(token)) continue;
+        viewedTagWeights.set(token, (viewedTagWeights.get(token) || 0) + recencyWeight * 1.6);
       }
     }
 
@@ -465,6 +483,10 @@ class ProductService {
       .slice(0, 8)
       .map(([categoryId]) => categoryId);
     const topTags = Array.from(tagWeights.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 12)
+      .map(([tag]) => tag);
+    const topViewedTags = Array.from(viewedTagWeights.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 12)
       .map(([tag]) => tag);
@@ -586,19 +608,10 @@ class ProductService {
       take: 12
     });
 
-    const productTags = selected
-      .flatMap((product) => product.metaKeywords || [])
-      .map((keyword) => normalizeSearchQuery(keyword))
-      .filter((keyword) => keyword && !SEARCH_STOPWORDS.has(keyword));
-
-    const mergedTags = Array.from(
-      new Set([...topTags, ...productTags].filter(Boolean))
-    ).slice(0, 12);
-
     return {
       products: selected,
       categories,
-      tags: mergedTags
+      tags: topViewedTags
     };
   }
 

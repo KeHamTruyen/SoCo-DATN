@@ -1,4 +1,3 @@
-import { LayoutGrid } from "lucide-react";
 import {
     useCallback,
     useEffect,
@@ -118,10 +117,6 @@ export default function Marketplace() {
         [patchSearchParams],
     );
 
-    const handleExplore = useCallback(() => {
-        document.getElementById("marketplace-products")?.scrollIntoView({ behavior: "smooth" });
-    }, []);
-
     const maxSliderValue =
         filterParams.maxPrice != null ? filterParams.maxPrice : MARKETPLACE_PRICE_CAP;
     const minInputValue = filterParams.minPrice ?? 0;
@@ -150,6 +145,14 @@ export default function Marketplace() {
             .listCategories({ onlyWithPublishedProducts: true })
             .then((data) => {
                 if (!cancelled) setCategories(data);
+            })
+            .catch(() => {});
+        void marketplaceApi
+            .getRecommendations(8)
+            .then((data) => {
+                if (!cancelled && data.tags.length > 0) {
+                    setTags(data.tags);
+                }
             })
             .catch(() => {});
         return () => {
@@ -210,17 +213,6 @@ export default function Marketplace() {
                 setItems((prev) =>
                     pageToFetch === 1 ? data.items : [...prev, ...data.items],
                 );
-                if (pageToFetch === 1) {
-                    const keywordTags = Array.from(
-                        new Set(
-                            data.items
-                                .flatMap((item) => item.metaKeywords ?? [])
-                                .map((keyword) => keyword.trim())
-                                .filter((keyword) => keyword.length > 0),
-                        ),
-                    );
-                    setTags(keywordTags.slice(0, 12));
-                }
             } catch {
                 if (!cancelled) {
                     setError(t("marketplace.loadProductsError"));
@@ -260,11 +252,7 @@ export default function Marketplace() {
             />
             <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
                 <div className="mb-12 flex flex-col items-center space-y-6">
-                    <MarketplaceHero
-                        value={draftQ}
-                        onChange={handleSearchInput}
-                        onExplore={handleExplore}
-                    />
+                    <MarketplaceHero value={draftQ} onChange={handleSearchInput} />
                     <MarketplaceCategoryPills
                         value={filterParams.categoryId}
                         options={categories}
@@ -294,9 +282,8 @@ export default function Marketplace() {
                         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                             <h2
                                 id="marketplace-products"
-                                className="flex items-center gap-2 text-xl font-bold scroll-mt-24"
+                                className="text-xl font-bold scroll-mt-24"
                             >
-                                <LayoutGrid className="h-6 w-6 text-primary" aria-hidden />
                                 {useRecommendationFeed
                                     ? t("marketplace.recommendedProducts")
                                     : t("marketplace.allProducts")}
