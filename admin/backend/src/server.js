@@ -1,7 +1,7 @@
 import app from "./app.js";
 
 const PORT = parseInt(
-    process.env.PORT || process.env.ADMIN_PORT || "5001",
+    process.env.ADMIN_PORT || process.env.PORT || "5001",
     10,
 );
 
