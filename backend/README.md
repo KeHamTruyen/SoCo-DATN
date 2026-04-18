@@ -79,6 +79,8 @@ backend/
 │   ├── uploads/        # Uploaded files
 │   ├── app.js          # Express app setup
 │   └── server.js       # Server entry point
+├── test/               # Vitest: unit, HTTP smoke, integration (xem TEST.md)
+├── TEST.md             # Hướng dẫn chi tiết về test backend
 ├── .env                # Environment variables (DATABASE_URL cho Prisma)
 └── package.json
 
@@ -100,6 +102,24 @@ backend/
 - `npm run prisma:migrate:status` - `prisma migrate status`
 - `npm run prisma:studio` - Mở Prisma Studio GUI
 - `npm run prisma:seed` - Seed admin (xem `database/prisma/seed.js` và biến `SEED_*` trong `.env`)
+- `npm run test` - Chạy test unit + HTTP smoke một lần (Vitest)
+- `npm run test:watch` - Test unit + HTTP ở chế độ watch
+- `npm run test:ui` / `npm run test:ui:run` - Vitest UI (giao diện xem/lọc test)
+- `npm run test:coverage` - Unit + HTTP kèm báo cáo coverage (`coverage/`)
+- `npm run test:integration` - Chỉ integration (cần `DATABASE_URL` trong `.env`)
+- `npm run test:integration:ui` - Integration với Vitest UI
+- `npm run test:coverage:integration` - Integration + coverage (`coverage-integration/`)
+- `npm run test:all` - Chạy `test` rồi `test:integration` (giống CI backend)
+
+## 🧪 Kiểm thử (Testing)
+
+Backend dùng **Vitest** và **Supertest** để gọi API qua ứng dụng Express mà không cần bật server thủ công. Có ba nhóm chính:
+
+- **Unit** (`test/unit/`): kiểm tra logic tách biệt (mock khi cần).
+- **HTTP smoke** (`test/http/`): kiểm tra nhanh status/validation trên vài route.
+- **Integration** (`test/integration/`): gọi API có **PostgreSQL thật** (Prisma); cần `DATABASE_URL`.
+
+Giải thích khái niệm (unit vs integration, coverage, Vitest UI), cấu trúc thư mục `test/` và biến môi trường: xem **[TEST.md](TEST.md)**.
 
 ## 📚 API Endpoints
 
