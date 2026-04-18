@@ -17,14 +17,19 @@ import { feedApi } from "../features/feed/api/feedApi";
 import { FeedPostCard } from "../features/feed/components/FeedPostCard";
 import type { FeedComment, FeedPost } from "../features/feed/types/feed.types";
 import { normalizeFeedPost } from "../features/feed/utils/normalizeFeedPost";
-import { searchApi, type UnifiedSearchResponse } from "../features/search/api/searchApi";
+import {
+    searchApi,
+    type UnifiedSearchResponse,
+} from "../features/search/api/searchApi";
 import { Avatar, UnifiedHeader } from "../shared/ui";
 
 type SearchTab = "all" | "products" | "posts" | "people";
 type SourceScope = "all" | "follower" | "followee";
 
 function asObject(value: unknown): Record<string, unknown> {
-    return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+    return value && typeof value === "object"
+        ? (value as Record<string, unknown>)
+        : {};
 }
 
 function readString(
@@ -39,7 +44,10 @@ function readString(
     return fallback;
 }
 
-function readNumber(obj: Record<string, unknown>, keys: string[]): number | null {
+function readNumber(
+    obj: Record<string, unknown>,
+    keys: string[],
+): number | null {
     for (const key of keys) {
         const raw = obj[key];
         if (typeof raw === "number" && Number.isFinite(raw)) return raw;
@@ -53,12 +61,18 @@ function readNumber(obj: Record<string, unknown>, keys: string[]): number | null
 
 function readId(obj: Record<string, unknown>, fallback: string): string {
     const idRaw = obj.id;
-    if (typeof idRaw === "string" || typeof idRaw === "number") return String(idRaw);
+    if (typeof idRaw === "string" || typeof idRaw === "number")
+        return String(idRaw);
     return fallback;
 }
 
 function readImageUrl(obj: Record<string, unknown>): string {
-    const primary = readString(obj, ["imageUrl", "avatarUrl", "photoUrl", "avatar"]);
+    const primary = readString(obj, [
+        "imageUrl",
+        "avatarUrl",
+        "photoUrl",
+        "avatar",
+    ]);
     if (primary) return primary;
     const images = obj.images;
     if (Array.isArray(images) && images.length > 0) {
@@ -95,7 +109,9 @@ export default function SearchPage() {
 
     const [allLoading, setAllLoading] = useState(false);
     const [allError, setAllError] = useState<string | null>(null);
-    const [allResult, setAllResult] = useState<UnifiedSearchResponse | null>(null);
+    const [allResult, setAllResult] = useState<UnifiedSearchResponse | null>(
+        null,
+    );
 
     const [productsLoading, setProductsLoading] = useState(false);
     const [productsLoadingMore, setProductsLoadingMore] = useState(false);
@@ -103,12 +119,10 @@ export default function SearchPage() {
     const [productItems, setProductItems] = useState<ProductListItem[]>([]);
     const [productTotal, setProductTotal] = useState(0);
     const [productPage, setProductPage] = useState(1);
-    const [productSort, setProductSort] = useState<
-        NonNullable<ProductQueryParams["sort"]>
-    >("relevance");
-    const [ratingFilter, setRatingFilter] = useState<
-        ProductQueryParams["ratingFilter"]
-    >(undefined);
+    const [productSort, setProductSort] =
+        useState<NonNullable<ProductQueryParams["sort"]>>("relevance");
+    const [ratingFilter, setRatingFilter] =
+        useState<ProductQueryParams["ratingFilter"]>(undefined);
     const [minPrice, setMinPrice] = useState(0);
     const [maxPrice, setMaxPrice] = useState(MARKETPLACE_PRICE_CAP);
     const [productTags, setProductTags] = useState<string[]>([]);
@@ -123,7 +137,8 @@ export default function SearchPage() {
     const [peopleLoading, setPeopleLoading] = useState(false);
     const [peopleError, setPeopleError] = useState<string | null>(null);
     const [peopleSource, setPeopleSource] = useState<SourceScope>("all");
-    const [peopleResult, setPeopleResult] = useState<UnifiedSearchResponse | null>(null);
+    const [peopleResult, setPeopleResult] =
+        useState<UnifiedSearchResponse | null>(null);
 
     const resetProductState = useCallback(() => {
         setProductsError(null);
@@ -198,7 +213,8 @@ export default function SearchPage() {
                 sort: productSort,
                 ratingFilter,
                 minPrice: minPrice > 0 ? minPrice : undefined,
-                maxPrice: maxPrice < MARKETPLACE_PRICE_CAP ? maxPrice : undefined,
+                maxPrice:
+                    maxPrice < MARKETPLACE_PRICE_CAP ? maxPrice : undefined,
             })
             .then((data) => {
                 if (cancelled) return;
@@ -237,7 +253,15 @@ export default function SearchPage() {
         return () => {
             cancelled = true;
         };
-    }, [activeTab, maxPrice, minPrice, productPage, productSort, q, ratingFilter]);
+    }, [
+        activeTab,
+        maxPrice,
+        minPrice,
+        productPage,
+        productSort,
+        q,
+        ratingFilter,
+    ]);
 
     useEffect(() => {
         if (!q || activeTab !== "posts") {
@@ -267,7 +291,8 @@ export default function SearchPage() {
                 setPostItems(normalized);
             })
             .catch(() => {
-                if (!cancelled) setPostsError("Unable to load posts right now.");
+                if (!cancelled)
+                    setPostsError("Unable to load posts right now.");
             })
             .finally(() => {
                 if (!cancelled) setPostsLoading(false);
@@ -298,7 +323,8 @@ export default function SearchPage() {
                 if (!cancelled) setPeopleResult(data);
             })
             .catch(() => {
-                if (!cancelled) setPeopleError("Unable to load people right now.");
+                if (!cancelled)
+                    setPeopleError("Unable to load people right now.");
             })
             .finally(() => {
                 if (!cancelled) setPeopleLoading(false);
@@ -310,10 +336,15 @@ export default function SearchPage() {
 
     const allSummary = useMemo(() => {
         if (!allResult) return 0;
-        return allResult.products.total + allResult.users.total + allResult.posts.total;
+        return (
+            allResult.products.total +
+            allResult.users.total +
+            allResult.posts.total
+        );
     }, [allResult]);
 
-    const productHasMore = productItems.length > 0 && productItems.length < productTotal;
+    const productHasMore =
+        productItems.length > 0 && productItems.length < productTotal;
     const peopleItems = peopleResult?.users.items ?? [];
 
     const handleApplyPrice = useCallback((nextMin: number, nextMax: number) => {
@@ -401,8 +432,11 @@ export default function SearchPage() {
                         post.id === postId
                             ? {
                                   ...post,
-                                  comments: (post.comments ?? []).map((comment) =>
-                                      comment.id === optimistic.id ? created : comment,
+                                  comments: (post.comments ?? []).map(
+                                      (comment) =>
+                                          comment.id === optimistic.id
+                                              ? created
+                                              : comment,
                                   ),
                               }
                             : post,
@@ -414,7 +448,10 @@ export default function SearchPage() {
                         post.id === postId
                             ? {
                                   ...post,
-                                  commentsCount: Math.max(0, post.commentsCount - 1),
+                                  commentsCount: Math.max(
+                                      0,
+                                      post.commentsCount - 1,
+                                  ),
                                   comments: (post.comments ?? []).filter(
                                       (comment) => comment.id !== optimistic.id,
                                   ),
@@ -447,7 +484,9 @@ export default function SearchPage() {
                 <div className="mb-8">
                     <h1 className="mb-6 text-3xl font-extrabold">
                         Search Results for:{" "}
-                        <span className="text-primary">{q ? `'${q}'` : "'...'"}</span>
+                        <span className="text-primary">
+                            {q ? `'${q}'` : "'...'"}
+                        </span>
                     </h1>
                     <div className="flex items-center gap-8 overflow-x-auto border-b border-border whitespace-nowrap">
                         {[
@@ -481,10 +520,14 @@ export default function SearchPage() {
                 {activeTab === "all" ? (
                     <div className="space-y-8">
                         {allLoading ? (
-                            <p className="text-sm text-muted-foreground">Loading...</p>
+                            <p className="text-sm text-muted-foreground">
+                                Loading...
+                            </p>
                         ) : null}
                         {allError ? (
-                            <p className="text-sm text-destructive">{allError}</p>
+                            <p className="text-sm text-destructive">
+                                {allError}
+                            </p>
                         ) : null}
                         {!allLoading && !allError && allResult ? (
                             <p className="text-sm text-muted-foreground">
@@ -509,132 +552,169 @@ export default function SearchPage() {
                                         </p>
                                     ) : (
                                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                                            {allResult.products.items.map((item, idx) => {
-                                                const value = asObject(item);
-                                                const id = readId(value, String(idx));
-                                                const title = readString(
-                                                    value,
-                                                    ["title", "name"],
-                                                    "Untitled product",
-                                                );
-                                                const imageUrl = readImageUrl(value);
-                                                const rating = readNumber(value, [
-                                                    "rating",
-                                                    "avgRating",
-                                                ]);
-                                                const price = readNumber(value, ["price"]);
-                                                return (
-                                                    <Link
-                                                        key={`all-prod-${id}`}
-                                                        to={`/products/${id}`}
-                                                        className="group rounded-2xl border border-border bg-card p-3 text-card-foreground"
-                                                    >
-                                                        <div className="mb-3 aspect-square overflow-hidden rounded-xl bg-muted">
-                                                            <img
-                                                                src={imageUrl}
-                                                                alt={title}
-                                                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                                            />
-                                                        </div>
-                                                        <h4 className="line-clamp-1 text-sm font-bold">
-                                                            {title}
-                                                        </h4>
-                                                        <div className="mt-1 text-xs text-muted-foreground">
-                                                            {rating != null
-                                                                ? `Rating ${rating.toFixed(1)}`
-                                                                : "No rating yet"}
-                                                        </div>
-                                                        {price != null ? (
-                                                            <p className="mt-2 text-sm font-black text-primary">
-                                                                {price.toLocaleString()} VND
-                                                            </p>
-                                                        ) : null}
-                                                    </Link>
-                                                );
-                                            })}
+                                            {allResult.products.items.map(
+                                                (item, idx) => {
+                                                    const value =
+                                                        asObject(item);
+                                                    const id = readId(
+                                                        value,
+                                                        String(idx),
+                                                    );
+                                                    const title = readString(
+                                                        value,
+                                                        ["title", "name"],
+                                                        "Untitled product",
+                                                    );
+                                                    const imageUrl =
+                                                        readImageUrl(value);
+                                                    const rating = readNumber(
+                                                        value,
+                                                        ["rating", "avgRating"],
+                                                    );
+                                                    const price = readNumber(
+                                                        value,
+                                                        ["price"],
+                                                    );
+                                                    return (
+                                                        <Link
+                                                            key={`all-prod-${id}`}
+                                                            to={`/products/${id}`}
+                                                            className="group rounded-2xl border border-border bg-card p-3 text-card-foreground"
+                                                        >
+                                                            <div className="mb-3 aspect-square overflow-hidden rounded-xl bg-muted">
+                                                                <img
+                                                                    src={
+                                                                        imageUrl
+                                                                    }
+                                                                    alt={title}
+                                                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                                />
+                                                            </div>
+                                                            <h4 className="line-clamp-1 text-sm font-bold">
+                                                                {title}
+                                                            </h4>
+                                                            <div className="mt-1 text-xs text-muted-foreground">
+                                                                {rating != null
+                                                                    ? `Rating ${rating.toFixed(1)}`
+                                                                    : "No rating yet"}
+                                                            </div>
+                                                            {price != null ? (
+                                                                <p className="mt-2 text-sm font-black text-primary">
+                                                                    {price.toLocaleString()}{" "}
+                                                                    VND
+                                                                </p>
+                                                            ) : null}
+                                                        </Link>
+                                                    );
+                                                },
+                                            )}
                                         </div>
                                     )}
                                 </section>
 
                                 <section className="space-y-6">
-                                    <h2 className="text-xl font-bold">Related People</h2>
+                                    <h2 className="text-xl font-bold">
+                                        Related People
+                                    </h2>
                                     {allResult.users.items.length === 0 ? (
                                         <p className="text-sm text-muted-foreground">
                                             No users found.
                                         </p>
                                     ) : (
                                         <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
-                                            {allResult.users.items.map((item, idx) => {
-                                                const value = asObject(item);
-                                                const id = readId(value, String(idx));
-                                                const username = readString(
-                                                    value,
-                                                    ["username"],
-                                                    "unknown",
-                                                );
-                                                const fullName = readString(
-                                                    value,
-                                                    ["fullName", "name"],
-                                                    username,
-                                                );
-                                                return (
-                                                    <div
-                                                        key={`all-user-${id}`}
-                                                        className="flex items-center justify-between gap-3 p-4"
-                                                    >
-                                                        <div className="flex min-w-0 items-center gap-3">
-                                                            <Avatar
-                                                                src={readImageUrl(value)}
-                                                                alt={fullName}
-                                                                wrapperClassName="size-10"
-                                                            />
-                                                            <div className="min-w-0">
-                                                                <Link
-                                                                    className="font-bold hover:text-primary"
-                                                                    to={`/profile/${id}`}
-                                                                >
-                                                                    {fullName}
-                                                                </Link>
-                                                                <p className="truncate text-xs text-muted-foreground">
-                                                                    @{username}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        <Link
-                                                            to={`/profile/${id}`}
-                                                            className="rounded-lg bg-primary/10 px-4 py-2 text-xs font-bold text-primary hover:bg-primary hover:text-primary-foreground"
+                                            {allResult.users.items.map(
+                                                (item, idx) => {
+                                                    const value =
+                                                        asObject(item);
+                                                    const id = readId(
+                                                        value,
+                                                        String(idx),
+                                                    );
+                                                    const username = readString(
+                                                        value,
+                                                        ["username"],
+                                                        "unknown",
+                                                    );
+                                                    const fullName = readString(
+                                                        value,
+                                                        ["fullName", "name"],
+                                                        username,
+                                                    );
+                                                    return (
+                                                        <div
+                                                            key={`all-user-${id}`}
+                                                            className="flex items-center justify-between gap-3 p-4"
                                                         >
-                                                            View
-                                                        </Link>
-                                                    </div>
-                                                );
-                                            })}
+                                                            <div className="flex min-w-0 items-center gap-3">
+                                                                <Avatar
+                                                                    src={readImageUrl(
+                                                                        value,
+                                                                    )}
+                                                                    alt={
+                                                                        fullName
+                                                                    }
+                                                                    wrapperClassName="size-10"
+                                                                />
+                                                                <div className="min-w-0">
+                                                                    <Link
+                                                                        className="font-bold hover:text-primary"
+                                                                        to={`/profile/${id}`}
+                                                                    >
+                                                                        {
+                                                                            fullName
+                                                                        }
+                                                                    </Link>
+                                                                    <p className="truncate text-xs text-muted-foreground">
+                                                                        @
+                                                                        {
+                                                                            username
+                                                                        }
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <Link
+                                                                to={`/profile/${id}`}
+                                                                className="rounded-lg bg-primary/10 px-4 py-2 text-xs font-bold text-primary hover:bg-primary hover:text-primary-foreground"
+                                                            >
+                                                                View
+                                                            </Link>
+                                                        </div>
+                                                    );
+                                                },
+                                            )}
                                         </div>
                                     )}
                                 </section>
 
                                 <section className="space-y-6">
-                                    <h2 className="text-xl font-bold">Popular Posts</h2>
+                                    <h2 className="text-xl font-bold">
+                                        Popular Posts
+                                    </h2>
                                     {allResult.posts.items.length === 0 ? (
                                         <p className="text-sm text-muted-foreground">
                                             No posts found.
                                         </p>
                                     ) : (
                                         <div className="space-y-8">
-                                            {allResult.posts.items.map((item, idx) => {
-                                                const normalized = normalizeFeedPost(
-                                                    asObject(item),
-                                                );
-                                                const key = normalized.id || `all-post-${idx}`;
-                                                return (
-                                                    <FeedPostCard
-                                                        key={key}
-                                                        post={normalized}
-                                                        onLike={() => {}}
-                                                        onComment={() => {}}
-                                                    />
-                                                );
-                                            })}
+                                            {allResult.posts.items.map(
+                                                (item, idx) => {
+                                                    const normalized =
+                                                        normalizeFeedPost(
+                                                            asObject(item),
+                                                        );
+                                                    const key =
+                                                        normalized.id ||
+                                                        `all-post-${idx}`;
+                                                    return (
+                                                        <FeedPostCard
+                                                            key={key}
+                                                            post={normalized}
+                                                            onLike={() => {}}
+                                                            onComment={() => {}}
+                                                        />
+                                                    );
+                                                },
+                                            )}
                                         </div>
                                     )}
                                 </section>
@@ -679,7 +759,9 @@ export default function SearchPage() {
                                 error={productsError}
                                 isLoadingMore={productsLoadingMore}
                                 hasMore={productHasMore}
-                                onLoadMore={() => setProductPage((prev) => prev + 1)}
+                                onLoadMore={() =>
+                                    setProductPage((prev) => prev + 1)
+                                }
                             />
                         </div>
                     </div>
@@ -693,7 +775,9 @@ export default function SearchPage() {
                                 <select
                                     value={postsSource}
                                     onChange={(e) =>
-                                        setPostsSource(e.target.value as SourceScope)
+                                        setPostsSource(
+                                            e.target.value as SourceScope,
+                                        )
                                     }
                                     className="mt-1 h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
                                 >
@@ -717,7 +801,9 @@ export default function SearchPage() {
                                 <input
                                     type="date"
                                     value={postsFromDate}
-                                    onChange={(e) => setPostsFromDate(e.target.value)}
+                                    onChange={(e) =>
+                                        setPostsFromDate(e.target.value)
+                                    }
                                     className="mt-1 h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
                                 />
                             </label>
@@ -726,17 +812,23 @@ export default function SearchPage() {
                                 <input
                                     type="date"
                                     value={postsToDate}
-                                    onChange={(e) => setPostsToDate(e.target.value)}
+                                    onChange={(e) =>
+                                        setPostsToDate(e.target.value)
+                                    }
                                     className="mt-1 h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
                                 />
                             </label>
                         </div>
 
                         {postsLoading ? (
-                            <p className="text-sm text-muted-foreground">Loading posts...</p>
+                            <p className="text-sm text-muted-foreground">
+                                Loading posts...
+                            </p>
                         ) : null}
                         {postsError ? (
-                            <p className="text-sm text-destructive">{postsError}</p>
+                            <p className="text-sm text-destructive">
+                                {postsError}
+                            </p>
                         ) : null}
                         {!postsLoading && !postsError ? (
                             <div className="space-y-8">
@@ -750,14 +842,23 @@ export default function SearchPage() {
                                             key={post.id || `post-only-${idx}`}
                                             post={post}
                                             mode="feed"
-                                            onLike={() => void handleLikePost(post.id)}
+                                            onLike={() =>
+                                                void handleLikePost(post.id)
+                                            }
                                             onComment={(content) =>
-                                                handleCommentPost(post.id, content)
+                                                handleCommentPost(
+                                                    post.id,
+                                                    content,
+                                                )
                                             }
                                             onDeletePost={async (postId) => {
-                                                await feedApi.deletePost(postId);
+                                                await feedApi.deletePost(
+                                                    postId,
+                                                );
                                                 setPostItems((prev) =>
-                                                    prev.filter((p) => p.id !== postId),
+                                                    prev.filter(
+                                                        (p) => p.id !== postId,
+                                                    ),
                                                 );
                                             }}
                                         />
@@ -776,7 +877,9 @@ export default function SearchPage() {
                                 <select
                                     value={peopleSource}
                                     onChange={(e) =>
-                                        setPeopleSource(e.target.value as SourceScope)
+                                        setPeopleSource(
+                                            e.target.value as SourceScope,
+                                        )
                                     }
                                     className="mt-1 h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
                                 >
@@ -788,10 +891,14 @@ export default function SearchPage() {
                         </div>
 
                         {peopleLoading ? (
-                            <p className="text-sm text-muted-foreground">Loading people...</p>
+                            <p className="text-sm text-muted-foreground">
+                                Loading people...
+                            </p>
                         ) : null}
                         {peopleError ? (
-                            <p className="text-sm text-destructive">{peopleError}</p>
+                            <p className="text-sm text-destructive">
+                                {peopleError}
+                            </p>
                         ) : null}
                         {peopleResult ? (
                             peopleItems.length === 0 ? (
@@ -820,7 +927,9 @@ export default function SearchPage() {
                                             >
                                                 <div className="flex min-w-0 items-center gap-3">
                                                     <Avatar
-                                                        src={readImageUrl(value)}
+                                                        src={readImageUrl(
+                                                            value,
+                                                        )}
                                                         alt={fullName}
                                                         wrapperClassName="size-11"
                                                     />
