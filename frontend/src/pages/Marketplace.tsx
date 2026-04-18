@@ -294,9 +294,6 @@ export default function Marketplace() {
                                 onChange={(sort) => patchSearchParams({ sort })}
                             />
                         </div>
-                        <p className="text-sm text-neutral-500 dark:text-neutral-300">
-                            {t("marketplace.productsFound", { count: total })}
-                        </p>
                         <SearchResults
                             items={items}
                             isLoading={isLoading}

@@ -121,7 +121,9 @@ export function ProductCard({ product }: ProductCardProps) {
                 </Link>
                 <div className="mt-2 flex items-center gap-1 text-xs text-amber-500">
                     <Star className="h-3.5 w-3.5 fill-current" aria-hidden />
-                    <span className="font-bold">{product.rating?.toFixed(1) ?? "—"}</span>
+                    <span className="font-bold">
+                        {(product.rating ?? 0).toFixed(1)}
+                    </span>
                     {soldLabel ? (
                         <span className="ml-1 font-normal text-neutral-400 dark:text-neutral-500">
                             ({soldLabel})

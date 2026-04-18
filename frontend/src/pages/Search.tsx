@@ -59,6 +59,26 @@ function readNumber(
     return null;
 }
 
+function toProductListItem(
+    item: unknown,
+    fallbackId: string,
+): ProductListItem | null {
+    const value = asObject(item);
+    const id = readId(value, fallbackId);
+    const name = readString(value, ["name", "title"], "Untitled product");
+    if (!id || !name) return null;
+
+    const priceValue = readNumber(value, ["price"]);
+    return {
+        id,
+        name,
+        imageUrl: readImageUrl(value),
+        rating: readNumber(value, ["rating", "avgRating"]) ?? 0,
+        soldCount: readNumber(value, ["soldCount"]) ?? 0,
+        price: priceValue ?? 0,
+    };
+}
+
 function readId(obj: Record<string, unknown>, fallback: string): string {
     const idRaw = obj.id;
     if (typeof idRaw === "string" || typeof idRaw === "number")
@@ -342,6 +362,15 @@ export default function SearchPage() {
             allResult.posts.total
         );
     }, [allResult]);
+    const allProductItems = useMemo(
+        () =>
+            (allResult?.products.items ?? [])
+                .map((item, idx) =>
+                    toProductListItem(item, `all-product-${idx}`),
+                )
+                .filter((item): item is ProductListItem => item !== null),
+        [allResult],
+    );
 
     const productHasMore =
         productItems.length > 0 && productItems.length < productTotal;
@@ -551,64 +580,11 @@ export default function SearchPage() {
                                             No products found.
                                         </p>
                                     ) : (
-                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                                            {allResult.products.items.map(
-                                                (item, idx) => {
-                                                    const value =
-                                                        asObject(item);
-                                                    const id = readId(
-                                                        value,
-                                                        String(idx),
-                                                    );
-                                                    const title = readString(
-                                                        value,
-                                                        ["title", "name"],
-                                                        "Untitled product",
-                                                    );
-                                                    const imageUrl =
-                                                        readImageUrl(value);
-                                                    const rating = readNumber(
-                                                        value,
-                                                        ["rating", "avgRating"],
-                                                    );
-                                                    const price = readNumber(
-                                                        value,
-                                                        ["price"],
-                                                    );
-                                                    return (
-                                                        <Link
-                                                            key={`all-prod-${id}`}
-                                                            to={`/products/${id}`}
-                                                            className="group rounded-2xl border border-border bg-card p-3 text-card-foreground"
-                                                        >
-                                                            <div className="mb-3 aspect-square overflow-hidden rounded-xl bg-muted">
-                                                                <img
-                                                                    src={
-                                                                        imageUrl
-                                                                    }
-                                                                    alt={title}
-                                                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                                                />
-                                                            </div>
-                                                            <h4 className="line-clamp-1 text-sm font-bold">
-                                                                {title}
-                                                            </h4>
-                                                            <div className="mt-1 text-xs text-muted-foreground">
-                                                                {rating != null
-                                                                    ? `Rating ${rating.toFixed(1)}`
-                                                                    : "No rating yet"}
-                                                            </div>
-                                                            {price != null ? (
-                                                                <p className="mt-2 text-sm font-black text-primary">
-                                                                    {price.toLocaleString()}{" "}
-                                                                    VND
-                                                                </p>
-                                                            ) : null}
-                                                        </Link>
-                                                    );
-                                                },
-                                            )}
-                                        </div>
+                                        <SearchResults
+                                            items={allProductItems}
+                                            isLoading={false}
+                                            error={null}
+                                        />
                                     )}
                                 </section>
 
