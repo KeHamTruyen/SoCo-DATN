@@ -21,6 +21,7 @@ import { useNotificationCenter } from "../../../../features/notification/context
 import { useAuthSession } from "../../../auth/useAuthSession";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../../lib/cn";
+import { getSearchHistory, saveSearchTerm } from "../../../lib/searchHistory";
 import { ThemePickerModal } from "../../molecules/theme-picker-modal/ThemePickerModal";
 import { Avatar, Button, Input } from "../../atoms";
 import { BrandLogo } from "../brand-logo/BrandLogo";
@@ -35,6 +36,8 @@ interface UnifiedHeaderProps {
     activePath?: string;
     searchValue?: string;
     onSearch?: (value: string) => void;
+    onSearchSubmit?: (value: string) => void;
+    onSearchFocus?: () => void;
 }
 
 const defaultNavItems: HeaderNavItem[] = [
@@ -61,6 +64,8 @@ export function UnifiedHeader({
     activePath,
     searchValue,
     onSearch,
+    onSearchSubmit,
+    onSearchFocus,
 }: UnifiedHeaderProps) {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [notifOpen, setNotifOpen] = useState(false);
@@ -71,6 +76,8 @@ export function UnifiedHeader({
     const notifRef = useRef<HTMLDivElement>(null);
     const messageRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
+    const desktopSearchRef = useRef<HTMLDivElement>(null);
+    const mobileSearchRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
     const { user, logout } = useAuthSession();
     const { t, i18n } = useTranslation();
@@ -85,6 +92,9 @@ export function UnifiedHeader({
     const messaging = useMessagingOptional();
     const unreadChatsCount = messaging?.unreadChatsCount ?? 0;
     const [internalSearch, setInternalSearch] = useState(searchValue ?? "");
+    const [searchHistoryOpen, setSearchHistoryOpen] = useState(false);
+    const [historyItems, setHistoryItems] = useState<string[]>([]);
+    const [visibleHistoryCount, setVisibleHistoryCount] = useState(7);
 
     useEffect(() => {
         if (searchValue !== undefined) {
@@ -108,6 +118,11 @@ export function UnifiedHeader({
             }
             if (messageRef.current && !messageRef.current.contains(t)) {
                 setMessagesOpen(false);
+            }
+            const outsideDesktop = !desktopSearchRef.current?.contains(t);
+            const outsideMobile = !mobileSearchRef.current?.contains(t);
+            if (outsideDesktop && outsideMobile) {
+                setSearchHistoryOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -140,12 +155,26 @@ export function UnifiedHeader({
         onSearch?.(value);
     };
 
+    const openSearchHistory = () => {
+        setHistoryItems(getSearchHistory());
+        setVisibleHistoryCount(7);
+        setSearchHistoryOpen(true);
+        onSearchFocus?.();
+    };
+
     const submitSearch = (rawValue: string) => {
         const value = rawValue.trim();
         if (!value) return;
-        navigate(`/search?q=${encodeURIComponent(value)}`);
+        const nextHistory = saveSearchTerm(value);
+        setHistoryItems(nextHistory);
+        if (onSearchSubmit) onSearchSubmit(value);
+        else navigate(`/search?q=${encodeURIComponent(value)}`);
+        setSearchHistoryOpen(false);
         setMobileOpen(false);
     };
+
+    const currentSearchValue = searchValue !== undefined ? searchValue : internalSearch;
+    const visibleHistory = historyItems.slice(0, visibleHistoryCount);
 
     return (
         <>
@@ -172,23 +201,59 @@ export function UnifiedHeader({
                 </div>
 
                 <div className="hidden flex-1 px-2 md:block">
-                    <div className="relative mx-auto max-w-2xl">
+                    <div ref={desktopSearchRef} className="relative mx-auto max-w-2xl">
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                         <Input
                             className="h-10 pl-9"
                             placeholder={t("header.searchPlaceholder")}
-                            value={searchValue !== undefined ? searchValue : internalSearch}
+                            value={currentSearchValue}
+                            onFocus={openSearchHistory}
                             onChange={(e: ChangeEvent<HTMLInputElement>) =>
                                 handleSearchChange(e.target.value)
                             }
                             onKeyDown={(event) => {
                                 if (event.key === "Enter") {
-                                    submitSearch(
-                                        searchValue !== undefined ? searchValue : internalSearch,
-                                    );
+                                    submitSearch(currentSearchValue);
                                 }
                             }}
                         />
+                        {searchHistoryOpen ? (
+                            <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-60 rounded-xl border border-neutral-200 bg-white p-2 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
+                                <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+                                    Recent searches
+                                </p>
+                                {visibleHistory.length > 0 ? (
+                                    <div className="space-y-1">
+                                        {visibleHistory.map((term) => (
+                                            <button
+                                                key={term}
+                                                type="button"
+                                                className="w-full rounded-lg px-2 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                                                onClick={() => {
+                                                    handleSearchChange(term);
+                                                    submitSearch(term);
+                                                }}
+                                            >
+                                                {term}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="px-2 py-2 text-sm text-neutral-500 dark:text-neutral-400">
+                                        No recent searches yet.
+                                    </p>
+                                )}
+                                {historyItems.length > visibleHistoryCount ? (
+                                    <button
+                                        type="button"
+                                        className="mt-1 w-full rounded-lg px-2 py-2 text-left text-sm font-semibold text-primary hover:bg-primary/10"
+                                        onClick={() => setVisibleHistoryCount((prev) => prev + 5)}
+                                    >
+                                        Load more
+                                    </button>
+                                ) : null}
+                            </div>
+                        ) : null}
                     </div>
                 </div>
 
@@ -352,23 +417,59 @@ export function UnifiedHeader({
 
                 {mobileOpen ? (
                     <div className="space-y-3 border-t border-neutral-200 px-4 py-4 dark:border-neutral-800 md:hidden">
-                    <div className="relative">
+                    <div ref={mobileSearchRef} className="relative">
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                         <Input
                             className="h-10 pl-9"
                             placeholder={t("header.searchPlaceholder")}
-                            value={searchValue !== undefined ? searchValue : internalSearch}
+                            value={currentSearchValue}
+                            onFocus={openSearchHistory}
                             onChange={(e: ChangeEvent<HTMLInputElement>) =>
                                 handleSearchChange(e.target.value)
                             }
                             onKeyDown={(event) => {
                                 if (event.key === "Enter") {
-                                    submitSearch(
-                                        searchValue !== undefined ? searchValue : internalSearch,
-                                    );
+                                    submitSearch(currentSearchValue);
                                 }
                             }}
                         />
+                        {searchHistoryOpen ? (
+                            <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-60 rounded-xl border border-neutral-200 bg-white p-2 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
+                                <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+                                    Recent searches
+                                </p>
+                                {visibleHistory.length > 0 ? (
+                                    <div className="space-y-1">
+                                        {visibleHistory.map((term) => (
+                                            <button
+                                                key={`m-${term}`}
+                                                type="button"
+                                                className="w-full rounded-lg px-2 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                                                onClick={() => {
+                                                    handleSearchChange(term);
+                                                    submitSearch(term);
+                                                }}
+                                            >
+                                                {term}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="px-2 py-2 text-sm text-neutral-500 dark:text-neutral-400">
+                                        No recent searches yet.
+                                    </p>
+                                )}
+                                {historyItems.length > visibleHistoryCount ? (
+                                    <button
+                                        type="button"
+                                        className="mt-1 w-full rounded-lg px-2 py-2 text-left text-sm font-semibold text-primary hover:bg-primary/10"
+                                        onClick={() => setVisibleHistoryCount((prev) => prev + 5)}
+                                    >
+                                        Load more
+                                    </button>
+                                ) : null}
+                            </div>
+                        ) : null}
                     </div>
                     <nav className="flex flex-col gap-1">
                         {navItems.map((item) => (
