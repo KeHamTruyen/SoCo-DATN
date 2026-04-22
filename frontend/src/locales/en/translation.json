@@ -57,7 +57,16 @@
         "account": "Account",
         "profileSettings": "Profile Settings",
         "searchPlaceholder": "Search products, users...",
-        "language": "Language"
+        "language": "Language",
+        "recentSearches": "Recent searches",
+        "noRecentSearches": "No recent searches yet.",
+        "loadMoreSearches": "Load more",
+        "openAccountMenu": "Open account menu",
+        "toggleNavigation": "Toggle navigation"
+    },
+    "guestAuth": {
+        "title": "Please sign in",
+        "description": "You need to sign in or create an account to perform this action."
     },
     "theme": {
         "title": "Theme Preferences",

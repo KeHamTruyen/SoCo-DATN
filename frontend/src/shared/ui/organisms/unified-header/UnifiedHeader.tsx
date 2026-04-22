@@ -220,7 +220,7 @@ export function UnifiedHeader({
                         {searchHistoryOpen ? (
                             <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-60 rounded-xl border border-neutral-200 bg-white p-2 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
                                 <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-                                    Recent searches
+                                    {t("header.recentSearches")}
                                 </p>
                                 {visibleHistory.length > 0 ? (
                                     <div className="space-y-1">
@@ -240,7 +240,7 @@ export function UnifiedHeader({
                                     </div>
                                 ) : (
                                     <p className="px-2 py-2 text-sm text-neutral-500 dark:text-neutral-400">
-                                        No recent searches yet.
+                                        {t("header.noRecentSearches")}
                                     </p>
                                 )}
                                 {historyItems.length > visibleHistoryCount ? (
@@ -249,7 +249,7 @@ export function UnifiedHeader({
                                         className="mt-1 w-full rounded-lg px-2 py-2 text-left text-sm font-semibold text-primary hover:bg-primary/10"
                                         onClick={() => setVisibleHistoryCount((prev) => prev + 5)}
                                     >
-                                        Load more
+                                        {t("header.loadMoreSearches")}
                                     </button>
                                 ) : null}
                             </div>
@@ -258,66 +258,70 @@ export function UnifiedHeader({
                 </div>
 
                 <div className="flex items-center gap-1 sm:gap-2">
-                    <div ref={notifRef} className="relative">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="relative text-neutral-600 dark:text-neutral-300"
-                            onClick={() => {
-                                setNotifOpen((v) => !v);
-                                setMessagesOpen(false);
-                            }}
-                            aria-label={
-                                unreadCount > 0
-                                    ? t("header.notificationsBadgeAria", { count: unreadCount })
-                                    : t("header.notifications")
-                            }
-                        >
-                            <Bell className="h-5 w-5" />
-                            <HeaderCountBadge count={unreadCount} />
-                        </Button>
-                        {notifOpen && (
-                            <NotificationDropdown
-                                notifications={notifications}
-                                unreadCount={unreadCount}
-                                onClose={() => setNotifOpen(false)}
-                                onMarkAllRead={() => void markAllRead()}
-                            />
-                        )}
-                    </div>
-                    <div ref={messageRef} className="relative">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="relative text-neutral-600 dark:text-neutral-300"
-                            onClick={() => {
-                                setMessagesOpen((v) => !v);
-                                setNotifOpen(false);
-                            }}
-                            aria-expanded={messagesOpen}
-                            aria-haspopup="dialog"
-                            aria-label={
-                                unreadChatsCount > 0
-                                    ? t("header.messagesBadgeAria", { count: unreadChatsCount })
-                                    : t("header.messages")
-                            }
-                        >
-                            <MessageCircle className="h-5 w-5" />
-                            <HeaderCountBadge count={unreadChatsCount} />
-                        </Button>
-                        {messagesOpen && messaging ? (
-                            <MessageDropdown onClose={() => setMessagesOpen(false)} />
-                        ) : null}
-                    </div>
-                    <Link to="/cart">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-neutral-600 dark:text-neutral-300"
-                        >
-                            <ShoppingCart className="h-5 w-5" />
-                        </Button>
-                    </Link>
+                    {user ? (
+                        <>
+                            <div ref={notifRef} className="relative">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="relative text-neutral-600 dark:text-neutral-300"
+                                    onClick={() => {
+                                        setNotifOpen((v) => !v);
+                                        setMessagesOpen(false);
+                                    }}
+                                    aria-label={
+                                        unreadCount > 0
+                                            ? t("header.notificationsBadgeAria", { count: unreadCount })
+                                            : t("header.notifications")
+                                    }
+                                >
+                                    <Bell className="h-5 w-5" />
+                                    <HeaderCountBadge count={unreadCount} />
+                                </Button>
+                                {notifOpen && (
+                                    <NotificationDropdown
+                                        notifications={notifications}
+                                        unreadCount={unreadCount}
+                                        onClose={() => setNotifOpen(false)}
+                                        onMarkAllRead={() => void markAllRead()}
+                                    />
+                                )}
+                            </div>
+                            <div ref={messageRef} className="relative">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="relative text-neutral-600 dark:text-neutral-300"
+                                    onClick={() => {
+                                        setMessagesOpen((v) => !v);
+                                        setNotifOpen(false);
+                                    }}
+                                    aria-expanded={messagesOpen}
+                                    aria-haspopup="dialog"
+                                    aria-label={
+                                        unreadChatsCount > 0
+                                            ? t("header.messagesBadgeAria", { count: unreadChatsCount })
+                                            : t("header.messages")
+                                    }
+                                >
+                                    <MessageCircle className="h-5 w-5" />
+                                    <HeaderCountBadge count={unreadChatsCount} />
+                                </Button>
+                                {messagesOpen && messaging ? (
+                                    <MessageDropdown onClose={() => setMessagesOpen(false)} />
+                                ) : null}
+                            </div>
+                            <Link to="/cart">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-neutral-600 dark:text-neutral-300"
+                                >
+                                    <ShoppingCart className="h-5 w-5" />
+                                </Button>
+                            </Link>
+                        </>
+                    ) : null}
 
                     {user ? (
                         <div ref={profileRef} className="relative shrink-0">
@@ -326,8 +330,8 @@ export function UnifiedHeader({
                                 onClick={() => setProfileOpen((v) => !v)}
                                 className="rounded-full ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                 aria-haspopup="menu"
-                                aria-label="Open account menu"
-                                title="Open account menu"
+                                aria-label={t("header.openAccountMenu")}
+                                title={t("header.openAccountMenu")}
                             >
                                 <Avatar
                                     wrapperClassName=""
@@ -395,16 +399,23 @@ export function UnifiedHeader({
                             ) : null}
                         </div>
                     ) : (
-                        <Link to="/profile" className="shrink-0">
-                            <Avatar wrapperClassName="" alt="User avatar" />
-                        </Link>
+                        <div className="flex items-center gap-2">
+                            <Link to="/login" className="shrink-0">
+                                <Button size="sm" variant="outline">
+                                    {t("header.login")}
+                                </Button>
+                            </Link>
+                            <Link to="/signup" className="shrink-0">
+                                <Button size="sm">{t("header.register")}</Button>
+                            </Link>
+                        </div>
                     )}
                     <Button
                         variant="ghost"
                         size="icon"
                         className="md:hidden"
                         onClick={() => setMobileOpen((prev) => !prev)}
-                        aria-label="Toggle navigation"
+                        aria-label={t("header.toggleNavigation")}
                     >
                         {mobileOpen ? (
                             <X className="h-5 w-5" />
@@ -436,7 +447,7 @@ export function UnifiedHeader({
                         {searchHistoryOpen ? (
                             <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-60 rounded-xl border border-neutral-200 bg-white p-2 shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
                                 <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-                                    Recent searches
+                                    {t("header.recentSearches")}
                                 </p>
                                 {visibleHistory.length > 0 ? (
                                     <div className="space-y-1">
@@ -456,7 +467,7 @@ export function UnifiedHeader({
                                     </div>
                                 ) : (
                                     <p className="px-2 py-2 text-sm text-neutral-500 dark:text-neutral-400">
-                                        No recent searches yet.
+                                        {t("header.noRecentSearches")}
                                     </p>
                                 )}
                                 {historyItems.length > visibleHistoryCount ? (
@@ -465,7 +476,7 @@ export function UnifiedHeader({
                                         className="mt-1 w-full rounded-lg px-2 py-2 text-left text-sm font-semibold text-primary hover:bg-primary/10"
                                         onClick={() => setVisibleHistoryCount((prev) => prev + 5)}
                                     >
-                                        Load more
+                                        {t("header.loadMoreSearches")}
                                     </button>
                                 ) : null}
                             </div>
@@ -543,7 +554,26 @@ export function UnifiedHeader({
                                 {t("header.logout")}
                             </button>
                         </div>
-                    ) : null}
+                    ) : (
+                        <div className="border-t border-neutral-200 pt-3 dark:border-neutral-800">
+                            <div className="flex gap-2">
+                                <Link
+                                    to="/login"
+                                    className="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-neutral-200 px-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                                    onClick={() => setMobileOpen(false)}
+                                >
+                                    {t("header.login")}
+                                </Link>
+                                <Link
+                                    to="/signup"
+                                    className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-primary px-3 text-sm font-semibold text-white hover:bg-primary/90"
+                                    onClick={() => setMobileOpen(false)}
+                                >
+                                    {t("header.register")}
+                                </Link>
+                            </div>
+                        </div>
+                    )}
                     </div>
                 ) : null}
 

@@ -57,7 +57,16 @@
         "account": "Tài khoản",
         "profileSettings": "Cài đặt hồ sơ",
         "searchPlaceholder": "Tìm kiếm sản phẩm, người dùng...",
-        "language": "Ngôn ngữ"
+        "language": "Ngôn ngữ",
+        "recentSearches": "Tìm kiếm gần đây",
+        "noRecentSearches": "Chưa có tìm kiếm gần đây.",
+        "loadMoreSearches": "Tải thêm",
+        "openAccountMenu": "Mở menu tài khoản",
+        "toggleNavigation": "Bật/tắt điều hướng"
+    },
+    "guestAuth": {
+        "title": "Vui lòng đăng nhập",
+        "description": "Bạn cần đăng nhập hoặc tạo tài khoản để thực hiện hành động này."
     },
     "theme": {
         "title": "Giao diện",
