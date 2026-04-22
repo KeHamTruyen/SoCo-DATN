@@ -7,6 +7,7 @@ import { useGroupMembers } from "../hooks/useGroupMembers";
 import { useGroupAction } from "../hooks/useGroupAction";
 import type { Group, GroupMemberBrief, GroupJoinRequest, GroupInvite } from "../types/group.types";
 import type { FeedPost, CreatePostPayload } from "../../feed/types/feed.types";
+import { useAuthSession } from "../../../shared/auth/useAuthSession";
 
 interface GroupContextValue {
     id: string | undefined;
@@ -19,6 +20,8 @@ interface GroupContextValue {
     setShowUpdateModal: React.Dispatch<React.SetStateAction<boolean>>;
     showPostModal: boolean;
     setShowPostModal: React.Dispatch<React.SetStateAction<boolean>>;
+    showGuestAuthModal: boolean;
+    setShowGuestAuthModal: React.Dispatch<React.SetStateAction<boolean>>;
     
     // Actions
     isLeaving: boolean;
@@ -56,11 +59,23 @@ const GroupContext = createContext<GroupContextValue | null>(null);
 
 export function GroupProvider({ children }: { children: ReactNode }) {
     const { id } = useParams<{ id: string }>();
+    const { isAuthenticated } = useAuthSession();
     
     const { group, setGroup, isLoading } = useGroupData(id);
     const { activeTab, setActiveTab } = useGroupTabs();
-    const { isLeaving, leaveError, setLeaveError, handleJoinGroup, handleLeaveGroup } = useGroupAction(id, group, setGroup);
-    const { posts, postsLoading, handleCreatePost, handleLike, handleComment, handleDeletePost } = useGroupPosts(id, activeTab);
+    const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
+    const promptGuestAuth = () => setShowGuestAuthModal(true);
+    const { isLeaving, leaveError, setLeaveError, handleJoinGroup, handleLeaveGroup } = useGroupAction(
+        id,
+        group,
+        setGroup,
+        { isAuthenticated, onAuthRequired: promptGuestAuth },
+    );
+    const { posts, postsLoading, handleCreatePost, handleLike, handleComment, handleDeletePost } = useGroupPosts(
+        id,
+        activeTab,
+        { isAuthenticated, onAuthRequired: promptGuestAuth },
+    );
     const { 
         members, joinRequests, invites, mediaRows, productRows, tabLoading,
         handlePromoteDemote, handleRemoveMember, handleReviewRequest, handleCreateInvite 
@@ -80,6 +95,8 @@ export function GroupProvider({ children }: { children: ReactNode }) {
                 setShowUpdateModal,
                 showPostModal,
                 setShowPostModal,
+                showGuestAuthModal,
+                setShowGuestAuthModal,
                 isLeaving,
                 leaveError,
                 setLeaveError,

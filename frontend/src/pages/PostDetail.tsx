@@ -3,15 +3,18 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { feedApi } from "../features/feed/api/feedApi";
 import { FeedPostCard } from "../features/feed/components/FeedPostCard";
 import type { FeedPost } from "../features/feed/types/feed.types";
-import { UnifiedHeader } from "../shared/ui";
+import { useAuthSession } from "../shared/auth/useAuthSession";
+import { GuestAuthModal, UnifiedHeader } from "../shared/ui";
 
 export default function PostDetail() {
     const { id, postId } = useParams<{ id?: string; postId?: string }>();
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuthSession();
     const resolvedPostId = postId ?? id;
     const [post, setPost] = useState<FeedPost | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
 
     useEffect(() => {
         if (!resolvedPostId) return;
@@ -34,6 +37,10 @@ export default function PostDetail() {
     }, [resolvedPostId]);
 
     const handleLike = async () => {
+        if (!isAuthenticated) {
+            setShowGuestAuthModal(true);
+            return;
+        }
         if (!post) return;
         const prev = post;
         setPost((p) => {
@@ -55,6 +62,10 @@ export default function PostDetail() {
     };
 
     const handleComment = async (content: string) => {
+        if (!isAuthenticated) {
+            setShowGuestAuthModal(true);
+            return;
+        }
         if (!post) return;
         try {
             const comment = await feedApi.addComment(post.id, content);
@@ -125,6 +136,10 @@ export default function PostDetail() {
                     />
                 )}
             </main>
+            <GuestAuthModal
+                open={showGuestAuthModal}
+                onClose={() => setShowGuestAuthModal(false)}
+            />
         </div>
     );
 }

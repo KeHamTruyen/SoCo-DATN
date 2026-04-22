@@ -56,7 +56,7 @@ export const profileApi = {
     async getProfile(userId: string) {
         const res = await httpClient.get<ApiResponse<Record<string, unknown>> | Record<string, unknown>>(
             `/users/${userId}`,
-            { requiresAuth: true },
+            { requiresAuth: false },
         );
         return normalizePublicUserProfile(unwrap(res));
     },

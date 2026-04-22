@@ -3,7 +3,16 @@ import { groupApi } from "../../group/api/groupApi";
 import { feedApi } from "../../feed/api/feedApi";
 import type { FeedPost, CreatePostPayload } from "../../feed/types/feed.types";
 
-export function useGroupPosts(id: string | undefined, activeTab: string) {
+interface UseGroupPostsOptions {
+    isAuthenticated: boolean;
+    onAuthRequired: () => void;
+}
+
+export function useGroupPosts(
+    id: string | undefined,
+    activeTab: string,
+    { isAuthenticated, onAuthRequired }: UseGroupPostsOptions,
+) {
     const [posts, setPosts] = useState<FeedPost[]>([]);
     const [postsLoading, setPostsLoading] = useState(false);
 
@@ -25,12 +34,20 @@ export function useGroupPosts(id: string | undefined, activeTab: string) {
     }, [fetchPosts]);
 
     const handleCreatePost = async (payload: CreatePostPayload) => {
+        if (!isAuthenticated) {
+            onAuthRequired();
+            return;
+        }
         if (!id) return;
         await groupApi.createGroupPost(id, payload);
         void fetchPosts();
     };
 
     const handleLike = async (postId: string) => {
+        if (!isAuthenticated) {
+            onAuthRequired();
+            return;
+        }
         await feedApi.likePost(postId);
         setPosts((prev) =>
             prev.map((p) =>
@@ -42,6 +59,10 @@ export function useGroupPosts(id: string | undefined, activeTab: string) {
     };
 
     const handleComment = async (postId: string, content: string) => {
+        if (!isAuthenticated) {
+            onAuthRequired();
+            return;
+        }
         await feedApi.addComment(postId, content);
         setPosts((prev) =>
             prev.map((p) =>

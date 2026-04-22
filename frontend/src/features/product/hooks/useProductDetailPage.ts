@@ -14,7 +14,20 @@ const REVIEW_PAGE_SIZE = 3;
 
 export type ProductDetailTab = "reviews" | "details" | "shipping";
 
-export function useProductDetailPage(productId?: string) {
+interface UseProductDetailPageOptions {
+    productId?: string;
+    isAuthenticated?: boolean;
+    onAuthRequired?: () => void;
+}
+
+export function useProductDetailPage(options?: UseProductDetailPageOptions | string) {
+    const normalizedOptions =
+        typeof options === "string" ? { productId: options } : (options ?? {});
+    const {
+        productId,
+        isAuthenticated = true,
+        onAuthRequired = () => {},
+    } = normalizedOptions;
     const [product, setProduct] = useState<ProductDetail | null>(null);
     const [reviews, setReviews] = useState<ProductReviewItem[]>([]);
     const [reviewsPage, setReviewsPage] = useState(1);
@@ -189,6 +202,10 @@ export function useProductDetailPage(productId?: string) {
         quantity: number,
         variantId?: string,
     ): Promise<boolean> => {
+        if (!isAuthenticated) {
+            onAuthRequired();
+            return false;
+        }
         if (!product) return false;
         if (product.variants?.length && !variantId) {
             setCartActionError(

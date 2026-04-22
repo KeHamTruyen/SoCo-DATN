@@ -2,7 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { feedApi } from "../api/feedApi";
 import type { CreatePostPayload, FeedComment, FeedPost } from "../types/feed.types";
 
-export function useFeed() {
+interface UseFeedOptions {
+    isAuthenticated: boolean;
+    onAuthRequired: () => void;
+}
+
+export function useFeed({ isAuthenticated, onAuthRequired }: UseFeedOptions) {
     const [posts, setPosts] = useState<FeedPost[]>([]);
     const [nextCursor, setNextCursor] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -40,11 +45,19 @@ export function useFeed() {
     }, [isLoadingMore, nextCursor]);
 
     const createPost = useCallback(async (payload: CreatePostPayload) => {
+        if (!isAuthenticated) {
+            onAuthRequired();
+            return;
+        }
         const created = await feedApi.createPost(payload);
         setPosts((prev) => [created, ...prev]);
-    }, []);
+    }, [isAuthenticated, onAuthRequired]);
 
     const toggleLike = useCallback(async (postId: string) => {
+        if (!isAuthenticated) {
+            onAuthRequired();
+            return;
+        }
         setPosts((prev) =>
             prev.map((post) =>
                 post.id === postId
@@ -79,9 +92,13 @@ export function useFeed() {
                 ),
             );
         }
-    }, []);
+    }, [isAuthenticated, onAuthRequired]);
 
     const addComment = useCallback(async (postId: string, content: string) => {
+        if (!isAuthenticated) {
+            onAuthRequired();
+            return;
+        }
         const optimistic: FeedComment = {
             id: `temp-${Date.now()}`,
             content,
@@ -134,7 +151,7 @@ export function useFeed() {
                 ),
             );
         }
-    }, []);
+    }, [isAuthenticated, onAuthRequired]);
 
     return useMemo(
         () => ({

@@ -1,4 +1,4 @@
-import { UnifiedHeader } from "../shared/ui";
+import { GuestAuthModal, UnifiedHeader } from "../shared/ui";
 import { XCircle } from "lucide-react";
 import { GroupProvider, useGroupContext } from "../features/group/context/GroupContext";
 import { GroupHeader } from "../features/group/components/GroupHeader";
@@ -14,7 +14,8 @@ function GroupDetailInner() {
     const { 
         group, isLoading, activeTab, 
         showPostModal, setShowPostModal, handleCreatePost,
-        showUpdateModal, setShowUpdateModal, setGroup
+        showUpdateModal, setShowUpdateModal, setGroup,
+        showGuestAuthModal, setShowGuestAuthModal,
     } = useGroupContext();
 
     return (
@@ -88,6 +89,10 @@ function GroupDetailInner() {
                     }}
                 />
             )}
+            <GuestAuthModal
+                open={showGuestAuthModal}
+                onClose={() => setShowGuestAuthModal(false)}
+            />
         </div>
     );
 }

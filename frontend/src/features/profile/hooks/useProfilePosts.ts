@@ -5,10 +5,16 @@ import type { PublicUserProfile } from "../types/profile.types";
 import { PROFILE_POST_PAGE_SIZE } from "../constants/profilePageConstants";
 import type { UserProfile } from "../../auth/types/auth.types";
 
+interface ProfileAuthOptions {
+    isAuthenticated?: boolean;
+    onAuthRequired?: () => void;
+}
+
 export function useProfilePosts(
     profile: PublicUserProfile | null,
     user: UserProfile | null,
-    setProfile: React.Dispatch<React.SetStateAction<PublicUserProfile | null>>
+    setProfile: React.Dispatch<React.SetStateAction<PublicUserProfile | null>>,
+    { isAuthenticated = true, onAuthRequired = () => {} }: ProfileAuthOptions = {},
 ) {
     const [posts, setPosts] = useState<FeedPost[]>([]);
     const [postsPage, setPostsPage] = useState(1);
@@ -70,6 +76,10 @@ export function useProfilePosts(
 
     const handleProfileCreatePost = useCallback(
         async (payload: CreatePostPayload) => {
+            if (!isAuthenticated) {
+                onAuthRequired();
+                return;
+            }
             if (payload.scheduledAt) {
                 await feedApi.createScheduledPost(payload);
             } else {
@@ -87,10 +97,14 @@ export function useProfilePosts(
                 }
             }
         },
-        [profile, user?.id, setProfile]
+        [isAuthenticated, onAuthRequired, profile, user?.id, setProfile]
     );
 
     const handleProfileModalLike = useCallback(async (postId: string) => {
+        if (!isAuthenticated) {
+            onAuthRequired();
+            return;
+        }
         setPosts((prev) =>
             prev.map((post) =>
                 post.id === postId
@@ -127,10 +141,14 @@ export function useProfilePosts(
                 )
             );
         }
-    }, []);
+    }, [isAuthenticated, onAuthRequired]);
 
     const handleProfileModalComment = useCallback(
         async (postId: string, content: string) => {
+            if (!isAuthenticated) {
+                onAuthRequired();
+                return;
+            }
             const optimistic: FeedComment = {
                 id: `temp-${Date.now()}`,
                 content,
@@ -193,7 +211,7 @@ export function useProfilePosts(
                 );
             }
         },
-        [user]
+        [isAuthenticated, onAuthRequired, user]
     );
 
     return {

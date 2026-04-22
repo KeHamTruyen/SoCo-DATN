@@ -7,6 +7,7 @@ import { useProfilePosts } from "../hooks/useProfilePosts";
 import { useProfileMedia } from "../hooks/useProfileMedia";
 import { useProfileFollow } from "../hooks/useProfileFollow";
 import type { FeedPost } from "../../feed/types/feed.types";
+import { useAuthSession } from "../../../shared/auth/useAuthSession";
 
 export type ProfileContextValue = ReturnType<typeof useProfileData> &
     ReturnType<typeof useProfileTabs> &
@@ -23,6 +24,8 @@ export type ProfileContextValue = ReturnType<typeof useProfileData> &
         handleShareShop: () => Promise<void>;
         openProfilePostModal: (post: FeedPost) => void;
         profileModalPost: FeedPost | null;
+        showGuestAuthModal: boolean;
+        setShowGuestAuthModal: React.Dispatch<React.SetStateAction<boolean>>;
     };
 
 const ProfileContext = createContext<ProfileContextValue | null>(null);
@@ -30,12 +33,23 @@ const ProfileContext = createContext<ProfileContextValue | null>(null);
 export function ProfileProvider({ children }: { children: ReactNode }) {
     const { id } = useParams<{ id: string }>();
     const { t } = useTranslation();
+    const { isAuthenticated } = useAuthSession();
 
     const profileData = useProfileData(id);
+    const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
+    const promptGuestAuth = () => setShowGuestAuthModal(true);
     const profileTabs = useProfileTabs();
-    const profilePosts = useProfilePosts(profileData.profile, profileData.user, profileData.setProfile);
+    const profilePosts = useProfilePosts(
+        profileData.profile,
+        profileData.user,
+        profileData.setProfile,
+        { isAuthenticated, onAuthRequired: promptGuestAuth },
+    );
     const profileMedia = useProfileMedia(profileData.profile, profileData.setProfile, profileData.refreshProfile);
-    const profileFollow = useProfileFollow(profileData.profile, profileData.setProfile);
+    const profileFollow = useProfileFollow(profileData.profile, profileData.setProfile, {
+        isAuthenticated,
+        onAuthRequired: promptGuestAuth,
+    });
 
     const [postDetailModalId, setPostDetailModalId] = useState<string | null>(null);
     const [createPostModalOpen, setCreatePostModalOpen] = useState(false);
@@ -78,6 +92,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         handleShareShop,
         openProfilePostModal,
         profileModalPost,
+        showGuestAuthModal,
+        setShowGuestAuthModal,
         ...profileData,
         ...profileTabs,
         ...profilePosts,

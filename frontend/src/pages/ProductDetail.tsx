@@ -5,7 +5,8 @@ import { ChevronLeft, ChevronRight, Star, X } from "lucide-react";
 import { useProductDetailPage, type ProductDetailTab } from "../features/product/hooks";
 import { ProductDetailPanel } from "../features/product/components/ProductDetailPanel";
 import { ProductGallery } from "../features/product/components/ProductGallery";
-import { Footer, UnifiedHeader } from "../shared/ui";
+import { useAuthSession } from "../shared/auth/useAuthSession";
+import { Footer, GuestAuthModal, UnifiedHeader } from "../shared/ui";
 
 function formatReviewDate(date: string): string {
     const value = new Date(date);
@@ -16,6 +17,8 @@ function formatReviewDate(date: string): string {
 export default function ProductDetail() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuthSession();
+    const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
     const {
         product,
         reviews,
@@ -40,7 +43,11 @@ export default function ProductDetail() {
         showPrevPhoto,
         showNextPhoto,
         addToCartWithStatus,
-    } = useProductDetailPage(id);
+    } = useProductDetailPage({
+        productId: id,
+        isAuthenticated,
+        onAuthRequired: () => setShowGuestAuthModal(true),
+    });
 
     const photoModal =
         isPhotoModalOpen && reviewPhotos.length > 0
@@ -523,6 +530,10 @@ export default function ProductDetail() {
             </main>
 
             <Footer />
+            <GuestAuthModal
+                open={showGuestAuthModal}
+                onClose={() => setShowGuestAuthModal(false)}
+            />
             {photoModal}
         </div>
     );

@@ -8,12 +8,14 @@ import UserAreaProtectedRoute from "./UserAreaProtectedRoute";
 
 export function SocialRoutes() {
     return (
-        <Route element={<UserAreaProtectedRoute />}>
+        <>
             <Route path="/groups" element={<Groups />} />
             <Route path="/groups/:id" element={<GroupDetail />} />
             <Route path="/groups/:groupId/posts/:postId" element={<GroupPostDetail />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/notifications" element={<Notifications />} />
-        </Route>
+            <Route element={<UserAreaProtectedRoute />}>
+                <Route path="/messages" element={<Messages />} />
+                <Route path="/notifications" element={<Notifications />} />
+            </Route>
+        </>
     );
 }

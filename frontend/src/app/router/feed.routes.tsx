@@ -22,23 +22,27 @@ function LegacyPostDetailRedirect() {
 
 export function FeedRoutes() {
     return (
-        <Route element={<ProtectedRoute />}>
+        <>
             <Route element={<AppShellHeaderOnlyLayout />}>
                 <Route path="/feed" element={<Feed />} />
                 <Route path="/post/:postId" element={<PostDetail />} />
                 <Route path="/posts/:id" element={<LegacyPostDetailRedirect />} />
+                <Route path="/profile/:id" element={<Profile />} />
+                <Route path="/search" element={<SearchPage />} />
+            </Route>
+            <Route element={<ProtectedRoute />}>
+                <Route element={<AppShellHeaderOnlyLayout />}>
                 <Route path="/scheduled-posts" element={<ScheduledPosts />} />
                 <Route path="/scheduled-posts/analytics" element={<ScheduledPostsAnalytics />} />
                 <Route path="/seller/dashboard" element={<SellerDashboard />} />
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/profile/:id" element={<Profile />} />
                 <Route path="/settings" element={<AccountSettings />} />
-                <Route path="/search" element={<SearchPage />} />
+                </Route>
+                <Route element={<AppShellWithFooterLayout />}>
+                    <Route path="/saved-items" element={<SavedItems />} />
+                    <Route path="/ai-creative-lab" element={<AiCreativeLab />} />
+                </Route>
             </Route>
-            <Route element={<AppShellWithFooterLayout />}>
-                <Route path="/saved-items" element={<SavedItems />} />
-                <Route path="/ai-creative-lab" element={<AiCreativeLab />} />
-            </Route>
-        </Route>
+        </>
     );
 }

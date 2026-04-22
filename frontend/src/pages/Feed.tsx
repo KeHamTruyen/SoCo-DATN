@@ -11,9 +11,11 @@ import { PostComposer } from "../features/feed/components/PostComposer";
 import { useFeed } from "../features/feed/hooks/useFeed";
 import { useAuthSession } from "../shared/auth/useAuthSession";
 import { isSellerRole } from "../shared/auth/roleGuards";
-import { Button, UnifiedHeader } from "../shared/ui";
+import { Button, GuestAuthModal, UnifiedHeader } from "../shared/ui";
 
 export default function Feed() {
+    const { user, isAuthenticated } = useAuthSession();
+    const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
     const {
         posts,
         isLoading,
@@ -25,13 +27,18 @@ export default function Feed() {
         toggleLike,
         addComment,
         loadInitial,
-    } = useFeed();
-
-    const { user } = useAuthSession();
+    } = useFeed({
+        isAuthenticated,
+        onAuthRequired: () => setShowGuestAuthModal(true),
+    });
     const isSeller = isSellerRole(user?.role);
     const [showModal, setShowModal] = useState(false);
 
     const handleCreate = async (payload: CreatePostPayload) => {
+        if (!isAuthenticated) {
+            setShowGuestAuthModal(true);
+            return;
+        }
         if (payload.scheduledAt) {
             await feedApi.createScheduledPost(payload);
         } else {
@@ -56,7 +63,15 @@ export default function Feed() {
                     className="min-w-0 flex-1 space-y-4"
                     style={{ maxWidth: "680px" }}
                 >
-                    <PostComposer onOpen={() => setShowModal(true)} />
+                    <PostComposer
+                        onOpen={() => {
+                            if (!isAuthenticated) {
+                                setShowGuestAuthModal(true);
+                                return;
+                            }
+                            setShowModal(true);
+                        }}
+                    />
 
                     {isLoading ? (
                         <div className="rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
@@ -109,6 +124,10 @@ export default function Feed() {
                     onCreate={(payload) => handleCreate(payload)}
                 />
             )}
+            <GuestAuthModal
+                open={showGuestAuthModal}
+                onClose={() => setShowGuestAuthModal(false)}
+            />
         </div>
     );
 }

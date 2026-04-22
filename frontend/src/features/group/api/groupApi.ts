@@ -62,7 +62,7 @@ export const groupApi = {
         query.set("limit", String(params.pageSize ?? 12));
         const res = await httpClient.get<RawListResponse>(
             `/groups?${query.toString()}`,
-            { requiresAuth: true },
+            { requiresAuth: false },
         );
         return toListResponse(res);
     },
@@ -77,7 +77,7 @@ export const groupApi = {
 
     async getGroup(groupId: string) {
         const res = await httpClient.get<RawSingleResponse>(`/groups/${groupId}`, {
-            requiresAuth: true,
+            requiresAuth: false,
         });
         return toGroup(res);
     },
@@ -135,7 +135,7 @@ export const groupApi = {
     async getGroupMembers(groupId: string, page = 1, limit = 20) {
         const res = await httpClient.get<RawArrayResponse<GroupMemberBrief>>(
             `/groups/${groupId}/members?page=${page}&limit=${limit}`,
-            { requiresAuth: true },
+            { requiresAuth: false },
         );
         return res;
     },
@@ -143,14 +143,14 @@ export const groupApi = {
     async getGroupMedia(groupId: string, page = 1, limit = 24) {
         return httpClient.get<RawArrayResponse<{ id: string; mediaUrls: string[]; mediaType?: string }>>(
             `/groups/${groupId}/media?page=${page}&limit=${limit}`,
-            { requiresAuth: true },
+            { requiresAuth: false },
         );
     },
 
     async getGroupProducts(groupId: string, page = 1, limit = 20) {
         return httpClient.get<RawArrayResponse<Record<string, unknown>>>(
             `/groups/${groupId}/products?page=${page}&limit=${limit}`,
-            { requiresAuth: true },
+            { requiresAuth: false },
         );
     },
 
@@ -198,7 +198,7 @@ export const groupApi = {
     async getGroupPosts(groupId: string, page = 1, limit = 20): Promise<FeedPageResponse> {
         const res = await httpClient.get<RawPostListResponse>(
             `/groups/${groupId}/posts?page=${page}&limit=${limit}`,
-            { requiresAuth: true },
+            { requiresAuth: false },
         );
         const rows = res.data ?? [];
         const p = res.pagination;

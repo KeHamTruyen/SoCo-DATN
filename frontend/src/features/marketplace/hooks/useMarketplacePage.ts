@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
+import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { marketplaceApi } from "../api/marketplaceApi";
 import { MARKETPLACE_PRICE_CAP } from "../components/MarketplaceSidebar";
 import type {
@@ -13,6 +14,7 @@ const PAGE_SIZE = 12;
 
 export function useMarketplacePage() {
     const { t } = useTranslation();
+    const { isAuthenticated } = useAuthSession();
     const [searchParams, setSearchParams] = useSearchParams();
     const qFromUrl = searchParams.get("q") ?? "";
 
@@ -95,14 +97,14 @@ export function useMarketplacePage() {
             }
             qTimerRef.current = window.setTimeout(() => {
                 patchSearchParams({ q: value || undefined });
-                if (value.trim().length >= 2) {
+                if (isAuthenticated && value.trim().length >= 2) {
                     void marketplaceApi
                         .trackSearchEvent(value.trim())
                         .catch(() => {});
                 }
             }, 300);
         },
-        [patchSearchParams],
+        [isAuthenticated, patchSearchParams],
     );
 
     const maxSliderValue =
@@ -137,9 +139,11 @@ export function useMarketplacePage() {
         (tag: string) => {
             setDraftQ(tag);
             patchSearchParams({ q: tag });
-            void marketplaceApi.trackSearchEvent(tag).catch(() => {});
+            if (isAuthenticated) {
+                void marketplaceApi.trackSearchEvent(tag).catch(() => {});
+            }
         },
-        [patchSearchParams],
+        [isAuthenticated, patchSearchParams],
     );
 
     useEffect(() => {
@@ -150,18 +154,22 @@ export function useMarketplacePage() {
                 if (!cancelled) setCategories(data);
             })
             .catch(() => {});
-        void marketplaceApi
-            .getRecommendations(8)
-            .then((data) => {
-                if (!cancelled && data.tags.length > 0) {
-                    setTags(data.tags);
-                }
-            })
-            .catch(() => {});
+        if (isAuthenticated) {
+            void marketplaceApi
+                .getRecommendations(8)
+                .then((data) => {
+                    if (!cancelled && data.tags.length > 0) {
+                        setTags(data.tags);
+                    }
+                })
+                .catch(() => {});
+        } else {
+            setTags([]);
+        }
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [isAuthenticated]);
 
     useEffect(() => {
         let cancelled = false;
@@ -179,6 +187,7 @@ export function useMarketplacePage() {
         void (async () => {
             try {
                 const useRelevanceFeed =
+                    isAuthenticated &&
                     pageToFetch === 1 &&
                     filterParams.sort === "relevance" &&
                     !filterParams.categoryId &&
@@ -233,7 +242,7 @@ export function useMarketplacePage() {
         return () => {
             cancelled = true;
         };
-    }, [filterSignature, listPage, t]);
+    }, [filterSignature, isAuthenticated, listPage, t]);
 
     const hasMore =
         !isLoading && !useRecommendationFeed && items.length > 0 && items.length < total;

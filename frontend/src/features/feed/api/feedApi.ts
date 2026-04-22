@@ -87,7 +87,7 @@ export const feedApi = {
     async listPosts(cursor?: string) {
         const page = cursor ? parseInt(cursor, 10) : 1;
         const res = await httpClient.get<BackendListResponse>(`/posts?page=${page}`, {
-            requiresAuth: true,
+            requiresAuth: false,
         });
         const rows = res.data ?? [];
         const p = res.pagination;
@@ -102,7 +102,7 @@ export const feedApi = {
     async listUserPosts(userId: string, page = 1, limit = 20): Promise<FeedPageResponse> {
         const res = await httpClient.get<BackendListResponse>(
             `/posts/user/${encodeURIComponent(userId)}?page=${page}&limit=${limit}`,
-            { requiresAuth: true },
+            { requiresAuth: false },
         );
         const rows = res.data ?? [];
         const p = res.pagination;
@@ -157,7 +157,7 @@ export const feedApi = {
     async getPost(postId: string) {
         const res = await httpClient.get<ApiResponse<PostEnvelope> | PostEnvelope>(
             `/posts/${postId}`,
-            { requiresAuth: true },
+            { requiresAuth: false },
         );
         const inner = unwrap(res);
         return extractPost(inner);

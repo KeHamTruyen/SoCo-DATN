@@ -3,11 +3,25 @@ import { groupApi } from "../../group/api/groupApi";
 import type { Group } from "../../group/types/group.types";
 import { HttpError } from "../../../shared/api/httpClient";
 
-export function useGroupAction(id: string | undefined, group: Group | null, setGroup: React.Dispatch<React.SetStateAction<Group | null>>) {
+interface UseGroupActionOptions {
+    isAuthenticated: boolean;
+    onAuthRequired: () => void;
+}
+
+export function useGroupAction(
+    id: string | undefined,
+    group: Group | null,
+    setGroup: React.Dispatch<React.SetStateAction<Group | null>>,
+    { isAuthenticated, onAuthRequired }: UseGroupActionOptions,
+) {
     const [isLeaving, setIsLeaving] = useState(false);
     const [leaveError, setLeaveError] = useState<string | null>(null);
 
     const handleJoinGroup = async () => {
+        if (!isAuthenticated) {
+            onAuthRequired();
+            return;
+        }
         if (!group || !id || group.isMember) return;
         try {
             const joined = await groupApi.joinGroup(id);

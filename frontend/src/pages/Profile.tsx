@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { UnifiedHeader } from "../shared/ui";
+import { GuestAuthModal, UnifiedHeader } from "../shared/ui";
 import { cn } from "../shared/lib/cn";
 
 // Components
@@ -306,6 +306,10 @@ function ProfileContent() {
                     onCreate={(payload) => ctx.handleProfileCreatePost(payload)}
                 />
             )}
+            <GuestAuthModal
+                open={ctx.showGuestAuthModal}
+                onClose={() => ctx.setShowGuestAuthModal(false)}
+            />
         </div>
     );
 }

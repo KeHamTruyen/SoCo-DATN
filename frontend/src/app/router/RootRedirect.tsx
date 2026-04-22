@@ -6,5 +6,5 @@ export default function RootRedirect() {
 
     if (isLoading) return null;
 
-    return <Navigate to={isAuthenticated ? "/feed" : "/login"} replace />;
+    return <Navigate to="/feed" replace />;
 }

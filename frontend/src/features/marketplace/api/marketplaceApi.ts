@@ -92,7 +92,7 @@ export const marketplaceApi = {
         const res = await httpClient.get<ProductsListEnvelope>(
             `/products?${searchParams.toString()}`,
             {
-                requiresAuth: true,
+                requiresAuth: false,
             },
         );
 

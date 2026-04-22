@@ -2,7 +2,7 @@ import { Flag, MessageSquarePlus, MoreHorizontal, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
-import { Button } from "../../../shared/ui";
+import { Button, GuestAuthModal } from "../../../shared/ui";
 import { ReportModal } from "../../report/components/ReportModal";
 import { CommentList } from "./CommentList";
 import { PostDetailModal } from "./PostDetailModal";
@@ -56,6 +56,7 @@ export function FeedPostCard({
     const [reportModalOpen, setReportModalOpen] = useState(false);
     const [linkJustCopied, setLinkJustCopied] = useState(false);
     const [deletedCommentIds, setDeletedCommentIds] = useState<string[]>([]);
+    const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
     const { savedId, saveBusy, toggleSave } = useSavedPostItem(post.id);
     const { olderComments, loadingMore, hasMore, loadMoreComments } = usePostCommentsPagination({
         postId: post.id,
@@ -96,6 +97,10 @@ export function FeedPostCard({
     }, [shareMenuOpen, moreMenuOpen, closeShareMenu, closeMoreMenu]);
 
     const handleComment = () => {
+        if (!user) {
+            setShowGuestAuthModal(true);
+            return;
+        }
         if (!newComment.trim()) return;
         void (async () => {
             setIsCommenting(true);
@@ -198,6 +203,10 @@ export function FeedPostCard({
                                     role="menuitem"
                                     onClick={() => {
                                         closeMoreMenu();
+                                        if (!user) {
+                                            setShowGuestAuthModal(true);
+                                            return;
+                                        }
                                         setReportModalOpen(true);
                                     }}
                                     className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-neutral-800 transition-colors hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
@@ -290,7 +299,13 @@ export function FeedPostCard({
                 onCopyPostLink={handleCopyPostLink}
                 savedId={savedId}
                 saveBusy={saveBusy}
-                onToggleSave={toggleSave}
+                onToggleSave={() => {
+                    if (!user) {
+                        setShowGuestAuthModal(true);
+                        return;
+                    }
+                    toggleSave();
+                }}
                 t={t}
                 hasProducts={hasProducts}
             />
@@ -370,6 +385,10 @@ export function FeedPostCard({
                     onSuccess={() => setReportModalOpen(false)}
                 />
             ) : null}
+            <GuestAuthModal
+                open={showGuestAuthModal}
+                onClose={() => setShowGuestAuthModal(false)}
+            />
         </article>
     );
 }

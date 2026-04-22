@@ -7,7 +7,8 @@ import { GroupCard } from "../features/group/components/GroupCard";
 import { groupApi } from "../features/group/api/groupApi";
 import type { Group } from "../features/group/types/group.types";
 import { HttpError } from "../shared/api/httpClient";
-import { UnifiedHeader } from "../shared/ui";
+import { useAuthSession } from "../shared/auth/useAuthSession";
+import { GuestAuthModal, UnifiedHeader } from "../shared/ui";
 
 type GroupFilter = "discover" | "suggested" | "popular";
 
@@ -90,6 +91,7 @@ function getPopularScore(group: Group) {
 
 export default function Groups() {
     const { i18n } = useTranslation();
+    const { isAuthenticated } = useAuthSession();
     const isVietnamese = i18n.language === "vi";
     const [groups, setGroups] = useState<Group[]>([]);
     const [myGroups, setMyGroups] = useState<Group[]>([]);
@@ -102,6 +104,15 @@ export default function Groups() {
     const [leaveTargetGroup, setLeaveTargetGroup] = useState<Group | null>(null);
     const [leaveError, setLeaveError] = useState<string | null>(null);
     const [isLeaving, setIsLeaving] = useState(false);
+    const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
+
+    const openCreateGroupModal = () => {
+        if (!isAuthenticated) {
+            setShowGuestAuthModal(true);
+            return;
+        }
+        setCreateModalOpen(true);
+    };
 
     /* ─── Fetch public group list ─── */
     useEffect(() => {
@@ -145,6 +156,10 @@ export default function Groups() {
     }, []);
 
     const handleJoin = async (groupId: string) => {
+        if (!isAuthenticated) {
+            setShowGuestAuthModal(true);
+            return;
+        }
         try {
             await groupApi.joinGroup(groupId);
             let joinedGroup: Group | null = null;
@@ -411,7 +426,7 @@ export default function Groups() {
 
                         <button
                             type="button"
-                            onClick={() => setCreateModalOpen(true)}
+                            onClick={openCreateGroupModal}
                             className="mt-4 w-full text-xs font-semibold text-primary hover:underline"
                         >
                             {isVietnamese ? "+ Tạo nhóm mới" : "+ Create new group"}
@@ -455,7 +470,7 @@ export default function Groups() {
                             <button
                                 id="create-group-btn"
                                 type="button"
-                                onClick={() => setCreateModalOpen(true)}
+                                onClick={openCreateGroupModal}
                                 className="flex items-center gap-2 whitespace-nowrap rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90"
                             >
                                 <Plus className="h-4 w-4" />
@@ -495,7 +510,7 @@ export default function Groups() {
 
                             {/* "Can't find a group?" card */}
                             <div
-                                onClick={() => setCreateModalOpen(true)}
+                                onClick={openCreateGroupModal}
                                 className="flex cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-neutral-300 p-8 text-center transition-all hover:border-primary/40 hover:bg-primary/5 dark:border-neutral-700 dark:hover:border-primary/40 dark:hover:bg-primary/5"
                             >
                                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100 text-neutral-400 transition-all hover:bg-primary/10 hover:text-primary dark:bg-neutral-800">
@@ -529,6 +544,10 @@ export default function Groups() {
             <CreateGroupModal
                 open={createModalOpen}
                 onClose={() => setCreateModalOpen(false)}
+            />
+            <GuestAuthModal
+                open={showGuestAuthModal}
+                onClose={() => setShowGuestAuthModal(false)}
             />
 
             {leaveTargetGroup && (
