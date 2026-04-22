@@ -1,89 +1,145 @@
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { groupApi } from "../../group/api/groupApi";
 import type { GroupMemberBrief, GroupJoinRequest, GroupInvite, Group } from "../../group/types/group.types";
+import { queryKeys } from "../../../shared/query/queryKeys";
 
 export function useGroupMembers(id: string | undefined, activeTab: string, group: Group | null) {
-    const [members, setMembers] = useState<GroupMemberBrief[]>([]);
-    const [joinRequests, setJoinRequests] = useState<GroupJoinRequest[]>([]);
-    const [invites, setInvites] = useState<GroupInvite[]>([]);
-    const [tabLoading, setTabLoading] = useState(false);
-    const [mediaRows, setMediaRows] = useState<Array<{ id: string; mediaUrls: string[]; mediaType?: string }>>([]);
-    const [productRows, setProductRows] = useState<Array<Record<string, unknown>>>([]);
+    const queryClient = useQueryClient();
 
     const isAdmin = group?.memberRole === "ADMIN";
     const isModerator = group?.memberRole === "MODERATOR";
     const canManageRoles = isAdmin;
     const canRemoveMembers = isAdmin || isModerator;
+    const membersKey = id ? [...queryKeys.group.detail(id), "members"] as const : ["group", "members", "empty"] as const;
+    const requestsKey = id ? [...queryKeys.group.detail(id), "joinRequests"] as const : ["group", "joinRequests", "empty"] as const;
+    const invitesKey = id ? [...queryKeys.group.detail(id), "invites"] as const : ["group", "invites", "empty"] as const;
+    const mediaKey = id ? [...queryKeys.group.detail(id), "media"] as const : ["group", "media", "empty"] as const;
+    const productsKey = id ? [...queryKeys.group.detail(id), "products"] as const : ["group", "products", "empty"] as const;
 
-    useEffect(() => {
-        if (!id || activeTab === "discussion") return;
-        let mounted = true;
-        void (async () => {
-            setTabLoading(true);
-            try {
-                if (activeTab === "members") {
-                    const res = await groupApi.getGroupMembers(id);
-                    if (mounted) setMembers(res.data ?? []);
-                    if (canManageRoles || isModerator) {
-                        const requestsRes = await groupApi.listJoinRequests(id);
-                        if (mounted) setJoinRequests(requestsRes.data ?? []);
-                    }
-                    if (canManageRoles) {
-                        const invitesRes = await groupApi.listInvites(id);
-                        if (mounted) setInvites(invitesRes ?? []);
-                    }
-                } else if (activeTab === "media") {
-                    const res = await groupApi.getGroupMedia(id);
-                    if (mounted) setMediaRows(res.data ?? []);
-                } else if (activeTab === "products") {
-                    const res = await groupApi.getGroupProducts(id);
-                    if (mounted) setProductRows(res.data ?? []);
-                }
-            } catch {
-                if (!mounted) return;
-                if (activeTab === "members") setMembers([]);
-                if (activeTab === "media") setMediaRows([]);
-                if (activeTab === "products") setProductRows([]);
-            } finally {
-                if (mounted) setTabLoading(false);
-            }
-        })();
-        return () => {
-            mounted = false;
-        };
-    }, [activeTab, id, group?.memberRole, canManageRoles, isModerator]);
+    const membersQuery = useQuery({
+        queryKey: membersKey,
+        enabled: Boolean(id) && activeTab === "members",
+        queryFn: async () => {
+            const res = await groupApi.getGroupMembers(id!);
+            return res.data ?? [];
+        },
+    });
+    const requestsQuery = useQuery({
+        queryKey: requestsKey,
+        enabled: Boolean(id) && activeTab === "members" && (canManageRoles || isModerator),
+        queryFn: async () => {
+            const res = await groupApi.listJoinRequests(id!);
+            return res.data ?? [];
+        },
+    });
+    const invitesQuery = useQuery({
+        queryKey: invitesKey,
+        enabled: Boolean(id) && activeTab === "members" && canManageRoles,
+        queryFn: () => groupApi.listInvites(id!),
+    });
+    const mediaQuery = useQuery({
+        queryKey: mediaKey,
+        enabled: Boolean(id) && activeTab === "media",
+        queryFn: async () => {
+            const res = await groupApi.getGroupMedia(id!);
+            return res.data ?? [];
+        },
+    });
+    const productsQuery = useQuery({
+        queryKey: productsKey,
+        enabled: Boolean(id) && activeTab === "products",
+        queryFn: async () => {
+            const res = await groupApi.getGroupProducts(id!);
+            return res.data ?? [];
+        },
+    });
+
+    const updateMemberRoleMutation = useMutation({
+        mutationFn: ({ userId, role }: { userId: string; role: "MODERATOR" | "MEMBER" }) =>
+            groupApi.updateMemberRole(id!, userId, role),
+        onSuccess(_, variables) {
+            queryClient.setQueryData<GroupMemberBrief[]>(
+                membersKey,
+                (prev = []) =>
+                    prev.map((member) =>
+                        member.userId === variables.userId
+                            ? { ...member, role: variables.role }
+                            : member,
+                    ),
+            );
+        },
+    });
+    const removeMemberMutation = useMutation({
+        mutationFn: (userId: string) => groupApi.removeMember(id!, userId),
+        onSuccess(_, userId) {
+            queryClient.setQueryData<GroupMemberBrief[]>(
+                membersKey,
+                (prev = []) => prev.filter((member) => member.userId !== userId),
+            );
+        },
+    });
+    const reviewRequestMutation = useMutation({
+        mutationFn: ({ requestId, action }: { requestId: string; action: "approve" | "reject" }) =>
+            action === "approve"
+                ? groupApi.approveJoinRequest(id!, requestId)
+                : groupApi.rejectJoinRequest(id!, requestId),
+        onSuccess(_, variables) {
+            queryClient.setQueryData<GroupJoinRequest[]>(
+                requestsKey,
+                (prev = []) => prev.filter((request) => request.id !== variables.requestId),
+            );
+        },
+    });
+    const createInviteMutation = useMutation({
+        mutationFn: () => groupApi.createInvite(id!, { expiresInHours: 72, maxUses: 1 }),
+        onSuccess(invite) {
+            queryClient.setQueryData<GroupInvite[]>(invitesKey, (prev = []) => [invite, ...prev]);
+        },
+    });
 
     const handlePromoteDemote = async (target: GroupMemberBrief, role: "MODERATOR" | "MEMBER") => {
         if (!id || !canManageRoles) return;
-        await groupApi.updateMemberRole(id, target.userId, role);
-        setMembers((prev) => prev.map((m) => (m.userId === target.userId ? { ...m, role } : m)));
+        await updateMemberRoleMutation.mutateAsync({ userId: target.userId, role });
     };
 
     const handleRemoveMember = async (target: GroupMemberBrief) => {
         if (!id || !canRemoveMembers) return;
-        await groupApi.removeMember(id, target.userId);
-        setMembers((prev) => prev.filter((m) => m.userId !== target.userId));
+        await removeMemberMutation.mutateAsync(target.userId);
     };
 
     const handleReviewRequest = async (requestId: string, action: "approve" | "reject") => {
         if (!id) return;
-        if (action === "approve") await groupApi.approveJoinRequest(id, requestId);
-        else await groupApi.rejectJoinRequest(id, requestId);
-        setJoinRequests((prev) => prev.filter((r) => r.id !== requestId));
+        await reviewRequestMutation.mutateAsync({ requestId, action });
     };
 
     const handleCreateInvite = async () => {
         if (!id || !canManageRoles) return;
-        const invite = await groupApi.createInvite(id, { expiresInHours: 72, maxUses: 1 });
-        setInvites((prev) => [invite, ...prev]);
+        await createInviteMutation.mutateAsync();
     };
 
+    const tabLoading = useMemo(
+        () =>
+            membersQuery.isLoading ||
+            requestsQuery.isLoading ||
+            invitesQuery.isLoading ||
+            mediaQuery.isLoading ||
+            productsQuery.isLoading,
+        [
+            invitesQuery.isLoading,
+            mediaQuery.isLoading,
+            membersQuery.isLoading,
+            productsQuery.isLoading,
+            requestsQuery.isLoading,
+        ],
+    );
+
     return {
-        members,
-        joinRequests,
-        invites,
-        mediaRows,
-        productRows,
+        members: membersQuery.data ?? [],
+        joinRequests: requestsQuery.data ?? [],
+        invites: invitesQuery.data ?? [],
+        mediaRows: mediaQuery.data ?? [],
+        productRows: productsQuery.data ?? [],
         tabLoading,
         handlePromoteDemote,
         handleRemoveMember,

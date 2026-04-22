@@ -1,5 +1,5 @@
 import { Flag, MessageSquarePlus, MoreHorizontal, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { Button, GuestAuthModal } from "../../../shared/ui";
@@ -40,7 +40,7 @@ async function copyTextToClipboard(text: string) {
     document.body.removeChild(ta);
 }
 
-export function FeedPostCard({
+function FeedPostCardComponent({
     post,
     onLike,
     onComment,
@@ -392,3 +392,5 @@ export function FeedPostCard({
         </article>
     );
 }
+
+export const FeedPostCard = memo(FeedPostCardComponent);

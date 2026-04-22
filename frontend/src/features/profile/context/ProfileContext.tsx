@@ -8,6 +8,7 @@ import { useProfileMedia } from "../hooks/useProfileMedia";
 import { useProfileFollow } from "../hooks/useProfileFollow";
 import type { FeedPost } from "../../feed/types/feed.types";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
+import { useAppStore } from "../../../shared/state/appStore";
 
 export type ProfileContextValue = ReturnType<typeof useProfileData> &
     ReturnType<typeof useProfileTabs> &
@@ -36,8 +37,14 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     const { isAuthenticated } = useAuthSession();
 
     const profileData = useProfileData(id);
-    const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
-    const promptGuestAuth = () => setShowGuestAuthModal(true);
+    const showGuestAuthModal = useAppStore((state) => state.guestAuthModal.profile ?? false);
+    const setGuestAuthModal = useAppStore((state) => state.setGuestAuthModal);
+    const setShowGuestAuthModal: React.Dispatch<React.SetStateAction<boolean>> = (value) => {
+        const nextValue =
+            typeof value === "function" ? value(showGuestAuthModal) : value;
+        setGuestAuthModal("profile", nextValue);
+    };
+    const promptGuestAuth = () => setGuestAuthModal("profile", true);
     const profileTabs = useProfileTabs();
     const profilePosts = useProfilePosts(
         profileData.profile,
@@ -51,9 +58,27 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         onAuthRequired: promptGuestAuth,
     });
 
-    const [postDetailModalId, setPostDetailModalId] = useState<string | null>(null);
-    const [createPostModalOpen, setCreatePostModalOpen] = useState(false);
+    const postDetailModalId = useAppStore((state) => state.profilePostDetailModalId);
+    const setProfilePostDetailModalId = useAppStore((state) => state.setProfilePostDetailModalId);
+    const createPostModalOpen = useAppStore((state) => state.profileCreatePostModalOpen);
+    const setProfileCreatePostModalOpen = useAppStore((state) => state.setProfileCreatePostModalOpen);
     const [shopShareNotice, setShopShareNotice] = useState<string | null>(null);
+    const setPostDetailModalId: React.Dispatch<React.SetStateAction<string | null>> = useCallback(
+        (value) => {
+            const nextValue =
+                typeof value === "function" ? value(postDetailModalId) : value;
+            setProfilePostDetailModalId(nextValue);
+        },
+        [postDetailModalId, setProfilePostDetailModalId],
+    );
+    const setCreatePostModalOpen: React.Dispatch<React.SetStateAction<boolean>> = useCallback(
+        (value) => {
+            const nextValue =
+                typeof value === "function" ? value(createPostModalOpen) : value;
+            setProfileCreatePostModalOpen(nextValue);
+        },
+        [createPostModalOpen, setProfileCreatePostModalOpen],
+    );
 
     const isSeller = profileData.profile?.role === "seller";
 
@@ -81,25 +106,43 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         }
     }, [profileData.profile, t]);
 
-    const value: ProfileContextValue = {
-        id,
-        isSeller,
-        postDetailModalId,
-        setPostDetailModalId,
-        createPostModalOpen,
-        setCreatePostModalOpen,
-        shopShareNotice,
-        handleShareShop,
-        openProfilePostModal,
-        profileModalPost,
-        showGuestAuthModal,
-        setShowGuestAuthModal,
-        ...profileData,
-        ...profileTabs,
-        ...profilePosts,
-        ...profileMedia,
-        ...profileFollow,
-    };
+    const value: ProfileContextValue = useMemo(
+        () => ({
+            id,
+            isSeller,
+            postDetailModalId,
+            setPostDetailModalId,
+            createPostModalOpen,
+            setCreatePostModalOpen,
+            shopShareNotice,
+            handleShareShop,
+            openProfilePostModal,
+            profileModalPost,
+            showGuestAuthModal,
+            setShowGuestAuthModal,
+            ...profileData,
+            ...profileTabs,
+            ...profilePosts,
+            ...profileMedia,
+            ...profileFollow,
+        }),
+        [
+            createPostModalOpen,
+            handleShareShop,
+            id,
+            isSeller,
+            openProfilePostModal,
+            postDetailModalId,
+            profileData,
+            profileFollow,
+            profileMedia,
+            profileModalPost,
+            profilePosts,
+            profileTabs,
+            shopShareNotice,
+            showGuestAuthModal,
+        ],
+    );
 
     return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
 }

@@ -1,6 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
+import {
+    useInfiniteQuery,
+    useMutation,
+    useQueryClient,
+} from "@tanstack/react-query";
 import { feedApi } from "../api/feedApi";
 import type { CreatePostPayload, FeedComment, FeedPost } from "../types/feed.types";
+import { queryKeys } from "../../../shared/query/queryKeys";
 
 interface UseFeedOptions {
     isAuthenticated: boolean;
@@ -8,91 +14,109 @@ interface UseFeedOptions {
 }
 
 export function useFeed({ isAuthenticated, onAuthRequired }: UseFeedOptions) {
-    const [posts, setPosts] = useState<FeedPost[]>([]);
-    const [nextCursor, setNextCursor] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
+    const feedKey = queryKeys.feed.list("home");
 
-    const loadInitial = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const res = await feedApi.listPosts();
-            setPosts(res.items);
-            setNextCursor(res.nextCursor);
-        } catch {
-            setError("Unable to load feed.");
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+    const feedQuery = useInfiniteQuery({
+        queryKey: feedKey,
+        queryFn: ({ pageParam }: { pageParam: string | null }) =>
+            feedApi.listPosts(pageParam ?? undefined),
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        initialPageParam: null as string | null,
+    });
 
-    useEffect(() => {
-        void loadInitial();
-    }, [loadInitial]);
+    const createPostMutation = useMutation({
+        mutationFn: (payload: CreatePostPayload) => feedApi.createPost(payload),
+        onSuccess(createdPost) {
+            queryClient.setQueryData(
+                feedKey,
+                (old:
+                    | {
+                          pages: Array<{ items: FeedPost[]; nextCursor: string | null }>;
+                          pageParams: Array<string | null>;
+                      }
+                    | undefined) => {
+                    if (!old || old.pages.length === 0) {
+                        return {
+                            pages: [{ items: [createdPost], nextCursor: null }],
+                            pageParams: [null],
+                        };
+                    }
+                    const [firstPage, ...restPages] = old.pages;
+                    return {
+                        ...old,
+                        pages: [
+                            { ...firstPage, items: [createdPost, ...firstPage.items] },
+                            ...restPages,
+                        ],
+                    };
+                },
+            );
+        },
+    });
 
-    const loadMore = useCallback(async () => {
-        if (!nextCursor || isLoadingMore) return;
-        setIsLoadingMore(true);
-        try {
-            const res = await feedApi.listPosts(nextCursor);
-            setPosts((prev) => [...prev, ...res.items]);
-            setNextCursor(res.nextCursor);
-        } finally {
-            setIsLoadingMore(false);
-        }
-    }, [isLoadingMore, nextCursor]);
+    const likeMutation = useMutation({
+        mutationFn: (postId: string) => feedApi.likePost(postId),
+    });
+
+    const addCommentMutation = useMutation({
+        mutationFn: ({ postId, content }: { postId: string; content: string }) =>
+            feedApi.addComment(postId, content),
+    });
+
+    const posts = useMemo(
+        () => feedQuery.data?.pages.flatMap((page) => page.items) ?? [],
+        [feedQuery.data],
+    );
 
     const createPost = useCallback(async (payload: CreatePostPayload) => {
         if (!isAuthenticated) {
             onAuthRequired();
             return;
         }
-        const created = await feedApi.createPost(payload);
-        setPosts((prev) => [created, ...prev]);
-    }, [isAuthenticated, onAuthRequired]);
+        await createPostMutation.mutateAsync(payload);
+    }, [createPostMutation, isAuthenticated, onAuthRequired]);
 
     const toggleLike = useCallback(async (postId: string) => {
         if (!isAuthenticated) {
             onAuthRequired();
             return;
         }
-        setPosts((prev) =>
-            prev.map((post) =>
-                post.id === postId
-                    ? {
-                          ...post,
-                          likedByMe: !post.likedByMe,
-                          likesCount: post.likedByMe
-                              ? Math.max(0, post.likesCount - 1)
-                              : post.likesCount + 1,
-                      }
-                    : post,
-            ),
+        const previousData = queryClient.getQueryData(feedKey);
+        queryClient.setQueryData(
+            feedKey,
+            (old:
+                | {
+                      pages: Array<{ items: FeedPost[]; nextCursor: string | null }>;
+                      pageParams: Array<string | null>;
+                  }
+                | undefined) => {
+                if (!old) return old;
+                return {
+                    ...old,
+                    pages: old.pages.map((page) => ({
+                        ...page,
+                        items: page.items.map((post) =>
+                            post.id === postId
+                                ? {
+                                      ...post,
+                                      likedByMe: !post.likedByMe,
+                                      likesCount: post.likedByMe
+                                          ? Math.max(0, post.likesCount - 1)
+                                          : post.likesCount + 1,
+                                  }
+                                : post,
+                        ),
+                    })),
+                };
+            },
         );
         try {
-            const updated = await feedApi.likePost(postId);
-            setPosts((prev) =>
-                prev.map((post) => (post.id === postId ? { ...post, ...updated } : post)),
-            );
+            await likeMutation.mutateAsync(postId);
         } catch {
-            // Rollback on error.
-            setPosts((prev) =>
-                prev.map((post) =>
-                    post.id === postId
-                        ? {
-                              ...post,
-                              likedByMe: !post.likedByMe,
-                              likesCount: post.likedByMe
-                                  ? post.likesCount + 1
-                                  : Math.max(0, post.likesCount - 1),
-                          }
-                        : post,
-                ),
-            );
+            queryClient.setQueryData(feedKey, previousData);
         }
-    }, [isAuthenticated, onAuthRequired]);
+    }, [feedKey, isAuthenticated, likeMutation, onAuthRequired, queryClient]);
 
     const addComment = useCallback(async (postId: string, content: string) => {
         if (!isAuthenticated) {
@@ -110,56 +134,85 @@ export function useFeed({ isAuthenticated, onAuthRequired }: UseFeedOptions) {
             },
         };
 
-        setPosts((prev) =>
-            prev.map((post) =>
-                post.id === postId
-                    ? {
-                          ...post,
-                          commentsCount: post.commentsCount + 1,
-                          comments: [optimistic, ...(post.comments ?? [])],
-                      }
-                    : post,
-            ),
+        const previousData = queryClient.getQueryData(feedKey);
+        queryClient.setQueryData(
+            feedKey,
+            (old:
+                | {
+                      pages: Array<{ items: FeedPost[]; nextCursor: string | null }>;
+                      pageParams: Array<string | null>;
+                  }
+                | undefined) => {
+                if (!old) return old;
+                return {
+                    ...old,
+                    pages: old.pages.map((page) => ({
+                        ...page,
+                        items: page.items.map((post) =>
+                            post.id === postId
+                                ? {
+                                      ...post,
+                                      commentsCount: post.commentsCount + 1,
+                                      comments: [optimistic, ...(post.comments ?? [])],
+                                  }
+                                : post,
+                        ),
+                    })),
+                };
+            },
         );
 
         try {
-            const created = await feedApi.addComment(postId, content);
-            setPosts((prev) =>
-                prev.map((post) =>
-                    post.id === postId
-                        ? {
-                              ...post,
-                              comments: (post.comments ?? []).map((comment) =>
-                                  comment.id === optimistic.id ? created : comment,
-                              ),
-                          }
-                        : post,
-                ),
+            const created = await addCommentMutation.mutateAsync({ postId, content });
+            queryClient.setQueryData(
+                feedKey,
+                (old:
+                    | {
+                          pages: Array<{ items: FeedPost[]; nextCursor: string | null }>;
+                          pageParams: Array<string | null>;
+                      }
+                    | undefined) => {
+                    if (!old) return old;
+                    return {
+                        ...old,
+                        pages: old.pages.map((page) => ({
+                            ...page,
+                            items: page.items.map((post) =>
+                                post.id === postId
+                                    ? {
+                                          ...post,
+                                          comments: (post.comments ?? []).map((comment) =>
+                                              comment.id === optimistic.id ? created : comment,
+                                          ),
+                                      }
+                                    : post,
+                            ),
+                        })),
+                    };
+                },
             );
         } catch {
-            setPosts((prev) =>
-                prev.map((post) =>
-                    post.id === postId
-                        ? {
-                              ...post,
-                              commentsCount: Math.max(0, post.commentsCount - 1),
-                              comments: (post.comments ?? []).filter(
-                                  (comment) => comment.id !== optimistic.id,
-                              ),
-                          }
-                        : post,
-                ),
-            );
+            queryClient.setQueryData(feedKey, previousData);
         }
-    }, [isAuthenticated, onAuthRequired]);
+    }, [addCommentMutation, feedKey, isAuthenticated, onAuthRequired, queryClient]);
+
+    const loadInitial = useCallback(async () => {
+        await feedQuery.refetch();
+    }, [feedQuery]);
+
+    const loadMore = useCallback(async () => {
+        if (feedQuery.hasNextPage && !feedQuery.isFetchingNextPage) {
+            await feedQuery.fetchNextPage();
+        }
+    }, [feedQuery]);
 
     return useMemo(
         () => ({
             posts,
-            isLoading,
-            isLoadingMore,
-            error,
-            hasMore: Boolean(nextCursor),
+            isLoading: feedQuery.isLoading,
+            isLoadingMore: feedQuery.isFetchingNextPage,
+            error: feedQuery.isError ? "Unable to load feed." : null,
+            hasMore: Boolean(feedQuery.hasNextPage),
             loadInitial,
             loadMore,
             createPost,
@@ -169,12 +222,12 @@ export function useFeed({ isAuthenticated, onAuthRequired }: UseFeedOptions) {
         [
             addComment,
             createPost,
-            error,
-            isLoading,
-            isLoadingMore,
+            feedQuery.hasNextPage,
+            feedQuery.isError,
+            feedQuery.isFetchingNextPage,
+            feedQuery.isLoading,
             loadInitial,
             loadMore,
-            nextCursor,
             posts,
             toggleLike,
         ],

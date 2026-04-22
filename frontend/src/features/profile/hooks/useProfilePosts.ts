@@ -1,9 +1,15 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo } from "react";
+import {
+    useInfiniteQuery,
+    useMutation,
+    useQueryClient,
+} from "@tanstack/react-query";
 import { feedApi } from "../../feed/api/feedApi";
 import type { CreatePostPayload, FeedComment, FeedPost } from "../../feed/types/feed.types";
 import type { PublicUserProfile } from "../types/profile.types";
 import { PROFILE_POST_PAGE_SIZE } from "../constants/profilePageConstants";
 import type { UserProfile } from "../../auth/types/auth.types";
+import { queryKeys } from "../../../shared/query/queryKeys";
 
 interface ProfileAuthOptions {
     isAuthenticated?: boolean;
@@ -16,63 +22,45 @@ export function useProfilePosts(
     setProfile: React.Dispatch<React.SetStateAction<PublicUserProfile | null>>,
     { isAuthenticated = true, onAuthRequired = () => {} }: ProfileAuthOptions = {},
 ) {
-    const [posts, setPosts] = useState<FeedPost[]>([]);
-    const [postsPage, setPostsPage] = useState(1);
-    const [postsHasMore, setPostsHasMore] = useState(false);
-    const [postsLoadingMore, setPostsLoadingMore] = useState(false);
+    const queryClient = useQueryClient();
+    const profileId = profile?.id;
+    const profilePostsKey = profileId
+        ? queryKeys.feed.userPosts(profileId)
+        : ["feed", "userPosts", "empty"];
 
-    // Initial load
-    useEffect(() => {
-        let mounted = true;
-        if (!profile) {
-            setPosts([]);
-            setPostsPage(1);
-            setPostsHasMore(false);
-            return;
-        }
+    const postsQuery = useInfiniteQuery({
+        queryKey: profilePostsKey,
+        enabled: Boolean(profileId),
+        initialPageParam: 1,
+        queryFn: ({ pageParam }) =>
+            feedApi.listUserPosts(profileId!, pageParam, PROFILE_POST_PAGE_SIZE),
+        getNextPageParam: (lastPage) =>
+            lastPage.nextCursor ? Number(lastPage.nextCursor) : undefined,
+    });
 
-        void (async () => {
-            try {
-                const postsData = await feedApi.listUserPosts(
-                    profile.id,
-                    1,
-                    PROFILE_POST_PAGE_SIZE
-                );
-                if (!mounted) return;
-                setPosts(postsData.items);
-                setPostsHasMore(Boolean(postsData.nextCursor));
-                setPostsPage(1);
-            } catch {
-                if (!mounted) return;
-                setPosts([]);
-                setPostsHasMore(false);
+    const createPostMutation = useMutation({
+        mutationFn: (payload: CreatePostPayload) => {
+            if (payload.scheduledAt) {
+                return feedApi.createScheduledPost(payload);
             }
-        })();
+            return feedApi.createPost(payload);
+        },
+    });
 
-        return () => {
-            mounted = false;
-        };
-    }, [profile?.id]); // Note: We only want this to run when profile changes, not on every render. Using profile?.id avoids infinite loops if profile object is recreated.
+    const likeMutation = useMutation({
+        mutationFn: (postId: string) => feedApi.likePost(postId),
+    });
+
+    const addCommentMutation = useMutation({
+        mutationFn: ({ postId, content }: { postId: string; content: string }) =>
+            feedApi.addComment(postId, content),
+    });
 
     const loadMorePosts = useCallback(async () => {
-        if (!profile || !postsHasMore || postsLoadingMore) return;
-        setPostsLoadingMore(true);
-        try {
-            const nextPage = postsPage + 1;
-            const res = await feedApi.listUserPosts(
-                profile.id,
-                nextPage,
-                PROFILE_POST_PAGE_SIZE
-            );
-            setPosts((prev) => [...prev, ...res.items]);
-            setPostsPage(nextPage);
-            setPostsHasMore(Boolean(res.nextCursor));
-        } catch {
-            setPostsHasMore(false);
-        } finally {
-            setPostsLoadingMore(false);
+        if (postsQuery.hasNextPage && !postsQuery.isFetchingNextPage) {
+            await postsQuery.fetchNextPage();
         }
-    }, [profile, postsHasMore, postsLoadingMore, postsPage]);
+    }, [postsQuery]);
 
     const handleProfileCreatePost = useCallback(
         async (payload: CreatePostPayload) => {
@@ -80,24 +68,43 @@ export function useProfilePosts(
                 onAuthRequired();
                 return;
             }
-            if (payload.scheduledAt) {
-                await feedApi.createScheduledPost(payload);
-            } else {
-                const created = await feedApi.createPost(payload);
-                if (profile && user?.id === profile.id) {
-                    setPosts((prev) => [created, ...prev]);
-                    setProfile((p) =>
-                        p
-                            ? {
-                                  ...p,
-                                  postsCount: (p.postsCount ?? 0) + 1,
-                              }
-                            : p
-                    );
-                }
+            const created = await createPostMutation.mutateAsync(payload);
+            if (!payload.scheduledAt && profile && user?.id === profile.id) {
+                queryClient.setQueryData(
+                    profilePostsKey,
+                    (old:
+                        | {
+                              pages: Array<{ items: FeedPost[]; nextCursor: string | null }>;
+                              pageParams: number[];
+                          }
+                        | undefined) => {
+                        if (!old || old.pages.length === 0) {
+                            return {
+                                pages: [{ items: [created], nextCursor: null }],
+                                pageParams: [1],
+                            };
+                        }
+                        const [firstPage, ...restPages] = old.pages;
+                        return {
+                            ...old,
+                            pages: [
+                                { ...firstPage, items: [created, ...firstPage.items] },
+                                ...restPages,
+                            ],
+                        };
+                    },
+                );
+                setProfile((p) =>
+                    p
+                        ? {
+                              ...p,
+                              postsCount: (p.postsCount ?? 0) + 1,
+                          }
+                        : p,
+                );
             }
         },
-        [isAuthenticated, onAuthRequired, profile, user?.id, setProfile]
+        [createPostMutation, isAuthenticated, onAuthRequired, profile, profilePostsKey, queryClient, setProfile, user?.id],
     );
 
     const handleProfileModalLike = useCallback(async (postId: string) => {
@@ -105,43 +112,41 @@ export function useProfilePosts(
             onAuthRequired();
             return;
         }
-        setPosts((prev) =>
-            prev.map((post) =>
-                post.id === postId
-                    ? {
-                          ...post,
-                          likedByMe: !post.likedByMe,
-                          likesCount: post.likedByMe
-                              ? Math.max(0, post.likesCount - 1)
-                              : post.likesCount + 1,
-                      }
-                    : post
-            )
+        const previousData = queryClient.getQueryData(profilePostsKey);
+        queryClient.setQueryData(
+            profilePostsKey,
+            (old:
+                | {
+                      pages: Array<{ items: FeedPost[]; nextCursor: string | null }>;
+                      pageParams: number[];
+                  }
+                | undefined) => {
+                if (!old) return old;
+                return {
+                    ...old,
+                    pages: old.pages.map((page) => ({
+                        ...page,
+                        items: page.items.map((post) =>
+                            post.id === postId
+                                ? {
+                                      ...post,
+                                      likedByMe: !post.likedByMe,
+                                      likesCount: post.likedByMe
+                                          ? Math.max(0, post.likesCount - 1)
+                                          : post.likesCount + 1,
+                                  }
+                                : post,
+                        ),
+                    })),
+                };
+            },
         );
         try {
-            const updated = await feedApi.likePost(postId);
-            setPosts((prev) =>
-                prev.map((post) =>
-                    post.id === postId ? { ...post, ...updated } : post
-                )
-            );
+            await likeMutation.mutateAsync(postId);
         } catch {
-            // Revert on error
-            setPosts((prev) =>
-                prev.map((post) =>
-                    post.id === postId
-                        ? {
-                              ...post,
-                              likedByMe: !post.likedByMe,
-                              likesCount: post.likedByMe
-                                  ? post.likesCount + 1
-                                  : Math.max(0, post.likesCount - 1),
-                          }
-                        : post
-                )
-            );
+            queryClient.setQueryData(profilePostsKey, previousData);
         }
-    }, [isAuthenticated, onAuthRequired]);
+    }, [isAuthenticated, likeMutation, onAuthRequired, profilePostsKey, queryClient]);
 
     const handleProfileModalComment = useCallback(
         async (postId: string, content: string) => {
@@ -163,63 +168,104 @@ export function useProfilePosts(
                 },
             };
 
-            setPosts((prev) =>
-                prev.map((post) =>
-                    post.id === postId
-                        ? {
-                              ...post,
-                              commentsCount: post.commentsCount + 1,
-                              comments: [optimistic, ...(post.comments ?? [])],
-                          }
-                        : post
-                )
+            const previousData = queryClient.getQueryData(profilePostsKey);
+            queryClient.setQueryData(
+                profilePostsKey,
+                (old:
+                    | {
+                          pages: Array<{ items: FeedPost[]; nextCursor: string | null }>;
+                          pageParams: number[];
+                      }
+                    | undefined) => {
+                    if (!old) return old;
+                    return {
+                        ...old,
+                        pages: old.pages.map((page) => ({
+                            ...page,
+                            items: page.items.map((post) =>
+                                post.id === postId
+                                    ? {
+                                          ...post,
+                                          commentsCount: post.commentsCount + 1,
+                                          comments: [optimistic, ...(post.comments ?? [])],
+                                      }
+                                    : post,
+                            ),
+                        })),
+                    };
+                },
             );
 
             try {
-                const created = await feedApi.addComment(postId, content);
-                setPosts((prev) =>
-                    prev.map((post) =>
-                        post.id === postId
-                            ? {
-                                  ...post,
-                                  comments: (post.comments ?? []).map(
-                                      (comment) =>
-                                          comment.id === optimistic.id
-                                              ? created
-                                              : comment
-                                  ),
-                              }
-                            : post
-                    )
+                const created = await addCommentMutation.mutateAsync({ postId, content });
+                queryClient.setQueryData(
+                    profilePostsKey,
+                    (old:
+                        | {
+                              pages: Array<{ items: FeedPost[]; nextCursor: string | null }>;
+                              pageParams: number[];
+                          }
+                        | undefined) => {
+                        if (!old) return old;
+                        return {
+                            ...old,
+                            pages: old.pages.map((page) => ({
+                                ...page,
+                                items: page.items.map((post) =>
+                                    post.id === postId
+                                        ? {
+                                              ...post,
+                                              comments: (post.comments ?? []).map((comment) =>
+                                                  comment.id === optimistic.id
+                                                      ? created
+                                                      : comment,
+                                              ),
+                                          }
+                                        : post,
+                                ),
+                            })),
+                        };
+                    },
                 );
             } catch {
-                setPosts((prev) =>
-                    prev.map((post) =>
-                        post.id === postId
-                            ? {
-                                  ...post,
-                                  commentsCount: Math.max(
-                                      0,
-                                      post.commentsCount - 1
-                                  ),
-                                  comments: (post.comments ?? []).filter(
-                                      (comment) => comment.id !== optimistic.id
-                                  ),
-                              }
-                            : post
-                    )
-                );
+                queryClient.setQueryData(profilePostsKey, previousData);
             }
         },
-        [isAuthenticated, onAuthRequired, user]
+        [addCommentMutation, isAuthenticated, onAuthRequired, profilePostsKey, queryClient, user],
+    );
+
+    const posts = useMemo(
+        () => postsQuery.data?.pages.flatMap((page) => page.items) ?? [],
+        [postsQuery.data],
+    );
+    const setPosts: React.Dispatch<React.SetStateAction<FeedPost[]>> = useCallback(
+        (value) => {
+            queryClient.setQueryData(
+                profilePostsKey,
+                (old:
+                    | {
+                          pages: Array<{ items: FeedPost[]; nextCursor: string | null }>;
+                          pageParams: number[];
+                      }
+                    | undefined) => {
+                    const current = old?.pages.flatMap((page) => page.items) ?? [];
+                    const nextItems = typeof value === "function" ? value(current) : value;
+                    return {
+                        pages: [{ items: nextItems, nextCursor: null }],
+                        pageParams: [1],
+                    };
+                },
+            );
+        },
+        [profilePostsKey, queryClient],
     );
 
     return {
         posts,
         setPosts,
-        postsPage,
-        postsHasMore,
-        postsLoadingMore,
+        postsPage: postsQuery.data?.pages.length ?? 1,
+        postsHasMore: Boolean(postsQuery.hasNextPage),
+        postsLoadingMore: postsQuery.isFetchingNextPage,
         loadMorePosts,
         handleProfileCreatePost,
         handleProfileModalLike,

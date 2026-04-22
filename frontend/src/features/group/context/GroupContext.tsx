@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode, useState } from "react";
+import { createContext, useContext, type ReactNode, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useGroupData } from "../hooks/useGroupData";
 import { useGroupTabs, type GroupTab } from "../hooks/useGroupTabs";
@@ -8,6 +8,7 @@ import { useGroupAction } from "../hooks/useGroupAction";
 import type { Group, GroupMemberBrief, GroupJoinRequest, GroupInvite } from "../types/group.types";
 import type { FeedPost, CreatePostPayload } from "../../feed/types/feed.types";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
+import { useAppStore } from "../../../shared/state/appStore";
 
 interface GroupContextValue {
     id: string | undefined;
@@ -63,8 +64,14 @@ export function GroupProvider({ children }: { children: ReactNode }) {
     
     const { group, setGroup, isLoading } = useGroupData(id);
     const { activeTab, setActiveTab } = useGroupTabs();
-    const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
-    const promptGuestAuth = () => setShowGuestAuthModal(true);
+    const showGuestAuthModal = useAppStore((state) => state.guestAuthModal.group ?? false);
+    const setGuestAuthModal = useAppStore((state) => state.setGuestAuthModal);
+    const setShowGuestAuthModal: React.Dispatch<React.SetStateAction<boolean>> = (value) => {
+        const nextValue =
+            typeof value === "function" ? value(showGuestAuthModal) : value;
+        setGuestAuthModal("group", nextValue);
+    };
+    const promptGuestAuth = () => setGuestAuthModal("group", true);
     const { isLeaving, leaveError, setLeaveError, handleJoinGroup, handleLeaveGroup } = useGroupAction(
         id,
         group,
@@ -81,12 +88,29 @@ export function GroupProvider({ children }: { children: ReactNode }) {
         handlePromoteDemote, handleRemoveMember, handleReviewRequest, handleCreateInvite 
     } = useGroupMembers(id, activeTab, group);
 
-    const [showUpdateModal, setShowUpdateModal] = useState(false);
-    const [showPostModal, setShowPostModal] = useState(false);
+    const showUpdateModal = useAppStore((state) => state.groupUpdateModalOpen);
+    const setGroupUpdateModalOpen = useAppStore((state) => state.setGroupUpdateModalOpen);
+    const showPostModal = useAppStore((state) => state.groupPostModalOpen);
+    const setGroupPostModalOpen = useAppStore((state) => state.setGroupPostModalOpen);
+    const setShowUpdateModal: React.Dispatch<React.SetStateAction<boolean>> = useCallback(
+        (value) => {
+            const nextValue =
+                typeof value === "function" ? value(showUpdateModal) : value;
+            setGroupUpdateModalOpen(nextValue);
+        },
+        [setGroupUpdateModalOpen, showUpdateModal],
+    );
+    const setShowPostModal: React.Dispatch<React.SetStateAction<boolean>> = useCallback(
+        (value) => {
+            const nextValue =
+                typeof value === "function" ? value(showPostModal) : value;
+            setGroupPostModalOpen(nextValue);
+        },
+        [setGroupPostModalOpen, showPostModal],
+    );
 
-    return (
-        <GroupContext.Provider
-            value={{
+    const value = useMemo(
+        () => ({
                 id,
                 group,
                 isLoading,
@@ -120,11 +144,39 @@ export function GroupProvider({ children }: { children: ReactNode }) {
                 handleRemoveMember,
                 handleReviewRequest,
                 handleCreateInvite,
-            }}
-        >
-            {children}
-        </GroupContext.Provider>
+            }),
+        [
+            activeTab,
+            group,
+            handleComment,
+            handleCreateInvite,
+            handleCreatePost,
+            handleDeletePost,
+            handleJoinGroup,
+            handleLeaveGroup,
+            handleLike,
+            handlePromoteDemote,
+            handleRemoveMember,
+            handleReviewRequest,
+            id,
+            invites,
+            isLoading,
+            isLeaving,
+            joinRequests,
+            leaveError,
+            mediaRows,
+            members,
+            posts,
+            postsLoading,
+            productRows,
+            showGuestAuthModal,
+            showPostModal,
+            showUpdateModal,
+            tabLoading,
+        ],
     );
+
+    return <GroupContext.Provider value={value}>{children}</GroupContext.Provider>;
 }
 
 export function useGroupContext() {
