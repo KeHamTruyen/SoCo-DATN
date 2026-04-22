@@ -1,10 +1,14 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import App from "./App.tsx";
 import { AuthProvider } from "./app/providers/AuthProvider";
 import { NotificationProvider } from "./features/notification/context/NotificationContext";
 import { SocketProvider } from "./shared/realtime/SocketContext";
 import { ThemePreferenceProvider } from "./shared/theme/ThemePreferenceProvider";
+import { appQueryClient } from "./shared/query/queryClient";
+import { AppErrorBoundary } from "./shared/ui/organisms/app-error-boundary/AppErrorBoundary";
 import "./i18n";
 import "./index.css";
 import "@fontsource/be-vietnam-pro/400.css";
@@ -22,7 +26,12 @@ createRoot(document.getElementById("root")!).render(
             <AuthProvider>
                 <SocketProvider>
                     <NotificationProvider>
-                        <App />
+                        <QueryClientProvider client={appQueryClient}>
+                            <AppErrorBoundary>
+                                <App />
+                            </AppErrorBoundary>
+                            <ReactQueryDevtools initialIsOpen={false} />
+                        </QueryClientProvider>
                     </NotificationProvider>
                 </SocketProvider>
             </AuthProvider>
