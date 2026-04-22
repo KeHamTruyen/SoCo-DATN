@@ -112,16 +112,18 @@ async function applySalesCountDelta(tx, items, delta = 1) {
     if (!Number.isFinite(qty) || qty <= 0) continue;
     productQty.set(item.productId, (productQty.get(item.productId) || 0) + qty);
   }
-  for (const [productId, qty] of productQty.entries()) {
-    await tx.product.update({
-      where: { id: productId },
-      data: {
-        salesCount: {
-          increment: qty * delta,
+  await Promise.all(
+    [...productQty.entries()].map(([productId, qty]) =>
+      tx.product.update({
+        where: { id: productId },
+        data: {
+          salesCount: {
+            increment: qty * delta,
+          },
         },
-      },
-    });
-  }
+      }),
+    ),
+  );
 }
 
 /**
@@ -236,51 +238,58 @@ export const createOrder = async (userId, orderData) => {
         },
       });
 
-      // Create order items
-      for (const item of items) {
-        const unitPrice = item.variant?.price ?? item.price ?? item.product.price;
-        const totalPrice = Number(unitPrice) * item.quantity;
-        const variantInfo = item.variant?.options ?? null;
-
-        await tx.orderItem.create({
-          data: {
+      // Create order items in one write and aggregate stock updates.
+      await tx.orderItem.createMany({
+        data: items.map((item) => {
+          const unitPrice = item.variant?.price ?? item.price ?? item.product.price;
+          const totalPrice = Number(unitPrice) * item.quantity;
+          return {
             orderId: newOrder.id,
             productId: item.product.id,
             variantId: item.variantId || null,
             sellerId,
             productName: item.product.title,
             productImageUrl: item.product.images[0]?.imageUrl || null,
-            variantInfo,
+            variantInfo: item.variant?.options ?? null,
             quantity: item.quantity,
             unitPrice,
             totalPrice,
             status: 'pending',
-          },
-        });
+          };
+        }),
+      });
 
-        // Update product stock if tracking
-        if (item.product.trackInventory) {
-          if (item.variantId) {
-            await tx.productVariant.update({
-              where: { id: item.variantId },
-              data: {
-                stockQuantity: {
-                  decrement: item.quantity,
-                },
-              },
-            });
-          } else {
-            await tx.product.update({
-              where: { id: item.product.id },
-              data: {
-                stockQuantity: {
-                  decrement: item.quantity,
-                },
-              },
-            });
-          }
+      const variantStockDelta = new Map();
+      const productStockDelta = new Map();
+      for (const item of items) {
+        if (!item.product.trackInventory) continue;
+        if (item.variantId) {
+          variantStockDelta.set(
+            item.variantId,
+            (variantStockDelta.get(item.variantId) || 0) + item.quantity,
+          );
+        } else {
+          productStockDelta.set(
+            item.product.id,
+            (productStockDelta.get(item.product.id) || 0) + item.quantity,
+          );
         }
       }
+
+      await Promise.all([
+        ...[...variantStockDelta.entries()].map(([variantId, qty]) =>
+          tx.productVariant.update({
+            where: { id: variantId },
+            data: { stockQuantity: { decrement: qty } },
+          }),
+        ),
+        ...[...productStockDelta.entries()].map(([productId, qty]) =>
+          tx.product.update({
+            where: { id: productId },
+            data: { stockQuantity: { decrement: qty } },
+          }),
+        ),
+      ]);
 
       createdOrderIds.push(newOrder.id);
     }

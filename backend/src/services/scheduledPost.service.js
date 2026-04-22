@@ -158,31 +158,23 @@ class ScheduledPostService {
         };
 
         if (normalizedStatus === "published") {
-            const posts = await prisma.scheduledPost.findMany({
-                where,
-                include: SCHEDULED_POST_INCLUDE,
-            });
+            const [posts, total] = await Promise.all([
+                prisma.scheduledPost.findMany({
+                    where,
+                    include: SCHEDULED_POST_INCLUDE,
+                    orderBy: { updatedAt: "desc" },
+                    skip,
+                    take: limit,
+                }),
+                prisma.scheduledPost.count({ where }),
+            ]);
             const enrichedPosts = await attachPublishedMetadata(posts);
-            const sortedPosts = enrichedPosts.sort((a, b) => {
-                const aTime = new Date(
-                    a.publishedPost?.publishedAt ??
-                        a.publishedPost?.createdAt ??
-                        a.scheduledTime,
-                ).getTime();
-                const bTime = new Date(
-                    b.publishedPost?.publishedAt ??
-                        b.publishedPost?.createdAt ??
-                        b.scheduledTime,
-                ).getTime();
-                return bTime - aTime;
-            });
-            const paginatedPosts = sortedPosts.slice(skip, skip + limit);
             return {
-                posts: paginatedPosts,
-                total: sortedPosts.length,
+                posts: enrichedPosts,
+                total,
                 page,
                 limit,
-                hasMore: page * limit < sortedPosts.length,
+                hasMore: page * limit < total,
             };
         }
 

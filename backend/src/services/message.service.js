@@ -134,18 +134,25 @@ class MessageService {
       prisma.conversation.count({ where: { id: { in: conversationIds } } }),
     ]);
 
-    const result = await Promise.all(
-      conversations.map(async (conv) => {
-        const unread = await prisma.message.count({
+    const unreadRows = conversationIds.length
+      ? await prisma.message.groupBy({
+          by: ['conversationId'],
           where: {
-            conversationId: conv.id,
+            conversationId: { in: conversationIds },
             senderId: { not: userId },
             isRead: false,
+            isDeleted: false,
           },
-        });
-        return { ...conv, lastMessage: conv.messages[0] || null, unreadCount: unread };
-      }),
-    );
+          _count: { _all: true },
+        })
+      : [];
+    const unreadMap = new Map(unreadRows.map((row) => [row.conversationId, row._count._all]));
+
+    const result = conversations.map((conv) => ({
+      ...conv,
+      lastMessage: conv.messages[0] || null,
+      unreadCount: unreadMap.get(conv.id) || 0,
+    }));
 
     return {
       conversations: result.map(({ messages, ...rest }) => rest),

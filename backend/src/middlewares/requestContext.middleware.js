@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { runWithRequestMetrics } from "../observability/requestMetrics.js";
 
 export const attachRequestContext = (req, res, next) => {
     const incomingRequestId = req.headers["x-request-id"];
@@ -10,5 +11,5 @@ export const attachRequestContext = (req, res, next) => {
     req.requestId = requestId;
     res.setHeader("x-request-id", requestId);
 
-    next();
+    runWithRequestMetrics(requestId, next);
 };
