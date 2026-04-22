@@ -554,6 +554,8 @@ model Order {
   items    OrderItem[]
   messages Message[]
 
+  @@index([buyerId, createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
   @@map("orders")
 }
 
@@ -622,6 +624,9 @@ model Post {
   likes    PostLike[]
   comments PostComment[]
 
+  @@index([status, visibility, createdAt(sort: Desc)])
+  @@index([authorId, createdAt(sort: Desc)])
+  @@index([productId, createdAt(sort: Desc)])
   @@map("posts")
 }
 
@@ -689,6 +694,8 @@ model ScheduledPost {
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
+  @@index([userId, status, updatedAt(sort: Desc)])
+  @@index([scheduledTime])
   @@map("scheduled_posts")
 }
 
@@ -709,6 +716,7 @@ model Conversation {
   participants ConversationParticipant[]
   messages     Message[]
 
+  @@index([updatedAt(sort: Desc)])
   @@map("conversations")
 }
 
@@ -724,6 +732,7 @@ model ConversationParticipant {
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([conversationId, userId])
+  @@index([userId, joinedAt(sort: Desc)])
   @@map("conversation_participants")
 }
 
@@ -750,6 +759,8 @@ model Message {
   product      Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
   order        Order?       @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
+  @@index([conversationId, createdAt(sort: Desc)])
+  @@index([conversationId, isRead, isDeleted])
   @@map("messages")
 }
 
@@ -780,6 +791,7 @@ model Notification {
   user        User  @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
   relatedUser User? @relation("RelatedUser", fields: [relatedUserId], references: [id], onDelete: SetNull)
 
+  @@index([userId, isRead, createdAt(sort: Desc)])
   @@map("notifications")
 }
 
@@ -797,6 +809,8 @@ model Follow {
   following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
+  @@index([followerId, createdAt(sort: Desc)])
+  @@index([followingId, createdAt(sort: Desc)])
   @@map("follows")
 }
 
@@ -856,6 +870,7 @@ model GroupMember {
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, userId])
+  @@index([userId, joinedAt(sort: Desc)])
   @@map("group_members")
 }
 

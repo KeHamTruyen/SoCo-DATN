@@ -16,6 +16,7 @@ import {
     updateSellerVariantValidation,
     trackProductViewValidation,
     trackSearchEventValidation,
+    recommendationPaginationValidation,
 } from "../validators/product.validator.js";
 
 const router = express.Router();
@@ -72,6 +73,8 @@ router.get("/", getProductsValidation, validate, productController.getProducts);
 router.get(
     "/recommendations/me",
     protect,
+    recommendationPaginationValidation,
+    validate,
     productController.getMyRecommendations,
 );
 

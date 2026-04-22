@@ -385,6 +385,17 @@ export const trackSearchEventValidation = [
         .withMessage("sessionId must be a string of max 100 characters"),
 ];
 
+export const recommendationPaginationValidation = [
+    query("page")
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage("page must be a positive integer"),
+    query("limit")
+        .optional()
+        .isInt({ min: 1, max: 48 })
+        .withMessage("limit must be between 1 and 48"),
+];
+
 export const createSellerVariantValidation = [
     body("name")
         .trim()

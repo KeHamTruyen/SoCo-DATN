@@ -90,7 +90,8 @@ class ProductController {
       const data = await productService.getPersonalizedRecommendations(req.user.id, req.query);
       res.json({
         success: true,
-        data
+        data,
+        pagination: data.pagination
       });
     } catch (error) {
       next(error);

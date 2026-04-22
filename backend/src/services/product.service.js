@@ -384,9 +384,14 @@ class ProductService {
   }
 
   async getPersonalizedRecommendations(userId, options = {}) {
+    const page = Number.isFinite(Number(options.page))
+      ? Math.max(parseInt(options.page, 10), 1)
+      : 1;
     const take = Number.isFinite(Number(options.limit))
       ? Math.min(Math.max(parseInt(options.limit, 10), 4), 48)
       : 24;
+    const skip = (page - 1) * take;
+    const poolTarget = Math.max(take * 8, 96);
     const now = Date.now();
     const recentViews = await prisma.productView.findMany({
       where: { userId },
@@ -561,13 +566,13 @@ class ProductService {
     for (const row of ranked) {
       const sellerId = row.product.sellerId;
       const count = sellerSeen.get(sellerId) || 0;
-      if (count >= 3) continue;
+      if (count >= 6) continue;
       selected.push(withPrimaryCategory(row.product));
       sellerSeen.set(sellerId, count + 1);
-      if (selected.length >= take) break;
+      if (selected.length >= poolTarget) break;
     }
 
-    if (selected.length < Math.min(8, take)) {
+    if (selected.length < poolTarget) {
       const fallback = await prisma.product.findMany({
         where: { deletedAt: null, status: 'ACTIVE' },
         include: {
@@ -584,18 +589,20 @@ class ProductService {
           _count: { select: { reviews: true } }
         },
         orderBy: [{ salesCount: 'desc' }, { createdAt: 'desc' }],
-        take: take
+        take: poolTarget
       });
       const existing = new Set(selected.map((product) => product.id));
       for (const product of fallback) {
         if (existing.has(product.id)) continue;
         selected.push(withPrimaryCategory(product));
-        if (selected.length >= take) break;
+        if (selected.length >= poolTarget) break;
       }
     }
 
+    const pagedProducts = selected.slice(skip, skip + take);
+
     const categoryIdsInReco = new Set(
-      selected
+      pagedProducts
         .flatMap((product) => product.categories || [])
         .map((category) => category.id)
     );
@@ -609,9 +616,16 @@ class ProductService {
     });
 
     return {
-      products: selected,
+      products: pagedProducts,
       categories,
-      tags: topViewedTags
+      tags: topViewedTags,
+      pagination: {
+        page,
+        limit: take,
+        total: selected.length,
+        totalPages: Math.ceil(selected.length / take),
+        hasMore: page * take < selected.length
+      }
     };
   }
 
