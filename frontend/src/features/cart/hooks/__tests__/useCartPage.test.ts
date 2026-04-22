@@ -1,5 +1,4 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useCartPage } from "../useCartPage";
 import { cartApi } from "../../api/cartApi";
 

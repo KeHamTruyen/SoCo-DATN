@@ -1,5 +1,4 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
 import { MarketplaceSidebar } from "../MarketplaceSidebar";
 
 vi.mock("react-i18next", () => ({

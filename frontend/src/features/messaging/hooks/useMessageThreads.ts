@@ -1,8 +1,10 @@
 import { useCallback, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { messagingApi } from "../api/messagingApi";
 import type { Conversation, Message } from "../types/messaging.types";
 import { previewFromMessage } from "./useConversations";
 import i18n from "../../../i18n";
+import { queryKeys } from "../../../shared/query/queryKeys";
 
 interface UseMessageThreadsOptions {
     userId: string | undefined;
@@ -26,15 +28,22 @@ export function useMessageThreads({
     upsertConversation,
     clearUnread,
 }: UseMessageThreadsOptions) {
+    const queryClient = useQueryClient();
     const [messageThreads, setMessageThreads] = useState<Record<string, Message[]>>({});
 
     const loadMessagesForConversation = useCallback(
         async (conversationId: string) => {
-            const { items } = await messagingApi.listMessages(conversationId);
+            const items = await queryClient.fetchQuery({
+                queryKey: queryKeys.messaging.messages(conversationId),
+                queryFn: async () => {
+                    const response = await messagingApi.listMessages(conversationId);
+                    return response.items;
+                },
+            });
             setMessageThreads((prev) => ({ ...prev, [conversationId]: items }));
             return items;
         },
-        [],
+        [queryClient],
     );
 
     const sendMessage = useCallback(
@@ -52,6 +61,10 @@ export function useMessageThreads({
                 if (list.some((m) => m.id === msg.id)) return prev;
                 return { ...prev, [conversationId]: [...list, msg] };
             });
+            queryClient.setQueryData<Message[]>(
+                queryKeys.messaging.messages(conversationId),
+                (prev = []) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]),
+            );
 
             // Update conversation preview
             updateConversationPreview(
@@ -63,7 +76,7 @@ export function useMessageThreads({
 
             return msg;
         },
-        [updateConversationPreview],
+        [queryClient, updateConversationPreview],
     );
 
     const markConversationRead = useCallback(

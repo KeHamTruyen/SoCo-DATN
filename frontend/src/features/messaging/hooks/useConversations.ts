@@ -1,39 +1,43 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { messagingApi } from "../api/messagingApi";
 import type { Conversation, Message } from "../types/messaging.types";
+import { queryKeys } from "../../../shared/query/queryKeys";
 
 /**
  * Manages the conversation list, loading state, and derived unread counts.
  * Exposes setters so sibling hooks (socket, threads) can update conversations.
  */
 export function useConversations(userId: string | undefined) {
-    const [conversations, setConversations] = useState<Conversation[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const queryClient = useQueryClient();
+    const conversationsKey = userId
+        ? queryKeys.messaging.conversations(userId)
+        : ["messaging", "conversations", "empty"];
+    const conversationsQuery = useQuery({
+        queryKey: conversationsKey,
+        enabled: Boolean(userId),
+        queryFn: async () => {
+            const { items } = await messagingApi.listConversations(userId!);
+            return items;
+        },
+    });
+    const conversations = conversationsQuery.data ?? [];
+    const setConversations = useCallback(
+        (value: Conversation[] | ((prev: Conversation[]) => Conversation[])) => {
+            queryClient.setQueryData<Conversation[]>(conversationsKey, (prev = []) =>
+                typeof value === "function" ? value(prev) : value,
+            );
+        },
+        [conversationsKey, queryClient],
+    );
 
     const refreshConversations = useCallback(async () => {
         if (!userId) {
             setConversations([]);
             return;
         }
-        setIsLoading(true);
-        try {
-            const { items } = await messagingApi.listConversations(userId);
-            setConversations(items);
-        } catch {
-            setConversations([]);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [userId]);
-
-    // Initial load & reset on logout
-    useEffect(() => {
-        if (!userId) {
-            setConversations([]);
-            return;
-        }
-        void refreshConversations();
-    }, [userId, refreshConversations]);
+        await queryClient.invalidateQueries({ queryKey: conversationsKey });
+    }, [conversationsKey, queryClient, setConversations, userId]);
 
     const totalUnread = useMemo(
         () => conversations.reduce((sum, c) => sum + c.unreadCount, 0),
@@ -101,7 +105,7 @@ export function useConversations(userId: string | undefined) {
     return {
         conversations,
         setConversations,
-        isLoading,
+        isLoading: conversationsQuery.isLoading,
         refreshConversations,
         totalUnread,
         unreadChatsCount,

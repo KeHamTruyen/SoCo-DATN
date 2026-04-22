@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { marketplaceApi } from "../api/marketplaceApi";
+import { productApi } from "../../product/api/productApi";
+import { queryKeys } from "../../../shared/query/queryKeys";
 import { MARKETPLACE_PRICE_CAP } from "../components/MarketplaceSidebar";
 import type {
     MarketplaceCategoryOption,
@@ -12,9 +15,24 @@ import { parseRatingFilter, parseSort } from "../utils/marketplaceFilters";
 
 const PAGE_SIZE = 12;
 
+function appendUniqueById<T extends { id: string }>(prev: T[], next: T[]) {
+    if (prev.length === 0) {
+        return next;
+    }
+    const seen = new Set(prev.map((item) => item.id));
+    const merged = [...prev];
+    for (const item of next) {
+        if (seen.has(item.id)) continue;
+        seen.add(item.id);
+        merged.push(item);
+    }
+    return merged;
+}
+
 export function useMarketplacePage() {
     const { t } = useTranslation();
     const { isAuthenticated } = useAuthSession();
+    const queryClient = useQueryClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const qFromUrl = searchParams.get("q") ?? "";
 
@@ -46,18 +64,39 @@ export function useMarketplacePage() {
         [filterParams],
     );
 
-    const [items, setItems] = useState<
-        Awaited<ReturnType<typeof marketplaceApi.listProducts>>["items"]
-    >([]);
-    const [total, setTotal] = useState(0);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [categories, setCategories] = useState<MarketplaceCategoryOption[]>([]);
-    const [tags, setTags] = useState<string[]>([]);
-    const [useRecommendationFeed, setUseRecommendationFeed] = useState(false);
-    const [listPage, setListPage] = useState(1);
-    const filterSigRef = useRef(filterSignature);
+    const productsKey = queryKeys.marketplace.products(filterSignature);
+    const categoriesQuery = useQuery({
+        queryKey: queryKeys.marketplace.categories,
+        queryFn: () => marketplaceApi.listCategories({ onlyWithPublishedProducts: true }),
+    });
+    const recommendationsQuery = useQuery({
+        queryKey: queryKeys.marketplace.recommendations(isAuthenticated),
+        enabled: isAuthenticated,
+        queryFn: () => marketplaceApi.getRecommendations({ page: 1, limit: PAGE_SIZE }),
+    });
+    const isRecommendationFeed = useMemo(
+        () =>
+            isAuthenticated &&
+            filterParams.sort === "relevance" &&
+            !filterParams.categoryId &&
+            filterParams.minPrice == null &&
+            filterParams.maxPrice == null &&
+            filterParams.ratingFilter == null,
+        [filterParams, isAuthenticated],
+    );
+    const productsQuery = useInfiniteQuery({
+        queryKey: productsKey,
+        initialPageParam: 1,
+        queryFn: ({ pageParam }) =>
+            marketplaceApi.listProducts({
+                ...filterParams,
+                page: pageParam,
+            }),
+        getNextPageParam(lastPage) {
+            const hasMore = lastPage.page * lastPage.pageSize < lastPage.total;
+            return hasMore ? lastPage.page + 1 : undefined;
+        },
+    });
 
     const [draftQ, setDraftQ] = useState(qFromUrl);
     const qTimerRef = useRef<number | null>(null);
@@ -146,111 +185,53 @@ export function useMarketplacePage() {
         [isAuthenticated, patchSearchParams],
     );
 
-    useEffect(() => {
-        let cancelled = false;
-        void marketplaceApi
-            .listCategories({ onlyWithPublishedProducts: true })
-            .then((data) => {
-                if (!cancelled) setCategories(data);
-            })
-            .catch(() => {});
-        if (isAuthenticated) {
-            void marketplaceApi
-                .getRecommendations(8)
-                .then((data) => {
-                    if (!cancelled && data.tags.length > 0) {
-                        setTags(data.tags);
-                    }
-                })
-                .catch(() => {});
-        } else {
-            setTags([]);
-        }
-        return () => {
-            cancelled = true;
-        };
-    }, [isAuthenticated]);
-
-    useEffect(() => {
-        let cancelled = false;
-        const filterChanged = filterSigRef.current !== filterSignature;
-        filterSigRef.current = filterSignature;
-
-        if (filterChanged && listPage !== 1) {
-            setListPage(1);
-            setItems([]);
-            return;
-        }
-
-        const pageToFetch = filterChanged ? 1 : listPage;
-
-        void (async () => {
-            try {
-                const useRelevanceFeed =
-                    isAuthenticated &&
-                    pageToFetch === 1 &&
-                    filterParams.sort === "relevance" &&
-                    !filterParams.categoryId &&
-                    filterParams.minPrice == null &&
-                    filterParams.maxPrice == null &&
-                    filterParams.ratingFilter == null;
-
-                if (useRelevanceFeed) {
-                    setIsLoading(true);
-                    setError(null);
-                    const recommendationData =
-                        await marketplaceApi.getRecommendations(24);
-                    if (cancelled) return;
-                    setUseRecommendationFeed(true);
-                    setItems(recommendationData.products);
-                    setTotal(recommendationData.products.length);
-                    setTags(recommendationData.tags);
-                    setCategories((prev) =>
-                        prev.length > 0 ? prev : recommendationData.categories,
-                    );
-                    return;
-                }
-
-                if (pageToFetch === 1) {
-                    setIsLoading(true);
-                    setError(null);
-                } else setIsLoadingMore(true);
-
-                const data = await marketplaceApi.listProducts({
-                    ...filterParams,
-                    page: pageToFetch,
-                });
-                if (cancelled) return;
-                setTotal(data.total);
-                setUseRecommendationFeed(false);
-                setItems((prev) =>
-                    pageToFetch === 1 ? data.items : [...prev, ...data.items],
-                );
-            } catch {
-                if (!cancelled) {
-                    setError(t("marketplace.loadProductsError"));
-                    if (pageToFetch === 1) setItems([]);
-                }
-            } finally {
-                if (!cancelled) {
-                    setIsLoading(false);
-                    setIsLoadingMore(false);
-                }
-            }
-        })();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [filterSignature, isAuthenticated, listPage, t]);
-
-    const hasMore =
-        !isLoading && !useRecommendationFeed && items.length > 0 && items.length < total;
-
     const handleLoadMore = useCallback(() => {
-        if (!hasMore || isLoadingMore) return;
-        setListPage((p) => p + 1);
-    }, [hasMore, isLoadingMore]);
+        if (isRecommendationFeed) return;
+        if (productsQuery.hasNextPage && !productsQuery.isFetchingNextPage) {
+            void productsQuery.fetchNextPage();
+        }
+    }, [isRecommendationFeed, productsQuery]);
+
+    const prefetchProductDetail = useCallback(
+        (productId: string) => {
+            void queryClient.prefetchQuery({
+                queryKey: queryKeys.product.detail(productId),
+                queryFn: () => productApi.getProductDetail(productId),
+                staleTime: 30_000,
+            });
+        },
+        [queryClient],
+    );
+
+    const items = useMemo(() => {
+        if (isRecommendationFeed) {
+            return recommendationsQuery.data?.products ?? [];
+        }
+        const pages = productsQuery.data?.pages ?? [];
+        return pages.reduce<
+            Awaited<ReturnType<typeof marketplaceApi.listProducts>>["items"]
+        >((acc, page) => appendUniqueById(acc, page.items), []);
+    }, [isRecommendationFeed, productsQuery.data?.pages, recommendationsQuery.data?.products]);
+    const total = isRecommendationFeed
+        ? (recommendationsQuery.data?.total ?? 0)
+        : (productsQuery.data?.pages[0]?.total ?? 0);
+    const hasMore = isRecommendationFeed
+        ? Boolean(recommendationsQuery.data?.hasMore)
+        : Boolean(productsQuery.hasNextPage);
+    const categories: MarketplaceCategoryOption[] =
+        categoriesQuery.data ??
+        recommendationsQuery.data?.categories ??
+        [];
+    const tags = isAuthenticated ? recommendationsQuery.data?.tags ?? [] : [];
+    const isLoading =
+        isRecommendationFeed
+            ? recommendationsQuery.isLoading
+            : productsQuery.isLoading;
+    const isLoadingMore = productsQuery.isFetchingNextPage;
+    const error =
+        isRecommendationFeed
+            ? (recommendationsQuery.isError ? t("marketplace.loadProductsError") : null)
+            : (productsQuery.isError ? t("marketplace.loadProductsError") : null);
 
     return {
         filterParams,
@@ -260,7 +241,7 @@ export function useMarketplacePage() {
         maxSliderValue,
         activeTag,
         tags,
-        useRecommendationFeed,
+        useRecommendationFeed: isRecommendationFeed,
         items,
         isLoading,
         error,
@@ -271,5 +252,6 @@ export function useMarketplacePage() {
         handleApplyPrice,
         handleTagClick,
         handleLoadMore,
+        prefetchProductDetail,
     };
 }

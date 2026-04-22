@@ -1,65 +1,73 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { reviewApi } from "../../review/api/reviewApi";
 import { uploadProductImages } from "../../upload/api/uploadApi";
 import { orderApi } from "../api/orderApi";
-import type { Order } from "../types/order.types";
 import type { OrderReviewFormItem } from "../components/OrderReviewModal";
+import { queryKeys } from "../../../shared/query/queryKeys";
 
 export function useOrderDetailPage(orderId?: string) {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const [order, setOrder] = useState<Order | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isUpdating, setIsUpdating] = useState(false);
+    const queryClient = useQueryClient();
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-    const [isSubmittingReview, setIsSubmittingReview] = useState(false);
     const [reviewNotice, setReviewNotice] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const orderKey = orderId ? queryKeys.order.detail(orderId) : ["order", "detail", "empty"];
 
-    useEffect(() => {
-        if (!orderId) return;
-        let mounted = true;
-        void (async () => {
-            setIsLoading(true);
-            try {
-                const data = await orderApi.getOrder(orderId);
-                if (!mounted) return;
-                setOrder(data);
-            } catch {
-                if (!mounted) return;
-                setError(t("orderDetail.errors.loadFailed", "Unable to load order details."));
-            } finally {
-                if (mounted) setIsLoading(false);
-            }
-        })();
-        return () => {
-            mounted = false;
-        };
-    }, [orderId, t]);
+    const orderQuery = useQuery({
+        queryKey: orderKey,
+        enabled: Boolean(orderId),
+        queryFn: () => orderApi.getOrder(orderId!),
+    });
+
+    const cancelOrderMutation = useMutation({
+        mutationFn: (id: string) => orderApi.cancelOrder(id),
+    });
+
+    const updateStatusMutation = useMutation({
+        mutationFn: (id: string) => orderApi.updateOrderStatus(id, "completed"),
+        onSuccess(updated) {
+            queryClient.setQueryData(orderKey, updated);
+        },
+    });
+
+    const submitReviewsMutation = useMutation({
+        mutationFn: async (reviewItems: OrderReviewFormItem[]) => {
+            const result = await Promise.allSettled(
+                reviewItems.map(async (item) => {
+                    const uploaded = item.files.length > 0 ? await uploadProductImages(item.files) : [];
+                    return reviewApi.createReview({
+                        orderItemId: item.orderItemId,
+                        rating: item.rating,
+                        content: item.content.trim() || undefined,
+                        images: uploaded.map((u) => u.url),
+                    });
+                }),
+            );
+            return result;
+        },
+    });
+
+    const order = orderQuery.data ?? null;
 
     const cancelOrder = async () => {
         if (!order) return;
-        setIsUpdating(true);
         try {
-            await orderApi.cancelOrder(order.id);
+            await cancelOrderMutation.mutateAsync(order.id);
             navigate("/orders");
         } finally {
-            setIsUpdating(false);
         }
     };
 
     const markAsReceived = async () => {
         if (!order) return;
-        setIsUpdating(true);
         try {
-            const updated = await orderApi.updateOrderStatus(order.id, "completed");
-            setOrder(updated);
+            await updateStatusMutation.mutateAsync(order.id);
         } catch {
             setError(t("orderDetail.errors.updateStatusFailed", "Unable to update order status."));
-        } finally {
-            setIsUpdating(false);
         }
     };
 
@@ -72,25 +80,13 @@ export function useOrderDetailPage(orderId?: string) {
             setIsReviewModalOpen(false);
             return;
         }
-        setIsSubmittingReview(true);
         setReviewNotice(null);
-        const result = await Promise.allSettled(
-            reviewItems.map(async (item) => {
-                const uploaded = item.files.length > 0 ? await uploadProductImages(item.files) : [];
-                return reviewApi.createReview({
-                    orderItemId: item.orderItemId,
-                    rating: item.rating,
-                    content: item.content.trim() || undefined,
-                    images: uploaded.map((u) => u.url),
-                });
-            }),
-        );
+        const result = await submitReviewsMutation.mutateAsync(reviewItems);
         const failed = result.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
         if (failed.length === 0) {
             setReviewNotice(t("orderDetail.review.submitSuccess", "Review submitted successfully."));
             setIsReviewModalOpen(false);
-            setOrder(await orderApi.getOrder(order.id));
-            setIsSubmittingReview(false);
+            await queryClient.invalidateQueries({ queryKey: orderKey });
             return;
         }
         const firstReason = failed[0]?.reason;
@@ -99,17 +95,20 @@ export function useOrderDetailPage(orderId?: string) {
                 ? firstReason.message
                 : t("orderDetail.review.errors.submitFailed", "Failed to submit review."),
         );
-        setIsSubmittingReview(false);
     };
 
     return {
         order,
-        isLoading,
-        isUpdating,
+        isLoading: orderQuery.isLoading,
+        isUpdating: cancelOrderMutation.isPending || updateStatusMutation.isPending,
         isReviewModalOpen,
-        isSubmittingReview,
+        isSubmittingReview: submitReviewsMutation.isPending,
         reviewNotice,
-        error,
+        error:
+            error ??
+            (orderQuery.isError
+                ? t("orderDetail.errors.loadFailed", "Unable to load order details.")
+                : null),
         setIsReviewModalOpen,
         setReviewNotice,
         cancelOrder,

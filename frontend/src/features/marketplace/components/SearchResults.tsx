@@ -1,7 +1,7 @@
 import type { ProductListItem } from "../types/marketplace.types";
 import { useTranslation } from "react-i18next";
+import { useEffect, useRef } from "react";
 import { ProductCard } from "./ProductCard";
-import { Button } from "../../../shared/ui";
 
 interface SearchResultsProps {
     items: ProductListItem[];
@@ -21,6 +21,25 @@ export function SearchResults({
     onLoadMore,
 }: SearchResultsProps) {
     const { t } = useTranslation();
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (!hasMore || !onLoadMore || isLoadingMore) return;
+        const node = sentinelRef.current;
+        if (!node) return;
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const [entry] = entries;
+                if (entry?.isIntersecting) {
+                    onLoadMore();
+                }
+            },
+            { rootMargin: "240px 0px" },
+        );
+        observer.observe(node);
+        return () => observer.disconnect();
+    }, [hasMore, isLoadingMore, onLoadMore]);
+
     if (isLoading) {
         return (
             <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300">
@@ -54,17 +73,16 @@ export function SearchResults({
             </div>
             {hasMore && onLoadMore ? (
                 <div className="flex justify-center">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="rounded-xl border-2 border-neutral-200 px-8 py-3 font-bold text-neutral-600 hover:border-primary hover:text-primary dark:border-neutral-800 dark:text-neutral-400"
-                        disabled={isLoadingMore}
-                        onClick={onLoadMore}
-                    >
-                        {isLoadingMore
-                            ? t("marketplace.loading")
-                            : t("marketplace.loadMoreProducts")}
-                    </Button>
+                    <div
+                        ref={sentinelRef}
+                        aria-hidden
+                        className="h-1 w-full"
+                    />
+                    {isLoadingMore ? (
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                            {t("marketplace.loading")}
+                        </p>
+                    ) : null}
                 </div>
             ) : null}
         </div>

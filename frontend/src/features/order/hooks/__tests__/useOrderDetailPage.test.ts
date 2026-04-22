@@ -1,9 +1,10 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useOrderDetailPage } from "../useOrderDetailPage";
 import { orderApi } from "../../api/orderApi";
 import { reviewApi } from "../../../review/api/reviewApi";
 import { uploadProductImages } from "../../../upload/api/uploadApi";
+import { createElement, type ReactNode } from "react";
 
 const mockNavigate = vi.fn();
 const translate = (_k: string, d: string) => d;
@@ -49,6 +50,19 @@ const mockOrder = {
     paymentMethod: "cod",
 };
 
+function createWrapper() {
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            queries: { retry: false },
+            mutations: { retry: false },
+        },
+    });
+
+    return function Wrapper({ children }: { children: ReactNode }) {
+        return createElement(QueryClientProvider, { client: queryClient }, children);
+    };
+}
+
 describe("useOrderDetailPage", () => {
     beforeEach(() => {
         vi.resetAllMocks();
@@ -56,7 +70,9 @@ describe("useOrderDetailPage", () => {
 
     it("loads order detail", async () => {
         vi.mocked(orderApi.getOrder).mockResolvedValue(mockOrder as never);
-        const { result } = renderHook(() => useOrderDetailPage("o1"));
+        const { result } = renderHook(() => useOrderDetailPage("o1"), {
+            wrapper: createWrapper(),
+        });
 
         await waitFor(() => expect(result.current.order?.id).toBe("o1"));
         expect(result.current.order?.id).toBe("o1");
@@ -68,7 +84,9 @@ describe("useOrderDetailPage", () => {
             status: "pending",
         } as never);
         vi.mocked(orderApi.cancelOrder).mockResolvedValue({} as never);
-        const { result } = renderHook(() => useOrderDetailPage("o1"));
+        const { result } = renderHook(() => useOrderDetailPage("o1"), {
+            wrapper: createWrapper(),
+        });
         await waitFor(() => expect(result.current.order?.id).toBe("o1"));
 
         await act(async () => {
@@ -88,7 +106,9 @@ describe("useOrderDetailPage", () => {
             ...mockOrder,
             status: "completed",
         } as never);
-        const { result } = renderHook(() => useOrderDetailPage("o1"));
+        const { result } = renderHook(() => useOrderDetailPage("o1"), {
+            wrapper: createWrapper(),
+        });
         await waitFor(() => expect(result.current.order?.id).toBe("o1"));
 
         await act(async () => {
@@ -96,14 +116,16 @@ describe("useOrderDetailPage", () => {
         });
 
         expect(orderApi.updateOrderStatus).toHaveBeenCalledWith("o1", "completed");
-        expect(result.current.order?.status).toBe("completed");
+        await waitFor(() => expect(result.current.order?.status).toBe("completed"));
     });
 
     it("submits reviews and reloads order", async () => {
         vi.mocked(orderApi.getOrder).mockResolvedValue(mockOrder as never);
         vi.mocked(uploadProductImages).mockResolvedValue([{ url: "a.jpg" }] as never);
         vi.mocked(reviewApi.createReview).mockResolvedValue({ id: "r1" } as never);
-        const { result } = renderHook(() => useOrderDetailPage("o1"));
+        const { result } = renderHook(() => useOrderDetailPage("o1"), {
+            wrapper: createWrapper(),
+        });
         await waitFor(() => expect(result.current.order?.id).toBe("o1"));
 
         await act(async () => {

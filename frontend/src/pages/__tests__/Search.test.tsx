@@ -1,5 +1,4 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import SearchPage from "../Search";
 import { searchApi } from "../../features/search/api/searchApi";

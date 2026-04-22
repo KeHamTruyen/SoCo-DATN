@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import { parseRatingFilter, parseSort } from "../marketplaceFilters";
 
 describe("marketplaceFilters", () => {

@@ -40,5 +40,9 @@ export interface MarketplaceRecommendationsResponse {
     products: ProductListItem[];
     categories: MarketplaceCategoryOption[];
     tags: string[];
+    total: number;
+    page: number;
+    pageSize: number;
+    hasMore: boolean;
 }
 

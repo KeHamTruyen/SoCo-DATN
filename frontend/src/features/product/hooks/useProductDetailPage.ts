@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import {
+    useInfiniteQuery,
+    useMutation,
+    useQuery,
+    useQueryClient,
+} from "@tanstack/react-query";
 import { cartApi } from "../../cart/api/cartApi";
 import { marketplaceApi } from "../../marketplace/api/marketplaceApi";
 import { profileApi } from "../../profile/api/profileApi";
@@ -9,6 +15,7 @@ import type {
     ProductReviewItem,
     ProductReviewPhoto,
 } from "../types/product.types";
+import { queryKeys } from "../../../shared/query/queryKeys";
 
 const REVIEW_PAGE_SIZE = 3;
 
@@ -28,26 +35,97 @@ export function useProductDetailPage(options?: UseProductDetailPageOptions | str
         isAuthenticated = true,
         onAuthRequired = () => {},
     } = normalizedOptions;
-    const [product, setProduct] = useState<ProductDetail | null>(null);
-    const [reviews, setReviews] = useState<ProductReviewItem[]>([]);
-    const [reviewsPage, setReviewsPage] = useState(1);
-    const [reviewsTotal, setReviewsTotal] = useState(0);
-    const [reviewDistribution, setReviewDistribution] = useState<
-        Record<1 | 2 | 3 | 4 | 5, number>
-    >({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
+    const queryClient = useQueryClient();
     const [reviewFilters, setReviewFilters] = useState<ProductReviewFilters>({
         sortBy: "createdAt",
         sortOrder: "desc",
     });
-    const [reviewsError, setReviewsError] = useState<string | null>(null);
-    const [isLoadingReviews, setIsLoadingReviews] = useState(false);
-    const [isLoadingMoreReviews, setIsLoadingMoreReviews] = useState(false);
     const [cartActionError, setCartActionError] = useState<string | null>(null);
     const [activePhotoIndex, setActivePhotoIndex] = useState(0);
     const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<ProductDetailTab>("reviews");
+    const reviewFilterSignature = useMemo(
+        () => JSON.stringify(reviewFilters),
+        [reviewFilters],
+    );
+
+    const productQuery = useQuery({
+        queryKey: productId ? queryKeys.product.detail(productId) : ["product", "detail", "empty"],
+        enabled: Boolean(productId),
+        queryFn: async () => {
+            const detail = await productApi.getProductDetail(productId!);
+            const lastViewedKey = "marketplace-last-viewed-product-id";
+            const sessionKey = "marketplace-session-id";
+            const sessionId =
+                window.sessionStorage.getItem(sessionKey) ??
+                `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+            window.sessionStorage.setItem(sessionKey, sessionId);
+            const previousProductId = window.sessionStorage.getItem(lastViewedKey) ?? undefined;
+            window.sessionStorage.setItem(lastViewedKey, detail.id);
+            void marketplaceApi
+                .trackProductView(detail.id, { sessionId, previousProductId })
+                .catch(() => {});
+
+            if (!detail.seller?.id) {
+                return detail;
+            }
+            try {
+                const sellerProfile = await profileApi.getProfile(detail.seller.id);
+                return {
+                    ...detail,
+                    seller: detail.seller
+                        ? {
+                              ...detail.seller,
+                              followersCount: sellerProfile.followersCount ?? 0,
+                              shopRating: sellerProfile.shopRating ?? 0,
+                          }
+                        : detail.seller,
+                };
+            } catch {
+                return detail;
+            }
+        },
+    });
+
+    const reviewsQuery = useInfiniteQuery({
+        queryKey: productId
+            ? queryKeys.product.reviews(productId, reviewFilterSignature)
+            : ["product", "reviews", "empty"],
+        enabled: Boolean(productId),
+        initialPageParam: 1,
+        queryFn: ({ pageParam }) =>
+            productApi.getProductReviews(productId!, {
+                page: pageParam,
+                limit: REVIEW_PAGE_SIZE,
+                ...reviewFilters,
+            }),
+        getNextPageParam(lastPage) {
+            const loaded = lastPage.page * REVIEW_PAGE_SIZE;
+            return loaded < lastPage.total ? lastPage.page + 1 : undefined;
+        },
+    });
+
+    const addToCartMutation = useMutation({
+        mutationFn: ({ quantity, variantId }: { quantity: number; variantId?: string }) => {
+            const activeProduct = productQuery.data;
+            if (!activeProduct) {
+                throw new Error("Product not available");
+            }
+            return cartApi.addItem(activeProduct.id, quantity, variantId);
+        },
+    });
+
+    const product = productQuery.data ?? null;
+    const reviewPages = reviewsQuery.data?.pages ?? [];
+    const reviews = reviewPages.flatMap((page) => page.items);
+    const reviewsTotal = reviewPages[0]?.total ?? 0;
+    const reviewDistribution = reviewPages[0]?.ratingDistribution ?? {
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+    };
 
     const reviewPhotos = useMemo<ProductReviewPhoto[]>(() => {
         const map = new Map<string, ProductReviewPhoto>();
@@ -61,111 +139,9 @@ export function useProductDetailPage(options?: UseProductDetailPageOptions | str
 
     const canLoadMoreReviews = reviews.length < reviewsTotal;
 
-    useEffect(() => {
-        if (!productId) return;
-        let mounted = true;
-        void (async () => {
-            setIsLoading(true);
-            setError(null);
-            setReviews([]);
-            setReviewsPage(1);
-            setReviewsTotal(0);
-            setReviewDistribution({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
-            setReviewsError(null);
-            setIsLoadingReviews(true);
-            try {
-                const [productData, reviewData] = await Promise.all([
-                    productApi.getProductDetail(productId),
-                    productApi.getProductReviews(productId, {
-                        page: 1,
-                        limit: REVIEW_PAGE_SIZE,
-                        ...reviewFilters,
-                    }),
-                ]);
-                if (!mounted) return;
-                setProduct(productData);
-                const lastViewedKey = "marketplace-last-viewed-product-id";
-                const sessionKey = "marketplace-session-id";
-                const sessionId =
-                    window.sessionStorage.getItem(sessionKey) ??
-                    `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-                window.sessionStorage.setItem(sessionKey, sessionId);
-                const previousProductId =
-                    window.sessionStorage.getItem(lastViewedKey) ?? undefined;
-                window.sessionStorage.setItem(lastViewedKey, productData.id);
-                void marketplaceApi
-                    .trackProductView(productData.id, {
-                        sessionId,
-                        previousProductId,
-                    })
-                    .catch(() => {});
-                if (productData.seller?.id) {
-                    try {
-                        const sellerProfile = await profileApi.getProfile(
-                            productData.seller.id,
-                        );
-                        if (!mounted) return;
-                        setProduct((prev) =>
-                            prev
-                                ? {
-                                      ...prev,
-                                      seller: prev.seller
-                                          ? {
-                                                ...prev.seller,
-                                                followersCount:
-                                                    sellerProfile.followersCount ??
-                                                    0,
-                                                shopRating:
-                                                    sellerProfile.shopRating ??
-                                                    0,
-                                            }
-                                          : prev.seller,
-                                  }
-                                : prev,
-                        );
-                    } catch {
-                        // Keep page usable if profile enrichment fails.
-                    }
-                }
-                setReviews(reviewData.items);
-                setReviewsTotal(reviewData.total);
-                setReviewsPage(reviewData.page);
-                setReviewDistribution(reviewData.ratingDistribution);
-            } catch {
-                if (!mounted) return;
-                setError("Unable to load product detail.");
-                setReviewsError("Unable to load reviews.");
-            } finally {
-                if (mounted) {
-                    setIsLoading(false);
-                    setIsLoadingReviews(false);
-                }
-            }
-        })();
-        return () => {
-            mounted = false;
-        };
-    }, [productId, reviewFilters]);
-
     const loadMoreReviews = async () => {
-        if (!productId || isLoadingMoreReviews || !canLoadMoreReviews) return;
-        const nextPage = reviewsPage + 1;
-        setIsLoadingMoreReviews(true);
-        setReviewsError(null);
-        try {
-            const data = await productApi.getProductReviews(productId, {
-                page: nextPage,
-                limit: REVIEW_PAGE_SIZE,
-                ...reviewFilters,
-            });
-            setReviews((prev) => [...prev, ...data.items]);
-            setReviewsPage(data.page);
-            setReviewsTotal(data.total);
-            setReviewDistribution(data.ratingDistribution);
-        } catch {
-            setReviewsError("Unable to load more reviews.");
-        } finally {
-            setIsLoadingMoreReviews(false);
+        if (reviewsQuery.hasNextPage && !reviewsQuery.isFetchingNextPage) {
+            await reviewsQuery.fetchNextPage();
         }
     };
 
@@ -206,16 +182,20 @@ export function useProductDetailPage(options?: UseProductDetailPageOptions | str
             onAuthRequired();
             return false;
         }
-        if (!product) return false;
-        if (product.variants?.length && !variantId) {
+        const activeProduct = productQuery.data;
+        if (!activeProduct) return false;
+        if (activeProduct.variants?.length && !variantId) {
             setCartActionError(
                 "Please select a variant before adding to cart.",
             );
             return false;
         }
         try {
-            await cartApi.addItem(product.id, quantity, variantId);
+            await addToCartMutation.mutateAsync({ quantity, variantId });
             setCartActionError(null);
+            void queryClient.invalidateQueries({
+                queryKey: productId ? queryKeys.product.detail(productId) : undefined,
+            });
             return true;
         } catch {
             setCartActionError("Unable to add item to cart. Please try again.");
@@ -226,14 +206,14 @@ export function useProductDetailPage(options?: UseProductDetailPageOptions | str
     return {
         product,
         reviews,
-        reviewsError,
-        isLoadingReviews,
-        isLoadingMoreReviews,
+        reviewsError: reviewsQuery.isError ? "Unable to load reviews." : null,
+        isLoadingReviews: reviewsQuery.isLoading,
+        isLoadingMoreReviews: reviewsQuery.isFetchingNextPage,
         cartActionError,
         activePhotoIndex,
         isPhotoModalOpen,
-        isLoading,
-        error,
+        isLoading: productQuery.isLoading,
+        error: productQuery.isError ? "Unable to load product detail." : null,
         activeTab,
         reviewPhotos,
         reviewDistribution,

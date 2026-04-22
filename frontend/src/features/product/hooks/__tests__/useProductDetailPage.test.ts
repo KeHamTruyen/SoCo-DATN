@@ -1,9 +1,10 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useProductDetailPage } from "../useProductDetailPage";
 import { productApi } from "../../api/productApi";
 import { profileApi } from "../../../profile/api/profileApi";
 import { cartApi } from "../../../cart/api/cartApi";
+import { createElement, type ReactNode } from "react";
 
 vi.mock("../../api/productApi", () => ({
     productApi: {
@@ -34,6 +35,19 @@ const mockProduct = {
     variants: [{ id: "v1", name: "Size", value: "M", price: 100, stockQuantity: 3 }],
 };
 
+function createWrapper() {
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            queries: { retry: false },
+            mutations: { retry: false },
+        },
+    });
+
+    return function Wrapper({ children }: { children: ReactNode }) {
+        return createElement(QueryClientProvider, { client: queryClient }, children);
+    };
+}
+
 describe("useProductDetailPage", () => {
     beforeEach(() => {
         vi.resetAllMocks();
@@ -52,7 +66,9 @@ describe("useProductDetailPage", () => {
             shopRating: 4.8,
         } as never);
 
-        const { result } = renderHook(() => useProductDetailPage("p1"));
+        const { result } = renderHook(() => useProductDetailPage("p1"), {
+            wrapper: createWrapper(),
+        });
 
         await waitFor(() => expect(result.current.isLoading).toBe(false));
         expect(productApi.getProductDetail).toHaveBeenCalledWith("p1");
@@ -77,14 +93,16 @@ describe("useProductDetailPage", () => {
             } as never);
         vi.mocked(profileApi.getProfile).mockResolvedValueOnce({} as never);
 
-        const { result } = renderHook(() => useProductDetailPage("p1"));
+        const { result } = renderHook(() => useProductDetailPage("p1"), {
+            wrapper: createWrapper(),
+        });
         await waitFor(() => expect(result.current.isLoading).toBe(false));
 
         await act(async () => {
             await result.current.loadMoreReviews();
         });
 
-        expect(result.current.reviews).toHaveLength(2);
+        await waitFor(() => expect(result.current.reviews).toHaveLength(2));
         expect(result.current.canLoadMoreReviews).toBe(true);
     });
 
@@ -98,7 +116,9 @@ describe("useProductDetailPage", () => {
         } as never);
         vi.mocked(profileApi.getProfile).mockResolvedValueOnce({} as never);
 
-        const { result } = renderHook(() => useProductDetailPage("p1"));
+        const { result } = renderHook(() => useProductDetailPage("p1"), {
+            wrapper: createWrapper(),
+        });
         await waitFor(() => expect(result.current.isLoading).toBe(false));
 
         await act(async () => {
@@ -123,7 +143,9 @@ describe("useProductDetailPage", () => {
         vi.mocked(profileApi.getProfile).mockResolvedValueOnce({} as never);
         vi.mocked(cartApi.addItem).mockResolvedValueOnce({} as never);
 
-        const { result } = renderHook(() => useProductDetailPage("p1"));
+        const { result } = renderHook(() => useProductDetailPage("p1"), {
+            wrapper: createWrapper(),
+        });
         await waitFor(() => expect(result.current.isLoading).toBe(false));
 
         await act(async () => {

@@ -1,17 +1,26 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useMarketplacePage } from "../useMarketplacePage";
 import { marketplaceApi } from "../../api/marketplaceApi";
 
+const marketplaceApiMocks = vi.hoisted(() => ({
+    listProducts: vi.fn(),
+    listCategories: vi.fn(),
+    getRecommendations: vi.fn(),
+    trackSearchEvent: vi.fn(),
+}));
+
 vi.mock("../../api/marketplaceApi", () => ({
-    marketplaceApi: {
-        listProducts: vi.fn(),
-        listCategories: vi.fn(),
-        getRecommendations: vi.fn(),
-        trackSearchEvent: vi.fn(),
-    },
+    marketplaceApi: marketplaceApiMocks,
+}));
+
+vi.mock("../../../../shared/auth/useAuthSession", () => ({
+    useAuthSession: () => ({
+        isAuthenticated: true,
+        user: { id: "user-test" },
+    }),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -23,13 +32,21 @@ vi.mock("react-i18next", () => ({
 function createWrapper(
     initialPath = "/marketplace?q=shoes&sort=price_desc&minPrice=10",
 ) {
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            queries: { retry: false },
+            mutations: { retry: false },
+        },
+    });
     return function Wrapper({ children }: { children: ReactNode }) {
         return (
-            <MemoryRouter initialEntries={[initialPath]}>
-                <Routes>
-                    <Route path="/marketplace" element={<>{children}</>} />
-                </Routes>
-            </MemoryRouter>
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter initialEntries={[initialPath]}>
+                    <Routes>
+                        <Route path="/marketplace" element={<>{children}</>} />
+                    </Routes>
+                </MemoryRouter>
+            </QueryClientProvider>
         );
     };
 }
@@ -43,6 +60,10 @@ describe("useMarketplacePage", () => {
             products: [],
             categories: [],
             tags: [],
+            total: 0,
+            page: 1,
+            pageSize: 12,
+            hasMore: false,
         });
     });
 
@@ -75,6 +96,10 @@ describe("useMarketplacePage", () => {
             products: [{ id: "p1", name: "P1", price: 100 }],
             categories: [],
             tags: ["tag1"],
+            total: 1,
+            page: 1,
+            pageSize: 12,
+            hasMore: false,
         } as never);
         vi.mocked(marketplaceApi.listProducts).mockResolvedValue({
             items: [],
@@ -87,11 +112,12 @@ describe("useMarketplacePage", () => {
             wrapper: createWrapper("/marketplace"),
         });
 
-        await waitFor(() =>
-            expect(result.current.useRecommendationFeed).toBe(true),
-        );
-        expect(marketplaceApi.getRecommendations).toHaveBeenCalledWith(24);
-        expect(result.current.items).toHaveLength(1);
+        await waitFor(() => expect(result.current.useRecommendationFeed).toBe(true));
+        expect(marketplaceApi.getRecommendations).toHaveBeenCalledWith({
+            page: 1,
+            limit: 12,
+        });
+        await waitFor(() => expect(result.current.items).toHaveLength(1));
     });
 
     it("updates URL and tracks term after search debounce", async () => {

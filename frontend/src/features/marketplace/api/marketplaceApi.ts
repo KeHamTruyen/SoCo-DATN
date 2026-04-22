@@ -18,6 +18,28 @@ interface ProductsListEnvelope {
     };
 }
 
+interface RecommendationEnvelope {
+    data?: {
+        products?: unknown[];
+        categories?: Array<{ id?: unknown; name?: unknown }>;
+        tags?: unknown[];
+        pagination?: {
+            page?: number;
+            limit?: number;
+            total?: number;
+            totalPages?: number;
+            hasMore?: boolean;
+        };
+    };
+    pagination?: {
+        page?: number;
+        limit?: number;
+        total?: number;
+        totalPages?: number;
+        hasMore?: boolean;
+    };
+}
+
 function sortToBackend(sort: ProductQueryParams["sort"] | undefined) {
     switch (sort) {
         case "relevance":
@@ -148,14 +170,15 @@ export const marketplaceApi = {
             { requiresAuth: true },
         );
     },
-    async getRecommendations(limit = 24): Promise<MarketplaceRecommendationsResponse> {
-        const res = await httpClient.get<{
-            data?: {
-                products?: unknown[];
-                categories?: Array<{ id?: unknown; name?: unknown }>;
-                tags?: unknown[];
-            };
-        }>(`/products/recommendations/me?limit=${limit}`, { requiresAuth: true });
+    async getRecommendations(
+        options: { page?: number; limit?: number } = {},
+    ): Promise<MarketplaceRecommendationsResponse> {
+        const page = options.page ?? 1;
+        const limit = options.limit ?? 24;
+        const res = await httpClient.get<RecommendationEnvelope>(
+            `/products/recommendations/me?page=${page}&limit=${limit}`,
+            { requiresAuth: true },
+        );
         const data = res.data ?? {};
         const rawProducts = Array.isArray(data.products) ? data.products : [];
         const categories = Array.isArray(data.categories)
@@ -171,12 +194,25 @@ export const marketplaceApi = {
                   .map((tag) => String(tag ?? "").trim())
                   .filter((tag) => tag.length > 0)
             : [];
+        const pagination = data.pagination ?? res.pagination;
+        const currentPage = pagination?.page ?? page;
+        const pageSize = pagination?.limit ?? limit;
+        const total = pagination?.total ?? rawProducts.length;
+        const hasMore =
+            typeof pagination?.hasMore === "boolean"
+                ? pagination.hasMore
+                : currentPage * pageSize < total;
+
         return {
             products: rawProducts.map((row) =>
                 mapApiProductToListItem(row as Record<string, unknown>),
             ),
             categories,
             tags,
+            total,
+            page: currentPage,
+            pageSize,
+            hasMore,
         };
     },
 };
