@@ -69,7 +69,7 @@ export function useConversations(userId: string | undefined) {
                 }),
             );
         },
-        [],
+        [setConversations],
     );
 
     /** Upsert a conversation (e.g. after starting a new one). */
@@ -83,7 +83,7 @@ export function useConversations(userId: string | undefined) {
                 return next;
             });
         },
-        [],
+        [setConversations],
     );
 
     /** Mark a conversation as read (unreadCount = 0). */
@@ -91,7 +91,7 @@ export function useConversations(userId: string | undefined) {
         setConversations((prev) =>
             prev.map((c) => (c.id === conversationId ? { ...c, unreadCount: 0 } : c)),
         );
-    }, []);
+    }, [setConversations]);
 
     /** Increment unread for a conversation by 1. */
     const incrementUnread = useCallback((conversationId: string) => {
@@ -100,7 +100,7 @@ export function useConversations(userId: string | undefined) {
                 c.id === conversationId ? { ...c, unreadCount: c.unreadCount + 1 } : c,
             ),
         );
-    }, []);
+    }, [setConversations]);
 
     return {
         conversations,

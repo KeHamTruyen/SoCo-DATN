@@ -77,4 +77,15 @@ describe("useCartPage", () => {
 
         expect(result.current.actionError).toContain("Unable to remove item");
     });
+
+    it("sets error when initial cart load fails", async () => {
+        vi.mocked(cartApi.getCart).mockRejectedValueOnce(new Error("network"));
+        const { result } = renderHook(() => useCartPage());
+
+        await waitFor(() => {
+            expect(result.current.isLoading).toBe(false);
+            expect(result.current.error).toBe("Unable to load your cart.");
+        });
+        expect(result.current.cart).toBeNull();
+    });
 });
