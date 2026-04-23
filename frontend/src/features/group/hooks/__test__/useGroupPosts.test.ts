@@ -61,7 +61,7 @@ describe("useGroupPosts", () => {
         vi.mocked(feedApi.likePost).mockReset();
         vi.mocked(feedApi.addComment).mockReset();
         vi.mocked(feedApi.deletePost).mockReset();
-        vi.mocked(groupApi.getGroupPosts).mockResolvedValue({ items: [makePost()] });
+        vi.mocked(groupApi.getGroupPosts).mockResolvedValue({ items: [makePost()], nextCursor: null });
     });
 
     it("does not fetch when activeTab is not discussion", () => {

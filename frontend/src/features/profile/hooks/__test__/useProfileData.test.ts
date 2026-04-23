@@ -2,6 +2,14 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { useProfileData } from "../useProfileData";
 import { profileApi } from "../../api/profileApi";
 import { marketplaceApi } from "../../../marketplace/api/marketplaceApi";
+import type { MarketplaceListResponse } from "../../../marketplace/types/marketplace.types";
+
+const emptyProductList: MarketplaceListResponse = {
+    items: [],
+    total: 0,
+    page: 1,
+    pageSize: 48,
+};
 
 vi.mock("../../../../shared/auth/useAuthSession", () => ({
     useAuthSession: vi.fn(),
@@ -67,7 +75,7 @@ describe("useProfileData", () => {
             id: "other",
             role: "seller",
         } as never);
-        vi.mocked(marketplaceApi.listProducts).mockResolvedValue({ items: [] });
+        vi.mocked(marketplaceApi.listProducts).mockResolvedValue(emptyProductList);
 
         const { result } = renderHook(() => useProfileData("other"));
 
@@ -88,9 +96,13 @@ describe("useProfileData", () => {
             role: "seller",
             fullName: "Shop",
         } as never);
-        vi.mocked(marketplaceApi.listProducts).mockResolvedValue({
-            items: [{ id: "p1", name: "Item", price: 1, imageUrl: "", sellerId: "s1" } as never],
-        });
+        const sellerList: MarketplaceListResponse = {
+            items: [{ id: "p1", name: "Item", price: 1, imageUrl: "" }],
+            total: 1,
+            page: 1,
+            pageSize: 48,
+        };
+        vi.mocked(marketplaceApi.listProducts).mockResolvedValue(sellerList);
 
         const { result } = renderHook(() => useProfileData("s1"));
 

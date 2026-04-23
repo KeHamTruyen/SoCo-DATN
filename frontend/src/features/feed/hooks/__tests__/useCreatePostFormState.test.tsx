@@ -32,6 +32,7 @@ vi.mock("../../../marketplace/api/marketplaceApi", () => ({
 }));
 
 import { marketplaceApi } from "../../../marketplace/api/marketplaceApi";
+import type { MarketplaceListResponse } from "../../../marketplace/types/marketplace.types";
 
 vi.mock("../../../upload/api/uploadApi", () => ({
     uploadApi: {
@@ -167,9 +168,13 @@ describe("useCreatePostFormState", () => {
 
     it("product search debounces and populates hits", async () => {
         vi.useFakeTimers();
-        vi.mocked(marketplaceApi.listProducts).mockResolvedValue({
-            items: [{ id: "p1", name: "Bag", price: 1, imageUrl: "", sellerId: "s" } as never],
-        });
+        const listResponse: MarketplaceListResponse = {
+            items: [{ id: "p1", name: "Bag", price: 1, imageUrl: "" }],
+            total: 1,
+            page: 1,
+            pageSize: 8,
+        };
+        vi.mocked(marketplaceApi.listProducts).mockResolvedValue(listResponse);
 
         const onClose = vi.fn();
         const onCreate = vi.fn();

@@ -1,4 +1,4 @@
-import { createRef } from "react";
+import type { RefObject } from "react";
 import { renderHook, act } from "@testing-library/react";
 import { useMessageSocket } from "../useMessageSocket";
 import type { Conversation } from "../../types/messaging.types";
@@ -44,6 +44,14 @@ function createFakeSocket() {
     return socket;
 }
 
+function refNull<T>(): RefObject<T | null> {
+    return { current: null };
+}
+
+function refArray<T>(initial: T[]): RefObject<T[]> {
+    return { current: initial };
+}
+
 const baseConv: Conversation = {
     id: "c1",
     participantId: "u2",
@@ -70,24 +78,22 @@ describe("useMessageSocket", () => {
 
     it("emits join for each conversation id", () => {
         const socket = createFakeSocket();
-        const activeRef = createRef<string | null>(null);
-        const dockRef = createRef<string[]>([]);
+        const activeRef = refNull<string>();
+        const dockRef = refArray<string>([]);
 
-        renderHook(
-            () =>
-                useMessageSocket({
-                    socket: socket as never,
-                    userId: "u1",
-                    conversations: [baseConv],
-                    activeConversationIdRef: activeRef,
-                    dockOpenIdsRef: dockRef,
-                    appendSocketMessage,
-                    updateConversationPreview,
-                    incrementUnread,
-                    clearUnread,
-                    refreshConversations,
-                }),
-            {},
+        renderHook(() =>
+            useMessageSocket({
+                socket: socket as never,
+                userId: "u1",
+                conversations: [baseConv],
+                activeConversationIdRef: activeRef,
+                dockOpenIdsRef: dockRef,
+                appendSocketMessage,
+                updateConversationPreview,
+                incrementUnread,
+                clearUnread,
+                refreshConversations,
+            }),
         );
 
         expect(socket.emit).toHaveBeenCalledWith("conversation:join", "c1");
@@ -95,8 +101,8 @@ describe("useMessageSocket", () => {
 
     it("on message:new updates preview and increments unread when not viewing", () => {
         const socket = createFakeSocket();
-        const activeRef = createRef<string | null>(null);
-        const dockRef = createRef<string[]>([]);
+        const activeRef = refNull<string>();
+        const dockRef = refArray<string>([]);
 
         const raw = {
             id: "m99",
@@ -107,21 +113,19 @@ describe("useMessageSocket", () => {
             createdAt: new Date().toISOString(),
         };
 
-        renderHook(
-            () =>
-                useMessageSocket({
-                    socket: socket as never,
-                    userId: "u1",
-                    conversations: [baseConv],
-                    activeConversationIdRef: activeRef,
-                    dockOpenIdsRef: dockRef,
-                    appendSocketMessage,
-                    updateConversationPreview,
-                    incrementUnread,
-                    clearUnread,
-                    refreshConversations,
-                }),
-            {},
+        renderHook(() =>
+            useMessageSocket({
+                socket: socket as never,
+                userId: "u1",
+                conversations: [baseConv],
+                activeConversationIdRef: activeRef,
+                dockOpenIdsRef: dockRef,
+                appendSocketMessage,
+                updateConversationPreview,
+                incrementUnread,
+                clearUnread,
+                refreshConversations,
+            }),
         );
 
         act(() => {
@@ -135,8 +139,8 @@ describe("useMessageSocket", () => {
 
     it("refreshes conversations when message targets unknown conversation", () => {
         const socket = createFakeSocket();
-        const activeRef = createRef<string | null>(null);
-        const dockRef = createRef<string[]>([]);
+        const activeRef = refNull<string>();
+        const dockRef = refArray<string>([]);
 
         const raw = {
             id: "m1",
@@ -147,21 +151,19 @@ describe("useMessageSocket", () => {
             createdAt: new Date().toISOString(),
         };
 
-        renderHook(
-            () =>
-                useMessageSocket({
-                    socket: socket as never,
-                    userId: "u1",
-                    conversations: [baseConv],
-                    activeConversationIdRef: activeRef,
-                    dockOpenIdsRef: dockRef,
-                    appendSocketMessage,
-                    updateConversationPreview,
-                    incrementUnread,
-                    clearUnread,
-                    refreshConversations,
-                }),
-            {},
+        renderHook(() =>
+            useMessageSocket({
+                socket: socket as never,
+                userId: "u1",
+                conversations: [baseConv],
+                activeConversationIdRef: activeRef,
+                dockOpenIdsRef: dockRef,
+                appendSocketMessage,
+                updateConversationPreview,
+                incrementUnread,
+                clearUnread,
+                refreshConversations,
+            }),
         );
 
         act(() => {

@@ -38,7 +38,10 @@ describe("useProfileMedia", () => {
     });
 
     it("handleAvatarFile uploads and updates profile", async () => {
-        vi.mocked(uploadApi.uploadAvatar).mockResolvedValue({ url: "https://cdn/a.jpg" });
+        vi.mocked(uploadApi.uploadAvatar).mockResolvedValue({
+            url: "https://cdn/a.jpg",
+            publicId: "pub-1",
+        });
         vi.mocked(profileApi.updateProfile).mockResolvedValue(undefined as never);
         const setProfile = vi.fn();
 

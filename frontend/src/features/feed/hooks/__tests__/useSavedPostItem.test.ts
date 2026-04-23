@@ -1,6 +1,14 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useSavedPostItem } from "../useSavedPostItem";
 import { savedItemsApi } from "../../../saved-items/api/savedItemsApi";
+import type { SavedItemType } from "../../../saved-items/types/savedItems.types";
+
+const savedRow = (id: string, targetId: string) => ({
+    id,
+    itemType: "POST" as SavedItemType,
+    targetId,
+    createdAt: new Date().toISOString(),
+});
 
 vi.mock("../../../saved-items/api/savedItemsApi", () => ({
     savedItemsApi: {
@@ -56,7 +64,7 @@ describe("useSavedPostItem", () => {
 
     it("toggleSave saves when not saved", async () => {
         vi.mocked(savedItemsApi.lookup).mockResolvedValue(null as never);
-        vi.mocked(savedItemsApi.save).mockResolvedValue({ id: "new-row" } as never);
+        vi.mocked(savedItemsApi.save).mockResolvedValue(savedRow("new-row", "post-1"));
 
         const { result } = renderHook(() => useSavedPostItem("post-1"));
 
@@ -73,12 +81,13 @@ describe("useSavedPostItem", () => {
 
     it("toggleSave ignores second call while busy", async () => {
         vi.mocked(savedItemsApi.lookup).mockResolvedValue(null as never);
-        let resolveSave: (v: { id: string }) => void = () => {};
+        type SaveResult = Awaited<ReturnType<typeof savedItemsApi.save>>;
+        let resolveSave: (v: SaveResult) => void = () => {};
         vi.mocked(savedItemsApi.save).mockImplementation(
             () =>
-                new Promise((resolve) => {
+                new Promise<SaveResult>((resolve) => {
                     resolveSave = resolve;
-                }) as Promise<{ id: string }>,
+                }),
         );
 
         const { result } = renderHook(() => useSavedPostItem("post-1"));
@@ -97,7 +106,7 @@ describe("useSavedPostItem", () => {
         expect(savedItemsApi.save).toHaveBeenCalledTimes(1);
 
         await act(async () => {
-            resolveSave({ id: "r1" });
+            resolveSave(savedRow("r1", "post-1"));
         });
         await waitFor(() => expect(result.current.saveBusy).toBe(false));
     });

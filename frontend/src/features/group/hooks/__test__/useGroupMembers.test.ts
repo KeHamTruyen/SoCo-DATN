@@ -66,11 +66,11 @@ describe("useGroupMembers", () => {
         vi.mocked(groupApi.rejectJoinRequest).mockReset();
         vi.mocked(groupApi.createInvite).mockReset();
 
-        vi.mocked(groupApi.getGroupMembers).mockResolvedValue({ data: [memberA] });
-        vi.mocked(groupApi.listJoinRequests).mockResolvedValue({ data: [] });
+        vi.mocked(groupApi.getGroupMembers).mockResolvedValue({ success: true, data: [memberA] });
+        vi.mocked(groupApi.listJoinRequests).mockResolvedValue({ success: true, data: [] });
         vi.mocked(groupApi.listInvites).mockResolvedValue([]);
-        vi.mocked(groupApi.getGroupMedia).mockResolvedValue({ data: [] });
-        vi.mocked(groupApi.getGroupProducts).mockResolvedValue({ data: [] });
+        vi.mocked(groupApi.getGroupMedia).mockResolvedValue({ success: true, data: [] });
+        vi.mocked(groupApi.getGroupProducts).mockResolvedValue({ success: true, data: [] });
     });
 
     it("fetches members when members tab active", async () => {
@@ -125,7 +125,7 @@ describe("useGroupMembers", () => {
             createdAt: "",
             user: { id: "ux", fullName: "X" },
         };
-        vi.mocked(groupApi.listJoinRequests).mockResolvedValue({ data: [req] });
+        vi.mocked(groupApi.listJoinRequests).mockResolvedValue({ success: true, data: [req] });
         vi.mocked(groupApi.approveJoinRequest).mockResolvedValue(undefined as never);
 
         const { result } = renderHook(
