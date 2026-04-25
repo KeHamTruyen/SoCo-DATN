@@ -14,11 +14,11 @@ Hệ thống được tổ chức theo kiểu nhiều ứng dụng cùng dùng c
 
 Các cổng mặc định khi chạy local:
 
-| Thành phần | URL mặc định |
-| --- | --- |
-| User frontend | `http://localhost:3000` |
-| Core backend | `http://localhost:5000` |
-| Admin backend | `http://localhost:5001` |
+| Thành phần     | URL mặc định            |
+| -------------- | ----------------------- |
+| User frontend  | `http://localhost:3000` |
+| Core backend   | `http://localhost:5000` |
+| Admin backend  | `http://localhost:5001` |
 | Admin frontend | `http://localhost:5174` |
 
 ## Chức năng chính
@@ -217,14 +217,14 @@ npm run preview
 
 ## Tài liệu liên quan
 
-| Tài liệu | Mục đích |
-| --- | --- |
-| [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md) | Tiến độ tính năng, checklist và hạng mục đang tinh chỉnh |
-| [EXTERNAL_SERVICES_GUIDE.md](EXTERNAL_SERVICES_GUIDE.md) | Hướng dẫn cấu hình Cloudinary, SMTP, Gemini và dịch vụ ngoài |
-| [backend/README.md](backend/README.md) | Hướng dẫn chi tiết cho core backend |
-| [admin/README.md](admin/README.md) | Hướng dẫn chi tiết cho cụm admin |
-| [frontend/README.md](frontend/README.md) | Ghi chú riêng cho frontend |
-| [backend/API_TESTING_GUIDE.md](backend/API_TESTING_GUIDE.md) | Gợi ý kiểm thử API |
+| Tài liệu                                                     | Mục đích                                                     |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md)         | Tiến độ tính năng, checklist và hạng mục đang tinh chỉnh     |
+| [EXTERNAL_SERVICES_GUIDE.md](EXTERNAL_SERVICES_GUIDE.md)     | Hướng dẫn cấu hình Cloudinary, SMTP, Gemini và dịch vụ ngoài |
+| [backend/README.md](backend/README.md)                       | Hướng dẫn chi tiết cho core backend                          |
+| [admin/README.md](admin/README.md)                           | Hướng dẫn chi tiết cho cụm admin                             |
+| [frontend/README.md](frontend/README.md)                     | Ghi chú riêng cho frontend                                   |
+| [backend/API_TESTING_GUIDE.md](backend/API_TESTING_GUIDE.md) | Gợi ý kiểm thử API                                           |
 
 ## Ghi chú triển khai
 
