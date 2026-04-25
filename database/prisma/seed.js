@@ -1631,8 +1631,533 @@ async function main() {
         });
     });
 
+    if ((await prisma.admin.count()) < 5) {
+        const extraAdminConfigs = [
+            { email: "moderator1@socialcommerce.vn", username: "moderator1", fullName: "Moderator One" },
+            { email: "moderator2@socialcommerce.vn", username: "moderator2", fullName: "Moderator Two" },
+            { email: "ops1@socialcommerce.vn", username: "ops1", fullName: "Operations One" },
+            { email: "ops2@socialcommerce.vn", username: "ops2", fullName: "Operations Two" },
+        ];
+        await Promise.all(
+            extraAdminConfigs.map((adminConfig) =>
+                prisma.admin.upsert({
+                    where: { email: adminConfig.email },
+                    update: {
+                        username: adminConfig.username,
+                        fullName: adminConfig.fullName,
+                        passwordHash,
+                        isActive: true,
+                    },
+                    create: {
+                        email: adminConfig.email,
+                        username: adminConfig.username,
+                        fullName: adminConfig.fullName,
+                        passwordHash,
+                        isActive: true,
+                    },
+                }),
+            ),
+        );
+
+        const extraUsers = await prisma.$transaction(async (tx) => {
+            const sellerConfigs = [
+                { email: "seller2.qa@soco.local", username: "seller_qa_2", fullName: "QA Seller Two", shopName: "QA Home Store", description: "Seeded seller account 2" },
+                { email: "seller3.qa@soco.local", username: "seller_qa_3", fullName: "QA Seller Three", shopName: "QA Beauty Store", description: "Seeded seller account 3" },
+                { email: "seller4.qa@soco.local", username: "seller_qa_4", fullName: "QA Seller Four", shopName: "QA Home Living", description: "Seeded seller account 4" },
+                { email: "seller5.qa@soco.local", username: "seller_qa_5", fullName: "QA Seller Five", shopName: "QA Accessories", description: "Seeded seller account 5" },
+            ];
+            const buyerConfigs = [
+                { email: "buyer3.qa@soco.local", username: "buyer_qa_3", fullName: "QA Buyer Three" },
+                { email: "buyer4.qa@soco.local", username: "buyer_qa_4", fullName: "QA Buyer Four" },
+                { email: "buyer5.qa@soco.local", username: "buyer_qa_5", fullName: "QA Buyer Five" },
+            ];
+
+            const sellers = [];
+            for (const cfg of sellerConfigs) {
+                sellers.push(await tx.user.upsert({
+                    where: { email: cfg.email },
+                    update: {
+                        username: cfg.username,
+                        fullName: cfg.fullName,
+                        role: "SELLER",
+                        isVerified: true,
+                        isActive: true,
+                        passwordHash: qaUserPasswordHash,
+                        shopInformation: { shopName: cfg.shopName, description: cfg.description },
+                    },
+                    create: {
+                        email: cfg.email,
+                        username: cfg.username,
+                        fullName: cfg.fullName,
+                        passwordHash: qaUserPasswordHash,
+                        role: "SELLER",
+                        isVerified: true,
+                        isActive: true,
+                        shopInformation: { shopName: cfg.shopName, description: cfg.description },
+                    },
+                }));
+            }
+
+            const buyers = [];
+            for (const cfg of buyerConfigs) {
+                buyers.push(await tx.user.upsert({
+                    where: { email: cfg.email },
+                    update: {
+                        username: cfg.username,
+                        fullName: cfg.fullName,
+                        role: "BUYER",
+                        isVerified: true,
+                        isActive: true,
+                        passwordHash: qaUserPasswordHash,
+                    },
+                    create: {
+                        email: cfg.email,
+                        username: cfg.username,
+                        fullName: cfg.fullName,
+                        passwordHash: qaUserPasswordHash,
+                        role: "BUYER",
+                        isVerified: true,
+                        isActive: true,
+                    },
+                }));
+            }
+
+            return { sellers, buyers };
+        });
+
+        const extraCategories = await prisma.$transaction(async (tx) => {
+            const home = await tx.category.upsert({
+                where: { slug: "home-living" },
+                update: { name: "Home & Living", description: "Home goods and living products", isActive: true },
+                create: { name: "Home & Living", slug: "home-living", description: "Home goods and living products", isActive: true, displayOrder: 3 },
+            });
+            const beauty = await tx.category.upsert({
+                where: { slug: "beauty-care" },
+                update: { name: "Beauty & Care", description: "Beauty and personal care products", isActive: true },
+                create: { name: "Beauty & Care", slug: "beauty-care", description: "Beauty and personal care products", isActive: true, displayOrder: 4 },
+            });
+            return { home, beauty };
+        });
+
+        const extraProducts = await prisma.$transaction(async (tx) => {
+            const productFour = await tx.product.upsert({
+                where: { slug: "qa-aroma-diffuser" },
+                update: { title: "QA Aroma Diffuser", description: "Seeded home product for QA coverage", price: "459000", stockQuantity: 70, status: "ACTIVE", sellerId: extraUsers.sellers[0].id, publishedAt: new Date(), categories: { set: [{ id: extraCategories.home.id }] } },
+                create: { slug: "qa-aroma-diffuser", title: "QA Aroma Diffuser", description: "Seeded home product for QA coverage", price: "459000", stockQuantity: 70, status: "ACTIVE", sellerId: extraUsers.sellers[0].id, publishedAt: new Date(), categories: { connect: [{ id: extraCategories.home.id }] } },
+            });
+            const productFive = await tx.product.upsert({
+                where: { slug: "qa-face-serum" },
+                update: { title: "QA Face Serum", description: "Seeded beauty product for QA coverage", price: "299000", stockQuantity: 95, status: "ACTIVE", sellerId: extraUsers.sellers[1].id, publishedAt: new Date(), categories: { set: [{ id: extraCategories.beauty.id }] } },
+                create: { slug: "qa-face-serum", title: "QA Face Serum", description: "Seeded beauty product for QA coverage", price: "299000", stockQuantity: 95, status: "ACTIVE", sellerId: extraUsers.sellers[1].id, publishedAt: new Date(), categories: { connect: [{ id: extraCategories.beauty.id }] } },
+            });
+            return { productFour, productFive };
+        });
+
+        for (const seller of extraUsers.sellers) {
+            await prisma.sellerVerification.upsert({
+                where: { userId: seller.id },
+                update: {
+                    step1Completed: true,
+                    step2Completed: true,
+                    step3Completed: true,
+                    businessName: seller.shopInformation?.shopName || "QA Store",
+                    businessType: "INDIVIDUAL",
+                    taxCode: `TAX-${seller.username}`,
+                    bankName: "Vietcombank",
+                    bankAccountName: seller.fullName,
+                    status: "APPROVED",
+                    verifiedBy: admin.id,
+                    verifiedAt: new Date(),
+                },
+                create: {
+                    userId: seller.id,
+                    step1Completed: true,
+                    step2Completed: true,
+                    step3Completed: true,
+                    businessName: seller.shopInformation?.shopName || "QA Store",
+                    businessType: "INDIVIDUAL",
+                    taxCode: `TAX-${seller.username}`,
+                    bankName: "Vietcombank",
+                    bankAccountName: seller.fullName,
+                    status: "APPROVED",
+                    verifiedBy: admin.id,
+                    verifiedAt: new Date(),
+                },
+            });
+        }
+
+        const allBuyers = [users.buyerOne, users.buyerTwo, ...extraUsers.buyers];
+        const allSellers = [users.seller, ...extraUsers.sellers];
+        const allProducts = [products.wirelessEarbuds, products.phoneCase, products.cottonShirt, extraProducts.productFour, extraProducts.productFive];
+
+        for (const buyer of allBuyers) {
+            const cart = await prisma.cart.findFirst({ where: { userId: buyer.id } });
+            if (!cart) {
+                await prisma.cart.create({ data: { userId: buyer.id } });
+            }
+        }
+
+        const buyerCarts = await prisma.cart.findMany({ where: { userId: { in: allBuyers.map((u) => u.id) } } });
+        const cartMap = new Map(buyerCarts.map((cart) => [cart.userId, cart]));
+
+        for (const [index, buyer] of allBuyers.entries()) {
+            const cart = cartMap.get(buyer.id);
+            const product = allProducts[index];
+            if (!cart || !product) continue;
+            const existingItem = await prisma.cartItem.findFirst({ where: { cartId: cart.id, productId: product.id, variantId: null } });
+            if (!existingItem) {
+                await prisma.cartItem.create({ data: { cartId: cart.id, productId: product.id, quantity: 1, price: product.price } });
+            }
+        }
+
+        const extraOrderSpecs = [
+            { buyer: allBuyers[2], seller: allSellers[1], product: allProducts[2], paymentMethod: "BANK_TRANSFER", paymentStatus: "PENDING", status: "CONFIRMED" },
+            { buyer: allBuyers[3], seller: allSellers[2], product: allProducts[3], paymentMethod: "MOMO", paymentStatus: "PENDING", status: "SHIPPING" },
+            { buyer: allBuyers[4], seller: allSellers[3], product: allProducts[4], paymentMethod: "COD", paymentStatus: "PAID", status: "COMPLETED" },
+        ];
+
+        const extraOrders = [];
+        const extraOrderItems = [];
+        for (const [index, spec] of extraOrderSpecs.entries()) {
+            const order = await prisma.order.upsert({
+                where: { orderNumber: `QA-ORDER-EXTRA-${index + 1}` },
+                update: {
+                    buyerId: spec.buyer.id,
+                    subtotal: spec.product.price,
+                    shippingFee: "20000",
+                    total: Number(spec.product.price) + 20000,
+                    shippingName: spec.buyer.fullName,
+                    shippingPhone: `09000000${index + 3}`,
+                    shippingAddress: `${index + 1} QA Extra Street`,
+                    shippingCity: "Ho Chi Minh",
+                    paymentMethod: spec.paymentMethod,
+                    paymentStatus: spec.paymentStatus,
+                    status: spec.status,
+                },
+                create: {
+                    orderNumber: `QA-ORDER-EXTRA-${index + 1}`,
+                    buyerId: spec.buyer.id,
+                    subtotal: spec.product.price,
+                    shippingFee: "20000",
+                    total: Number(spec.product.price) + 20000,
+                    shippingName: spec.buyer.fullName,
+                    shippingPhone: `09000000${index + 3}`,
+                    shippingAddress: `${index + 1} QA Extra Street`,
+                    shippingCity: "Ho Chi Minh",
+                    paymentMethod: spec.paymentMethod,
+                    paymentStatus: spec.paymentStatus,
+                    status: spec.status,
+                },
+            });
+            extraOrders.push(order);
+            const orderItem = await prisma.orderItem.upsert({
+                where: { id: `seed-order-item-extra-${index + 1}` },
+                update: {
+                    orderId: order.id,
+                    productId: spec.product.id,
+                    sellerId: spec.seller.id,
+                    productName: spec.product.title,
+                    quantity: 1,
+                    unitPrice: spec.product.price,
+                    totalPrice: spec.product.price,
+                    status: spec.status === "COMPLETED" ? "completed" : "pending",
+                },
+                create: {
+                    id: `seed-order-item-extra-${index + 1}`,
+                    orderId: order.id,
+                    productId: spec.product.id,
+                    sellerId: spec.seller.id,
+                    productName: spec.product.title,
+                    quantity: 1,
+                    unitPrice: spec.product.price,
+                    totalPrice: spec.product.price,
+                    status: spec.status === "COMPLETED" ? "completed" : "pending",
+                },
+            });
+            extraOrderItems.push(orderItem);
+        }
+
+        for (const [index, orderItem] of extraOrderItems.entries()) {
+            await prisma.review.upsert({
+                where: { orderItemId: orderItem.id },
+                update: {
+                    productId: allProducts[index + 2].id,
+                    userId: allBuyers[index + 2].id,
+                    rating: index === 1 ? 4 : 5,
+                    title: index === 0 ? "Great product" : index === 1 ? "Useful item" : "Excellent",
+                    content: index === 0 ? "Very useful and good quality." : index === 1 ? "Matches description and works well." : "Good quality and fast delivery.",
+                    images: [],
+                    isPublished: true,
+                    isVerifiedPurchase: true,
+                },
+                create: {
+                    productId: allProducts[index + 2].id,
+                    orderItemId: orderItem.id,
+                    userId: allBuyers[index + 2].id,
+                    rating: index === 1 ? 4 : 5,
+                    title: index === 0 ? "Great product" : index === 1 ? "Useful item" : "Excellent",
+                    content: index === 0 ? "Very useful and good quality." : index === 1 ? "Matches description and works well." : "Good quality and fast delivery.",
+                    images: [],
+                    isPublished: true,
+                    isVerifiedPurchase: true,
+                },
+            });
+        }
+
+        for (const [index, seller] of allSellers.entries()) {
+            await prisma.sellerStats.upsert({
+                where: { sellerId_date: { sellerId: seller.id, date: today } },
+                update: {
+                    totalSales: String(1000000 + index * 250000),
+                    totalOrders: 1 + index,
+                    totalRevenue: String(1000000 + index * 250000),
+                    totalProfit: String(250000 + index * 50000),
+                    totalProducts: 1 + index,
+                    totalViews: 10 + index * 5,
+                    newFollowers: index,
+                    totalLikes: 1 + index,
+                    totalComments: 1 + index,
+                },
+                create: {
+                    sellerId: seller.id,
+                    date: today,
+                    totalSales: String(1000000 + index * 250000),
+                    totalOrders: 1 + index,
+                    totalRevenue: String(1000000 + index * 250000),
+                    totalProfit: String(250000 + index * 50000),
+                    totalProducts: 1 + index,
+                    totalViews: 10 + index * 5,
+                    newFollowers: index,
+                    totalLikes: 1 + index,
+                    totalComments: 1 + index,
+                },
+            });
+        }
+
+        const groupSeeds = [
+            { name: "QA Home Deals", slug: "qa-home-deals", description: "Home product deals", privacy: "PUBLIC", createdBy: allSellers[0].id },
+            { name: "QA Beauty Tips", slug: "qa-beauty-tips", description: "Beauty discussion group", privacy: "PRIVATE", createdBy: allSellers[1].id },
+            { name: "QA Daily Shopping", slug: "qa-daily-shopping", description: "Daily shopping chat", privacy: "PUBLIC", createdBy: allBuyers[0].id },
+        ];
+        const extraGroups = [];
+        for (const seed of groupSeeds) {
+            extraGroups.push(await prisma.group.upsert({
+                where: { slug: seed.slug },
+                update: { name: seed.name, description: seed.description, privacy: seed.privacy, createdBy: seed.createdBy },
+                create: { name: seed.name, slug: seed.slug, description: seed.description, privacy: seed.privacy, createdBy: seed.createdBy },
+            }));
+        }
+
+        for (const [index, group] of extraGroups.entries()) {
+            const memberIds = [allSellers[index].id, allBuyers[index].id];
+            for (const userId of memberIds) {
+                await prisma.groupMember.upsert({
+                    where: { groupId_userId: { groupId: group.id, userId } },
+                    update: { role: index === 0 ? "ADMIN" : "MEMBER" },
+                    create: { groupId: group.id, userId, role: index === 0 ? "ADMIN" : "MEMBER" },
+                });
+            }
+            if (group.privacy === "PRIVATE") {
+                await prisma.groupJoinRequest.upsert({
+                    where: { groupId_userId: { groupId: group.id, userId: allBuyers[(index + 1) % allBuyers.length].id } },
+                    update: { status: "PENDING" },
+                    create: { groupId: group.id, userId: allBuyers[(index + 1) % allBuyers.length].id, status: "PENDING" },
+                });
+            }
+            await prisma.groupInvite.upsert({
+                where: { code: `QA-GROUP-${index + 1}` },
+                update: { groupId: group.id, createdBy: group.createdBy, isActive: true },
+                create: { groupId: group.id, code: `QA-GROUP-${index + 1}`, createdBy: group.createdBy, expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30) },
+            });
+        }
+
+        const extraPosts = [];
+        extraPosts.push(await prisma.post.create({ data: { authorId: allSellers[0].id, productId: allProducts[3].id, content: "New home product is available now.", mediaUrls: ["https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1000"], mediaType: "IMAGE", status: "PUBLISHED", visibility: "PUBLIC", publishedAt: new Date() } }));
+        extraPosts.push(await prisma.post.create({ data: { authorId: allBuyers[0].id, productId: allProducts[4].id, content: "Beauty product review incoming.", mediaUrls: ["https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1000"], mediaType: "IMAGE", status: "PUBLISHED", visibility: "FOLLOWERS", publishedAt: new Date() } }));
+
+        await prisma.postLike.upsert({ where: { postId_userId: { postId: extraPosts[0].id, userId: allBuyers[1].id } }, update: {}, create: { postId: extraPosts[0].id, userId: allBuyers[1].id } });
+        await prisma.postLike.upsert({ where: { postId_userId: { postId: extraPosts[0].id, userId: allBuyers[2].id } }, update: {}, create: { postId: extraPosts[0].id, userId: allBuyers[2].id } });
+        await prisma.postLike.upsert({ where: { postId_userId: { postId: extraPosts[1].id, userId: allBuyers[3].id } }, update: {}, create: { postId: extraPosts[1].id, userId: allBuyers[3].id } });
+
+        await prisma.postComment.create({ data: { postId: extraPosts[0].id, userId: allBuyers[0].id, content: "Looks good." } });
+        await prisma.postComment.create({ data: { postId: extraPosts[1].id, userId: allSellers[0].id, content: "Great review." } });
+        await prisma.postComment.create({ data: { postId: extraPosts[1].id, userId: allBuyers[4].id, content: "Thanks for sharing." } });
+
+        for (let i = 0; i < 4; i += 1) {
+            await prisma.scheduledPost.upsert({
+                where: { id: `seed-scheduled-post-extra-${i + 1}` },
+                update: { userId: allSellers[i % allSellers.length].id, productId: allProducts[i % allProducts.length].id, content: `Scheduled promo post ${i + 1}`, mediaUrls: [], visibility: "PUBLIC", timezone: "Asia/Ho_Chi_Minh", scheduledTime: new Date(Date.now() + (i + 1) * 60 * 60 * 1000), status: "scheduled" },
+                create: { id: `seed-scheduled-post-extra-${i + 1}`, userId: allSellers[i % allSellers.length].id, productId: allProducts[i % allProducts.length].id, content: `Scheduled promo post ${i + 1}`, mediaUrls: [], visibility: "PUBLIC", timezone: "Asia/Ho_Chi_Minh", scheduledTime: new Date(Date.now() + (i + 1) * 60 * 60 * 1000), status: "scheduled" },
+            });
+        }
+
+        const conversationSeeds = [
+            { id: "seed-conversation-1", type: "DIRECT", name: null, createdBy: allBuyers[0].id, participants: [allBuyers[0].id, allSellers[0].id], messages: [{ senderId: allBuyers[0].id, content: "Is this item available?" }, { senderId: allSellers[0].id, content: "Yes, it is available." }] },
+            { id: "seed-conversation-2", type: "DIRECT", name: null, createdBy: allBuyers[1].id, participants: [allBuyers[1].id, allSellers[1].id], messages: [{ senderId: allBuyers[1].id, content: "Can you ship today?" }, { senderId: allSellers[1].id, content: "We can ship today." }] },
+            { id: "seed-conversation-3", type: "GROUP", name: "QA Group Support", createdBy: allSellers[2].id, participants: [allSellers[2].id, allBuyers[2].id, allBuyers[3].id], messages: [{ senderId: allSellers[2].id, content: "Welcome to the group chat." }] },
+        ];
+        for (const seed of conversationSeeds) {
+            const conversation = await prisma.conversation.upsert({
+                where: { id: seed.id },
+                update: { type: seed.type, name: seed.name, createdBy: seed.createdBy },
+                create: { id: seed.id, type: seed.type, name: seed.name, createdBy: seed.createdBy },
+            });
+            for (const participantId of seed.participants) {
+                await prisma.conversationParticipant.upsert({
+                    where: { conversationId_userId: { conversationId: conversation.id, userId: participantId } },
+                    update: { role: participantId === seed.createdBy ? "owner" : "member" },
+                    create: { conversationId: conversation.id, userId: participantId, role: participantId === seed.createdBy ? "owner" : "member" },
+                });
+            }
+            for (const messageSeed of seed.messages) {
+                await prisma.message.create({ data: { conversationId: conversation.id, senderId: messageSeed.senderId, content: messageSeed.content, messageType: "TEXT" } });
+            }
+        }
+
+        const notificationSeeds = [
+            { userId: allBuyers[0].id, type: "ORDER_CREATED", title: "New order", message: "Your order has been created." },
+            { userId: allSellers[0].id, type: "NEW_MESSAGE", title: "New message", message: "You have a new buyer message." },
+            { userId: allBuyers[1].id, type: "NEW_POST", title: "New post", message: "A new post is available." },
+            { userId: allBuyers[2].id, type: "REVIEW_APPROVED", title: "Review published", message: "Your review is now live." },
+            { userId: allSellers[1].id, type: "GROUP_INVITE", title: "Group invite", message: "You have a new group invite." },
+        ];
+        for (const seed of notificationSeeds) {
+            await prisma.notification.create({ data: seed });
+        }
+
+        await prisma.savedItem.upsert({ where: { userId_itemType_targetId: { userId: allBuyers[0].id, itemType: "POST", targetId: extraPosts[0].id } }, update: {}, create: { userId: allBuyers[0].id, itemType: "POST", targetId: extraPosts[0].id } });
+        await prisma.savedItem.upsert({ where: { userId_itemType_targetId: { userId: allBuyers[1].id, itemType: "PRODUCT", targetId: allProducts[3].id } }, update: {}, create: { userId: allBuyers[1].id, itemType: "PRODUCT", targetId: allProducts[3].id } });
+        await prisma.savedItem.upsert({ where: { userId_itemType_targetId: { userId: allBuyers[2].id, itemType: "PRODUCT", targetId: allProducts[4].id } }, update: {}, create: { userId: allBuyers[2].id, itemType: "PRODUCT", targetId: allProducts[4].id } });
+
+        await prisma.aiContentHistory.create({ data: { userId: allSellers[0].id, prompt: "Create a sale caption", contentType: "POST_CAPTION", generatedContent: "Sale now live." } });
+
+        const productViewSeeds = [
+            { productId: allProducts[0].id, userId: allBuyers[0].id, sessionId: "seed-session-1" },
+            { productId: allProducts[1].id, userId: allBuyers[1].id, sessionId: "seed-session-2" },
+            { productId: allProducts[2].id, userId: allBuyers[2].id, sessionId: "seed-session-3" },
+            { productId: allProducts[3].id, userId: allBuyers[3].id, sessionId: "seed-session-4" },
+            { productId: allProducts[4].id, userId: allBuyers[4].id, sessionId: "seed-session-5" },
+        ];
+        for (const seed of productViewSeeds) {
+            await prisma.productView.create({ data: { ...seed, ipAddress: "127.0.0.1", userAgent: "SeedScript/2.0" } });
+        }
+
+        const searchSeeds = [
+            { userId: allBuyers[0].id, query: "tai nghe bluetooth" },
+            { userId: allBuyers[1].id, query: "op lung dien thoai" },
+            { userId: allBuyers[2].id, query: "ao cotton" },
+            { userId: allBuyers[3].id, query: "diffuser" },
+            { userId: allBuyers[4].id, query: "face serum" },
+        ];
+        for (const seed of searchSeeds) {
+            await prisma.userSearchEvent.create({ data: { userId: seed.userId, query: seed.query, normalizedQuery: seed.query, sessionId: `session-${seed.userId.slice(0, 8)}` } });
+        }
+
+        const coViewSeeds = [
+            { sourceProductId: allProducts[0].id, targetProductId: allProducts[1].id, score: 6.1 },
+            { sourceProductId: allProducts[1].id, targetProductId: allProducts[2].id, score: 5.9 },
+            { sourceProductId: allProducts[2].id, targetProductId: allProducts[3].id, score: 5.2 },
+            { sourceProductId: allProducts[3].id, targetProductId: allProducts[4].id, score: 4.8 },
+            { sourceProductId: allProducts[4].id, targetProductId: allProducts[0].id, score: 4.6 },
+        ];
+        for (const seed of coViewSeeds) {
+            await prisma.productCoView.upsert({ where: { sourceProductId_targetProductId: { sourceProductId: seed.sourceProductId, targetProductId: seed.targetProductId } }, update: { score: seed.score, lastViewedAt: new Date() }, create: { ...seed, lastViewedAt: new Date() } });
+        }
+
+        for (const [index, seller] of allSellers.entries()) {
+            await prisma.sellerStats.upsert({
+                where: { sellerId_date: { sellerId: seller.id, date: today } },
+                update: { totalSales: String(1000000 + index * 250000), totalOrders: 1 + index, totalRevenue: String(1000000 + index * 250000), totalProfit: String(250000 + index * 50000), totalProducts: 1 + index, totalViews: 10 + index * 5, newFollowers: index, totalLikes: 1 + index, totalComments: 1 + index },
+                create: { sellerId: seller.id, date: today, totalSales: String(1000000 + index * 250000), totalOrders: 1 + index, totalRevenue: String(1000000 + index * 250000), totalProfit: String(250000 + index * 50000), totalProducts: 1 + index, totalViews: 10 + index * 5, newFollowers: index, totalLikes: 1 + index, totalComments: 1 + index },
+            });
+        }
+
+        const reportSeeds = [
+            { reporterId: allBuyers[0].id, targetType: "POST", targetId: extraPosts[0].id, reason: "spam", description: "Repeated promotional content" },
+            { reporterId: allBuyers[1].id, targetType: "product", targetId: allProducts[3].id, reason: "misleading", description: "Need more product details" },
+            { reporterId: allBuyers[2].id, targetType: "user", targetId: allSellers[1].id, reason: "abuse", description: "Suspicious messages" },
+            { reporterId: allBuyers[3].id, targetType: "group", targetId: extraGroups[0].id, reason: "spam", description: "Group posts are too repetitive" },
+            { reporterId: allBuyers[4].id, targetType: "post", targetId: extraPosts[1].id, reason: "other", description: "Check content quality" },
+        ];
+        for (const [index, seed] of reportSeeds.entries()) {
+            await prisma.report.upsert({
+                where: { id: `seed-report-${index + 1}` },
+                update: { ...seed, status: index % 2 === 0 ? "pending" : "resolved", resolvedBy: index % 2 === 0 ? null : admin.id, resolvedAt: index % 2 === 0 ? null : new Date(), resolution: index % 2 === 0 ? null : "dismissed" },
+                create: { id: `seed-report-${index + 1}`, ...seed, status: index % 2 === 0 ? "pending" : "resolved", resolvedBy: index % 2 === 0 ? null : admin.id, resolvedAt: index % 2 === 0 ? null : new Date(), resolution: index % 2 === 0 ? null : "dismissed" },
+            });
+        }
+    }
+
+    if (
+        (await prisma.follow.count()) < 5 ||
+        (await prisma.productImage.count()) < 5 ||
+        (await prisma.groupJoinRequest.count()) < 5 ||
+        (await prisma.groupInvite.count()) < 5
+    ) {
+        const sellerTwo = await prisma.user.findUnique({ where: { email: "seller2.qa@soco.local" } });
+        const sellerThree = await prisma.user.findUnique({ where: { email: "seller3.qa@soco.local" } });
+        const sellerFour = await prisma.user.findUnique({ where: { email: "seller4.qa@soco.local" } });
+        const sellerFive = await prisma.user.findUnique({ where: { email: "seller5.qa@soco.local" } });
+        const buyerThree = await prisma.user.findUnique({ where: { email: "buyer3.qa@soco.local" } });
+        const buyerFour = await prisma.user.findUnique({ where: { email: "buyer4.qa@soco.local" } });
+        const buyerFive = await prisma.user.findUnique({ where: { email: "buyer5.qa@soco.local" } });
+        const aroma = await prisma.product.findUnique({ where: { slug: "qa-aroma-diffuser" } });
+        const serum = await prisma.product.findUnique({ where: { slug: "qa-face-serum" } });
+        const dailyStyle = await prisma.group.findUnique({ where: { slug: "qa-daily-style" } });
+        const beautyTips = await prisma.group.findUnique({ where: { slug: "qa-beauty-tips" } });
+        const homeDeals = await prisma.group.findUnique({ where: { slug: "qa-home-deals" } });
+        const dailyShopping = await prisma.group.findUnique({ where: { slug: "qa-daily-shopping" } });
+
+        if (aroma && serum) {
+            await prisma.productImage.upsert({
+                where: { id: "seed-product-image-4" },
+                update: { productId: aroma.id, imageUrl: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=800", altText: "QA aroma diffuser image", displayOrder: 0, isPrimary: true },
+                create: { id: "seed-product-image-4", productId: aroma.id, imageUrl: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=800", altText: "QA aroma diffuser image", displayOrder: 0, isPrimary: true },
+            });
+            await prisma.productImage.upsert({
+                where: { id: "seed-product-image-5" },
+                update: { productId: serum.id, imageUrl: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800", altText: "QA face serum image", displayOrder: 0, isPrimary: true },
+                create: { id: "seed-product-image-5", productId: serum.id, imageUrl: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800", altText: "QA face serum image", displayOrder: 0, isPrimary: true },
+            });
+        }
+
+        const followSeeds = [
+            sellerTwo && sellerThree ? { followerId: buyerThree.id, followingId: sellerTwo.id } : null,
+            sellerThree ? { followerId: buyerFour.id, followingId: sellerThree.id } : null,
+            sellerFour ? { followerId: buyerFive.id, followingId: sellerFour.id } : null,
+        ].filter(Boolean);
+        for (const seed of followSeeds) {
+            await prisma.follow.upsert({
+                where: { followerId_followingId: { followerId: seed.followerId, followingId: seed.followingId } },
+                update: {},
+                create: seed,
+            });
+        }
+
+        if (dailyStyle && beautyTips && homeDeals && dailyShopping && buyerThree && buyerFour && buyerFive) {
+            const joinSeeds = [
+                { groupId: dailyStyle.id, userId: buyerThree.id },
+                { groupId: beautyTips.id, userId: buyerFour.id },
+                { groupId: homeDeals.id, userId: buyerFive.id },
+            ];
+            for (const seed of joinSeeds) {
+                await prisma.groupJoinRequest.upsert({
+                    where: { groupId_userId: { groupId: seed.groupId, userId: seed.userId } },
+                    update: { status: "PENDING" },
+                    create: { groupId: seed.groupId, userId: seed.userId, status: "PENDING" },
+                });
+            }
+
+            await prisma.groupInvite.upsert({
+                where: { code: "QA-GROUP-EXTRA" },
+                update: { groupId: dailyShopping.id, createdBy: buyerThree.id, isActive: true },
+                create: { groupId: dailyShopping.id, code: "QA-GROUP-EXTRA", createdBy: buyerThree.id, expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30) },
+            });
+        }
+    }
+
     console.log(
-        "Seeded full QA/UAT dataset: admin, verification, categories, users, products, carts, orders, reviews, follows, posts, scheduled posts, groups, chat, notifications, saved items, AI history, analytics, reports.",
+        "Seeded full QA/UAT dataset plus supplemental pack: all major tables are expanded to at least five records where the schema allows.",
     );
 }
 
