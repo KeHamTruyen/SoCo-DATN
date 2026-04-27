@@ -180,6 +180,7 @@ Sau khi chạy xong:
 ```bash
 npm run dev
 npm start
+npm run ai:health
 npm run prisma:generate
 npm run prisma:push
 npm run prisma:reset
@@ -189,6 +190,12 @@ npm run prisma:migrate:status
 npm run prisma:studio
 npm run prisma:seed
 ```
+
+Ghi chú AI health check:
+
+- `npm run ai:health`: kiểm tra nhanh tình trạng provider AI từ `backend/.env` (Gemini, OpenRouter, Groq, HuggingFace, Replicate).
+- Script in key đã mask (không lộ full secret), hiển thị trạng thái `OK` hoặc `FAIL`.
+- Exit code sẽ là `1` nếu có provider lỗi, phù hợp để dùng trong CI hoặc kiểm tra trước demo.
 
 ### `frontend/`
 

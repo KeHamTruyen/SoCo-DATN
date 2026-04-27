@@ -110,6 +110,22 @@ backend/
 - `npm run test:integration:ui` - Integration với Vitest UI
 - `npm run test:coverage:integration` - Integration + coverage (`coverage-integration/`)
 - `npm run test:all` - Chạy `test` rồi `test:integration` (giống CI backend)
+- `npm run ai:health` - Kiểm tra tình trạng provider AI theo cấu hình `backend/.env` (Gemini/OpenRouter/Groq/HF/Replicate)
+
+### AI Provider Health Check
+
+Chạy kiểm tra nhanh:
+
+```bash
+npm run ai:health
+```
+
+Ý nghĩa kết quả:
+
+- `OK`: provider hoạt động bình thường.
+- `FAIL`: provider cấu hình nhưng request lỗi (ví dụ 429 rate-limit, key sai, timeout).
+- Provider thiếu key sẽ được báo rõ là missing trong output chi tiết.
+- Lệnh trả `exit code 1` nếu có provider lỗi để hỗ trợ kiểm tra tự động trước khi demo/deploy.
 
 ## 🧪 Kiểm thử (Testing)
 
