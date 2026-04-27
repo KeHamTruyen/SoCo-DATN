@@ -9,6 +9,7 @@ import orderRoutes from "./order.routes.js";
 import userRoutes from "./user.routes.js";
 import notificationRoutes from "./notification.routes.js";
 import aiRoutes from "./ai.routes.js";
+import aiAssistantRoutes from "./aiAssistant.routes.js";
 import scheduledPostRoutes from "./scheduledPost.routes.js";
 import sellerRoutes from "./seller.routes.js";
 import messageRoutes from "./message.routes.js";
@@ -38,6 +39,7 @@ router.use("/search", searchRoutes);
 // Infrastructure routes
 router.use("/notifications", notificationRoutes);
 router.use("/ai", aiRoutes);
+router.use("/ai-assistant", aiAssistantRoutes);
 router.use("/scheduled-posts", scheduledPostRoutes);
 router.use("/seller", sellerRoutes);
 
@@ -60,6 +62,7 @@ router.get("/", (req, res) => {
             posts: "/api/posts",
             notifications: "/api/notifications",
             ai: "/api/ai",
+            aiAssistant: "/api/ai-assistant",
             scheduledPosts: "/api/scheduled-posts",
             seller: "/api/seller",
             messages: "/api/messages",

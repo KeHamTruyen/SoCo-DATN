@@ -1,7 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import App from "./App.tsx";
 import { AuthProvider } from "./app/providers/AuthProvider";
 import { NotificationProvider } from "./features/notification/context/NotificationContext";
@@ -30,7 +29,6 @@ createRoot(document.getElementById("root")!).render(
                             <AppErrorBoundary>
                                 <App />
                             </AppErrorBoundary>
-                            {process.env.NODE_ENV === "development" && <ReactQueryDevtools initialIsOpen={false} /> }
                         </QueryClientProvider>
                     </NotificationProvider>
                 </SocketProvider>

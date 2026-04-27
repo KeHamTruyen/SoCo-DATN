@@ -1,4 +1,4 @@
-import { ChevronDown, MessageCircle } from "lucide-react";
+import { ChevronDown, MessageCircle, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Conversation } from "../types/messaging.types";
 import { DEFAULT_USER_AVATAR_URL } from "../../../shared/config/defaultAssets";
@@ -9,6 +9,8 @@ interface DockAvatarStripProps {
     dockOpenIds: string[];
     dockExpanded: boolean;
     onTogglePanel: (conversationId: string) => void;
+    aiOpen: boolean;
+    onToggleAi: () => void;
     onToggleExpanded: () => void;
 }
 
@@ -22,6 +24,8 @@ export function DockAvatarStrip({
     dockOpenIds,
     dockExpanded,
     onTogglePanel,
+    aiOpen,
+    onToggleAi,
     onToggleExpanded,
 }: DockAvatarStripProps) {
     const { t } = useTranslation();
@@ -68,6 +72,22 @@ export function DockAvatarStrip({
                         );
                     })}
                 </div>
+            )}
+
+            {dockExpanded && (
+                <button
+                    type="button"
+                    onClick={onToggleAi}
+                    className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 shadow-md transition hover:ring-2 hover:ring-primary ${
+                        aiOpen
+                            ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/40"
+                            : "border-border bg-card text-primary"
+                    }`}
+                    title="AI Shopping Assistant"
+                    aria-pressed={aiOpen}
+                >
+                    <Sparkles className="h-4 w-4" />
+                </button>
             )}
 
             <button

@@ -16,6 +16,7 @@
         "test:integration": "vitest run --config vitest.integration.config.js",
         "test:integration:ui": "vitest --config vitest.integration.config.js --ui",
         "test:all": "npm run test && npm run test:integration",
+        "ai:health": "node scripts/check-ai-health.js",
         "prisma:generate": "npm run generate --prefix ../database",
         "prisma:push": "npm run db:push --prefix ../database",
         "prisma:reset": "npm run db:reset --prefix ../database",

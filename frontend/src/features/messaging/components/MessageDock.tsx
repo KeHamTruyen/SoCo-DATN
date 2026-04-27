@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { AiDockPanel } from "../../ai/components/assistant/AiDockPanel";
 import { useMessagingOptional } from "../context/MessagingContext";
 import { useChatActions } from "../hooks/useChatActions";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
@@ -11,6 +13,7 @@ import { DockAvatarStrip } from "./DockAvatarStrip";
 export function MessageDock() {
     const { user } = useAuthSession();
     const messaging = useMessagingOptional();
+    const [aiOpen, setAiOpen] = useState(false);
 
     const { handleSend, handleAttachImage, isSending } = useChatActions({
         sendMessage: messaging?.sendMessage ?? (async () => { throw new Error("No messaging"); }),
@@ -34,7 +37,7 @@ export function MessageDock() {
     return (
         <div className="fixed bottom-4 right-4 z-40 flex max-w-[100vw] flex-row items-end gap-3 pl-2">
             {/* Chat panels — left of the avatar column */}
-            {dockExpanded && dockOpenIds.length > 0 && (
+            {dockExpanded && (dockOpenIds.length > 0 || aiOpen) && (
                 <div className="flex flex-row items-end gap-2">
                     {dockOpenIds.map((id) => (
                         <DockChatPanel
@@ -51,6 +54,12 @@ export function MessageDock() {
                             onOpenInMessenger={loadMessagesForConversation}
                         />
                     ))}
+                    {aiOpen ? (
+                        <AiDockPanel
+                            onMinimize={() => setAiOpen(false)}
+                            onClose={() => setAiOpen(false)}
+                        />
+                    ) : null}
                 </div>
             )}
 
@@ -61,6 +70,11 @@ export function MessageDock() {
                 dockOpenIds={dockOpenIds}
                 dockExpanded={dockExpanded}
                 onTogglePanel={toggleDockPanel}
+                aiOpen={aiOpen}
+                onToggleAi={() => {
+                    setDockExpanded(true);
+                    setAiOpen((v) => !v);
+                }}
                 onToggleExpanded={() => setDockExpanded((v) => !v)}
             />
         </div>
