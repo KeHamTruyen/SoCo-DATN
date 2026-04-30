@@ -43,6 +43,8 @@
         "loadingConversation": "Đang tải…"
     },
     "header": {
+        "feed": "Bảng tin",
+        "marketplace": "Chợ",
         "notifications": "Thông báo",
         "notificationsBadgeAria": "{{count}} thông báo chưa đọc",
         "messages": "Tin nhắn",

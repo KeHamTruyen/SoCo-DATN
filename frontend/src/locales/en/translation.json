@@ -43,6 +43,8 @@
         "loadingConversation": "Loading…"
     },
     "header": {
+        "feed": "Feed",
+        "marketplace": "Marketplace",
         "notifications": "Notifications",
         "notificationsBadgeAria": "{{count}} unread notifications",
         "messages": "Messages",
