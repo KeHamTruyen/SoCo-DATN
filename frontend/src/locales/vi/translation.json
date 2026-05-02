@@ -43,6 +43,8 @@
         "loadingConversation": "Đang tải…"
     },
     "header": {
+        "feed": "Bảng tin",
+        "marketplace": "Chợ",
         "notifications": "Thông báo",
         "notificationsBadgeAria": "{{count}} thông báo chưa đọc",
         "messages": "Tin nhắn",
@@ -53,6 +55,7 @@
         "logout": "Đăng xuất",
         "admin": "Quản trị viên",
         "profile": "Trang cá nhân",
+        "userAvatar": "Ảnh đại diện",
         "settings": "Cài đặt",
         "account": "Tài khoản",
         "profileSettings": "Cài đặt hồ sơ",
@@ -87,6 +90,9 @@
         "copyPostLink": "Sao chép liên kết",
         "linkCopied": "Đã sao chép!",
         "reportPost": "Báo cáo bài viết",
+        "whatsOnYourMind": "Bạn đang nghĩ gì? Hãy chia sẻ cập nhật sản phẩm...",
+        "photo": "Ảnh",
+        "tagProduct": "Gắn sản phẩm",
         "visibility": {
             "PUBLIC": "Công khai",
             "FOLLOWERS": "Người theo dõi",
@@ -722,5 +728,65 @@
             "linkedProductPrefix": "Sản phẩm liên kết:",
             "typeUnknown": "Studio"
         }
+    },
+
+    "notification": {
+        "title": "Thông báo",
+        "markAllRead": "Đánh dấu đã đọc",
+        "seeAll": "Xem tất cả",
+        "empty": "Không có thông báo",
+        "viewMore": "Xem thêm",
+        "viewAll": "Xem tất cả thông báo"
+    },
+
+    "time": {
+        "justNow": "Vừa xong",
+        "minute": "phút",
+        "hour": "giờ",
+        "day": "ngày",
+        "tomorrow": "Ngày mai"
+    },
+
+    "sidebar": {
+        "navigation": "Điều hướng",
+        "homeFeed": "Bảng tin",
+        "exploreProducts": "Khám phá sản phẩm",
+        "groups": "Nhóm",
+        "personal": "Cá nhân",
+        "profile": "Trang cá nhân",
+        "saved": "Đã lưu",
+        "creativeHub": "Sáng tạo",
+        "aiLab": "AI Creative Lab",
+        "scheduled": "Bài đã lên lịch",
+        "business": "Kinh doanh",
+        "sellerDashboard": "Bảng điều khiển",
+        "becomeSeller": "Trở thành người bán"
+    },
+
+    "orders": {
+        "active": "Đơn hàng đang xử lý",
+        "empty": "Không có đơn hàng nào",
+        "shopNow": "Mua ngay",
+        "eta": "Dự kiến giao",
+        "shipping": "Đang giao",
+        "confirmed": "Đã xác nhận",
+        "pending": "Chờ xử lý",
+        "order": "Đơn hàng"
+    },
+
+    "product": {
+        "trending": "Sản phẩm nổi bật",
+        "seeMore": "Xem thêm sản phẩm"
+    },
+
+    "user": {
+        "suggested": "Gợi ý theo dõi",
+        "followers": "người theo dõi",
+        "follow": "Theo dõi",
+        "following": "Đang theo dõi"
+    },
+
+    "common": {
+        "more": "thêm"
     }
 }

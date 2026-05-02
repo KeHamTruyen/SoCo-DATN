@@ -43,6 +43,8 @@
         "loadingConversation": "Loading…"
     },
     "header": {
+        "feed": "Feed",
+        "marketplace": "Marketplace",
         "notifications": "Notifications",
         "notificationsBadgeAria": "{{count}} unread notifications",
         "messages": "Messages",
@@ -78,6 +80,7 @@
         "systemDesc": "Match device settings",
         "close": "Close"
     },
+
     "feed": {
         "with": "With ",
         "comments": "Comments",
@@ -87,6 +90,12 @@
         "copyPostLink": "Copy link",
         "linkCopied": "Copied!",
         "reportPost": "Report post",
+
+        "whatsOnYourMind": "What's on your mind? Share a product update...",
+        "photo": "Photo",
+        "tagProduct": "Tag Product",
+        "aiAssistant": "AI Assistant",
+
         "visibility": {
             "PUBLIC": "Public",
             "FOLLOWERS": "Followers",
@@ -94,6 +103,7 @@
             "PRIVATE": "Only me"
         }
     },
+
     "createPost": {
         "title": "Create Post",
         "post": "Post",
@@ -722,5 +732,65 @@
             "linkedProductPrefix": "Linked product:",
             "typeUnknown": "Studio"
         }
+    },
+        
+    "notification": {
+        "title": "Notifications",
+        "markAllRead": "Mark all as read",
+        "seeAll": "See all",
+        "empty": "No notifications",
+        "viewMore": "View more",
+        "viewAll": "View all notifications"
+    },
+
+    "time": {
+        "justNow": "Just now",
+        "minute": "m",
+        "hour": "h",
+        "day": "d",
+        "tomorrow": "Tomorrow"
+    },
+
+    "sidebar": {
+        "navigation": "Navigation",
+        "homeFeed": "Home Feed",
+        "exploreProducts": "Explore Products",
+        "groups": "Groups",
+        "personal": "Personal",
+        "profile": "My Profile",
+        "saved": "Saved Items",
+        "creativeHub": "Creative Hub",
+        "aiLab": "AI Creative Lab",
+        "scheduled": "Scheduled Posts",
+        "business": "Business",
+        "sellerDashboard": "Seller Dashboard",
+        "becomeSeller": "Become a Seller"
+    },
+
+    "orders": {
+        "active": "Active Orders",
+        "empty": "No active deliveries right now.",
+        "shopNow": "Shop Now",
+        "eta": "Estimated Arrival",
+        "shipping": "In Transit",
+        "confirmed": "Confirmed",
+        "pending": "Pending",
+        "order": "Order"
+    },
+
+    "product": {
+        "trending": "Trending Products",
+        "seeMore": "See more products"
+    },
+
+    "user": {
+        "suggested": "People to Follow",
+        "followers": "followers",
+        "follow": "Follow",
+        "following": "Following"
+    },
+
+    "common": {
+        "more": "more"
     }
 }

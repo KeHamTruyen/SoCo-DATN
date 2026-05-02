@@ -81,6 +81,17 @@ export function UnifiedHeader({
     const navigate = useNavigate();
     const { user, logout } = useAuthSession();
     const { t, i18n } = useTranslation();
+
+    const translatedNavItems = navItems.map((item) => ({
+        ...item,
+        label:
+            item.to === "/feed"
+                ? t("header.feed")
+                : item.to === "/marketplace"
+                ? t("header.marketplace")
+                : item.label,
+    }));
+
     const {
         notifications,
         unreadCount,
@@ -183,9 +194,9 @@ export function UnifiedHeader({
                 <div className="flex items-center gap-4 lg:gap-8">
                     <BrandLogo className="[&>span]:hidden sm:[&>span]:inline" />
                     <nav className="hidden items-center gap-6 md:flex">
-                        {navItems.map((item) => (
+                        {translatedNavItems.map((item) => (
                             <NavLink
-                                key={item.label}
+                                key={item.to}
                                 to={item.to}
                                 className={cn(
                                     "py-5 text-sm font-medium transition-colors",
@@ -336,7 +347,7 @@ export function UnifiedHeader({
                                 <Avatar
                                     wrapperClassName=""
                                     src={user.avatarUrl}
-                                    alt={user.fullName ?? "User avatar"}
+                                    alt={user.fullName ?? t("header.userAvatar")}
                                 />
                             </button>
                             {profileOpen ? (
@@ -381,7 +392,7 @@ export function UnifiedHeader({
                                         }}
                                     >
                                         <Globe className="h-4 w-4 shrink-0 text-neutral-500" />
-                                        {t("header.language", "Language")} &middot; <span className="ml-1 font-semibold uppercase">{i18n.language}</span>
+                                        {t("header.language")} &middot; <span className="ml-1 font-semibold uppercase">{i18n.language}</span>
                                     </button>
                                     <button
                                         type="button"
@@ -483,9 +494,9 @@ export function UnifiedHeader({
                         ) : null}
                     </div>
                     <nav className="flex flex-col gap-1">
-                        {navItems.map((item) => (
+                        {translatedNavItems.map((item) => (
                             <NavLink
-                                key={`mobile-${item.label}`}
+                                key={`mobile-${item.to}`}
                                 to={item.to}
                                 className={cn(
                                     "rounded-lg px-3 py-2 text-sm font-medium",
@@ -539,7 +550,7 @@ export function UnifiedHeader({
                                 }}
                             >
                                 <Globe className="h-4 w-4" />
-                                {t("header.language", "Language")} &middot; <span className="ml-1 font-semibold uppercase">{i18n.language}</span>
+                                {t("header.language")} &middot; <span className="ml-1 font-semibold uppercase">{i18n.language}</span>
                             </button>
                             <button
                                 type="button"
