@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Image, Sparkles, Tag } from "lucide-react";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { Avatar } from "../../../shared/ui/atoms/avatar";
@@ -8,6 +9,7 @@ interface PostComposerProps {
 }
 
 export function PostComposer({ onOpen }: PostComposerProps) {
+    const { t } = useTranslation();
     const { user } = useAuthSession();
 
     return (
@@ -23,7 +25,7 @@ export function PostComposer({ onOpen }: PostComposerProps) {
                     onClick={onOpen}
                     className="flex-1 rounded-xl bg-neutral-100 px-4 py-2.5 text-left text-sm text-neutral-500 transition-colors hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
                 >
-                    What&apos;s on your mind? Share a product update...
+                    {t("feed.whatsOnYourMind")}
                 </button>
             </div>
 
@@ -35,7 +37,7 @@ export function PostComposer({ onOpen }: PostComposerProps) {
                         className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
                     >
                         <Image className="h-4 w-4 text-primary" />
-                        Photo
+                        {t("feed.photo")}
                     </button>
                     <button
                         type="button"
@@ -43,7 +45,7 @@ export function PostComposer({ onOpen }: PostComposerProps) {
                         className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
                     >
                         <Tag className="h-4 w-4 text-primary" />
-                        Tag Product
+                        {t("feed.tagProduct")}
                     </button>
                 </div>
                 <button

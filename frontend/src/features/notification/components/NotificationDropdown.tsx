@@ -1,16 +1,20 @@
+import { useTranslation } from "react-i18next";
 import { Bell, MessageSquare, Package, Send, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Notification } from "../types/notification.types";
 
-function formatRelativeTime(isoString: string) {
+function formatRelativeTime(isoString: string, t: any) {
     const diff = Date.now() - new Date(isoString).getTime();
     const minutes = Math.floor(diff / 60000);
-    if (minutes < 1) return "Just now";
-    if (minutes < 60) return `${minutes}m ago`;
+
+    if (minutes < 1) return t("time.justNow");
+    if (minutes < 60) return `${minutes} ${t("time.minute")}`;
+
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
+    if (hours < 24) return `${hours} ${t("time.hour")}`;
+
+    return `${Math.floor(hours / 24)} ${t("time.day")}`;
 }
 
 const TYPE_ICON: Record<string, { icon: React.ReactNode; bgClass: string }> = {
@@ -49,6 +53,7 @@ export function NotificationDropdown({
     onClose,
     onMarkAllRead,
 }: NotificationDropdownProps) {
+    const { t } = useTranslation();
     const [visibleCount, setVisibleCount] = useState(5);
 
     useEffect(() => {
@@ -62,7 +67,7 @@ export function NotificationDropdown({
         <div className="absolute right-0 z-50 mt-3 flex w-96 flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl dark:border-neutral-800 dark:bg-background-dark">
             <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3 dark:border-neutral-800">
                 <h3 className="text-base font-semibold">
-                    Notifications
+                    {t("notification.title")}
                     {unreadCount > 0 && (
                         <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
                             {unreadCount}
@@ -76,7 +81,7 @@ export function NotificationDropdown({
                             onClick={onMarkAllRead}
                             className="text-sm font-medium text-primary hover:underline"
                         >
-                            Mark all as read
+                            {t("notification.markAllRead")}
                         </button>
                     ) : null}
                     <Link
@@ -84,7 +89,7 @@ export function NotificationDropdown({
                         className="text-sm font-medium text-primary hover:underline"
                         onClick={onClose}
                     >
-                        See all
+                        {t("notification.seeAll")}
                     </Link>
                 </div>
             </div>
@@ -92,7 +97,7 @@ export function NotificationDropdown({
             <div className="max-h-96 overflow-y-auto">
                 {notifications.length === 0 ? (
                     <div className="py-8 text-center text-sm text-neutral-400">
-                        No notifications
+                        {t("notification.empty")}
                     </div>
                 ) : (
                     visibleNotifications.map((n) => {
@@ -114,7 +119,7 @@ export function NotificationDropdown({
                                         {n.content}
                                     </p>
                                     <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                                        {formatRelativeTime(n.createdAt)}
+                                        {formatRelativeTime(n.createdAt, t)}
                                     </p>
                                 </div>
                                 {!n.isRead && (
@@ -143,7 +148,7 @@ export function NotificationDropdown({
                         onClick={() => setVisibleCount((count) => count + 5)}
                         className="block w-full rounded-lg py-2 text-center text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
                     >
-                        View more notifications
+                        {t("notification.viewMore")}
                     </button>
                 ) : (
                     <Link
@@ -151,7 +156,7 @@ export function NotificationDropdown({
                         onClick={onClose}
                         className="block rounded-lg py-2 text-center text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
                     >
-                        View all notifications
+                        {t("notification.viewAll")}
                     </Link>
                 )}
             </div>

@@ -196,7 +196,7 @@ export function UnifiedHeader({
                     <nav className="hidden items-center gap-6 md:flex">
                         {translatedNavItems.map((item) => (
                             <NavLink
-                                key={item.label}
+                                key={item.to}
                                 to={item.to}
                                 className={cn(
                                     "py-5 text-sm font-medium transition-colors",
@@ -347,7 +347,7 @@ export function UnifiedHeader({
                                 <Avatar
                                     wrapperClassName=""
                                     src={user.avatarUrl}
-                                    alt={user.fullName ?? "User avatar"}
+                                    alt={user.fullName ?? t("header.userAvatar")}
                                 />
                             </button>
                             {profileOpen ? (
@@ -496,7 +496,7 @@ export function UnifiedHeader({
                     <nav className="flex flex-col gap-1">
                         {translatedNavItems.map((item) => (
                             <NavLink
-                                key={`mobile-${item.label}`}
+                                key={`mobile-${item.to}`}
                                 to={item.to}
                                 className={cn(
                                     "rounded-lg px-3 py-2 text-sm font-medium",
