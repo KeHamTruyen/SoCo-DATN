@@ -1,6 +1,7 @@
 import express from 'express';
 import userController from '../controllers/user.controller.js';
 import { protect, optionalAuth } from '../middlewares/auth.middleware.js';
+import { ensureNotBlocked } from '../middlewares/block.middleware.js';
 
 const router = express.Router();
 
@@ -8,10 +9,10 @@ const router = express.Router();
 router.get('/me', protect, userController.getMyProfile);
 router.put('/me', protect, userController.updateProfile);
 router.get('/suggested', protect, userController.getSuggestedUsers);
-router.get('/search', userController.searchUsers);
+router.get('/search', optionalAuth, userController.searchUsers);
 
-router.post('/:userId/follow', protect, userController.follow);
-router.delete('/:userId/follow', protect, userController.unfollow);
+router.post('/:userId/follow', protect, ensureNotBlocked, userController.follow);
+router.delete('/:userId/follow', protect, ensureNotBlocked, userController.unfollow);
 
 // Follow lists
 router.get('/:userId/followers', userController.getFollowers);

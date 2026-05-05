@@ -1,5 +1,6 @@
 import prisma from '../config/database.js';
 import notificationService from './notification.service.js';
+import * as blockService from './block.service.js';
 
 const USER_PROFILE_SELECT = {
   id: true,
@@ -51,7 +52,9 @@ class UserService {
     });
     if (!user) throw new Error('User not found');
 
-    if (viewerId) {
+    if (viewerId && viewerId !== user.id) {
+      const blocked = await blockService.isBlockedBetween(viewerId, user.id);
+      if (blocked) throw new Error('User not found');
       user.isFollowing = await this.isFollowing(viewerId, user.id);
     }
     return user;
@@ -65,6 +68,8 @@ class UserService {
     if (!user) throw new Error('User not found');
 
     if (viewerId && viewerId !== userId) {
+      const blocked = await blockService.isBlockedBetween(viewerId, userId);
+      if (blocked) throw new Error('User not found');
       user.isFollowing = await this.isFollowing(viewerId, userId);
     }
     return user;
@@ -214,9 +219,11 @@ class UserService {
       })
     ).map((f) => f.followingId);
 
+    const blockedIds = await blockService.listBlockedUserIds(userId);
+
     return prisma.user.findMany({
       where: {
-        id: { notIn: [...followingIds, userId] },
+        id: { notIn: [...followingIds, userId, ...blockedIds] },
         isActive: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -247,13 +254,18 @@ class UserService {
         scopedUserIds = rows.map((row) => row.followerId);
       }
     }
+    const blockedIds = viewerId ? await blockService.listBlockedUserIds(viewerId) : [];
+    const idFilter = {
+      ...(scopedUserIds ? { in: scopedUserIds } : {}),
+      ...(blockedIds.length > 0 ? { notIn: blockedIds } : {}),
+    };
     const where = {
       isActive: true,
       OR: [
         { username: { contains: query, mode: 'insensitive' } },
         { fullName: { contains: query, mode: 'insensitive' } },
       ],
-      ...(scopedUserIds ? { id: { in: scopedUserIds } } : {}),
+      ...(Object.keys(idFilter).length > 0 ? { id: idFilter } : {}),
     };
     const [users, total] = await Promise.all([
       prisma.user.findMany({

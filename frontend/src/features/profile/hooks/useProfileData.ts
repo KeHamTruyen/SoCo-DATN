@@ -4,6 +4,7 @@ import { marketplaceApi } from "../../marketplace/api/marketplaceApi";
 import type { PublicUserProfile } from "../types/profile.types";
 import type { ProductListItem } from "../../marketplace/types/marketplace.types";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
+import { blockApi } from "../../block/api/blockApi";
 
 export function useProfileData(id?: string) {
     const { user, refreshProfile } = useAuthSession();
@@ -15,6 +16,7 @@ export function useProfileData(id?: string) {
     
     const [shopProducts, setShopProducts] = useState<ProductListItem[]>([]);
     const [shopProductsLoading, setShopProductsLoading] = useState(false);
+    const [isBlocked, setIsBlocked] = useState(false);
 
     const isSelf = !id || id === user?.id;
 
@@ -65,6 +67,14 @@ export function useProfileData(id?: string) {
                 if (!mounted) return;
                 setSuggestedUsers(su);
                 setShopProducts(shopData.items);
+                // check block state for current profile
+                try {
+                    const blocks = await blockApi.list().catch(() => [] as any[]);
+                    const found = blocks.some((b) => b.id === loadedProfile.id);
+                    setIsBlocked(found);
+                } catch {
+                    // ignore
+                }
             } catch {
                 if (mounted) setProfile(null);
             } finally {
@@ -80,6 +90,18 @@ export function useProfileData(id?: string) {
         };
     }, [id, isSelf, user?.id]);
 
+    const blockUser = async (targetId?: string) => {
+        if (!targetId) return;
+        await blockApi.block(targetId);
+        setIsBlocked(true);
+    };
+
+    const unblockUser = async (targetId?: string) => {
+        if (!targetId) return;
+        await blockApi.unblock(targetId);
+        setIsBlocked(false);
+    };
+
     return {
         user,
         refreshProfile,
@@ -90,6 +112,9 @@ export function useProfileData(id?: string) {
         suggestedLoading,
         shopProducts,
         shopProductsLoading,
-        isSelf
+        isSelf,
+        isBlocked,
+        blockUser,
+        unblockUser,
     };
 }

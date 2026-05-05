@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useCheckoutPage } from "../features/checkout/hooks";
 import { formatCurrencyVnd } from "../shared/lib/formatCurrencyVnd";
 import { Button, UnifiedHeader } from "../shared/ui";
+import { VoucherInput } from "../features/voucher/components/VoucherInput";
 
 const PAYMENT_METHODS = [
     {
@@ -38,8 +39,12 @@ export default function Checkout() {
         subtotal,
         shipping,
         total,
+        voucherCode,
+        voucherDiscount,
         updateForm,
         setPaymentMethod,
+        setVoucherCode,
+        setVoucherDiscount,
         submitOrder,
     } = useCheckoutPage();
 
@@ -166,6 +171,18 @@ export default function Checkout() {
                                             ))}
                                         </div>
                                     ) : null}
+                                    <VoucherInput
+                                        subtotal={subtotal}
+                                        onVoucherApplied={(discount, code) => {
+                                            setVoucherCode(code);
+                                            setVoucherDiscount(discount);
+                                        }}
+                                        onVoucherRemoved={() => {
+                                            setVoucherCode("");
+                                            setVoucherDiscount(0);
+                                        }}
+                                        disabled={isSubmitting}
+                                    />
                                     <div className="flex justify-between text-sm">
                                         <span className="text-neutral-500">Subtotal</span>
                                         <span className="font-medium">{formatCurrencyVnd(subtotal)}</span>
@@ -174,6 +191,12 @@ export default function Checkout() {
                                         <span className="text-neutral-500">Shipping</span>
                                         <span className="font-medium">{shipping > 0 ? formatCurrencyVnd(shipping) : "Free"}</span>
                                     </div>
+                                    {voucherDiscount > 0 && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-neutral-500">Discount</span>
+                                            <span className="font-medium text-green-600">-{formatCurrencyVnd(voucherDiscount)}</span>
+                                        </div>
+                                    )}
                                     <div className="border-t border-neutral-100 pt-4 dark:border-neutral-800">
                                         <div className="flex justify-between">
                                             <span className="font-bold">Total</span>

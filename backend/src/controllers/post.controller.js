@@ -183,6 +183,7 @@ export const getUserPosts = async (req, res, next) => {
       page: parseInt(req.query.page) || 1,
       limit: parseInt(req.query.limit) || 20,
       status: req.query.status || 'PUBLISHED',
+      viewerId: req.user?.id || null,
     };
     const result = await postService.getUserPosts(req.params.userId, filters);
     const data = await formatPostsForResponse(result.posts);
@@ -209,7 +210,7 @@ export const getMyPosts = async (req, res, next) => {
 
 export const sharePost = async (req, res, next) => {
   try {
-    const result = await postService.sharePost(req.params.id);
+    const result = await postService.sharePost(req.params.id, req.user?.id || null);
     res.json({ success: true, message: 'Post shared', data: result });
   } catch (error) {
     if (error.message === 'Post not found') {

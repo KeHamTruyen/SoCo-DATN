@@ -46,6 +46,13 @@ export const createOrder = async (req, res) => {
       });
     }
 
+    if (error.message === 'User not found') {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to create order',

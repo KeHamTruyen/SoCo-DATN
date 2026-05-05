@@ -1,4 +1,5 @@
 import prisma from '../config/database.js';
+import * as blockService from './block.service.js';
 
 /**
  * Get or create user's cart
@@ -116,6 +117,11 @@ export const addToCart = async (
   });
 
   if (!product) {
+    throw new Error('Product not found');
+  }
+
+  const blocked = await blockService.isBlockedBetween(userId, product.sellerId);
+  if (blocked) {
     throw new Error('Product not found');
   }
 

@@ -1,13 +1,14 @@
 import { Router } from 'express';
 import messageController from '../controllers/message.controller.js';
 import { protect } from '../middlewares/auth.middleware.js';
+import { ensureNotBlocked } from '../middlewares/block.middleware.js';
 
 const router = Router();
 
 router.use(protect);
 
 // Create or get existing direct conversation
-router.post('/conversations', messageController.getOrCreateConversation);
+router.post('/conversations', ensureNotBlocked, messageController.getOrCreateConversation);
 
 // List my conversations
 router.get('/conversations', messageController.getConversations);

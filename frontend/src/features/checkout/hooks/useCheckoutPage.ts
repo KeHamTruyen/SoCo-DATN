@@ -26,6 +26,8 @@ export function useCheckoutPage() {
     const [isLoadingCart, setIsLoadingCart] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedItems, setSelectedItems] = useState<CartItem[]>([]);
+    const [voucherCode, setVoucherCode] = useState("");
+    const [voucherDiscount, setVoucherDiscount] = useState(0);
 
     useEffect(() => {
         let mounted = true;
@@ -57,7 +59,7 @@ export function useCheckoutPage() {
 
     const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const shipping = selectedItems.length > 0 ? 30000 : 0;
-    const total = subtotal + shipping;
+    const total = subtotal + shipping - voucherDiscount;
 
     const updateForm = (key: "fullName" | "phone" | "address", value: string) => {
         setForm((prev) => ({ ...prev, [key]: value }));
@@ -77,6 +79,7 @@ export function useCheckoutPage() {
                 shippingPhone: form.phone,
                 shippingAddress: form.address,
                 paymentMethod,
+                voucherCode: voucherCode || undefined,
             });
             const orders = Array.isArray(order) ? order : [order];
             const orderIds = orders.map((o) => o.id).filter(Boolean);
@@ -99,9 +102,13 @@ export function useCheckoutPage() {
         subtotal,
         shipping,
         total,
+        voucherCode,
+        voucherDiscount,
         navigate,
         updateForm,
         setPaymentMethod,
+        setVoucherCode,
+        setVoucherDiscount,
         submitOrder,
     };
 }

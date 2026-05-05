@@ -17,10 +17,12 @@ import type { PublicUserProfile } from "../types/profile.types";
 import { cn } from "../../../shared/lib/cn";
 import { useTranslation } from "react-i18next";
 import { ReportModal } from "../../report/components/ReportModal";
+import BlockConfirmModal from "../../block/components/BlockConfirmModal";
 
 import { useProfileContext } from "../context/ProfileContext";
 
 export function BuyerProfileHeader() {
+    const ctx = useProfileContext();
     const {
         profile,
         isSelf,
@@ -31,7 +33,9 @@ export function BuyerProfileHeader() {
         profileMediaBusy,
         profileMediaError,
         setCreatePostModalOpen,
-    } = useProfileContext();
+    } = ctx;
+
+    const [showBlockModal, setShowBlockModal] = useState(false);
 
     if (!profile) return null;
 
@@ -171,15 +175,15 @@ export function BuyerProfileHeader() {
                                         {t("profile.following")}
                                     </Button>
                                 ) : (
-                                    <Button className="flex-1 gap-2 sm:flex-none px-6 sm:px-8" onClick={handleFollow}>
+                                    <Button className="flex-1 gap-2 sm:flex-none px-6 sm:px-8" onClick={handleFollow} disabled={ctx.isBlocked}>
                                         <UserPlus className="h-4 w-4" />
                                         {t("profile.follow")}
                                     </Button>
                                 )}
                                 <Link to={`/messages?userId=${profile.id}`} className="flex-1 sm:flex-none">
-                                    <Button variant="outline" className="w-full gap-2 px-6 sm:px-8">
+                                    <Button variant="outline" className="w-full gap-2 px-6 sm:px-8" disabled={ctx.isBlocked}>
                                         <MessageCircle className="h-4 w-4" />
-                                        {t("profile.message")}
+                                        {ctx.isBlocked ? t('profile.blockedMessage') : t("profile.message")}
                                     </Button>
                                 </Link>
                                 <div ref={menuRef} className="relative flex-1 sm:flex-none">
@@ -210,9 +214,40 @@ export function BuyerProfileHeader() {
                                                 <Flag className="h-4 w-4 shrink-0 opacity-70" />
                                                 Report user
                                             </button>
+                                            {profile && !isSelf ? (
+                                                <button
+                                                    type="button"
+                                                    role="menuitem"
+                                                    onClick={async () => {
+                                                        setMenuOpen(false);
+                                                        if (ctx.isBlocked) {
+                                                            // immediate unblock
+                                                            if (window.confirm('Unblock this user?')) {
+                                                                await ctx.unblockUser(profile.id);
+                                                            }
+                                                        } else {
+                                                            setShowBlockModal(true);
+                                                        }
+                                                    }}
+                                                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-neutral-800 transition-colors hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                                                >
+                                                    <Flag className="h-4 w-4 shrink-0 opacity-70" />
+                                                    {ctx.isBlocked ? 'Unblock user' : 'Block user'}
+                                                </button>
+                                            ) : null}
                                         </div>
                                     ) : null}
                                 </div>
+                                {showBlockModal && profile ? (
+                                    <BlockConfirmModal
+                                        open={showBlockModal}
+                                        onClose={() => setShowBlockModal(false)}
+                                        targetName={profile.fullName}
+                                        onConfirm={async () => {
+                                            await ctx.blockUser(profile.id);
+                                        }}
+                                    />
+                                ) : null}
                             </>
                         ) : (
                             <>

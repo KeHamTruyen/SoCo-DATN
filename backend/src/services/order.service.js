@@ -1,5 +1,7 @@
 import prisma from '../config/database.js';
 import notificationService from './notification.service.js';
+import voucherService from './voucher.service.js';
+import * as blockService from './block.service.js';
 
 /**
  * Generate unique order number
@@ -140,6 +142,7 @@ export const createOrder = async (userId, orderData) => {
     shippingWard,
     shippingNote,
     paymentMethod,
+    voucherCode,
   } = orderData;
 
   // Get user's cart
@@ -189,16 +192,36 @@ export const createOrder = async (userId, orderData) => {
     }
   }
 
+  // Try to apply voucher if provided
+  let voucher = null;
+  let voucherDiscount = 0;
+  if (voucherCode) {
+    try {
+      const appliedVoucher = await voucherService.applyVoucher(
+        userId,
+        voucherCode,
+        0, // Will calculate subtotal per order
+      );
+      voucher = appliedVoucher;
+    } catch (error) {
+      throw new Error(`Voucher error: ${error.message}`);
+    }
+  }
+
   // Calculate totals
   const shippingFeePerOrder = 30000; // 30k VND flat rate (per shop order)
   const tax = 0; // No tax for now
-  const discount = 0; // No discount for now
 
   const itemsBySeller = new Map();
   for (const item of selectedCartItems) {
     const sellerId = item.product?.sellerId;
     if (!sellerId) {
       throw new Error(`Missing seller for ${item.product?.title ?? 'product'}`);
+    }
+
+    const blocked = await blockService.isBlockedBetween(userId, sellerId);
+    if (blocked) {
+      throw new Error('User not found');
     }
     if (!itemsBySeller.has(sellerId)) itemsBySeller.set(sellerId, []);
     itemsBySeller.get(sellerId).push(item);
@@ -213,7 +236,26 @@ export const createOrder = async (userId, orderData) => {
         const unitPrice = item.variant?.price ?? item.price ?? item.product.price;
         return sum + Number(unitPrice) * item.quantity;
       }, 0);
-      const shippingFee = shippingFeePerOrder;
+      
+      // Apply voucher discount for first order only
+      let discount = 0;
+      let appliedVoucherId = null;
+      let finalVoucherCode = null;
+      
+      if (voucher && createdOrderIds.length === 0) {
+        // Apply voucher only to first order
+        if (voucher.type === 'FIXED_AMOUNT') {
+          discount = Math.min(voucher.discount, subtotal + shippingFeePerOrder);
+        } else if (voucher.type === 'PERCENTAGE') {
+          discount = voucher.discount;
+        } else if (voucher.type === 'FREE_SHIPPING') {
+          discount = shippingFeePerOrder;
+        }
+        appliedVoucherId = voucher.voucherId;
+        finalVoucherCode = voucher.code;
+      }
+      
+      const shippingFee = voucher?.type === 'FREE_SHIPPING' ? 0 : shippingFeePerOrder;
       const total = subtotal + shippingFee + tax - discount;
 
       const newOrder = await tx.order.create({
@@ -235,6 +277,8 @@ export const createOrder = async (userId, orderData) => {
           paymentMethod,
           paymentStatus: 'PENDING',
           status: 'PENDING',
+          voucherCode: finalVoucherCode,
+          appliedVoucherId,
         },
       });
 
@@ -306,6 +350,19 @@ export const createOrder = async (userId, orderData) => {
   });
 
   const createdOrders = await Promise.all(orders.map((id) => getOrder(id, userId)));
+
+  // Record voucher usage if applied
+  if (voucher && createdOrders.length > 0) {
+    try {
+      await voucherService.recordVoucherUsage(
+        voucher.voucherId,
+        userId,
+        createdOrders[0].id,
+      );
+    } catch (error) {
+      console.error('Failed to record voucher usage:', error);
+    }
+  }
 
   // Notify each seller once for their corresponding order.
   await Promise.allSettled(

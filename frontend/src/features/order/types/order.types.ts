@@ -92,4 +92,5 @@ export interface CreateOrderPayload {
     shippingWard?: string;
     shippingNote?: string;
     paymentMethod: "COD" | "BANK_TRANSFER" | "MOMO" | "VNPAY" | "ZALOPAY";
+    voucherCode?: string;
 }

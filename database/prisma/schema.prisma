@@ -118,6 +118,18 @@ enum SavedItemType {
   PRODUCT
 }
 
+enum VoucherType {
+  FIXED_AMOUNT
+  PERCENTAGE
+  FREE_SHIPPING
+}
+
+enum VoucherStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
 // =====================================================
 // USERS & AUTHENTICATION
 // =====================================================
@@ -199,8 +211,12 @@ model User {
   createdConversations     Conversation[]
   reports                  Report[]                  @relation("ReporterUser")
   savedItems               SavedItem[]
+  voucherUsages            VoucherUsage[]
+  createdVouchers          Voucher[]
   sellerSensitiveChangeRequests SellerSensitiveChangeRequest[]
   sensitiveAuditLogsAsActor     SellerSensitiveAuditLog[]      @relation("AuditLogActorUser")
+  blockedUsers             Block[]                  @relation("Blocker")
+  blockedBy                Block[]                  @relation("Blocked")
 
   @@map("users")
 }
@@ -518,6 +534,10 @@ model Order {
   tax         Decimal @default(0) @db.Decimal(15, 2)
   discount    Decimal @default(0) @db.Decimal(15, 2)
   total       Decimal @db.Decimal(15, 2)
+  
+  // Voucher
+  voucherCode String? @map("voucher_code") @db.VarChar(50)
+  appliedVoucherId String? @map("applied_voucher_id")
 
   // Shipping Information
   shippingName     String  @map("shipping_name")
@@ -553,6 +573,8 @@ model Order {
   buyer    User?       @relation(fields: [buyerId], references: [id], onDelete: SetNull)
   items    OrderItem[]
   messages Message[]
+  appliedVoucher Voucher? @relation(fields: [appliedVoucherId], references: [id], onDelete: SetNull)
+  voucherUsages  VoucherUsage[]
 
   @@index([buyerId, createdAt(sort: Desc)])
   @@index([status, createdAt(sort: Desc)])
@@ -814,6 +836,26 @@ model Follow {
   @@map("follows")
 }
 
+// =====================================================
+// USER BLOCKS (two-way semantics implemented in service)
+// When a user A blocks user B we will create two records (A->B and B->A)
+// so checks are simple: if a Block exists for (requester, target) then
+// they are mutually blocked from interacting.
+model Block {
+  id        String   @id @default(uuid())
+  blockerId String   @map("blocker_id")
+  blockedId String   @map("blocked_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  blocker  User @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked  User @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId, createdAt(sort: Desc)])
+  @@index([blockedId, createdAt(sort: Desc)])
+  @@map("blocks")
+}
+
 model SavedItem {
   id        String        @id @default(uuid())
   userId    String        @map("user_id")
@@ -1057,6 +1099,59 @@ model SellerStats {
 
   @@unique([sellerId, date])
   @@map("seller_stats")
+}
+
+// =====================================================
+// VOUCHERS & DISCOUNTS
+// =====================================================
+
+model Voucher {
+  id                String         @id @default(uuid())
+  code              String         @unique @db.VarChar(50)
+  type              VoucherType    @default(FIXED_AMOUNT)
+  value             Decimal        @db.Decimal(15, 2)
+  minOrderAmount    Decimal        @default(0) @map("min_order_amount") @db.Decimal(15, 2)
+  maxDiscount       Decimal?       @map("max_discount") @db.Decimal(15, 2)
+  maxUses           Int?           @map("max_uses")
+  maxUsesPerUser    Int            @default(1) @map("max_uses_per_user")
+  currentUses       Int            @default(0) @map("current_uses")
+  
+  applicableCategories String[]    @map("applicable_categories")
+  applicableProductIds String[]    @map("applicable_product_ids")
+  applicableSellers String[]       @map("applicable_sellers")
+  excludedUserIds   String[]       @map("excluded_user_ids")
+  
+  startsAt          DateTime       @map("starts_at")
+  expiresAt         DateTime       @map("expires_at")
+  status            VoucherStatus  @default(ACTIVE)
+  
+  createdBy         String         @map("created_by")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+  
+  creator User          @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+  orders  Order[]
+  usages  VoucherUsage[]
+  
+  @@index([code])
+  @@index([status, expiresAt])
+  @@map("vouchers")
+}
+
+model VoucherUsage {
+  id        String   @id @default(uuid())
+  voucherId String   @map("voucher_id")
+  userId    String   @map("user_id")
+  orderId   String   @map("order_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  @@unique([voucherId, userId, orderId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("voucher_usages")
 }
 
 // =====================================================

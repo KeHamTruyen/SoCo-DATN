@@ -1,5 +1,6 @@
 import prisma from '../config/database.js';
 import notificationService from './notification.service.js';
+import * as blockService from './block.service.js';
 
 const MAX_TAGGED_USERS = 10;
 
@@ -112,10 +113,15 @@ export const getPersonalizedFeed = async (userId, { page = 1, limit = 20 } = {})
 
   const baseWhere = { status: 'PUBLISHED', visibility: 'PUBLIC' };
 
+  const blockedIds = await blockService.listBlockedUserIds(userId);
+
   const [followedPosts, suggestedPosts] = await Promise.all([
     followingIds.length > 0
       ? prisma.post.findMany({
-          where: { ...baseWhere, authorId: { in: followingIds } },
+          where: {
+            ...baseWhere,
+            authorId: { in: followingIds.filter((id) => !blockedIds.includes(id)) },
+          },
           skip,
           take: followedPostsLimit,
           orderBy: { createdAt: 'desc' },
@@ -128,7 +134,7 @@ export const getPersonalizedFeed = async (userId, { page = 1, limit = 20 } = {})
     prisma.post.findMany({
       where: {
         ...baseWhere,
-        authorId: { notIn: [...followingIds, userId] },
+        authorId: { notIn: [...followingIds, userId, ...blockedIds] },
       },
       skip,
       take: suggestedPostsLimit,
@@ -193,13 +199,27 @@ export const getPosts = async (filters = {}) => {
     }
   }
 
+  const blockedIds = userId ? await blockService.listBlockedUserIds(userId) : [];
+
+  if (authorId && blockedIds.includes(authorId)) {
+    return {
+      posts: [],
+      pagination: { page, limit, total: 0, totalPages: 0 },
+    };
+  }
+
+  const authorFilter = {
+    ...(authorId ? { equals: authorId } : {}),
+    ...(scopedAuthorIds ? { in: scopedAuthorIds } : {}),
+    ...(blockedIds.length > 0 ? { notIn: blockedIds } : {}),
+  };
+
   const where = {
     status,
-    ...(authorId && { authorId }),
+    ...(Object.keys(authorFilter).length > 0 ? { authorId: authorFilter } : {}),
     ...(productId && { productId }),
     ...(visibility && { visibility }),
     ...(search && { content: { contains: search, mode: 'insensitive' } }),
-    ...(scopedAuthorIds ? { authorId: { in: scopedAuthorIds } } : {}),
     ...((postedFrom || postedTo)
       ? {
           createdAt: {
@@ -281,6 +301,11 @@ export const getPostById = async (postId, userId = null) => {
   });
 
   if (!post) throw new Error('Post not found');
+
+  if (userId && post?.author?.id && userId !== post.author.id) {
+    const blocked = await blockService.isBlockedBetween(userId, post.author.id);
+    if (blocked) throw new Error('Post not found');
+  }
 
   await prisma.post.update({
     where: { id: postId },
@@ -383,6 +408,9 @@ export const toggleLike = async (postId, userId) => {
   });
   if (!post) throw new Error('Post not found');
 
+  const blocked = await blockService.isBlockedBetween(userId, post.authorId);
+  if (blocked) throw new Error('Post not found');
+
   const existingLike = await prisma.postLike.findUnique({
     where: { postId_userId: { postId, userId } },
   });
@@ -417,6 +445,9 @@ export const addComment = async (postId, userId, content, parentId = null) => {
     select: { id: true, authorId: true },
   });
   if (!post) throw new Error('Post not found');
+
+  const blocked = await blockService.isBlockedBetween(userId, post.authorId);
+  if (blocked) throw new Error('Post not found');
 
   const comment = await prisma.$transaction(async (tx) => {
     const newComment = await tx.postComment.create({
@@ -553,6 +584,16 @@ export const getUserPosts = async (userId, filters = {}) => {
   const { page = 1, limit = 20, status = 'PUBLISHED' } = filters;
   const skip = (page - 1) * limit;
 
+  if (filters?.viewerId && filters.viewerId !== userId) {
+    const blocked = await blockService.isBlockedBetween(filters.viewerId, userId);
+    if (blocked) {
+      return {
+        posts: [],
+        pagination: { page, limit, total: 0, totalPages: 0 },
+      };
+    }
+  }
+
   const where = { authorId: userId, ...(status && { status }) };
 
   const [posts, total] = await Promise.all([
@@ -574,9 +615,13 @@ export const getUserPosts = async (userId, filters = {}) => {
 
 // ─── Share post ────────────────────────────────────────
 
-export const sharePost = async (postId) => {
+export const sharePost = async (postId, userId = null) => {
   const post = await prisma.post.findUnique({ where: { id: postId } });
   if (!post) throw new Error('Post not found');
+  if (userId) {
+    const blocked = await blockService.isBlockedBetween(userId, post.authorId);
+    if (blocked) throw new Error('Post not found');
+  }
   await prisma.post.update({
     where: { id: postId },
     data: { sharesCount: { increment: 1 } },

@@ -1,6 +1,7 @@
 import prisma from '../config/database.js';
 import { getIO, isUserOnline } from '../config/socket.js';
 import notificationService from './notification.service.js';
+import * as blockService from './block.service.js';
 
 const PARTICIPANT_USER_SELECT = {
   id: true,
@@ -16,6 +17,9 @@ class MessageService {
 
     const other = await prisma.user.findUnique({ where: { id: otherUserId } });
     if (!other) throw new Error('User not found');
+
+    const blocked = await blockService.isBlockedBetween(userId, otherUserId);
+    if (blocked) throw new Error('User not found');
 
     const existing = await prisma.conversation.findFirst({
       where: {
@@ -51,6 +55,16 @@ class MessageService {
       where: { conversationId_userId: { conversationId, userId: senderId } },
     });
     if (!participant) throw new Error('Not a participant');
+
+    const otherParticipant = await prisma.conversationParticipant.findFirst({
+      where: { conversationId, userId: { not: senderId } },
+      select: { userId: true },
+    });
+
+    if (otherParticipant) {
+      const blocked = await blockService.isBlockedBetween(senderId, otherParticipant.userId);
+      if (blocked) throw new Error('User not found');
+    }
 
     const { content, messageType, mediaUrl, productId, orderId } = data;
 
@@ -108,6 +122,8 @@ class MessageService {
   async getConversations(userId, { page = 1, limit = 20 } = {}) {
     const skip = (page - 1) * limit;
 
+    const blockedIds = await blockService.listBlockedUserIds(userId);
+
     const participantRows = await prisma.conversationParticipant.findMany({
       where: { userId },
       select: { conversationId: true },
@@ -116,7 +132,12 @@ class MessageService {
 
     const [conversations, total] = await Promise.all([
       prisma.conversation.findMany({
-        where: { id: { in: conversationIds } },
+        where: {
+          id: { in: conversationIds },
+          ...(blockedIds.length > 0
+            ? { participants: { none: { userId: { in: blockedIds } } } }
+            : {}),
+        },
         skip,
         take: limit,
         orderBy: { updatedAt: 'desc' },
@@ -131,7 +152,14 @@ class MessageService {
           },
         },
       }),
-      prisma.conversation.count({ where: { id: { in: conversationIds } } }),
+      prisma.conversation.count({
+        where: {
+          id: { in: conversationIds },
+          ...(blockedIds.length > 0
+            ? { participants: { none: { userId: { in: blockedIds } } } }
+            : {}),
+        },
+      }),
     ]);
 
     const unreadRows = conversationIds.length
@@ -165,6 +193,16 @@ class MessageService {
       where: { conversationId_userId: { conversationId, userId } },
     });
     if (!participant) throw new Error('Not a participant');
+
+    const otherParticipant = await prisma.conversationParticipant.findFirst({
+      where: { conversationId, userId: { not: userId } },
+      select: { userId: true },
+    });
+
+    if (otherParticipant) {
+      const blocked = await blockService.isBlockedBetween(userId, otherParticipant.userId);
+      if (blocked) throw new Error('User not found');
+    }
 
     const skip = (page - 1) * limit;
 

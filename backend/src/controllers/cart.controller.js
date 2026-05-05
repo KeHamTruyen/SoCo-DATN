@@ -48,11 +48,14 @@ export const addToCart = async (req, res) => {
   } catch (error) {
     console.error('Add to cart error:', error);
 
-    if (
-      error.message === 'Product not found' ||
-      error.message === 'Product is not available' ||
-      error.message === 'Product variant not found'
-    ) {
+    if (error.message === 'Product not found') {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message === 'Product is not available' || error.message === 'Product variant not found') {
       return res.status(400).json({
         success: false,
         message: error.message,

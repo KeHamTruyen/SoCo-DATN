@@ -1,6 +1,6 @@
 import express from "express";
 import productController from "../controllers/product.controller.js";
-import { protect, restrictTo } from "../middlewares/auth.middleware.js";
+import { protect, restrictTo, optionalAuth } from "../middlewares/auth.middleware.js";
 import {
     validate,
     createProductValidation,
@@ -68,7 +68,7 @@ const router = express.Router();
  *       200:
  *         description: Products retrieved successfully
  */
-router.get("/", getProductsValidation, validate, productController.getProducts);
+router.get("/", optionalAuth, getProductsValidation, validate, productController.getProducts);
 
 router.get(
     "/recommendations/me",
@@ -180,7 +180,7 @@ router.delete(
  *       404:
  *         description: Product not found
  */
-router.get("/:id", productIdValidation, validate, productController.getProduct);
+router.get("/:id", optionalAuth, productIdValidation, validate, productController.getProduct);
 
 router.post(
     "/:id/view",

@@ -26,7 +26,10 @@ class ProductController {
    */
   async getProducts(req, res, next) {
     try {
-      const result = await productService.getProducts(req.query);
+      const result = await productService.getProducts({
+        ...req.query,
+        viewerId: req.user?.id || null,
+      });
 
       res.json({
         success: true,
@@ -44,7 +47,7 @@ class ProductController {
    */
   async getProduct(req, res, next) {
     try {
-      const product = await productService.getProduct(req.params.id);
+      const product = await productService.getProduct(req.params.id, req.user?.id || null);
 
       res.json({
         success: true,

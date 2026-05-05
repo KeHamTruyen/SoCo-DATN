@@ -28,6 +28,9 @@ class MessageController {
       );
       res.status(201).json({ success: true, data: message });
     } catch (error) {
+      if (error.message === 'User not found') {
+        return res.status(404).json({ success: false, message: error.message });
+      }
       if (error.message === 'Not a participant') {
         return res.status(403).json({ success: false, message: error.message });
       }
@@ -67,6 +70,9 @@ class MessageController {
         pagination: result.pagination,
       });
     } catch (error) {
+      if (error.message === 'User not found') {
+        return res.status(404).json({ success: false, message: error.message });
+      }
       if (error.message === 'Not a participant') {
         return res.status(403).json({ success: false, message: error.message });
       }

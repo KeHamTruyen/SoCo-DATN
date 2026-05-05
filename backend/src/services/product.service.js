@@ -1,6 +1,7 @@
 import prisma from '../config/database.js';
 import slugify from 'slugify';
 import { deleteImage, getPublicIdFromUrl } from '../config/cloudinary.js';
+import * as blockService from './block.service.js';
 
 const RETENTION_DAYS = 180;
 
@@ -159,7 +160,8 @@ class ProductService {
       maxPrice,
       ratingFilter,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
+      viewerId = null,
     } = filters;
 
     const skip = (page - 1) * limit;
@@ -192,10 +194,29 @@ class ProductService {
                 ? { reviews: { some: { isPublished: true, rating: { gte: 1 } } } }
                 : {};
 
+    const blockedIds = viewerId ? await blockService.listBlockedUserIds(viewerId) : [];
+
+    if (sellerId && blockedIds.includes(sellerId)) {
+      return {
+        products: [],
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: 0,
+          totalPages: 0,
+        },
+      };
+    }
+
+    const sellerFilter = {
+      ...(sellerId ? { equals: sellerId } : {}),
+      ...(blockedIds.length > 0 ? { notIn: blockedIds } : {}),
+    };
+
     const where = {
       deletedAt: null,
       ...(categoryId && { categories: { some: { id: categoryId } } }),
-      ...(sellerId && { sellerId }),
+      ...(Object.keys(sellerFilter).length > 0 ? { sellerId: sellerFilter } : {}),
       ...(effectiveStatus && { status: effectiveStatus }),
       ...(search && {
         OR: [
@@ -257,7 +278,7 @@ class ProductService {
   /**
    * Get single product by ID or slug
    */
-  async getProduct(identifier) {
+  async getProduct(identifier, viewerId = null) {
     const product = await prisma.product.findFirst({
       where: {
         deletedAt: null,
@@ -306,6 +327,11 @@ class ProductService {
 
     if (!product) {
       throw new Error('Product not found');
+    }
+
+    if (viewerId && product?.seller?.id && viewerId !== product.seller.id) {
+      const blocked = await blockService.isBlockedBetween(viewerId, product.seller.id);
+      if (blocked) throw new Error('Product not found');
     }
 
     // Increment view count

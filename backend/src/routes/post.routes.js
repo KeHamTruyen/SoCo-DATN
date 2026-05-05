@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as postController from '../controllers/post.controller.js';
 import { protect, optionalAuth } from '../middlewares/auth.middleware.js';
+import { ensureNotBlocked } from '../middlewares/block.middleware.js';
 import * as postValidator from '../validators/post.validator.js';
 import { validate } from '../validators/post.validator.js';
 
@@ -19,7 +20,7 @@ router.get('/', optionalAuth, postValidator.getPostsValidation, validate, postCo
 router.get('/me', protect, postValidator.getMyPostsValidation, validate, postController.getMyPosts);
 
 // User posts
-router.get('/user/:userId', postValidator.getUserPostsValidation, validate, postController.getUserPosts);
+router.get('/user/:userId', optionalAuth, postValidator.getUserPostsValidation, validate, postController.getUserPosts);
 
 // Single post
 router.get('/:id', optionalAuth, postValidator.getPostByIdValidation, validate, postController.getPostById);
@@ -29,11 +30,11 @@ router.put('/:id', protect, postValidator.updatePostValidation, validate, postCo
 router.delete('/:id', protect, postValidator.deletePostValidation, validate, postController.deletePost);
 
 // Like / Share
-router.post('/:id/like', protect, postValidator.likePostValidation, validate, postController.toggleLike);
-router.post('/:id/share', protect, postValidator.likePostValidation, validate, postController.sharePost);
+router.post('/:id/like', protect, ensureNotBlocked, postValidator.likePostValidation, validate, postController.toggleLike);
+router.post('/:id/share', protect, ensureNotBlocked, postValidator.likePostValidation, validate, postController.sharePost);
 
 // Comments
-router.post('/:id/comments', protect, postValidator.addCommentValidation, validate, postController.addComment);
+router.post('/:id/comments', protect, ensureNotBlocked, postValidator.addCommentValidation, validate, postController.addComment);
 router.get('/:id/comments', postValidator.getCommentsValidation, validate, postController.getComments);
 
 // Comment CRUD

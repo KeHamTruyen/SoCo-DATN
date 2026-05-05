@@ -172,9 +172,11 @@ class UserController {
 
     async searchUsers(req, res, next) {
         try {
+            const viewerId = req.user?.id || null;
             const result = await userService.searchUsers(req.query.q || "", {
                 page: parseInt(req.query.page) || 1,
                 limit: parseInt(req.query.limit) || 20,
+                viewerId,
             });
             res.json({
                 success: true,

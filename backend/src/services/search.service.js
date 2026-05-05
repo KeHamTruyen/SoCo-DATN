@@ -42,6 +42,7 @@ export const searchAll = async ({
                     search: q,
                     sortBy: "createdAt",
                     sortOrder: "desc",
+                    viewerId: userId,
                 })
                 .then((result) => ({
                     key: "products",
