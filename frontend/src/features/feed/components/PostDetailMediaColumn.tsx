@@ -12,6 +12,8 @@ interface PostDetailMediaColumnProps {
 
 export function PostDetailMediaColumn({ post, primaryMedia, isVideo }: PostDetailMediaColumnProps) {
     const hasProducts = (post.taggedProducts?.length ?? 0) > 0;
+    const mediaTags =
+        post.taggedProducts?.filter((tag) => (tag.anchorType ?? "MEDIA_HOTSPOT") === "MEDIA_HOTSPOT") ?? [];
 
     return (
         <div className="lg:col-span-7">
@@ -26,7 +28,7 @@ export function PostDetailMediaColumn({ post, primaryMedia, isVideo }: PostDetai
                 ) : (
                     <img src={primaryMedia} alt="Post" className="h-full w-full object-cover" />
                 )}
-                {post.taggedProducts?.map((product) => (
+                {mediaTags.map((product) => (
                     <ShoppableProductHotspot key={product.id} product={product} />
                 ))}
                 {post.taggedProducts && post.taggedProducts.length > 0 && (

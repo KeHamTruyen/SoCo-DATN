@@ -15,33 +15,52 @@ async function publishScheduledPosts() {
         status: 'scheduled',
         scheduledTime: { lte: now },
       },
-      include: { user: { select: { id: true, username: true } } },
+      include: {
+        user: { select: { id: true, username: true } },
+        productTags: true,
+      },
     });
 
     for (const scheduled of duePosts) {
       try {
-        const post = await prisma.post.create({
-          data: {
-            authorId: scheduled.userId,
-            content: scheduled.content,
-            mediaUrls: scheduled.mediaUrls,
-            mediaType: scheduled.mediaType,
-            productId: scheduled.productId,
-            location: scheduled.location,
-            feeling: scheduled.feeling,
-            taggedUserIds: scheduled.taggedUserIds || [],
-            status: 'PUBLISHED',
-            visibility: scheduled.visibility || 'PUBLIC',
-            publishedAt: now,
-          },
-        });
-
-        await prisma.scheduledPost.update({
-          where: { id: scheduled.id },
-          data: {
-            status: 'published',
-            publishedPostId: post.id,
-          },
+        const post = await prisma.$transaction(async (tx) => {
+          const created = await tx.post.create({
+            data: {
+              authorId: scheduled.userId,
+              content: scheduled.content,
+              mediaUrls: scheduled.mediaUrls,
+              mediaType: scheduled.mediaType,
+              location: scheduled.location,
+              feeling: scheduled.feeling,
+              taggedUserIds: scheduled.taggedUserIds || [],
+              status: 'PUBLISHED',
+              visibility: scheduled.visibility || 'PUBLIC',
+              publishedAt: now,
+            },
+          });
+          if (scheduled.productTags?.length) {
+            await tx.postProductTag.createMany({
+              data: scheduled.productTags.map((tag) => ({
+                postId: created.id,
+                productId: tag.productId,
+                anchorType: tag.anchorType,
+                positionX: tag.positionX,
+                positionY: tag.positionY,
+                blockId: tag.blockId,
+                startOffset: tag.startOffset,
+                endOffset: tag.endOffset,
+                sortOrder: tag.sortOrder,
+              })),
+            });
+          }
+          await tx.scheduledPost.update({
+            where: { id: scheduled.id },
+            data: {
+              status: 'published',
+              publishedPostId: created.id,
+            },
+          });
+          return created;
         });
 
         console.log(`📬 Published scheduled post ${scheduled.id} → post ${post.id}`);

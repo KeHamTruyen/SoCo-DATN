@@ -81,6 +81,12 @@ enum PostVisibility {
   PRIVATE
 }
 
+enum PostProductAnchorType {
+  MEDIA_HOTSPOT
+  INLINE_TEXT
+  CONTENT_BLOCK
+}
+
 enum MessageType {
   TEXT
   IMAGE
@@ -408,13 +414,13 @@ model Product {
   variants       ProductVariant[]
   orderItems     OrderItem[]
   cartItems      CartItem[]
-  posts          Post[]
+  scheduledPostProductTags ScheduledPostProductTag[]
+  postProductTags PostProductTag[]
   reviews        Review[]
   productViews   ProductView[]
   referrerViews  ProductView[] @relation("ProductViewReferrer")
   coViewSources  ProductCoView[] @relation("CoViewSource")
   coViewTargets  ProductCoView[] @relation("CoViewTarget")
-  scheduledPosts ScheduledPost[]
   messages       Message[]
 
   @@index([deletionState, purgeAfter])
@@ -599,7 +605,6 @@ model Post {
   mediaUrls String[] @map("media_urls")
   mediaType String?  @map("media_type") @db.VarChar(20)
 
-  productId String? @map("product_id")
   groupId   String? @map("group_id")
 
   location       String?  @db.VarChar(500)
@@ -619,15 +624,36 @@ model Post {
   publishedAt DateTime? @map("published_at")
 
   author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  product  Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productTags PostProductTag[]
   group    Group?        @relation(fields: [groupId], references: [id], onDelete: SetNull)
   likes    PostLike[]
   comments PostComment[]
 
   @@index([status, visibility, createdAt(sort: Desc)])
   @@index([authorId, createdAt(sort: Desc)])
-  @@index([productId, createdAt(sort: Desc)])
   @@map("posts")
+}
+
+model PostProductTag {
+  id         String                @id @default(uuid())
+  postId     String                @map("post_id")
+  productId  String                @map("product_id")
+  anchorType PostProductAnchorType @default(MEDIA_HOTSPOT) @map("anchor_type")
+  positionX  Float?                @map("position_x")
+  positionY  Float?                @map("position_y")
+  blockId    String?               @map("block_id") @db.VarChar(120)
+  startOffset Int?                 @map("start_offset")
+  endOffset   Int?                 @map("end_offset")
+  sortOrder  Int                   @default(0) @map("sort_order")
+  createdAt  DateTime              @default(now()) @map("created_at")
+  updatedAt  DateTime              @updatedAt @map("updated_at")
+
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([postId, sortOrder])
+  @@index([productId])
+  @@map("post_product_tags")
 }
 
 model PostLike {
@@ -672,7 +698,6 @@ model ScheduledPost {
   content   String?
   mediaUrls String[] @map("media_urls")
   mediaType String?  @map("media_type") @db.VarChar(20)
-  productId String?  @map("product_id")
 
   location       String?  @db.VarChar(500)
   feeling        String?  @db.VarChar(120)
@@ -692,11 +717,33 @@ model ScheduledPost {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productTags ScheduledPostProductTag[]
 
   @@index([userId, status, updatedAt(sort: Desc)])
   @@index([scheduledTime])
   @@map("scheduled_posts")
+}
+
+model ScheduledPostProductTag {
+  id              String                @id @default(uuid())
+  scheduledPostId String                @map("scheduled_post_id")
+  productId       String                @map("product_id")
+  anchorType      PostProductAnchorType @default(MEDIA_HOTSPOT) @map("anchor_type")
+  positionX       Float?                @map("position_x")
+  positionY       Float?                @map("position_y")
+  blockId         String?               @map("block_id") @db.VarChar(120)
+  startOffset     Int?                  @map("start_offset")
+  endOffset       Int?                  @map("end_offset")
+  sortOrder       Int                   @default(0) @map("sort_order")
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+
+  scheduledPost ScheduledPost @relation(fields: [scheduledPostId], references: [id], onDelete: Cascade)
+  product       Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([scheduledPostId, sortOrder])
+  @@index([productId])
+  @@map("scheduled_post_product_tags")
 }
 
 // =====================================================

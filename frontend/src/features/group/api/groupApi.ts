@@ -216,7 +216,7 @@ export const groupApi = {
                 content: payload.content.trim() || null,
                 mediaUrls: payload.mediaUrls?.length ? payload.mediaUrls : undefined,
                 mediaType: payload.mediaType,
-                productId: payload.productId || undefined,
+                productTags: payload.productTags?.length ? payload.productTags : undefined,
                 location: payload.location?.trim() || undefined,
                 feeling: payload.feeling?.trim() || undefined,
                 taggedUserIds: payload.taggedUserIds?.length ? payload.taggedUserIds : undefined,

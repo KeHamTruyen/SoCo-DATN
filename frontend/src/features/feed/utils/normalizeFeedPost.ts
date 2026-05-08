@@ -25,6 +25,65 @@ function coerceAuthor(raw: unknown): UserProfile {
     };
 }
 
+function coerceTaggedProducts(raw: unknown): FeedPost["taggedProducts"] {
+    if (!Array.isArray(raw)) return undefined;
+    return raw
+        .filter((entry) => entry && typeof entry === "object")
+        .map((entry, index) => {
+            const p = entry as Record<string, unknown>;
+            return {
+                id: String(p.id ?? `tag-${index}`),
+                productId: String(p.productId ?? ""),
+                productName: String(p.productName ?? ""),
+                price: Number(p.price ?? 0),
+                imageUrl: p.imageUrl != null ? String(p.imageUrl) : undefined,
+                positionX: Number(p.positionX ?? 50),
+                positionY: Number(p.positionY ?? 50),
+                anchorType:
+                    p.anchorType === "INLINE_TEXT" || p.anchorType === "CONTENT_BLOCK"
+                        ? p.anchorType
+                        : "MEDIA_HOTSPOT",
+                blockId: p.blockId != null ? String(p.blockId) : undefined,
+                startOffset: p.startOffset != null ? Number(p.startOffset) : undefined,
+                endOffset: p.endOffset != null ? Number(p.endOffset) : undefined,
+                sortOrder: p.sortOrder != null ? Number(p.sortOrder) : undefined,
+            };
+        });
+}
+
+function deriveTaggedProductsFromRelations(raw: unknown): FeedPost["taggedProducts"] {
+    if (!Array.isArray(raw)) return undefined;
+    return raw
+        .filter((entry) => entry && typeof entry === "object")
+        .map((entry, index) => {
+            const t = entry as Record<string, unknown>;
+            const product =
+                t.product && typeof t.product === "object"
+                    ? (t.product as Record<string, unknown>)
+                    : undefined;
+            return {
+                id: String(t.id ?? `rel-tag-${index}`),
+                productId: String(t.productId ?? product?.id ?? ""),
+                productName: String(product?.title ?? ""),
+                price: Number(product?.price ?? 0),
+                imageUrl:
+                    Array.isArray(product?.images) && product!.images[0]
+                        ? String((product!.images[0] as Record<string, unknown>).imageUrl ?? "")
+                        : undefined,
+                positionX: Number(t.positionX ?? 50),
+                positionY: Number(t.positionY ?? 50),
+                anchorType:
+                    t.anchorType === "INLINE_TEXT" || t.anchorType === "CONTENT_BLOCK"
+                        ? t.anchorType
+                        : "MEDIA_HOTSPOT",
+                blockId: t.blockId != null ? String(t.blockId) : undefined,
+                startOffset: t.startOffset != null ? Number(t.startOffset) : undefined,
+                endOffset: t.endOffset != null ? Number(t.endOffset) : undefined,
+                sortOrder: t.sortOrder != null ? Number(t.sortOrder) : undefined,
+            };
+        });
+}
+
 /**
  * Map a raw post object from the API (Prisma-shaped or serialized) into `FeedPost`.
  */
@@ -59,7 +118,9 @@ export function normalizeFeedPost(raw: Record<string, unknown> | null | undefine
         sharesCount: raw.sharesCount != null ? Number(raw.sharesCount) : undefined,
         author: raw.author ? coerceAuthor(raw.author) : { id: "", email: "" },
         comments: raw.comments as FeedPost["comments"],
-        taggedProducts: raw.taggedProducts as FeedPost["taggedProducts"],
+        taggedProducts:
+            coerceTaggedProducts(raw.taggedProducts) ??
+            deriveTaggedProductsFromRelations(raw.productTags),
         taggedUsers: raw.taggedUsers as FeedPost["taggedUsers"],
         scheduledAt:
             raw.scheduledAt != null

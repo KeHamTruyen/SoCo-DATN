@@ -4,7 +4,24 @@ import { cloudinary, deleteImage, getPublicIdFromUrl } from "../config/cloudinar
 const MAX_TAGGED_USERS = 10;
 
 const SCHEDULED_POST_INCLUDE = {
-    product: { select: { id: true, title: true, slug: true } },
+    productTags: {
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+        include: {
+            product: {
+                select: {
+                    id: true,
+                    title: true,
+                    slug: true,
+                    price: true,
+                    images: {
+                        where: { isPrimary: true },
+                        take: 1,
+                        select: { imageUrl: true, altText: true },
+                    },
+                },
+            },
+        },
+    },
 };
 
 function normalizeTaggedUserIds(raw) {
@@ -17,12 +34,27 @@ function normalizeText(value) {
     return value === undefined || value === null ? null : String(value).trim() || null;
 }
 
+function normalizeProductTags(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw
+        .filter((tag) => tag && typeof tag === "object" && typeof tag.productId === "string")
+        .map((tag, index) => ({
+            productId: tag.productId,
+            anchorType: tag.anchorType || "MEDIA_HOTSPOT",
+            positionX: typeof tag.positionX === "number" ? tag.positionX : null,
+            positionY: typeof tag.positionY === "number" ? tag.positionY : null,
+            blockId: typeof tag.blockId === "string" && tag.blockId.trim() ? tag.blockId.trim() : null,
+            startOffset: Number.isInteger(tag.startOffset) ? tag.startOffset : null,
+            endOffset: Number.isInteger(tag.endOffset) ? tag.endOffset : null,
+            sortOrder: Number.isInteger(tag.sortOrder) ? tag.sortOrder : index,
+        }));
+}
+
 function buildScheduledPostUpdateData(data, { allowScheduleTime = true } = {}) {
     const updateData = {};
     if (data.content !== undefined) updateData.content = data.content;
     if (data.mediaUrls !== undefined) updateData.mediaUrls = data.mediaUrls;
     if (data.mediaType !== undefined) updateData.mediaType = data.mediaType;
-    if (data.productId !== undefined) updateData.productId = data.productId;
     if (data.location !== undefined) updateData.location = normalizeText(data.location);
     if (data.feeling !== undefined) updateData.feeling = normalizeText(data.feeling);
     if (data.taggedUserIds !== undefined) {
@@ -107,6 +139,7 @@ class ScheduledPostService {
             mediaUrls,
             mediaType,
             productId,
+            productTags,
             scheduledTime,
             timezone,
             location,
@@ -115,18 +148,21 @@ class ScheduledPostService {
             visibility,
         },
     ) {
+        if (productId !== undefined) {
+            throw new Error("productId is deprecated. Use productTags[] instead");
+        }
         const scheduled = new Date(scheduledTime);
         if (scheduled <= new Date()) {
             throw new Error("Scheduled time must be in the future");
         }
 
+        const normalizedTags = normalizeProductTags(productTags);
         return prisma.scheduledPost.create({
             data: {
                 userId,
                 content,
                 mediaUrls: mediaUrls || [],
                 mediaType: mediaType || null,
-                productId: productId || null,
                 location:
                     location === undefined || location === null
                         ? null
@@ -139,7 +175,15 @@ class ScheduledPostService {
                 scheduledTime: scheduled,
                 timezone: timezone || "Asia/Ho_Chi_Minh",
                 status: "scheduled",
+                ...(normalizedTags.length
+                    ? {
+                          productTags: {
+                              create: normalizedTags,
+                          },
+                      }
+                    : {}),
             },
+            include: SCHEDULED_POST_INCLUDE,
         });
     }
 
@@ -344,6 +388,9 @@ class ScheduledPostService {
      * UC6.2 – Update a scheduled post
      */
     async updateScheduledPost(id, userId, data) {
+        if (data?.productId !== undefined) {
+            throw new Error("productId is deprecated. Use productTags[] instead");
+        }
         const existing = await prisma.scheduledPost.findFirst({
             where: { id, userId },
             include: SCHEDULED_POST_INCLUDE,
@@ -354,10 +401,22 @@ class ScheduledPostService {
 
         if (existing.status === "scheduled") {
             const updateData = buildScheduledPostUpdateData(data);
-            return prisma.scheduledPost.update({
-                where: { id },
-                data: updateData,
-                include: SCHEDULED_POST_INCLUDE,
+            const normalizedTags =
+                data.productTags !== undefined ? normalizeProductTags(data.productTags) : null;
+            return prisma.$transaction(async (tx) => {
+                if (normalizedTags !== null) {
+                    await tx.scheduledPostProductTag.deleteMany({ where: { scheduledPostId: id } });
+                    if (normalizedTags.length > 0) {
+                        await tx.scheduledPostProductTag.createMany({
+                            data: normalizedTags.map((tag) => ({ ...tag, scheduledPostId: id })),
+                        });
+                    }
+                }
+                return tx.scheduledPost.update({
+                    where: { id },
+                    data: updateData,
+                    include: SCHEDULED_POST_INCLUDE,
+                });
             });
         }
 
@@ -369,7 +428,6 @@ class ScheduledPostService {
                 ...(data.content !== undefined && { content: data.content }),
                 ...(data.mediaUrls !== undefined && { mediaUrls: data.mediaUrls }),
                 ...(data.mediaType !== undefined && { mediaType: data.mediaType }),
-                ...(data.productId !== undefined && { productId: data.productId }),
                 ...(data.location !== undefined && { location: normalizeText(data.location) }),
                 ...(data.feeling !== undefined && { feeling: normalizeText(data.feeling) }),
                 ...(data.taggedUserIds !== undefined && {
@@ -378,6 +436,8 @@ class ScheduledPostService {
                 ...(data.visibility !== undefined && { visibility: data.visibility }),
             };
 
+            const normalizedTags =
+                data.productTags !== undefined ? normalizeProductTags(data.productTags) : null;
             const updatedScheduledPost = await prisma.$transaction(async (tx) => {
                 const publishedPost = await tx.post.findFirst({
                     where: { id: existing.publishedPostId, authorId: userId },
@@ -387,10 +447,26 @@ class ScheduledPostService {
                     throw new Error("Published post not found");
                 }
 
+                if (normalizedTags !== null) {
+                    await tx.scheduledPostProductTag.deleteMany({ where: { scheduledPostId: id } });
+                    if (normalizedTags.length > 0) {
+                        await tx.scheduledPostProductTag.createMany({
+                            data: normalizedTags.map((tag) => ({ ...tag, scheduledPostId: id })),
+                        });
+                    }
+                }
                 await tx.post.update({
                     where: { id: existing.publishedPostId },
                     data: postUpdateData,
                 });
+                if (normalizedTags !== null) {
+                    await tx.postProductTag.deleteMany({ where: { postId: existing.publishedPostId } });
+                    if (normalizedTags.length > 0) {
+                        await tx.postProductTag.createMany({
+                            data: normalizedTags.map((tag) => ({ ...tag, postId: existing.publishedPostId })),
+                        });
+                    }
+                }
                 const updated = await tx.scheduledPost.update({
                     where: { id },
                     data: scheduledUpdateData,
@@ -414,29 +490,46 @@ class ScheduledPostService {
     async publishNow(id, userId) {
         const existing = await prisma.scheduledPost.findFirst({
             where: { id, userId, status: "scheduled" },
+            include: SCHEDULED_POST_INCLUDE,
         });
         if (!existing)
             throw new Error("Scheduled post not found or already published");
 
-        const post = await prisma.post.create({
-            data: {
-                authorId: userId,
-                content: existing.content,
-                mediaUrls: existing.mediaUrls,
-                mediaType: existing.mediaType,
-                productId: existing.productId,
-                location: existing.location,
-                feeling: existing.feeling,
-                taggedUserIds: existing.taggedUserIds || [],
-                status: "PUBLISHED",
-                visibility: existing.visibility || "PUBLIC",
-                publishedAt: new Date(),
-            },
-        });
-
-        await prisma.scheduledPost.update({
-            where: { id },
-            data: { status: "published", publishedPostId: post.id },
+        const post = await prisma.$transaction(async (tx) => {
+            const created = await tx.post.create({
+                data: {
+                    authorId: userId,
+                    content: existing.content,
+                    mediaUrls: existing.mediaUrls,
+                    mediaType: existing.mediaType,
+                    location: existing.location,
+                    feeling: existing.feeling,
+                    taggedUserIds: existing.taggedUserIds || [],
+                    status: "PUBLISHED",
+                    visibility: existing.visibility || "PUBLIC",
+                    publishedAt: new Date(),
+                },
+            });
+            if (existing.productTags?.length) {
+                await tx.postProductTag.createMany({
+                    data: existing.productTags.map((tag) => ({
+                        postId: created.id,
+                        productId: tag.productId,
+                        anchorType: tag.anchorType,
+                        positionX: tag.positionX,
+                        positionY: tag.positionY,
+                        blockId: tag.blockId,
+                        startOffset: tag.startOffset,
+                        endOffset: tag.endOffset,
+                        sortOrder: tag.sortOrder,
+                    })),
+                });
+            }
+            await tx.scheduledPost.update({
+                where: { id },
+                data: { status: "published", publishedPostId: created.id },
+            });
+            return created;
         });
 
         return post;

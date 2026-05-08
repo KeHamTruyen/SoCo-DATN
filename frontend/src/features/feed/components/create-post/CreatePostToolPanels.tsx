@@ -2,7 +2,7 @@ import { ImagePlus, Loader2, MapPin, Smile, Tag, Users } from "lucide-react";
 import type { RefObject } from "react";
 import { Avatar } from "../../../../shared/ui/atoms/avatar";
 import type { ProductListItem } from "../../../marketplace/types/marketplace.types";
-import type { TaggedUserBrief } from "../../types/feed.types";
+import type { ProductTagInput, TaggedUserBrief } from "../../types/feed.types";
 import type { ToolPanel } from "../../hooks/useCreatePostFormState";
 
 interface FeelingPreset {
@@ -23,9 +23,12 @@ interface CreatePostToolPanelsProps {
     setProductQuery: (q: string) => void;
     productSearching: boolean;
     productHits: ProductListItem[];
-    productId: string | null;
+    productTags: ProductTagInput[];
+    productTagAnchorType: "MEDIA_HOTSPOT" | "INLINE_TEXT" | "CONTENT_BLOCK";
+    setProductTagAnchorType: (anchorType: "MEDIA_HOTSPOT" | "INLINE_TEXT" | "CONTENT_BLOCK") => void;
     onSelectProduct: (p: ProductListItem) => void;
     onClearProduct: () => void;
+    onRemoveProductTag: (productId: string) => void;
     friendQuery: string;
     setFriendQuery: (q: string) => void;
     friendSearching: boolean;
@@ -52,9 +55,12 @@ export function CreatePostToolPanels({
     setProductQuery,
     productSearching,
     productHits,
-    productId,
+    productTags,
+    productTagAnchorType,
+    setProductTagAnchorType,
     onSelectProduct,
     onClearProduct,
+    onRemoveProductTag,
     friendQuery,
     setFriendQuery,
     friendSearching,
@@ -91,6 +97,19 @@ export function CreatePostToolPanels({
                             e.target.value = "";
                         }}
                     />
+                    <select
+                        value={productTagAnchorType}
+                        onChange={(e) =>
+                            setProductTagAnchorType(
+                                e.target.value as "MEDIA_HOTSPOT" | "INLINE_TEXT" | "CONTENT_BLOCK",
+                            )
+                        }
+                        className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm"
+                    >
+                        <option value="MEDIA_HOTSPOT">Media hotspot</option>
+                        <option value="INLINE_TEXT">Inline text</option>
+                        <option value="CONTENT_BLOCK">Content block</option>
+                    </select>
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
@@ -173,7 +192,7 @@ export function CreatePostToolPanels({
                             </li>
                         ))}
                     </ul>
-                    {productId ? (
+                    {productTags.length > 0 ? (
                         <button
                             type="button"
                             className="text-xs font-medium text-primary hover:underline"
@@ -181,6 +200,27 @@ export function CreatePostToolPanels({
                         >
                             {t("createPost.removeProduct")}
                         </button>
+                    ) : null}
+                    {productTags.length > 0 ? (
+                        <ul className="space-y-1 pt-1">
+                            {productTags.map((tag) => (
+                                <li
+                                    key={`${tag.productId}-${tag.anchorType}-${tag.sortOrder ?? 0}`}
+                                    className="flex items-center justify-between rounded-md bg-muted/40 px-2 py-1 text-xs"
+                                >
+                                    <span className="truncate">
+                                        {tag.productId} • {tag.anchorType ?? "MEDIA_HOTSPOT"}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        className="text-primary hover:underline"
+                                        onClick={() => onRemoveProductTag(tag.productId)}
+                                    >
+                                        Remove
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
                     ) : null}
                 </div>
             ) : null}

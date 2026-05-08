@@ -15,6 +15,22 @@ export interface ShoppableProduct {
     imageUrl?: string;
     positionX: number;
     positionY: number;
+    anchorType?: "MEDIA_HOTSPOT" | "INLINE_TEXT" | "CONTENT_BLOCK";
+    blockId?: string;
+    startOffset?: number;
+    endOffset?: number;
+    sortOrder?: number;
+}
+
+export interface ProductTagInput {
+    productId: string;
+    anchorType?: "MEDIA_HOTSPOT" | "INLINE_TEXT" | "CONTENT_BLOCK";
+    positionX?: number;
+    positionY?: number;
+    blockId?: string;
+    startOffset?: number;
+    endOffset?: number;
+    sortOrder?: number;
 }
 
 export type PostMediaType = "IMAGE" | "VIDEO" | "NONE";
@@ -69,7 +85,7 @@ export interface CreatePostPayload {
     content: string;
     mediaUrls?: string[];
     mediaType?: PostMediaType;
-    productId?: string | null;
+    productTags?: ProductTagInput[];
     location?: string | null;
     feeling?: string | null;
     taggedUserIds?: string[];

@@ -90,7 +90,17 @@ export function useAiStudioPublisher({
             content,
             mediaUrls,
             mediaType,
-            productId: canLinkProduct ? selectedProduct?.id ?? undefined : undefined,
+            productTags:
+                canLinkProduct && selectedProduct?.id
+                    ? [
+                          {
+                              productId: selectedProduct.id,
+                              anchorType: "MEDIA_HOTSPOT",
+                              positionX: 50,
+                              positionY: 50,
+                          },
+                      ]
+                    : undefined,
         };
     }, [
         canLinkProduct,

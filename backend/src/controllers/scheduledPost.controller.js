@@ -9,6 +9,9 @@ class ScheduledPostController {
       const post = await scheduledPostService.schedulePost(req.user.id, req.body);
       res.status(201).json({ success: true, message: 'Post scheduled', data: { post } });
     } catch (error) {
+      if (error.message === 'productId is deprecated. Use productTags[] instead') {
+        return res.status(400).json({ success: false, message: error.message });
+      }
       next(error);
     }
   }
@@ -59,6 +62,9 @@ class ScheduledPostController {
       const post = await scheduledPostService.updateScheduledPost(req.params.id, req.user.id, req.body);
       res.json({ success: true, message: 'Scheduled post updated', data: { post } });
     } catch (error) {
+      if (error.message === 'productId is deprecated. Use productTags[] instead') {
+        return res.status(400).json({ success: false, message: error.message });
+      }
       if (
         error.message === 'Scheduled post not found' ||
         error.message === 'Published post not found'

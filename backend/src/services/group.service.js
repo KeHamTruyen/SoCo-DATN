@@ -361,10 +361,15 @@ class GroupService {
     const skip = (page - 1) * limit;
     const include = {
       author: { select: MEMBER_USER_SELECT },
-      product: {
-        select: {
-          id: true, title: true, price: true,
-          images: { where: { isPrimary: true }, take: 1, select: { imageUrl: true, altText: true } },
+      productTags: {
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        include: {
+          product: {
+            select: {
+              id: true, title: true, price: true,
+              images: { where: { isPrimary: true }, take: 1, select: { imageUrl: true, altText: true } },
+            },
+          },
         },
       },
       group: { select: { id: true, name: true, avatarUrl: true, coverImageUrl: true } },
@@ -444,17 +449,17 @@ class GroupService {
     const skip = (page - 1) * limit;
     const [items, total] = await Promise.all([
       prisma.product.findMany({
-        where: { posts: { some: { groupId, status: 'PUBLISHED' } } },
+        where: { postProductTags: { some: { post: { groupId, status: 'PUBLISHED' } } } },
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
           images: { where: { isPrimary: true }, take: 1, select: { imageUrl: true, altText: true } },
           seller: { select: MEMBER_USER_SELECT },
-          _count: { select: { posts: true } },
+          _count: { select: { postProductTags: true } },
         },
       }),
-      prisma.product.count({ where: { posts: { some: { groupId, status: 'PUBLISHED' } } } }),
+      prisma.product.count({ where: { postProductTags: { some: { post: { groupId, status: 'PUBLISHED' } } } } }),
     ]);
     return { items, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }

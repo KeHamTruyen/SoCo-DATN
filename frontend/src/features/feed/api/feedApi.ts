@@ -69,11 +69,23 @@ interface ListScheduledPostsParams {
 }
 
 function buildCreateBody(payload: CreatePostPayload): Record<string, unknown> {
+    const normalizedTags = payload.productTags?.length
+        ? payload.productTags.map((tag, index) => ({
+              productId: tag.productId,
+              anchorType: tag.anchorType ?? "MEDIA_HOTSPOT",
+              positionX: tag.positionX ?? 50,
+              positionY: tag.positionY ?? 50,
+              blockId: tag.blockId,
+              startOffset: tag.startOffset,
+              endOffset: tag.endOffset,
+              sortOrder: tag.sortOrder ?? index,
+          }))
+        : undefined;
     const body: Record<string, unknown> = {
         content: payload.content.trim() || null,
         mediaUrls: payload.mediaUrls?.length ? payload.mediaUrls : undefined,
         mediaType: payload.mediaType,
-        productId: payload.productId || undefined,
+        productTags: normalizedTags,
         location: payload.location?.trim() || undefined,
         feeling: payload.feeling?.trim() || undefined,
         taggedUserIds: payload.taggedUserIds?.length ? payload.taggedUserIds : undefined,

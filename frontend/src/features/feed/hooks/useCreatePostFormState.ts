@@ -19,6 +19,7 @@ import { mediaTypeFromFile, parsePostVisibility, toDatetimeLocalValue } from "..
 
 export interface CreatePostInitialValues extends Partial<CreatePostPayload> {
     productLabel?: string | null;
+    productLabels?: string[];
     taggedUsers?: TaggedUserBrief[];
 }
 
@@ -71,8 +72,13 @@ export function useCreatePostFormState({
     const [mediaUrls, setMediaUrls] = useState<string[]>(() => initialValues?.mediaUrls ?? []);
     const [mediaType, setMediaType] = useState<PostMediaType | undefined>(() => initialValues?.mediaType);
     const [uploadBusy, setUploadBusy] = useState(false);
-    const [productId, setProductId] = useState<string | null>(initialValues?.productId ?? null);
     const [productLabel, setProductLabel] = useState<string | null>(initialValues?.productLabel ?? null);
+    const [productTags, setProductTags] = useState<CreatePostPayload["productTags"]>(
+        initialValues?.productTags ?? [],
+    );
+    const [productTagAnchorType, setProductTagAnchorType] = useState<
+        "MEDIA_HOTSPOT" | "INLINE_TEXT" | "CONTENT_BLOCK"
+    >("MEDIA_HOTSPOT");
     const [taggedUsers, setTaggedUsers] = useState<TaggedUserBrief[]>(() => initialValues?.taggedUsers ?? []);
     const [feeling, setFeeling] = useState<string | null>(initialValues?.feeling ?? null);
     const [location, setLocation] = useState(initialValues?.location ?? "");
@@ -192,6 +198,25 @@ export function useCreatePostFormState({
         setTaggedUsers((prev) => prev.filter((x) => x.id !== id));
     };
 
+    const addProductTag = (product: ProductListItem) => {
+        setProductTags((prev) => {
+            if (prev?.some((tag) => tag.productId === product.id)) return prev;
+            const nextTag = {
+                productId: product.id,
+                anchorType: productTagAnchorType,
+                positionX: 50,
+                positionY: 50,
+                blockId: productTagAnchorType === "CONTENT_BLOCK" ? "body-main" : undefined,
+                sortOrder: prev?.length ?? 0,
+            };
+            return [...(prev ?? []), nextTag];
+        });
+    };
+
+    const removeProductTag = (productIdToRemove: string) => {
+        setProductTags((prev) => (prev ?? []).filter((tag) => tag.productId !== productIdToRemove));
+    };
+
     const fillLocationFromGeo = () => {
         if (!navigator.geolocation) return;
         navigator.geolocation.getCurrentPosition(
@@ -214,7 +239,7 @@ export function useCreatePostFormState({
                 content: bodyHtml,
                 mediaUrls: mediaUrls.length ? mediaUrls : undefined,
                 mediaType: mediaUrls.length ? mediaType : undefined,
-                productId: productId || undefined,
+                productTags: productTags?.length ? productTags : undefined,
                 location: location.trim() || undefined,
                 feeling: feeling || undefined,
                 taggedUserIds: taggedUsers.length ? taggedUsers.map((x) => x.id) : undefined,
@@ -278,10 +303,12 @@ export function useCreatePostFormState({
         mediaUrls,
         mediaType,
         uploadBusy,
-        productId,
-        setProductId,
         productLabel,
         setProductLabel,
+        productTags,
+        setProductTags,
+        productTagAnchorType,
+        setProductTagAnchorType,
         taggedUsers,
         feeling,
         setFeeling,
@@ -306,6 +333,8 @@ export function useCreatePostFormState({
         removeMediaAt,
         addTaggedUser,
         removeTaggedUser,
+        addProductTag,
+        removeProductTag,
         fillLocationFromGeo,
         handlePost,
         openAiCreativeLab,

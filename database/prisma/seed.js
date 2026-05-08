@@ -828,7 +828,6 @@ async function main() {
             where: { id: FIXED_IDS.postOne },
             update: {
                 authorId: users.seller.id,
-                productId: products.wirelessEarbuds.id,
                 content: "Deal hôm nay: QA Wireless Earbuds giảm giá cho hội viên.",
                 mediaUrls: [
                     "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1000",
@@ -846,7 +845,6 @@ async function main() {
             create: {
                 id: FIXED_IDS.postOne,
                 authorId: users.seller.id,
-                productId: products.wirelessEarbuds.id,
                 content: "Deal hôm nay: QA Wireless Earbuds giảm giá cho hội viên.",
                 mediaUrls: [
                     "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1000",
@@ -868,7 +866,6 @@ async function main() {
             update: {
                 authorId: users.buyerOne.id,
                 groupId: groups.dailyStyle.id,
-                productId: products.cottonShirt.id,
                 content: "Áo cotton QA mặc khá thoải mái, ai đã thử chưa?",
                 mediaUrls: [
                     "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1000",
@@ -885,7 +882,6 @@ async function main() {
                 id: FIXED_IDS.postTwo,
                 authorId: users.buyerOne.id,
                 groupId: groups.dailyStyle.id,
-                productId: products.cottonShirt.id,
                 content: "Áo cotton QA mặc khá thoải mái, ai đã thử chưa?",
                 mediaUrls: [
                     "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1000",
@@ -927,6 +923,30 @@ async function main() {
                 viewsCount: 5,
                 publishedAt: new Date(),
             },
+        });
+
+        await tx.postProductTag.deleteMany({
+            where: { postId: { in: [postOne.id, postTwo.id] } },
+        });
+        await tx.postProductTag.createMany({
+            data: [
+                {
+                    postId: postOne.id,
+                    productId: products.wirelessEarbuds.id,
+                    anchorType: "MEDIA_HOTSPOT",
+                    positionX: 45,
+                    positionY: 48,
+                    sortOrder: 0,
+                },
+                {
+                    postId: postTwo.id,
+                    productId: products.cottonShirt.id,
+                    anchorType: "INLINE_TEXT",
+                    startOffset: 0,
+                    endOffset: 12,
+                    sortOrder: 0,
+                },
+            ],
         });
 
         return { postOne, postTwo, postThree };
@@ -995,7 +1015,6 @@ async function main() {
         where: { id: FIXED_IDS.scheduledPostOne },
         update: {
             userId: users.seller.id,
-            productId: products.phoneCase.id,
             content: "Bài hẹn giờ: giới thiệu ốp lưng chống sốc bản mới.",
             mediaUrls: [
                 "https://images.unsplash.com/photo-1603314585442-ee3b3c16fbcf?w=1000",
@@ -1010,7 +1029,6 @@ async function main() {
         create: {
             id: FIXED_IDS.scheduledPostOne,
             userId: users.seller.id,
-            productId: products.phoneCase.id,
             content: "Bài hẹn giờ: giới thiệu ốp lưng chống sốc bản mới.",
             mediaUrls: [
                 "https://images.unsplash.com/photo-1603314585442-ee3b3c16fbcf?w=1000",
@@ -1020,6 +1038,19 @@ async function main() {
             timezone: "Asia/Ho_Chi_Minh",
             scheduledTime,
             status: "scheduled",
+        },
+    });
+    await prisma.scheduledPostProductTag.deleteMany({
+        where: { scheduledPostId: FIXED_IDS.scheduledPostOne },
+    });
+    await prisma.scheduledPostProductTag.create({
+        data: {
+            scheduledPostId: FIXED_IDS.scheduledPostOne,
+            productId: products.phoneCase.id,
+            anchorType: "MEDIA_HOTSPOT",
+            positionX: 50,
+            positionY: 50,
+            sortOrder: 0,
         },
     });
 
@@ -1972,8 +2003,27 @@ async function main() {
         }
 
         const extraPosts = [];
-        extraPosts.push(await prisma.post.create({ data: { authorId: allSellers[0].id, productId: allProducts[3].id, content: "New home product is available now.", mediaUrls: ["https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1000"], mediaType: "IMAGE", status: "PUBLISHED", visibility: "PUBLIC", publishedAt: new Date() } }));
-        extraPosts.push(await prisma.post.create({ data: { authorId: allBuyers[0].id, productId: allProducts[4].id, content: "Beauty product review incoming.", mediaUrls: ["https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1000"], mediaType: "IMAGE", status: "PUBLISHED", visibility: "FOLLOWERS", publishedAt: new Date() } }));
+        extraPosts.push(await prisma.post.create({ data: { authorId: allSellers[0].id, content: "New home product is available now.", mediaUrls: ["https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1000"], mediaType: "IMAGE", status: "PUBLISHED", visibility: "PUBLIC", publishedAt: new Date() } }));
+        extraPosts.push(await prisma.post.create({ data: { authorId: allBuyers[0].id, content: "Beauty product review incoming.", mediaUrls: ["https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1000"], mediaType: "IMAGE", status: "PUBLISHED", visibility: "FOLLOWERS", publishedAt: new Date() } }));
+        await prisma.postProductTag.createMany({
+            data: [
+                {
+                    postId: extraPosts[0].id,
+                    productId: allProducts[3].id,
+                    anchorType: "MEDIA_HOTSPOT",
+                    positionX: 52,
+                    positionY: 50,
+                    sortOrder: 0,
+                },
+                {
+                    postId: extraPosts[1].id,
+                    productId: allProducts[4].id,
+                    anchorType: "CONTENT_BLOCK",
+                    blockId: "body-main",
+                    sortOrder: 0,
+                },
+            ],
+        });
 
         await prisma.postLike.upsert({ where: { postId_userId: { postId: extraPosts[0].id, userId: allBuyers[1].id } }, update: {}, create: { postId: extraPosts[0].id, userId: allBuyers[1].id } });
         await prisma.postLike.upsert({ where: { postId_userId: { postId: extraPosts[0].id, userId: allBuyers[2].id } }, update: {}, create: { postId: extraPosts[0].id, userId: allBuyers[2].id } });
@@ -1986,8 +2036,21 @@ async function main() {
         for (let i = 0; i < 4; i += 1) {
             await prisma.scheduledPost.upsert({
                 where: { id: `seed-scheduled-post-extra-${i + 1}` },
-                update: { userId: allSellers[i % allSellers.length].id, productId: allProducts[i % allProducts.length].id, content: `Scheduled promo post ${i + 1}`, mediaUrls: [], visibility: "PUBLIC", timezone: "Asia/Ho_Chi_Minh", scheduledTime: new Date(Date.now() + (i + 1) * 60 * 60 * 1000), status: "scheduled" },
-                create: { id: `seed-scheduled-post-extra-${i + 1}`, userId: allSellers[i % allSellers.length].id, productId: allProducts[i % allProducts.length].id, content: `Scheduled promo post ${i + 1}`, mediaUrls: [], visibility: "PUBLIC", timezone: "Asia/Ho_Chi_Minh", scheduledTime: new Date(Date.now() + (i + 1) * 60 * 60 * 1000), status: "scheduled" },
+                update: { userId: allSellers[i % allSellers.length].id, content: `Scheduled promo post ${i + 1}`, mediaUrls: [], visibility: "PUBLIC", timezone: "Asia/Ho_Chi_Minh", scheduledTime: new Date(Date.now() + (i + 1) * 60 * 60 * 1000), status: "scheduled" },
+                create: { id: `seed-scheduled-post-extra-${i + 1}`, userId: allSellers[i % allSellers.length].id, content: `Scheduled promo post ${i + 1}`, mediaUrls: [], visibility: "PUBLIC", timezone: "Asia/Ho_Chi_Minh", scheduledTime: new Date(Date.now() + (i + 1) * 60 * 60 * 1000), status: "scheduled" },
+            });
+            await prisma.scheduledPostProductTag.deleteMany({
+                where: { scheduledPostId: `seed-scheduled-post-extra-${i + 1}` },
+            });
+            await prisma.scheduledPostProductTag.create({
+                data: {
+                    scheduledPostId: `seed-scheduled-post-extra-${i + 1}`,
+                    productId: allProducts[i % allProducts.length].id,
+                    anchorType: "MEDIA_HOTSPOT",
+                    positionX: 50,
+                    positionY: 50,
+                    sortOrder: 0,
+                },
             });
         }
 

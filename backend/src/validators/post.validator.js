@@ -1,5 +1,58 @@
 import { body, param, query, validationResult } from "express-validator";
 
+const POST_TAG_ANCHOR_TYPES = ["MEDIA_HOTSPOT", "INLINE_TEXT", "CONTENT_BLOCK"];
+const MAX_PRODUCT_TAGS = 20;
+
+function validateProductTags(tags) {
+    if (!Array.isArray(tags)) {
+        throw new Error("productTags must be an array");
+    }
+    if (tags.length > MAX_PRODUCT_TAGS) {
+        throw new Error(`Maximum ${MAX_PRODUCT_TAGS} product tags allowed`);
+    }
+    for (const tag of tags) {
+        if (!tag || typeof tag !== "object") {
+            throw new Error("Each product tag must be an object");
+        }
+        const { productId, anchorType, positionX, positionY, blockId, startOffset, endOffset } = tag;
+        if (!productId || typeof productId !== "string") {
+            throw new Error("Each product tag requires productId");
+        }
+        if (anchorType && !POST_TAG_ANCHOR_TYPES.includes(anchorType)) {
+            throw new Error("Invalid product tag anchorType");
+        }
+        const effectiveAnchor = anchorType || "MEDIA_HOTSPOT";
+        if (effectiveAnchor === "MEDIA_HOTSPOT") {
+            if (
+                typeof positionX !== "number" ||
+                typeof positionY !== "number" ||
+                positionX < 0 ||
+                positionX > 100 ||
+                positionY < 0 ||
+                positionY > 100
+            ) {
+                throw new Error("MEDIA_HOTSPOT tags require positionX/positionY between 0 and 100");
+            }
+        }
+        if (effectiveAnchor === "CONTENT_BLOCK" && (!blockId || typeof blockId !== "string")) {
+            throw new Error("CONTENT_BLOCK tags require blockId");
+        }
+        if (effectiveAnchor !== "MEDIA_HOTSPOT" && positionX !== undefined && typeof positionX !== "number") {
+            throw new Error("positionX must be a number when provided");
+        }
+        if (effectiveAnchor !== "MEDIA_HOTSPOT" && positionY !== undefined && typeof positionY !== "number") {
+            throw new Error("positionY must be a number when provided");
+        }
+        if (startOffset !== undefined && (!Number.isInteger(startOffset) || startOffset < 0)) {
+            throw new Error("startOffset must be a non-negative integer");
+        }
+        if (endOffset !== undefined && (!Number.isInteger(endOffset) || endOffset < 0)) {
+            throw new Error("endOffset must be a non-negative integer");
+        }
+    }
+    return true;
+}
+
 /**
  * Validation middleware - checks for validation errors
  */
@@ -57,9 +110,18 @@ export const createPostValidation = [
         .withMessage("Media type must be IMAGE, VIDEO, or NONE"),
 
     body("productId")
+        .not()
+        .exists()
+        .withMessage("productId is deprecated. Use productTags[] instead"),
+
+    body("productTags")
+        .optional()
+        .custom(validateProductTags),
+
+    body("productTags.*.productId")
         .optional()
         .isUUID()
-        .withMessage("Product ID must be a valid UUID"),
+        .withMessage("Each tagged product ID must be a valid UUID"),
 
     body("groupId")
         .optional()
@@ -141,9 +203,18 @@ export const updatePostValidation = [
         .withMessage("Media type must be IMAGE, VIDEO, or NONE"),
 
     body("productId")
+        .not()
+        .exists()
+        .withMessage("productId is deprecated. Use productTags[] instead"),
+
+    body("productTags")
+        .optional()
+        .custom(validateProductTags),
+
+    body("productTags.*.productId")
         .optional()
         .isUUID()
-        .withMessage("Product ID must be a valid UUID"),
+        .withMessage("Each tagged product ID must be a valid UUID"),
 
     body("status")
         .optional()
@@ -259,11 +330,6 @@ export const getPostsValidation = [
         .optional()
         .isUUID()
         .withMessage("Author ID must be a valid UUID"),
-
-    query("productId")
-        .optional()
-        .isUUID()
-        .withMessage("Product ID must be a valid UUID"),
 
     query("visibility")
         .optional()

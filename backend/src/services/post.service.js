@@ -20,15 +20,20 @@ const AUTHOR_SELECT = {
 
 const POST_INCLUDE = {
   author: { select: AUTHOR_SELECT },
-  product: {
-    select: {
-      id: true,
-      title: true,
-      price: true,
-      images: {
-        where: { isPrimary: true },
-        take: 1,
-        select: { imageUrl: true, altText: true },
+  productTags: {
+    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+    include: {
+      product: {
+        select: {
+          id: true,
+          title: true,
+          price: true,
+          images: {
+            where: { isPrimary: true },
+            take: 1,
+            select: { imageUrl: true, altText: true },
+          },
+        },
       },
     },
   },
@@ -49,14 +54,33 @@ const POST_INCLUDE = {
   },
 };
 
+function normalizeProductTags(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((tag) => tag && typeof tag === 'object' && typeof tag.productId === 'string')
+    .map((tag, index) => ({
+      productId: tag.productId,
+      anchorType: tag.anchorType || 'MEDIA_HOTSPOT',
+      positionX: typeof tag.positionX === 'number' ? tag.positionX : null,
+      positionY: typeof tag.positionY === 'number' ? tag.positionY : null,
+      blockId: typeof tag.blockId === 'string' && tag.blockId.trim() ? tag.blockId.trim() : null,
+      startOffset: Number.isInteger(tag.startOffset) ? tag.startOffset : null,
+      endOffset: Number.isInteger(tag.endOffset) ? tag.endOffset : null,
+      sortOrder: Number.isInteger(tag.sortOrder) ? tag.sortOrder : index,
+    }));
+}
+
 // ─── Create post (UC2.2) ───────────────────────────────
 
 export const createPost = async (authorId, data) => {
+  if (data?.productId !== undefined) {
+    throw new Error('productId is deprecated. Use productTags[] instead');
+  }
   const {
     content,
     mediaUrls,
     mediaType,
-    productId,
+    productTags,
     groupId,
     visibility,
     status,
@@ -74,13 +98,13 @@ export const createPost = async (authorId, data) => {
     if (!membership) throw new Error('Must be a group member to post');
   }
 
+  const normalizedTags = normalizeProductTags(productTags);
   const post = await prisma.post.create({
     data: {
       authorId,
       content: content === undefined || content === null ? null : String(content).trim() || null,
       mediaUrls: mediaUrls || [],
       mediaType,
-      productId: productId || null,
       groupId: groupId || null,
       location: location === undefined || location === null ? null : String(location).trim() || null,
       feeling: feeling === undefined || feeling === null ? null : String(feeling).trim() || null,
@@ -88,6 +112,13 @@ export const createPost = async (authorId, data) => {
       visibility: visibility || 'PUBLIC',
       status: status || 'PUBLISHED',
       publishedAt: status === 'PUBLISHED' || !status ? new Date() : null,
+      ...(normalizedTags.length
+        ? {
+            productTags: {
+              create: normalizedTags,
+            },
+          }
+        : {}),
     },
     include: POST_INCLUDE,
   });
@@ -163,7 +194,6 @@ export const getPosts = async (filters = {}) => {
     page = 1,
     limit = 20,
     authorId,
-    productId,
     visibility = 'PUBLIC',
     status = 'PUBLISHED',
     search,
@@ -196,7 +226,6 @@ export const getPosts = async (filters = {}) => {
   const where = {
     status,
     ...(authorId && { authorId }),
-    ...(productId && { productId }),
     ...(visibility && { visibility }),
     ...(search && { content: { contains: search, mode: 'insensitive' } }),
     ...(scopedAuthorIds ? { authorId: { in: scopedAuthorIds } } : {}),
@@ -252,15 +281,37 @@ export const getPostById = async (postId, userId = null) => {
           _count: { select: { followers: true, following: true, products: true, posts: true } },
         },
       },
-      product: {
+      productTags: {
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
         include: {
-          images: { orderBy: { displayOrder: 'asc' }, take: 1 },
-          categories: true,
-          seller: { select: AUTHOR_SELECT },
+          product: {
+            include: {
+              images: { orderBy: { displayOrder: 'asc' }, take: 1 },
+              categories: true,
+              seller: { select: AUTHOR_SELECT },
+            },
+          },
         },
       },
       group: {
         select: { id: true, name: true, avatarUrl: true, coverImageUrl: true },
+      },
+      productTags: {
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        include: {
+          product: {
+            select: {
+              id: true,
+              title: true,
+              price: true,
+              images: {
+                where: { isPrimary: true },
+                orderBy: { displayOrder: 'asc' },
+                take: 1,
+              },
+            },
+          },
+        },
       },
       likes: userId ? { where: { userId }, select: { id: true } } : false,
       comments: {
@@ -298,6 +349,9 @@ export const getPostById = async (postId, userId = null) => {
 // ─── Update post ───────────────────────────────────────
 
 export const updatePost = async (postId, authorId, data) => {
+  if (data?.productId !== undefined) {
+    throw new Error('productId is deprecated. Use productTags[] instead');
+  }
   const existingPost = await prisma.post.findUnique({ where: { id: postId } });
   if (!existingPost) throw new Error('Post not found');
   if (existingPost.authorId !== authorId) throw new Error('Unauthorized to update this post');
@@ -306,7 +360,7 @@ export const updatePost = async (postId, authorId, data) => {
     content,
     mediaUrls,
     mediaType,
-    productId,
+    productTags,
     visibility,
     status,
     location,
@@ -314,27 +368,37 @@ export const updatePost = async (postId, authorId, data) => {
     taggedUserIds,
   } = data;
 
-  return prisma.post.update({
-    where: { id: postId },
-    data: {
-      ...(content !== undefined && {
-        content: content === null ? null : String(content).trim() || null,
-      }),
-      ...(mediaUrls !== undefined && { mediaUrls }),
-      ...(mediaType !== undefined && { mediaType }),
-      ...(productId !== undefined && { productId }),
-      ...(location !== undefined && {
-        location: location === null ? null : String(location).trim() || null,
-      }),
-      ...(feeling !== undefined && {
-        feeling: feeling === null ? null : String(feeling).trim() || null,
-      }),
-      ...(taggedUserIds !== undefined && { taggedUserIds: normalizeTaggedUserIds(taggedUserIds) }),
-      ...(visibility !== undefined && { visibility }),
-      ...(status !== undefined && { status }),
-      ...(status === 'PUBLISHED' && !existingPost.publishedAt && { publishedAt: new Date() }),
-    },
-    include: POST_INCLUDE,
+  const normalizedTags = productTags !== undefined ? normalizeProductTags(productTags) : null;
+  return prisma.$transaction(async (tx) => {
+    if (normalizedTags !== null) {
+      await tx.postProductTag.deleteMany({ where: { postId } });
+      if (normalizedTags.length > 0) {
+        await tx.postProductTag.createMany({
+          data: normalizedTags.map((tag) => ({ ...tag, postId })),
+        });
+      }
+    }
+    return tx.post.update({
+      where: { id: postId },
+      data: {
+        ...(content !== undefined && {
+          content: content === null ? null : String(content).trim() || null,
+        }),
+        ...(mediaUrls !== undefined && { mediaUrls }),
+        ...(mediaType !== undefined && { mediaType }),
+        ...(location !== undefined && {
+          location: location === null ? null : String(location).trim() || null,
+        }),
+        ...(feeling !== undefined && {
+          feeling: feeling === null ? null : String(feeling).trim() || null,
+        }),
+        ...(taggedUserIds !== undefined && { taggedUserIds: normalizeTaggedUserIds(taggedUserIds) }),
+        ...(visibility !== undefined && { visibility }),
+        ...(status !== undefined && { status }),
+        ...(status === 'PUBLISHED' && !existingPost.publishedAt && { publishedAt: new Date() }),
+      },
+      include: POST_INCLUDE,
+    });
   });
 };
 

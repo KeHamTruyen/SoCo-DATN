@@ -109,16 +109,19 @@ export function CreatePostModal({
                         setProductQuery={form.setProductQuery}
                         productSearching={form.productSearching}
                         productHits={form.productHits}
-                        productId={form.productId}
+                        productTags={form.productTags ?? []}
+                        productTagAnchorType={form.productTagAnchorType}
+                        setProductTagAnchorType={form.setProductTagAnchorType}
                         onSelectProduct={(p) => {
-                            form.setProductId(p.id);
                             form.setProductLabel(p.name);
+                            form.addProductTag(p);
                             form.setToolPanel("none");
                         }}
                         onClearProduct={() => {
-                            form.setProductId(null);
                             form.setProductLabel(null);
+                            form.setProductTags([]);
                         }}
+                        onRemoveProductTag={form.removeProductTag}
                         friendQuery={form.friendQuery}
                         setFriendQuery={form.setFriendQuery}
                         friendSearching={form.friendSearching}

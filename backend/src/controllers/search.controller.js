@@ -1,4 +1,5 @@
 import { searchAll } from "../services/search.service.js";
+import { buildCacheKey, CACHE_TTL_SECONDS, getOrSetCache } from "../lib/cache.js";
 
 function parseTypes(rawTypes) {
     if (!rawTypes) return ["products", "users", "posts"];
@@ -41,7 +42,7 @@ export const search = async (req, res, next) => {
             });
         }
 
-        const result = await searchAll({
+        const payload = {
             query: q,
             page: req.query.page,
             limit: req.query.limit,
@@ -52,7 +53,11 @@ export const search = async (req, res, next) => {
             postsSort: parsePostsSort(req.query.postsSort),
             postedFrom: parseDate(req.query.postedFrom, false),
             postedTo: parseDate(req.query.postedTo, true),
-        });
+        };
+        const key = buildCacheKey("search", "all", payload);
+        const { data: result } = await getOrSetCache(key, CACHE_TTL_SECONDS.search, async () =>
+            searchAll(payload),
+        );
 
         return res.json({
             success: true,

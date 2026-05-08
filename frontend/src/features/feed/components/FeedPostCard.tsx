@@ -154,6 +154,11 @@ function FeedPostCardComponent({
         })();
     };
 
+    const mediaTaggedProducts =
+        post.taggedProducts?.filter((tag) => (tag.anchorType ?? "MEDIA_HOTSPOT") === "MEDIA_HOTSPOT") ?? [];
+    const inlineTaggedProducts =
+        post.taggedProducts?.filter((tag) => tag.anchorType === "INLINE_TEXT" || tag.anchorType === "CONTENT_BLOCK") ??
+        [];
     const hasProducts = (post.taggedProducts?.length ?? 0) > 0;
     const primaryMedia = post.imageUrl;
     const extraMedia =
@@ -243,6 +248,17 @@ function FeedPostCardComponent({
                         ))}
                     </p>
                 ) : null}
+                {inlineTaggedProducts.length > 0 ? (
+                    <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+                        Tagged in content:{" "}
+                        {inlineTaggedProducts.map((tag, i) => (
+                            <span key={tag.id}>
+                                {i > 0 ? ", " : ""}
+                                {tag.productName}
+                            </span>
+                        ))}
+                    </p>
+                ) : null}
             </div>
 
             {/* Image with shoppable overlays */}
@@ -267,8 +283,7 @@ function FeedPostCardComponent({
                             +{extraMedia}
                         </div>
                     ) : null}
-                    {hasProducts &&
-                        post.taggedProducts!.map((tag) => (
+                    {mediaTaggedProducts.map((tag) => (
                             <div
                                 key={tag.id}
                                 className="absolute transition-transform group-hover:scale-110"

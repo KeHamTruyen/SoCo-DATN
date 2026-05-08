@@ -1,4 +1,18 @@
 import productService from '../services/product.service.js';
+import {
+  buildCacheKey,
+  CACHE_TTL_SECONDS,
+  cacheDelByPattern,
+  getOrSetCache,
+} from '../lib/cache.js';
+
+async function invalidateProductCaches(identifier = null) {
+  await Promise.all([
+    cacheDelByPattern('soco:products:list:*'),
+    cacheDelByPattern('soco:search:all:*'),
+    ...(identifier ? [cacheDelByPattern(`soco:products:detail:${identifier}:*`)] : []),
+  ]);
+}
 
 class ProductController {
   /**
@@ -9,6 +23,7 @@ class ProductController {
     try {
       const sellerId = req.user.id;
       const product = await productService.createProduct(sellerId, req.body);
+      await invalidateProductCaches(product.id);
 
       res.status(201).json({
         success: true,
@@ -26,7 +41,10 @@ class ProductController {
    */
   async getProducts(req, res, next) {
     try {
-      const result = await productService.getProducts(req.query);
+      const key = buildCacheKey('products', 'list', req.query);
+      const { data: result } = await getOrSetCache(key, CACHE_TTL_SECONDS.productsList, async () =>
+        productService.getProducts(req.query),
+      );
 
       res.json({
         success: true,
@@ -44,7 +62,10 @@ class ProductController {
    */
   async getProduct(req, res, next) {
     try {
-      const product = await productService.getProduct(req.params.id);
+      const key = buildCacheKey('products', `detail:${req.params.id}`, req.query);
+      const { data: product } = await getOrSetCache(key, CACHE_TTL_SECONDS.productDetail, async () =>
+        productService.getProduct(req.params.id),
+      );
 
       res.json({
         success: true,
@@ -110,6 +131,7 @@ class ProductController {
         sellerId,
         req.body
       );
+      await invalidateProductCaches(req.params.id);
 
       res.json({
         success: true,
@@ -131,6 +153,7 @@ class ProductController {
       const reason =
         req.body && typeof req.body.reason === 'string' ? req.body.reason : undefined;
       await productService.deleteProduct(req.params.id, sellerId, reason);
+      await invalidateProductCaches(req.params.id);
 
       res.json({
         success: true,
@@ -145,6 +168,7 @@ class ProductController {
     try {
       const sellerId = req.user.id;
       const product = await productService.restoreProduct(req.params.id, sellerId);
+      await invalidateProductCaches(req.params.id);
       res.json({
         success: true,
         message: 'Product restored successfully',
@@ -163,6 +187,7 @@ class ProductController {
     try {
       const sellerId = req.user.id;
       const product = await productService.publishProduct(req.params.id, sellerId);
+      await invalidateProductCaches(req.params.id);
 
       res.json({
         success: true,
@@ -188,6 +213,7 @@ class ProductController {
         sellerId,
         images
       );
+      await invalidateProductCaches(req.params.id);
 
       res.json({
         success: true,
@@ -211,6 +237,7 @@ class ProductController {
         req.params.imageId,
         sellerId
       );
+      await invalidateProductCaches(req.params.id);
 
       res.json({
         success: true,
@@ -301,6 +328,7 @@ class ProductController {
         req.params.productId,
         req.body,
       );
+      await invalidateProductCaches(req.params.productId);
 
       res.status(201).json({
         success: true,
@@ -327,6 +355,7 @@ class ProductController {
         req.params.variantId,
         req.body,
       );
+      await invalidateProductCaches(req.params.productId);
 
       res.json({
         success: true,
@@ -355,6 +384,7 @@ class ProductController {
         req.params.productId,
         req.params.variantId,
       );
+      await invalidateProductCaches(req.params.productId);
 
       res.json({
         success: true,

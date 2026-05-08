@@ -70,7 +70,7 @@ Diagram này mô tả chuỗi tương tác trong quá trình xem feed, tạo bà
 
 \textbf{UC2.1 – Xem Feed:} Frontend gửi GET \texttt{/api/posts/feed} kèm JWT token và tham số phân trang. PostController xác thực token, gọi PostService lấy bài đăng từ người đang theo dõi kết hợp bài gợi ý, trả về danh sách đã sắp xếp. Frontend hiển thị với infinite scroll.
 
-\textbf{UC2.2 và UC2.3 – Tạo bài đăng và gắn thẻ sản phẩm:} Nếu Seller muốn gắn thẻ sản phẩm, Frontend gửi GET \texttt{/api/products/seller/me} để lấy danh sách sản phẩm của shop. Sau khi chọn sản phẩm, Frontend gửi POST \texttt{/api/posts} kèm nội dung, media và \texttt{productId} (nếu có) cùng JWT token. PostController xác thực, kiểm tra dữ liệu và lưu bài đăng vào DB, trả về 201.
+\textbf{UC2.2 và UC2.3 – Tạo bài đăng và gắn thẻ sản phẩm:} Nếu Seller muốn gắn thẻ sản phẩm, Frontend gửi GET \texttt{/api/products/seller/me} để lấy danh sách sản phẩm của shop. Sau khi chọn sản phẩm, Frontend gửi POST \texttt{/api/posts} kèm nội dung, media và \texttt{productTags[]} (nếu có) cùng JWT token. Mỗi phần tử \texttt{productTags} chứa \texttt{productId} và thông tin neo vị trí (ví dụ \texttt{anchorType}, \texttt{positionX}, \texttt{positionY}). PostController xác thực, kiểm tra dữ liệu và lưu bài đăng vào DB, trả về 201.
 
 \textbf{UC2.4 – Tương tác với bài đăng:} Frontend gửi POST \texttt{/api/posts/:id/like} hoặc POST \texttt{/api/posts/:id/comments} kèm nội dung (nếu comment) và JWT token. PostController xác thực, lưu lượt thích/bình luận vào DB, cập nhật bộ đếm tương ứng và gọi NotificationService gửi thông báo đến chủ sở hữu bài đăng, trả về 200 (like) hoặc 201 (comment).
 

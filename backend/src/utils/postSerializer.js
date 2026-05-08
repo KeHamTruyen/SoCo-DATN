@@ -1,20 +1,24 @@
 import prisma from '../config/database.js';
 
 function deriveTaggedProducts(post) {
-  if (!post?.product) return undefined;
-  const p = post.product;
-  const img = p.images?.[0]?.imageUrl;
-  return [
-    {
-      id: `embed-${post.id}-${p.id}`,
-      productId: p.id,
-      productName: p.title,
-      price: Number(p.price) || 0,
-      imageUrl: img,
-      positionX: 50,
-      positionY: 50,
-    },
-  ];
+  if (!Array.isArray(post?.productTags) || post.productTags.length === 0) return undefined;
+  return post.productTags.map((tag) => {
+    const product = tag.product;
+    return {
+      id: tag.id,
+      productId: tag.productId,
+      productName: product?.title || '',
+      price: Number(product?.price) || 0,
+      imageUrl: product?.images?.[0]?.imageUrl,
+      positionX: typeof tag.positionX === 'number' ? tag.positionX : 50,
+      positionY: typeof tag.positionY === 'number' ? tag.positionY : 50,
+      anchorType: tag.anchorType || 'MEDIA_HOTSPOT',
+      blockId: tag.blockId || undefined,
+      startOffset: tag.startOffset ?? undefined,
+      endOffset: tag.endOffset ?? undefined,
+      sortOrder: tag.sortOrder ?? 0,
+    };
+  });
 }
 
 function enrichSingle(post, usersById) {
