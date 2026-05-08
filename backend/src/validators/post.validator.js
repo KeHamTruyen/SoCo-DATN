@@ -109,11 +109,6 @@ export const createPostValidation = [
         .isIn(["IMAGE", "VIDEO", "NONE"])
         .withMessage("Media type must be IMAGE, VIDEO, or NONE"),
 
-    body("productId")
-        .not()
-        .exists()
-        .withMessage("productId is deprecated. Use productTags[] instead"),
-
     body("productTags")
         .optional()
         .custom(validateProductTags),
@@ -201,11 +196,6 @@ export const updatePostValidation = [
         .optional()
         .isIn(["IMAGE", "VIDEO", "NONE"])
         .withMessage("Media type must be IMAGE, VIDEO, or NONE"),
-
-    body("productId")
-        .not()
-        .exists()
-        .withMessage("productId is deprecated. Use productTags[] instead"),
 
     body("productTags")
         .optional()

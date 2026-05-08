@@ -73,9 +73,6 @@ function normalizeProductTags(raw) {
 // ─── Create post (UC2.2) ───────────────────────────────
 
 export const createPost = async (authorId, data) => {
-  if (data?.productId !== undefined) {
-    throw new Error('productId is deprecated. Use productTags[] instead');
-  }
   const {
     content,
     mediaUrls,
@@ -349,9 +346,6 @@ export const getPostById = async (postId, userId = null) => {
 // ─── Update post ───────────────────────────────────────
 
 export const updatePost = async (postId, authorId, data) => {
-  if (data?.productId !== undefined) {
-    throw new Error('productId is deprecated. Use productTags[] instead');
-  }
   const existingPost = await prisma.post.findUnique({ where: { id: postId } });
   if (!existingPost) throw new Error('Post not found');
   if (existingPost.authorId !== authorId) throw new Error('Unauthorized to update this post');

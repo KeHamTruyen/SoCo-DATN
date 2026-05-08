@@ -26,9 +26,6 @@ export const createPost = async (req, res, next) => {
       data: { post: formatted },
     });
   } catch (error) {
-    if (error.message === 'productId is deprecated. Use productTags[] instead') {
-      return res.status(400).json({ success: false, message: error.message });
-    }
     if (error.message === 'Group not found') {
       return res.status(404).json({ success: false, message: error.message });
     }
@@ -86,9 +83,6 @@ export const getPostById = async (req, res, next) => {
     });
     res.json({ success: true, data: payload });
   } catch (error) {
-    if (error.message === 'productId is deprecated. Use productTags[] instead') {
-      return res.status(400).json({ success: false, message: error.message });
-    }
     if (error.message === 'Post not found') {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }

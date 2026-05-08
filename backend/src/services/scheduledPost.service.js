@@ -138,7 +138,6 @@ class ScheduledPostService {
             content,
             mediaUrls,
             mediaType,
-            productId,
             productTags,
             scheduledTime,
             timezone,
@@ -148,9 +147,6 @@ class ScheduledPostService {
             visibility,
         },
     ) {
-        if (productId !== undefined) {
-            throw new Error("productId is deprecated. Use productTags[] instead");
-        }
         const scheduled = new Date(scheduledTime);
         if (scheduled <= new Date()) {
             throw new Error("Scheduled time must be in the future");
@@ -388,9 +384,6 @@ class ScheduledPostService {
      * UC6.2 – Update a scheduled post
      */
     async updateScheduledPost(id, userId, data) {
-        if (data?.productId !== undefined) {
-            throw new Error("productId is deprecated. Use productTags[] instead");
-        }
         const existing = await prisma.scheduledPost.findFirst({
             where: { id, userId },
             include: SCHEDULED_POST_INCLUDE,
