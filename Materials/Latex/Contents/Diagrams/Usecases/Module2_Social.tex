@@ -32,7 +32,10 @@ Module này tập trung vào các tính năng kết nối cộng đồng, chia s
     \item Hệ thống sắp xếp các bài đăng theo thuật toán (ví dụ: mới nhất, tương tác cao nhất) và hiển thị cho người dùng.
     \item Khi người dùng cuộn trang, hệ thống sẽ tải thêm các bài đăng cũ hơn (infinite scroll).
 \end{enumerate} \\ \hline
-\textbf{Ngoại lệ} & E1: Lỗi tải dữ liệu $\rightarrow$ Hệ thống hiển thị thông báo lỗi và nút ``Thử lại''. \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Lỗi tải dữ liệu $\rightarrow$ Hệ thống hiển thị thông báo lỗi và nút ``Thử lại''.
+\end{itemize} \\ \hline
 \textbf{Ghi chú} & Thuật toán sắp xếp feed có thể được cải tiến trong tương lai để tăng tính cá nhân hóa. \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Xem Bảng tin}
@@ -65,7 +68,10 @@ Module này tập trung vào các tính năng kết nối cộng đồng, chia s
     \item Hệ thống lưu bài đăng vào cơ sở dữ liệu.
     \item Hệ thống hiển thị bài đăng mới ngay trên giao diện của người dùng.
 \end{enumerate} \\ \hline
-\textbf{Luồng thay thế} & A1: Người dùng hủy bỏ việc tạo bài đăng, nội dung nháp sẽ bị xóa. \\ \hline
+\textbf{Luồng thay thế} & 
+\begin{itemize}
+    \item A1: Người dùng hủy bỏ việc tạo bài đăng, nội dung nháp sẽ bị xóa.
+\end{itemize} \\ \hline
 \textbf{Ngoại lệ} & 
 \begin{itemize}
     \item E1: Lỗi tải lên hình ảnh (kích thước quá lớn, định dạng không hỗ trợ) $\rightarrow$ Hệ thống báo lỗi.
@@ -92,17 +98,20 @@ Module này tập trung vào các tính năng kết nối cộng đồng, chia s
     \item Người dùng đang trong quá trình tạo hoặc chỉnh sửa một bài đăng.
     \item Người bán đã có ít nhất một sản phẩm trong cửa hàng.
 \end{itemize} \\ \hline
-\textbf{Điều kiện sau} & Bài đăng được tạo ra có chứa liên kết trực tiếp đến trang sản phẩm đã được gắn thẻ. \\ \hline
+\textbf{Điều kiện sau} & Bài đăng được tạo ra có chứa liên kết trực tiếp đến các trang sản phẩm đã được gắn thẻ. \\ \hline
 \textbf{Luồng sự kiện chính} & 
 \begin{enumerate}
     \item Khi đang soạn bài đăng, người bán chọn chức năng ``Gắn thẻ sản phẩm''.
-    \item Hệ thống hiển thị danh sách sản phẩm của người bán.
-    \item Người bán chọn một sản phẩm để gắn thẻ.
+    \item Hệ thống hiển thị giao diện tìm kiếm và danh sách sản phẩm của người bán.
+    \item Người bán chọn một hoặc nhiều sản phẩm để gắn thẻ.
     \item Người bán hoàn tất việc tạo bài đăng và nhấn ``Đăng''.
-    \item Hệ thống lưu bài đăng cùng danh sách \texttt{productTags} đã chọn (đa sản phẩm, đa vị trí neo).
-    \item Khi hiển thị, bài đăng có thẻ sản phẩm để điều hướng sang trang chi tiết.
+    \item Hệ thống lưu bài đăng cùng với danh sách sản phẩm được gắn thẻ.
+    \item Khi hiển thị, bài đăng sẽ có các sản phẩm được gắn thẻ kèm thông tin cơ bản.
 \end{enumerate} \\ \hline
-\textbf{Ngoại lệ} & E1: Người bán cố gắng gắn thẻ một sản phẩm đã bị xóa hoặc ẩn $\rightarrow$ Hệ thống báo lỗi. \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Người bán cố gắng gắn thẻ một sản phẩm đã bị xóa hoặc ẩn $\rightarrow$ Hệ thống báo lỗi.
+\end{itemize} \\ \hline
 \textbf{Ghi chú} & Đây là tính năng kết nối trực tiếp giữa hoạt động xã hội và thương mại. \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Gắn thẻ sản phẩm}
@@ -139,7 +148,10 @@ Module này tập trung vào các tính năng kết nối cộng đồng, chia s
         \item Hệ thống lưu bình luận và hiển thị nó bên dưới bài đăng.
     \end{enumerate}
 \end{itemize} \\ \hline
-\textbf{Ngoại lệ} & E1: Mất kết nối mạng $\rightarrow$ Hệ thống báo lỗi, hành động không thực hiện. \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Mất kết nối mạng $\rightarrow$ Hệ thống báo lỗi, hành động không thực hiện.
+\end{itemize} \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Tương tác bài đăng}
 \end{table}
@@ -168,8 +180,14 @@ Module này tập trung vào các tính năng kết nối cộng đồng, chia s
     \item Hệ thống ghi nhận mối quan hệ theo dõi vào cơ sở dữ liệu.
     \item Nút ``Theo dõi'' chuyển thành ``Đang theo dõi''.
 \end{enumerate} \\ \hline
-\textbf{Luồng thay thế} & A1: Người dùng nhấn nút ``Hủy theo dõi'' để xóa bỏ mối quan hệ. \\ \hline
-\textbf{Ngoại lệ} & E1: Người dùng cố gắng theo dõi chính mình $\rightarrow$ Hệ thống không cho phép. \\ \hline
+\textbf{Luồng thay thế} & 
+\begin{itemize}
+    \item A1: Người dùng nhấn nút ``Hủy theo dõi'' để xóa bỏ mối quan hệ.
+\end{itemize} \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Người dùng cố gắng theo dõi chính mình $\rightarrow$ Hệ thống không cho phép.
+\end{itemize} \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Theo dõi}
 \end{table}
@@ -193,15 +211,15 @@ Module này tập trung vào các tính năng kết nối cộng đồng, chia s
 \end{itemize} \\ \hline
 \textbf{Luồng sự kiện chính} & 
 \begin{enumerate}
-    \item Người dùng A mở cuộc hội thoại với người dùng B (tạo mới nếu chưa có).
+    \item Người dùng A mở cửa sổ chat với người dùng B.
     \item Người dùng A nhập tin nhắn và nhấn gửi.
+    \item Hệ thống (sử dụng Socket.IO) gửi tin nhắn đến người dùng B ngay lập tức.
+    \item Tin nhắn hiển thị trên giao diện của cả hai người.
     \item Hệ thống lưu tin nhắn vào cơ sở dữ liệu.
-    \item Hệ thống phát sự kiện Socket.io theo room hội thoại để cập nhật real-time cho các client đang tham gia.
-    \item Nếu người nhận đang offline, hệ thống tạo thông báo để hiển thị khi người nhận quay lại.
 \end{enumerate} \\ \hline
 \textbf{Ngoại lệ} & 
 \begin{itemize}
-    \item E1: Người gửi không thuộc cuộc hội thoại $\rightarrow$ Hệ thống từ chối gửi tin nhắn.
+    \item E1: Cuộc trò chuyện không tồn tại hoặc người gửi không thuộc cuộc trò chuyện $\rightarrow$ Hệ thống từ chối gửi tin nhắn.
     \item E2: Mất kết nối mạng $\rightarrow$ Hệ thống báo lỗi gửi không thành công và cho phép thử lại.
 \end{itemize} \\ \hline
 \end{tabularx}
@@ -232,8 +250,14 @@ Module này tập trung vào các tính năng kết nối cộng đồng, chia s
     \item Nếu nhóm công khai, người dùng trở thành thành viên ngay. Nếu nhóm riêng tư, yêu cầu được gửi để phê duyệt.
     \item Sau khi trở thành thành viên, người dùng có thể tương tác với các nội dung trong nhóm.
 \end{enumerate} \\ \hline
-\textbf{Luồng thay thế} & A1: Người dùng rời khỏi một nhóm mà họ đã tham gia. \\ \hline
-\textbf{Ngoại lệ} & E1: Người dùng bị cấm khỏi nhóm $\rightarrow$ Hệ thống không cho phép tham gia lại. \\ \hline
+\textbf{Luồng thay thế} & 
+\begin{itemize}
+    \item A1: Người dùng rời khỏi một nhóm mà họ đã tham gia.
+\end{itemize} \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Nhóm không tồn tại, đã bị xóa hoặc người dùng không đủ quyền truy cập $\rightarrow$ Hệ thống không cho phép tham gia.
+\end{itemize} \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Tham gia Nhóm}
 \end{table}
@@ -260,7 +284,10 @@ Module này tập trung vào các tính năng kết nối cộng đồng, chia s
     \item Người dùng nhấn ``Gửi báo cáo''.
     \item Hệ thống ghi nhận báo cáo và thông báo cho người dùng.
 \end{enumerate} \\ \hline
-\textbf{Ngoại lệ} & E1: Người dùng cố gắng báo cáo cùng một đối tượng nhiều lần trong thời gian ngắn $\rightarrow$ Hệ thống hạn chế để tránh spam. \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Người dùng cố gắng báo cáo cùng một đối tượng nhiều lần trong thời gian ngắn $\rightarrow$ Hệ thống hạn chế để tránh spam.
+\end{itemize} \\ \hline
 \textbf{Ghi chú} & Tính năng này giúp duy trì môi trường an toàn và trong sạch cho cộng đồng. \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Báo cáo vi phạm}

@@ -1,0 +1,150 @@
+erDiagram
+    Admin {
+        String id PK
+        String email UK
+        String username UK
+        String passwordHash
+        String fullName
+        String phone
+        String department
+        String jobTitle
+        Json permissions
+        Boolean isActive
+        string more_fields
+    }
+    User {
+        String id PK
+        String email UK
+        String username UK
+        String passwordHash
+        String fullName
+        String phone
+        String avatarUrl
+        String coverImage
+        String bio
+        String address
+        string more_fields
+    }
+    Product {
+        String id PK
+        String sellerId
+        String title
+        String slug UK
+        String description
+        Decimal price
+        Decimal compareAtPrice
+        Decimal costPrice
+        String sku
+        Int stockQuantity
+        string more_fields
+    }
+    Order {
+        String id PK
+        String orderNumber UK
+        String buyerId
+        Decimal subtotal
+        Decimal shippingFee
+        Decimal tax
+        Decimal discount
+        Decimal total
+        String shippingName
+        String shippingPhone
+        string more_fields
+    }
+    Post {
+        String id PK
+        String authorId
+        String content
+        String mediaUrls
+        String mediaType
+        String groupId
+        String location
+        String feeling
+        String taggedUserIds
+        Int likesCount
+        string more_fields
+    }
+    AiContentHistory {
+        String id PK
+        String userId
+        String prompt
+        String contentType
+        String generatedContent
+        String sourceIdea
+        String linkedProductId
+        String productTitle
+        String productImageUrl
+        String usedForId
+        string more_fields
+    }
+    ProductView {
+        String id PK
+        String productId
+        String viewedFromProductId
+        String userId
+        String sessionId
+        String ipAddress
+        String userAgent
+        DateTime createdAt
+    }
+    UserSearchEvent {
+        String id PK
+        String userId
+        String query
+        String normalizedQuery
+        String sessionId
+        DateTime createdAt
+    }
+    ProductCoView {
+        String id PK
+        String sourceProductId
+        String targetProductId
+        Float score
+        DateTime lastViewedAt
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    SellerStats {
+        String id PK
+        String sellerId
+        DateTime date
+        Decimal totalSales
+        Int totalOrders
+        Decimal totalRevenue
+        Decimal totalProfit
+        Int totalProducts
+        Int totalViews
+        Int newFollowers
+        string more_fields
+    }
+    Report {
+        String id PK
+        String reporterId
+        String targetType
+        String targetId
+        String reason
+        String description
+        String status
+        String resolvedBy
+        DateTime resolvedAt
+        String resolution
+        string more_fields
+    }
+    Report ||--o{ Admin : resolvedReports
+    Report ||--o{ User : reports
+    User ||--o{ Product : seller
+    ProductView ||--o{ Product : referrerViews
+    ProductCoView ||--o{ Product : coViewSources
+    ProductCoView ||--o{ Product : coViewTargets
+    User ||--o{ Order : buyer
+    User ||--o{ Post : author
+    User ||--o{ AiContentHistory : user
+    Product ||--o{ ProductView : product
+    Product ||--o{ ProductView : viewedFromProduct
+    User ||--o{ ProductView : user
+    User ||--o{ UserSearchEvent : user
+    Product ||--o{ ProductCoView : sourceProduct
+    Product ||--o{ ProductCoView : targetProduct
+    User ||--o{ SellerStats : seller
+    User ||--o{ Report : reporter
+    Admin ||--o{ Report : resolverAdmin

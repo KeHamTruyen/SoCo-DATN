@@ -1,0 +1,95 @@
+erDiagram
+    Admin {
+        String id PK
+        String email UK
+        String username UK
+        String passwordHash
+        String fullName
+        String phone
+        String department
+        String jobTitle
+        Json permissions
+        Boolean isActive
+        string more_fields
+    }
+    User {
+        String id PK
+        String email UK
+        String username UK
+        String passwordHash
+        String fullName
+        String phone
+        String avatarUrl
+        String coverImage
+        String bio
+        String address
+        string more_fields
+    }
+    TwoFactorAuth {
+        String id PK
+        String userId UK
+        String secretKey
+        String backupCodes
+        Boolean isEnabled
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    PasswordResetToken {
+        String id PK
+        String userId
+        String token UK
+        DateTime expiresAt
+        Boolean used
+        DateTime createdAt
+    }
+    SellerVerification {
+        String id PK
+        String userId UK
+        Boolean step1Completed
+        String idCardNumber
+        String idCardFrontUrl
+        String idCardBackUrl
+        String idCardFrontPublicId
+        String idCardBackPublicId
+        String shopLogoUrl
+        String shopCoverUrl
+        string more_fields
+    }
+    SellerSensitiveChangeRequest {
+        String id PK
+        String userId
+        SensitiveChangeStatus status
+        String idCardNumberCipher
+        String bankAccountNumberCipher
+        String idCardFrontPublicId
+        String idCardBackPublicId
+        String bankName
+        String bankAccountName
+        String rejectionReason
+        string more_fields
+    }
+    SellerSensitiveAuditLog {
+        String id PK
+        String subjectUserId
+        String actorUserId
+        String actorAdminId
+        String action
+        String entityType
+        String entityId
+        Json meta
+        DateTime createdAt
+    }
+    SellerVerification ||--o{ Admin : verifiedSellerApplications
+    SellerSensitiveChangeRequest ||--o{ Admin : reviewedSensitiveChangeRequests
+    SellerSensitiveAuditLog ||--o{ Admin : sensitiveAuditLogsAsActor
+    TwoFactorAuth ||--o{ User : twoFactorAuth
+    SellerVerification ||--o{ User : sellerVerification
+    SellerSensitiveAuditLog ||--o{ User : sensitiveAuditLogsAsActor
+    User ||--o{ TwoFactorAuth : user
+    User ||--o{ PasswordResetToken : user
+    User ||--o{ SellerVerification : user
+    Admin ||--o{ SellerVerification : verifierAdmin
+    User ||--o{ SellerSensitiveChangeRequest : user
+    Admin ||--o{ SellerSensitiveChangeRequest : reviewer
+    User ||--o{ SellerSensitiveAuditLog : actorUser
+    Admin ||--o{ SellerSensitiveAuditLog : actorAdmin

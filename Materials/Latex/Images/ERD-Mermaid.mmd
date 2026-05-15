@@ -1,0 +1,561 @@
+erDiagram
+    Admin {
+        String id PK
+        String email UK
+        String username UK
+        String passwordHash
+        String fullName
+        String phone
+        String department
+        String jobTitle
+        Json permissions
+        Boolean isActive
+        DateTime createdAt
+        DateTime updatedAt
+        DateTime lastLogin
+    }
+    User {
+        String id PK
+        String email UK
+        String username UK
+        String passwordHash
+        String fullName
+        String phone
+        String avatarUrl
+        String coverImage
+        String bio
+        String address
+        UserRole role
+        Boolean isVerified
+        Boolean isActive
+        Json privacySettings
+        string more_fields
+    }
+    TwoFactorAuth {
+        String id PK
+        String userId UK
+        String secretKey
+        String backupCodes
+        Boolean isEnabled
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    PasswordResetToken {
+        String id PK
+        String userId
+        String token UK
+        DateTime expiresAt
+        Boolean used
+        DateTime createdAt
+    }
+    SellerVerification {
+        String id PK
+        String userId UK
+        Boolean step1Completed
+        String idCardNumber
+        String idCardFrontUrl
+        String idCardBackUrl
+        String idCardFrontPublicId
+        String idCardBackPublicId
+        String shopLogoUrl
+        String shopCoverUrl
+        String shopLogoPublicId
+        String shopCoverPublicId
+        DateTime dateOfBirth
+        String address
+        string more_fields
+    }
+    SellerSensitiveChangeRequest {
+        String id PK
+        String userId
+        SensitiveChangeStatus status
+        String idCardNumberCipher
+        String bankAccountNumberCipher
+        String idCardFrontPublicId
+        String idCardBackPublicId
+        String bankName
+        String bankAccountName
+        String rejectionReason
+        String reviewedBy
+        DateTime reviewedAt
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    SellerSensitiveAuditLog {
+        String id PK
+        String subjectUserId
+        String actorUserId
+        String actorAdminId
+        String action
+        String entityType
+        String entityId
+        Json meta
+        DateTime createdAt
+    }
+    Category {
+        String id PK
+        String name
+        String slug UK
+        String description
+        String iconUrl
+        String parentId
+        Int displayOrder
+        Boolean isActive
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    Product {
+        String id PK
+        String sellerId
+        String title
+        String slug UK
+        String description
+        Decimal price
+        Decimal compareAtPrice
+        Decimal costPrice
+        String sku
+        Int stockQuantity
+        Int lowStockThreshold
+        Boolean trackInventory
+        Decimal weight
+        Json dimensions
+        string more_fields
+    }
+    ProductDeletionAudit {
+        String id PK
+        String productId
+        String actorId
+        String actorRole
+        String event
+        String reason
+        Json meta
+        DateTime createdAt
+    }
+    ProductImage {
+        String id PK
+        String productId
+        String imageUrl
+        String altText
+        Int displayOrder
+        Boolean isPrimary
+        DateTime createdAt
+    }
+    ProductVariant {
+        String id PK
+        String productId
+        String variantName
+        String sku
+        Decimal price
+        Int stockQuantity
+        Json options
+        Boolean isActive
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    Cart {
+        String id PK
+        String userId
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    CartItem {
+        String id PK
+        String cartId
+        String productId
+        String variantId
+        Int quantity
+        Decimal price
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    Order {
+        String id PK
+        String orderNumber UK
+        String buyerId
+        Decimal subtotal
+        Decimal shippingFee
+        Decimal tax
+        Decimal discount
+        Decimal total
+        String shippingName
+        String shippingPhone
+        String shippingAddress
+        String shippingCity
+        String shippingDistrict
+        String shippingWard
+        string more_fields
+    }
+    OrderItem {
+        String id PK
+        String orderId
+        String productId
+        String variantId
+        String sellerId
+        String productName
+        String productImageUrl
+        Json variantInfo
+        Int quantity
+        Decimal unitPrice
+        Decimal totalPrice
+        String status
+        DateTime createdAt
+    }
+    Post {
+        String id PK
+        String authorId
+        String content
+        String mediaUrls
+        String mediaType
+        String groupId
+        String location
+        String feeling
+        String taggedUserIds
+        Int likesCount
+        Int commentsCount
+        Int sharesCount
+        Int viewsCount
+        PostStatus status
+        string more_fields
+    }
+    PostProductTag {
+        String id PK
+        String postId
+        String productId
+        PostProductAnchorType anchorType
+        Float positionX
+        Float positionY
+        String blockId
+        Int startOffset
+        Int endOffset
+        Int sortOrder
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    PostLike {
+        String id PK
+        String postId
+        String userId
+        DateTime createdAt
+    }
+    PostComment {
+        String id PK
+        String postId
+        String userId
+        String parentId
+        String content
+        Int likesCount
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    ScheduledPost {
+        String id PK
+        String userId
+        String content
+        String mediaUrls
+        String mediaType
+        String location
+        String feeling
+        String taggedUserIds
+        PostVisibility visibility
+        DateTime scheduledTime
+        String timezone
+        String status
+        String publishedPostId
+        String errorMessage
+        string more_fields
+    }
+    ScheduledPostProductTag {
+        String id PK
+        String scheduledPostId
+        String productId
+        PostProductAnchorType anchorType
+        Float positionX
+        Float positionY
+        String blockId
+        Int startOffset
+        Int endOffset
+        Int sortOrder
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    Conversation {
+        String id PK
+        ConversationType type
+        String name
+        String avatarUrl
+        String createdBy
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    ConversationParticipant {
+        String id PK
+        String conversationId
+        String userId
+        String role
+        DateTime joinedAt
+        DateTime lastReadAt
+    }
+    Message {
+        String id PK
+        String conversationId
+        String senderId
+        String content
+        MessageType messageType
+        String mediaUrl
+        String productId
+        String orderId
+        Boolean isRead
+        Boolean isDeleted
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    Notification {
+        String id PK
+        String userId
+        String type
+        String title
+        String message
+        String relatedUserId
+        String relatedProductId
+        String relatedOrderId
+        String relatedPostId
+        String actionUrl
+        Boolean isRead
+        DateTime readAt
+        DateTime createdAt
+    }
+    Follow {
+        String id PK
+        String followerId
+        String followingId
+        DateTime createdAt
+    }
+    SavedItem {
+        String id PK
+        String userId
+        SavedItemType itemType
+        String targetId
+        DateTime createdAt
+    }
+    Group {
+        String id PK
+        String name
+        String slug UK
+        String description
+        String coverImageUrl
+        String avatarUrl
+        GroupPrivacy privacy
+        Boolean isApprovedPosts
+        String createdBy
+        Int membersCount
+        Int postsCount
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    GroupMember {
+        String id PK
+        String groupId
+        String userId
+        GroupMemberRole role
+        DateTime joinedAt
+    }
+    GroupJoinRequest {
+        String id PK
+        String groupId
+        String userId
+        GroupJoinRequestStatus status
+        String reviewedBy
+        DateTime reviewedAt
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    GroupInvite {
+        String id PK
+        String groupId
+        String code UK
+        String createdBy
+        String usedBy
+        DateTime expiresAt
+        Int maxUses
+        Int usedCount
+        Boolean isActive
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    Review {
+        String id PK
+        String productId
+        String orderItemId UK
+        String userId
+        Int rating
+        String title
+        String content
+        String images
+        String sellerResponse
+        DateTime sellerResponseAt
+        Int helpfulCount
+        Boolean isVerifiedPurchase
+        Boolean isPublished
+        DateTime createdAt
+        string more_fields
+    }
+    AiContentHistory {
+        String id PK
+        String userId
+        String prompt
+        String contentType
+        String generatedContent
+        String sourceIdea
+        String linkedProductId
+        String productTitle
+        String productImageUrl
+        String usedForId
+        String usedForType
+        DateTime createdAt
+    }
+    ProductView {
+        String id PK
+        String productId
+        String viewedFromProductId
+        String userId
+        String sessionId
+        String ipAddress
+        String userAgent
+        DateTime createdAt
+    }
+    UserSearchEvent {
+        String id PK
+        String userId
+        String query
+        String normalizedQuery
+        String sessionId
+        DateTime createdAt
+    }
+    ProductCoView {
+        String id PK
+        String sourceProductId
+        String targetProductId
+        Float score
+        DateTime lastViewedAt
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    SellerStats {
+        String id PK
+        String sellerId
+        DateTime date
+        Decimal totalSales
+        Int totalOrders
+        Decimal totalRevenue
+        Decimal totalProfit
+        Int totalProducts
+        Int totalViews
+        Int newFollowers
+        Int totalLikes
+        Int totalComments
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    Report {
+        String id PK
+        String reporterId
+        String targetType
+        String targetId
+        String reason
+        String description
+        String status
+        String resolvedBy
+        DateTime resolvedAt
+        String resolution
+        DateTime createdAt
+    }
+    Admin ||--o{ Report : resolverAdmin
+    Admin ||--o{ SellerSensitiveAuditLog : actorAdmin
+    Admin ||--o{ SellerSensitiveChangeRequest : reviewer
+    Admin ||--o{ SellerVerification : verifierAdmin
+    Cart ||--o{ CartItem : cart
+    Category ||--o{ Category : children
+    Category ||--o{ Category : parent
+    Category ||--o{ Product : categories
+    Conversation ||--o{ ConversationParticipant : conversation
+    Conversation ||--o{ Message : conversation
+    Follow ||--o{ User : followers
+    Follow ||--o{ User : following
+    Group ||--o{ GroupInvite : group
+    Group ||--o{ GroupJoinRequest : group
+    Group ||--o{ GroupMember : group
+    GroupInvite ||--o{ User : createdGroupInvites
+    GroupInvite ||--o{ User : usedGroupInvites
+    GroupJoinRequest ||--o{ User : reviewedGroupJoinRequests
+    Group ||--o{ Post : group
+    Notification ||--o{ User : notifications
+    Notification ||--o{ User : relatedNotifications
+    OrderItem ||--o{ Review : orderItem
+    Order ||--o{ Message : order
+    Order ||--o{ OrderItem : order
+    PostComment ||--o{ PostComment : parent
+    PostComment ||--o{ PostComment : replies
+    Post ||--o{ PostComment : post
+    Post ||--o{ PostLike : post
+    Post ||--o{ PostProductTag : post
+    Product ||--o{ CartItem : product
+    Product ||--o{ Category : products
+    ProductCoView ||--o{ Product : coViewSources
+    ProductCoView ||--o{ Product : coViewTargets
+    Product ||--o{ Message : product
+    Product ||--o{ OrderItem : product
+    Product ||--o{ PostProductTag : product
+    Product ||--o{ ProductCoView : sourceProduct
+    Product ||--o{ ProductCoView : targetProduct
+    Product ||--o{ ProductImage : product
+    Product ||--o{ ProductVariant : product
+    Product ||--o{ ProductView : product
+    Product ||--o{ ProductView : viewedFromProduct
+    Product ||--o{ Review : product
+    Product ||--o{ ScheduledPostProductTag : product
+    ProductVariant ||--o{ CartItem : variant
+    ProductVariant ||--o{ OrderItem : variant
+    ProductView ||--o{ Product : referrerViews
+    Report ||--o{ Admin : resolvedReports
+    Report ||--o{ User : reports
+    Review ||--o{ OrderItem : review
+    ScheduledPost ||--o{ ScheduledPostProductTag : scheduledPost
+    SellerSensitiveAuditLog ||--o{ Admin : sensitiveAuditLogsAsActor
+    SellerSensitiveAuditLog ||--o{ User : sensitiveAuditLogsAsActor
+    SellerSensitiveChangeRequest ||--o{ Admin : reviewedSensitiveChangeRequests
+    SellerVerification ||--o{ Admin : verifiedSellerApplications
+    SellerVerification ||--o{ User : sellerVerification
+    TwoFactorAuth ||--o{ User : twoFactorAuth
+    User ||--o{ AiContentHistory : user
+    User ||--o{ Cart : user
+    User ||--o{ Conversation : creator
+    User ||--o{ ConversationParticipant : user
+    User ||--o{ Follow : follower
+    User ||--o{ Follow : following
+    User ||--o{ Group : creator
+    User ||--o{ GroupInvite : creator
+    User ||--o{ GroupInvite : usedByUser
+    User ||--o{ GroupJoinRequest : reviewer
+    User ||--o{ GroupJoinRequest : user
+    User ||--o{ GroupMember : user
+    User ||--o{ Message : sender
+    User ||--o{ Notification : relatedUser
+    User ||--o{ Notification : user
+    User ||--o{ Order : buyer
+    User ||--o{ OrderItem : seller
+    User ||--o{ PasswordResetToken : user
+    User ||--o{ Post : author
+    User ||--o{ PostComment : user
+    User ||--o{ PostLike : user
+    User ||--o{ Product : seller
+    User ||--o{ ProductView : user
+    User ||--o{ Report : reporter
+    User ||--o{ Review : user
+    User ||--o{ SavedItem : user
+    User ||--o{ ScheduledPost : user
+    User ||--o{ SellerSensitiveAuditLog : actorUser
+    User ||--o{ SellerSensitiveChangeRequest : user
+    User ||--o{ SellerStats : seller
+    User ||--o{ SellerVerification : user
+    User ||--o{ TwoFactorAuth : user
+    User ||--o{ UserSearchEvent : user

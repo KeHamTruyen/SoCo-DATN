@@ -1,434 +1,419 @@
-\chapter{Lựa chọn công nghệ cho hệ thống}
+\chapter{Công nghệ và phần mềm sử dụng}
 
-Trong phần này, nhóm trình bày quá trình lựa chọn công nghệ cho hệ thống mạng xã hội thương mại điện tử SOCO, bao gồm các công nghệ cho frontend, backend, cơ sở dữ liệu, giao tiếp thời gian thực, tích hợp AI, lưu trữ tệp và các dịch vụ hỗ trợ. Việc lựa chọn công nghệ được thực hiện dựa trên các tiêu chí rõ ràng, so sánh ưu nhược điểm của từng phương án, từ đó đưa ra quyết định phù hợp với yêu cầu chức năng, phi chức năng và ràng buộc thực tế của đồ án.
+\section{Công nghệ ở Frontend}
 
-\section{Tiêu chí lựa chọn công nghệ}
+\subsection{React}
 
-Để đảm bảo tính khách quan và phù hợp, nhóm đề ra các tiêu chí chính sau khi đánh giá công nghệ:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/react.png}
+    \caption{Logo React}
+\end{figure}
 
+\textbf{Giới thiệu}
+
+React là thư viện JavaScript dùng để xây dựng giao diện người dùng theo hướng component hoá. Trong hệ thống SOCO, frontend được xây dựng theo mô hình SPA, giúp điều hướng nhanh và tạo trải nghiệm mượt mà cho các màn hình có nhiều tương tác như newsfeed, marketplace, chat và thông báo.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{Phù hợp với yêu cầu hệ thống}: Hỗ trợ tốt các tính năng đặc thù của mạng xã hội thương mại điện tử, bao gồm: newsfeed, tương tác thời gian thực, giỏ hàng, thanh toán, quản lý đơn hàng, chat, thông báo, báo cáo vi phạm, \dots
-    \item \textbf{Hiệu năng và khả năng mở rộng}: Hỗ trợ chịu tải tốt khi số lượng người dùng tăng cao, có khả năng mở rộng ngang (horizontal scaling) và dọc (vertical scaling).
-    \item \textbf{Độ trưởng thành của hệ sinh thái}: Có cộng đồng lớn, thư viện phong phú, tài liệu đầy đủ, nhiều ví dụ thực tế và best practices.
-    \item \textbf{Dễ phát triển và bảo trì}: Cú pháp rõ ràng, cấu trúc dự án dễ tổ chức, hỗ trợ mô-đun hoá mã nguồn, dễ test và dễ debug.
-    \item \textbf{Khả năng tích hợp}: Dễ tích hợp với các dịch vụ bên ngoài như AI (Gemini), dịch vụ email, dịch vụ lưu trữ tệp (Cloudinary), cổng thanh toán, \dots
-    \item \textbf{Độ phổ biến trong thực tế}: Được sử dụng rộng rãi trong ngành công nghiệp, giúp sinh viên dễ tiếp cận và có tính ứng dụng cao cho định hướng nghề nghiệp.
-    \item \textbf{Miễn phí hoặc chi phí thấp}: Ưu tiên các công nghệ mã nguồn mở, miễn phí cho mục đích học tập và nghiên cứu.
+    \item Component hoá tốt, dễ tái sử dụng UI.
+    \item Hệ sinh thái phong phú và phổ biến, dễ tìm tài liệu và ví dụ triển khai.
+    \item Phù hợp cho ứng dụng nhiều trạng thái và tương tác theo thời gian thực.
 \end{itemize}
 
-Dựa trên các tiêu chí này để tiến hành phân tích lần lượt các lớp của hệ thống: frontend (View Layer), backend (Controller \& Service Layer), persistence (Model Layer \& Database), và các dịch vụ hỗ trợ.
-
-\section{Lựa chọn công nghệ cho Frontend}
-
-Frontend là lớp trực tiếp tương tác với người dùng, yêu cầu giao diện hiện đại, responsive và trải nghiệm mượt mà tương tự các nền tảng mạng xã hội phổ biến.
-
-\subsubsection{Các phương án xem xét}
-
-Nhóm cân nhắc một số framework/thư viện phổ biến:
-
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{React.js}
-    \item \textbf{Angular}
-    \item \textbf{Vue.js}
+    \item Không phải framework full-stack, cần kết hợp thêm các thư viện cho routing, state management, data fetching.
+    \item Cần kỷ luật kiến trúc để tránh code phân tán khi dự án lớn dần.
 \end{itemize}
 
-\paragraph{React.js}
+Trong đề tài, React đảm nhận vai trò xây dựng giao diện chính của hệ thống, hiển thị luồng chức năng cho người mua/người bán và kết nối dữ liệu từ backend thông qua REST API và Socket.IO.
 
-\textbf{Ưu điểm:}
+\subsection{TypeScript}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/TS.png}
+    \caption{Logo TypeScript}
+\end{figure}
+
+\textbf{Giới thiệu}
+
+TypeScript là ngôn ngữ mở rộng của JavaScript, bổ sung hệ thống kiểu (type system) và các tính năng giúp phát triển ứng dụng quy mô lớn dễ bảo trì hơn. Frontend của SOCO được viết bằng TypeScript để tăng độ an toàn khi định nghĩa kiểu dữ liệu (DTO, state, response API) và giảm lỗi khi mở rộng tính năng.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{Thư viện linh hoạt}: Tập trung vào View, cho phép tự do thiết kế kiến trúc, chọn thư viện routing, state management phù hợp với mô hình MVCS.
-    \item \textbf{Cộng đồng lớn}: Hệ sinh thái phong phú (React Router, Redux, Zustand, React Query, \dots).
-    \item \textbf{Hiệu năng tốt}: Virtual DOM, rendering theo component phù hợp với màn hình có nhiều phần tử động (newsfeed, notification, chat).
-    \item \textbf{Tài liệu phong phú}: Nhiều tutorial, blog, dự án mẫu.
-    \item \textbf{Tương thích tốt}: Kết hợp tốt với Axios, Fetch API, Socket.IO client.
+    \item Giảm lỗi runtime nhờ kiểm tra kiểu tại thời điểm biên dịch.
+    \item Hỗ trợ refactor tốt và tăng năng suất làm việc nhóm.
+    \item Dễ mô hình hoá dữ liệu trao đổi giữa frontend và backend.
 \end{itemize}
 
-\textbf{Nhược điểm:}
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{Không phải framework toàn diện}: Cần lựa chọn thêm các thư viện cho routing, state management, form.
-    \item \textbf{Curve học tập ban đầu}: JSX, hooks có thể gây khó khăn cho người mới.
+    \item Tăng độ phức tạp ban đầu do cần khai báo type/interface.
+    \item Cần đồng bộ kiểu dữ liệu theo thay đổi của API.
 \end{itemize}
 
-\paragraph{Angular}
+Trong đề tài, TypeScript được dùng để định nghĩa kiểu dữ liệu cho các module tính năng, giảm lỗi khi tích hợp API và tăng khả năng bảo trì mã nguồn frontend.
 
-\textbf{Ưu điểm:}
+\subsection{Vite}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/vite.jpg}
+    \caption{Logo Vite}
+\end{figure}
+
+\textbf{Giới thiệu}
+
+Vite là công cụ build và dev server hiện đại cho các dự án frontend. SOCO sử dụng Vite để phát triển và đóng gói ứng dụng React, hỗ trợ HMR nhanh và cấu hình đơn giản.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{Framework toàn diện}: Cung cấp bộ công cụ đầy đủ (routing, DI, form, HTTP), kiến trúc rõ ràng, chặt chẽ.
-    \item \textbf{TypeScript first}: Hỗ trợ TypeScript mạnh mẽ cho type safety.
+    \item Khởi động dev server nhanh, HMR mượt.
+    \item Cấu hình gọn, phù hợp cho dự án SPA.
+    \item Tích hợp tốt với TypeScript và hệ sinh thái React.
 \end{itemize}
 
-\textbf{Nhược điểm:}
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{Độ phức tạp cao}: Cấu trúc nặng, nhiều khái niệm gây khó cho người mới.
-    \item \textbf{Không tối ưu cho dự án vừa và nhỏ}: Tạo ra nhiều overhead không cần thiết cho quy mô đồ án.
+    \item Một số cấu hình nâng cao cần hiểu rõ plugin/đường dẫn build.
 \end{itemize}
 
-\paragraph{Vue.js}
+Trong đề tài, Vite là nền tảng build cho frontend, giúp tối ưu vòng lặp phát triển và đóng gói sản phẩm.
 
-\textbf{Ưu điểm:}
+\subsection{Tailwind CSS}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/twcss.png}
+    \caption{Logo Tailwind CSS}
+\end{figure}
+
+\textbf{Giới thiệu}
+
+Tailwind CSS là framework CSS theo hướng utility-first. SOCO sử dụng Tailwind để xây dựng giao diện responsive, nhất quán và dễ mở rộng theo các component.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{Dễ tiếp cận}: Cú pháp template thân thiện, dễ hiểu.
-    \item \textbf{Kích thước gọn nhẹ}: Tối ưu cho ứng dụng SPA vừa và nhỏ.
+    \item Tăng tốc độ phát triển UI nhờ hệ class tiện ích.
+    \item Dễ tạo giao diện responsive.
+    \item Giảm viết CSS thủ công và tránh trùng lặp style.
 \end{itemize}
 
-\textbf{Nhược điểm:}
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{Kém phổ biến hơn React}: Tài liệu và thư viện bên thứ ba ít đa dạng hơn.
-    \item \textbf{Cơ hội nghề nghiệp thấp hơn}: Số lượng dự án sử dụng Vue ít hơn React.
+    \item HTML/JSX có thể dài do nhiều class.
+    \item Cần quy ước để giữ code gọn và nhất quán.
 \end{itemize}
 
-\subsubsection{Kết luận lựa chọn Frontend}
+Trong đề tài, Tailwind CSS đảm nhận phần style của toàn bộ giao diện, hỗ trợ xây dựng nhanh các trang chính như Home, Marketplace, Cart, Checkout, Profile.
 
-Dựa trên so sánh, nhóm lựa chọn:
+\subsection{React Router}
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/React-Router.png}
+    \caption{Logo React Router}
+\end{figure}
+
+\textbf{Giới thiệu}
+
+React Router là thư viện routing phổ biến cho React SPA. SOCO sử dụng React Router để điều hướng giữa các trang (home, profile, marketplace, orders\dots) mà không cần reload toàn bộ trang.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{React.js} làm công nghệ chính cho \textbf{View Layer}.
-    \item Kết hợp với \textbf{Vite} để bundling và phát triển (tốc độ khởi động nhanh, HMR tốt).
-    \item Sử dụng \textbf{Tailwind CSS} để xây dựng giao diện hiện đại, responsive, đồng thời giảm thời gian viết CSS thuần.
+    \item Điều hướng SPA nhanh, cải thiện trải nghiệm người dùng.
+    \item Hỗ trợ cấu hình route theo layout và phân tách màn hình.
 \end{itemize}
 
-Lựa chọn này cho phép tạo ra một UI giàu tương tác, hiệu năng tốt, dễ mở rộng, phù hợp với đặc thù ứng dụng mạng xã hội thương mại điện tử.
-
-\section{Lựa chọn công nghệ cho Backend}
-
-Backend của hệ thống chịu trách nhiệm xử lý logic nghiệp vụ, xác thực, phân quyền, quản lý giao dịch, gửi thông báo, tích hợp AI và các dịch vụ bên ngoài. Một số công nghệ được cân nhắc:
-
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{Node.js với Express.js}
-    \item \textbf{Django / Django REST Framework (Python)}
-    \item \textbf{Spring Boot (Java)}
+    \item Cần thiết kế route rõ ràng để tránh rối khi số lượng trang tăng.
 \end{itemize}
 
-\subsubsection{Node.js với Express.js}
+Trong đề tài, React Router chịu trách nhiệm định tuyến và tổ chức luồng truy cập các màn hình chức năng.
 
-\textbf{Ưu điểm:}
+\subsection{Zustand và TanStack React Query}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/zustand.png}
+    \caption{Logo Zustand và TanStack React Query}
+\end{figure}
+
+\textbf{Giới thiệu}
+
+Frontend SOCO sử dụng Zustand cho state đơn giản (UI state, phiên đăng nhập tuỳ module) và TanStack React Query cho luồng gọi API, cache dữ liệu phía client và quản lý trạng thái loading/error.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{I/O bất đồng bộ}: Event-driven, non-blocking I/O phù hợp với ứng dụng nhiều kết nối đồng thời (request đọc, chat, notification).
-    \item \textbf{Cùng ngôn ngữ với frontend}: Cả frontend và backend dùng JavaScript, giảm chi phí chuyển ngữ.
-    \item \textbf{Express.js nhẹ, linh hoạt}: Framework tối giản, dễ cài đặt, xây dựng RESTful API nhanh chóng.
-    \item \textbf{Hệ sinh thái NPM phong phú}: Nhiều thư viện cho bảo mật, JWT, logging, rate limiting, upload file.
-    \item \textbf{Tích hợp WebSocket/Socket.IO thuận tiện}: Hỗ trợ tốt cho chức năng real-time.
+    \item Tổ chức state rõ ràng theo module, tránh prop drilling.
+    \item React Query hỗ trợ cache, refetch, đồng bộ dữ liệu hiệu quả cho các màn hình danh sách.
 \end{itemize}
 
-\textbf{Nhược điểm:}
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{Không có cấu trúc cứng nhắc}: Cần tự thiết kế kiến trúc (nhóm áp dụng mô hình MVCS).
-    \item \textbf{Type safety hạn chế}: Nếu không dùng TypeScript, nhưng JavaScript vẫn đáp ứng tốt cho phạm vi đồ án.
+    \item Cần quy ước rõ giữa state nào dùng store, state nào dùng query.
+    \item Cần quản lý invalidation đúng để dữ liệu luôn nhất quán.
 \end{itemize}
 
-\subsubsection{Django / Django REST Framework}
+Trong đề tài, hai thư viện này giúp frontend xử lý dữ liệu từ backend hiệu quả (danh sách bài đăng/sản phẩm/đơn hàng) và quản lý trạng thái UI ổn định.
 
-\textbf{Ưu điểm:}
+\subsection{i18next}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/i18n.png}
+    \caption{Logo i18next}
+\end{figure}
+
+\textbf{Giới thiệu}
+
+i18next là thư viện đa ngôn ngữ cho ứng dụng web. SOCO sử dụng i18next kết hợp react-i18next để hỗ trợ hiển thị nội dung theo ngôn ngữ người dùng.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{Framework toàn diện}: Cung cấp sẵn ORM, admin site, authentication giúp phát triển nhanh.
-    \item \textbf{Django REST Framework}: Hỗ trợ xây dựng REST API bài bản.
+    \item Dễ mở rộng thêm ngôn ngữ và quản lý file dịch.
+    \item Tích hợp tốt với React.
 \end{itemize}
 
-\textbf{Nhược điểm:}
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{Khác ngôn ngữ với frontend}: Python cho backend, JavaScript cho frontend, tăng độ phức tạp.
-    \item \textbf{Chưa tối ưu cho real-time}: Django Channels phức tạp hơn Node.js + Socket.IO.
+    \item Cần quy ước đặt key và tổ chức file dịch để dễ bảo trì.
 \end{itemize}
 
-\subsubsection{Spring Boot}
+Trong đề tài, i18next giúp tăng khả năng tuỳ biến giao diện theo ngôn ngữ, phù hợp đặc thù sản phẩm hướng người dùng.
 
-\textbf{Ưu điểm:}
+\section{Công nghệ ở Backend}
+
+\subsection{Node.js}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/nodejs.png}
+    \caption{Logo Node.js}
+\end{figure}
+
+\textbf{Giới thiệu}
+
+Node.js là môi trường runtime cho JavaScript phía server, phù hợp cho ứng dụng I/O nhiều và cần xử lý đồng thời. Backend SOCO chạy trên Node.js để triển khai REST API và Socket.IO.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{Hiệu năng cao, ổn định}: Phù hợp với hệ thống enterprise quy mô lớn.
-    \item \textbf{Type-safety mạnh}: Java giảm lỗi runtime, tăng khả năng bảo trì.
+    \item Mô hình non-blocking I/O phù hợp xử lý nhiều request đồng thời.
+    \item Đồng nhất ngôn ngữ với frontend, thuận lợi cho phát triển và chia sẻ kiến thức.
 \end{itemize}
 
-\textbf{Nhược điểm:}
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{Độ phức tạp cao}: Cần kiến thức sâu về Java, hệ sinh thái Spring.
-    \item \textbf{Khởi động nặng}: Thời gian khởi động và cấu hình dài hơn Node.js.
+    \item Cần quản lý tốt cấu trúc dự án để tránh mã nguồn khó kiểm soát khi mở rộng.
 \end{itemize}
 
-\subsubsection{Kết luận lựa chọn Backend}
+Trong đề tài, Node.js là nền tảng thực thi cho toàn bộ backend API và luồng real-time.
 
-Từ các phân tích trên, nhóm lựa chọn:
+\subsection{Express.js}
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/express.png}
+    \caption{Logo Express.js}
+\end{figure}
+
+\textbf{Giới thiệu}
+
+Express.js (thường gọi tắt là Express) là framework web tối giản cho Node.js, cung cấp routing và middleware để phát triển ứng dụng web/API. Trong SOCO, Express là nền tảng chính để xây dựng RESTful API và tổ chức mã nguồn theo mô hình MVCS.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{Node.js} làm nền tảng chạy backend.
-    \item \textbf{Express.js} làm web framework chính để xây dựng RESTful API.
-    \item Áp dụng kiến trúc \textbf{MVCS} (Model--View--Controller--Service) để tổ chức mã nguồn theo các layers: controllers, services, models, routes, middlewares.
+    \item Tốc độ phát triển nhanh nhờ hệ thống routing và middleware rõ ràng.
+    \item Linh hoạt, dễ tích hợp các thư viện bên thứ ba (JWT, validation, upload file, logging\dots).
+    \item Phù hợp cho hệ thống API có nhiều module nghiệp vụ.
 \end{itemize}
 
-Lựa chọn này giúp đồng nhất ngôn ngữ với frontend (JavaScript), hỗ trợ tốt cho real-time (chat, notification) với Socket.IO, và dễ tích hợp với các dịch vụ bên ngoài (Gemini API, Gmail SMTP, Cloudinary).
-
-\section{Lựa chọn cơ sở dữ liệu và ORM}
-
-Hệ thống SOCO cần lưu trữ đồng thời dữ liệu quan hệ phức tạp (user, post, product, order, review, \dots) với nhiều ràng buộc khoá ngoại, đồng thời đảm bảo tính toàn vẹn dữ liệu và khả năng truy vấn hiệu quả.
-
-\subsubsection{Các phương án CSDL}
-
-Nhóm cân nhắc hai hướng chính:
-
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{CSDL quan hệ}: PostgreSQL, MySQL.
-    \item \textbf{CSDL NoSQL}: MongoDB.
+    \item Tính tối giản yêu cầu nhóm tự thiết kế cấu trúc dự án và quy ước code.
+    \item Cần cẩn thận trong thiết kế middleware và xử lý lỗi để tránh khó debug.
 \end{itemize}
 
-\paragraph{PostgreSQL}
+Trong đề tài, Express.js đảm nhận vai trò backend chính, xử lý các nghiệp vụ như quản lý người dùng, bài đăng, sản phẩm, giỏ hàng và đơn hàng, đồng thời làm lớp tích hợp tới Prisma, Cloudinary và các dịch vụ ngoài.
 
-\textbf{Ưu điểm:}
+
+
+\section{Công nghệ ở Database \& ORM}
+
+\subsection{PostgreSQL}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/postgresql.png}
+    \caption{Logo PostgreSQL}
+\end{figure}
+
+\textbf{Giới thiệu}
+
+PostgreSQL là hệ quản trị CSDL quan hệ, phù hợp cho dữ liệu có nhiều ràng buộc và quan hệ phức tạp. SOCO sử dụng PostgreSQL để lưu trữ dữ liệu nghiệp vụ như người dùng, bài đăng, sản phẩm, đơn hàng, tin nhắn và thông báo.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{Hỗ trợ mạnh quan hệ và ACID}: Phù hợp với dữ liệu có cấu trúc và nhiều quan hệ như trong ERD.
-    \item \textbf{Tính năng phong phú}: Hỗ trợ JSONB, full-text search, indexing mạnh cho truy vấn phức tạp.
-    \item \textbf{Mã nguồn mở, ổn định}: Sử dụng rộng rãi trong sản phẩm thực tế.
+    \item Hỗ trợ ACID và ràng buộc dữ liệu mạnh, phù hợp dữ liệu quan hệ.
+    \item Hệ sinh thái ổn định, phổ biến trong thực tế.
 \end{itemize}
 
-\textbf{Nhược điểm:}
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{Cấu hình phức tạp hơn}: Nhưng với môi trường phát triển và docker hóa, việc triển khai không phải trở ngại lớn.
+    \item Cần thiết kế index và truy vấn hợp lý để tối ưu hiệu năng.
 \end{itemize}
 
-\paragraph{MySQL}
+Trong đề tài, PostgreSQL là CSDL trung tâm lưu trữ và đảm bảo toàn vẹn dữ liệu cho toàn hệ thống.
 
-\textbf{Ưu điểm:}
+\subsection{Prisma ORM}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/prisma.jpg}
+    \caption{Logo Prisma}
+\end{figure}
+
+\textbf{Giới thiệu}
+
+Prisma là ORM hiện đại cho Node.js, cung cấp Prisma Schema, Migration và Prisma Client để thao tác dữ liệu. SOCO dùng Prisma để quản lý schema CSDL, migration và truy vấn dữ liệu ở tầng service.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{Phổ biến}: Nhiều tài liệu, nhiều hosting hỗ trợ.
-    \item \textbf{Hiệu năng tốt cho CRUD thông thường}.
+    \item Schema rõ ràng, dễ quản lý quan hệ và thay đổi CSDL theo version.
+    \item Prisma Client giúp code truy vấn dễ đọc và hạn chế lỗi mapping.
 \end{itemize}
 
-\textbf{Nhược điểm:}
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{Tính năng nâng cao kém linh hoạt hơn PostgreSQL}: Đặc biệt xử lý JSON và truy vấn phức tạp.
+    \item Cần kỷ luật migration để đồng bộ giữa code và CSDL.
 \end{itemize}
 
-\paragraph{MongoDB}
+Trong đề tài, Prisma giúp nhóm triển khai nhanh các thực thể và quan hệ trong ERD, đồng thời hỗ trợ quản lý tiến hoá dữ liệu trong quá trình phát triển.
 
-\textbf{Ưu điểm:}
+\subsection{Redis}
+
+\textbf{Giới thiệu}
+
+Redis là hệ thống lưu trữ key-value in-memory thường được dùng cho cache, session, queue hoặc pub/sub. Trong SOCO, Redis được dùng như tầng cache tùy chọn ở core backend để giảm số lần truy vấn PostgreSQL cho các endpoint đọc nhiều.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{Mô hình document linh hoạt}: Phù hợp với dữ liệu bán cấu trúc, ít ràng buộc quan hệ.
-    \item \textbf{Mở rộng ngang tốt}: Sử dụng nhiều cho hệ thống cần scale mạnh.
+    \item Tốc độ đọc/ghi nhanh nhờ lưu dữ liệu trong bộ nhớ.
+    \item Hỗ trợ TTL cho cache key, phù hợp với dữ liệu cần làm mới thường xuyên.
+    \item Có thể triển khai độc lập với database chính và tắt/bật bằng cấu hình môi trường.
 \end{itemize}
 
-\textbf{Nhược điểm:}
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{Không phù hợp với mô hình quan hệ phức tạp}: ERD của SOCO có nhiều khóa ngoại, quan hệ 1--N, N--N, lịch sử trạng thái.
-    \item \textbf{Đảm bảo toàn vẹn dữ liệu khó hơn}: Cần nhiều logic ở tầng ứng dụng.
+    \item Cần thiết kế cache invalidation hợp lý để tránh dữ liệu cũ.
+    \item Là thành phần hạ tầng bổ sung, cần cấu hình và giám sát khi triển khai production.
 \end{itemize}
 
-\subsubsection{Lựa chọn ORM}
+Trong đề tài, Redis được tích hợp qua \texttt{backend/src/lib/redis.js} và \texttt{backend/src/lib/cache.js}. Hệ thống cache danh sách/chi tiết sản phẩm, danh sách/chi tiết bài viết, bình luận bài viết và kết quả tìm kiếm; khi bài viết hoặc sản phẩm thay đổi, controller xóa các cache key liên quan theo pattern.
 
-Đối với backend Node.js, một số ORM/Query Builder được cân nhắc:
+\section{Công nghệ ở Real-time}
 
+\subsection{Socket.IO}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/socketio.png}
+    \caption{Logo Socket.IO}
+\end{figure}
+
+\textbf{Giới thiệu}
+
+Socket.IO là thư viện giao tiếp thời gian thực theo mô hình event-based. Hệ thống SOCO sử dụng Socket.IO để hiện thực các tính năng như chat và thông báo theo thời gian thực giữa frontend và backend.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{Sequelize}
-    \item \textbf{TypeORM}
-    \item \textbf{Prisma}
+    \item API đơn giản theo cơ chế emit/on, dễ tổ chức sự kiện.
+    \item Hỗ trợ tự reconnect và các cơ chế kết nối ổn định.
 \end{itemize}
 
-\paragraph{Sequelize}
-
-\textbf{Ưu điểm:}
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{Hỗ trợ tốt PostgreSQL}: Tương thích tốt với PostgreSQL và các CSDL quan hệ khác.
-    \item \textbf{Định nghĩa model rõ ràng}: Cho phép định nghĩa model, mối quan hệ (hasOne, hasMany, belongsToMany) tương ứng với ERD.
-    \item \textbf{Migration}: Hỗ trợ migration quản lý schema có kiểm soát.
+    \item Có overhead so với WebSocket thuần, cần quản lý event để tránh lạm dụng.
 \end{itemize}
 
-\textbf{Nhược điểm:}
+Trong đề tài, Socket.IO đảm nhiệm luồng trao đổi real-time cho chat và cập nhật thông báo tức thời.
+
+\section{Dịch vụ tích hợp (AI, email, lưu trữ)}
+
+\subsection{Google Gemini API}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/gemini.png}
+    \caption{Logo Google Gemini}
+\end{figure}
+
+\textbf{Giới thiệu}
+
+Hệ thống tích hợp Google Gemini API thông qua thư viện \texttt{@google/generative-ai} để hỗ trợ gợi ý/tạo nội dung văn bản và phản hồi cho AI Shopping Assistant phục vụ trải nghiệm người dùng.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{API nhiều khái niệm}: Cần thời gian làm quen, đặc biệt khi định nghĩa quan hệ phức tạp.
+    \item Dễ tích hợp qua API và đặt tại tầng service của backend.
+    \item Có thể mở rộng thêm các kịch bản gợi ý nội dung theo nhu cầu.
 \end{itemize}
 
-\paragraph{TypeORM, Prisma}
-
-\textbf{Ưu điểm:}
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{Tích hợp tốt với TypeScript}, có hệ sinh thái hiện đại và tài liệu tốt.
+    \item Phụ thuộc dịch vụ bên thứ ba, cần quản lý API key và giới hạn sử dụng.
 \end{itemize}
 
-\textbf{Nhược điểm:}
+Trong đề tài, Gemini được dùng để hỗ trợ tính năng AI phục vụ tạo/gợi ý nội dung và tư vấn mua sắm qua chatbox.
+
+\subsection{Nodemailer (Gmail SMTP)}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/nodemailer.png}
+    \caption{Logo Nodemailer}
+\end{figure}
+
+\textbf{Giới thiệu}
+
+Nodemailer là thư viện gửi email trong Node.js. SOCO sử dụng Nodemailer kết hợp Gmail SMTP để gửi email xác thực và thông báo hệ thống.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item \textbf{Ưu tiên cho TypeScript}: Trong khi đồ án hiện tại sử dụng JavaScript thuần cho backend, việc dùng các ORM này không phát huy hết ưu điểm.
+    \item Dễ cấu hình và phù hợp môi trường đồ án.
+    \item Tích hợp trực tiếp ở backend, quản lý tập trung nội dung email.
 \end{itemize}
 
-\subsubsection{Kết luận lựa chọn CSDL \& ORM}
-
-Từ các phân tích trên, nhóm lựa chọn:
-
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{PostgreSQL} làm \textbf{CSDL chính} cho hệ thống.
-    \item \textbf{Sequelize ORM} để ánh xạ giữa model trong ứng dụng và bảng trong CSDL, quản lý migration và quan hệ giữa các entity.
+    \item Phụ thuộc cấu hình SMTP và chính sách bảo mật tài khoản email.
 \end{itemize}
 
-Lựa chọn này đảm bảo tính toàn vẹn dữ liệu, hỗ trợ tốt các truy vấn phức tạp, đồng thời hài hoà với stack Node.js/Express.js.
+Trong đề tài, Nodemailer đảm nhiệm chức năng gửi email cho các luồng đăng ký/xác thực và các thông báo quan trọng.
 
-\section{Lựa chọn công nghệ cho giao tiếp thời gian thực}
+\subsection{Cloudinary}
 
-Hệ thống SOCO có các chức năng yêu cầu real-time như:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.28\textwidth]{Images/Logo/cloudinary.png}
+    \caption{Logo Cloudinary}
+\end{figure}
 
+\textbf{Giới thiệu}
+
+Cloudinary là dịch vụ lưu trữ và phân phối nội dung đa phương tiện qua CDN. Hệ thống sử dụng Cloudinary để lưu ảnh avatar, ảnh bài đăng và ảnh sản phẩm.
+
+\textbf{Ưu điểm}
 \begin{itemize}
-    \item Chat giữa người dùng với nhau.
-    \item Thông báo thời gian thực khi có tin nhắn mới, like, comment, đơn hàng cập nhật trạng thái, \dots
+    \item Hỗ trợ CDN giúp tăng tốc độ tải ảnh.
+    \item Cung cấp khả năng xử lý ảnh qua tham số URL (resize/crop/nén).
 \end{itemize}
 
-\subsubsection{Các phương án xem xét}
-
+\textbf{Nhược điểm}
 \begin{itemize}
-    \item \textbf{WebSocket thuần}
-    \item \textbf{Socket.IO}
+    \item Cần cấu hình tài khoản và quản lý thông tin truy cập (API key/secret).
 \end{itemize}
 
-\paragraph{WebSocket thuần}
-
-\textbf{Ưu điểm:}
-\begin{itemize}
-    \item \textbf{Chuẩn thấp nhất}: Kiểm soát chi tiết triển khai giao thức WebSocket.
-    \item \textbf{Hiệu năng tốt}: Ít overhead hơn các thư viện trừu tượng hóa cao.
-\end{itemize}
-
-\textbf{Nhược điểm:}
-\begin{itemize}
-    \item \textbf{Cần xử lý nhiều logic thủ công}: Quản lý reconnect, fallback, phòng, namespace phức tạp và tốn thời gian.
-\end{itemize}
-
-\paragraph{Socket.IO}
-
-\textbf{Ưu điểm:}
-\begin{itemize}
-    \item \textbf{Trừu tượng hóa WebSocket}: API đơn giản cho emit, lắng nghe event, phân phòng.
-    \item \textbf{Quản lý kết nối thông minh}: Tự động reconnect, fallback HTTP long-polling khi cần.
-    \item \textbf{Tích hợp dễ dàng}: Có sẵn client cho React và server cho Node.js/Express.
-\end{itemize}
-
-\textbf{Nhược điểm:}
-\begin{itemize}
-    \item \textbf{Overhead cao hơn WebSocket thuần}: Nhưng trong bối cảnh đồ án, chi phí này không đáng kể so với lợi ích.
-\end{itemize}
-
-\subsubsection{Kết luận lựa chọn Real-time}
-
-Nhóm lựa chọn:
-
-\begin{itemize}
-    \item \textbf{Socket.IO} để hiện thực các tính năng chat và thông báo thời gian thực, kết nối giữa React frontend và Node.js backend.
-\end{itemize}
-
-\section{Lựa chọn công nghệ cho AI, email và lưu trữ tệp}
-
-\subsubsection{AI - tạo nội dung tự động}
-
-Để hỗ trợ người dùng tạo nội dung đa phương thức (bài đăng, hình ảnh, video ngắn, mô tả sản phẩm, \dots) nhanh chóng, hệ thống tích hợp dịch vụ AI:
-
-\begin{itemize}
-    \item \textbf{Google Gemini API} cho tạo văn bản và hình ảnh.
-    \item \textbf{Google Veo 2} (một phần của Gemini ecosystem) cho tạo video ngắn.
-\end{itemize}
-
-\textbf{Ưu điểm:}
-\begin{itemize}
-    \item \textbf{Sinh nội dung đa phương thức chất lượng}: Hỗ trợ tạo văn bản, hình ảnh và video ngắn từ đầu vào đa phương thức.
-    \item \textbf{API rõ ràng}: Dễ tích hợp ở Service Layer backend, có thư viện hỗ trợ Node.js.
-    \item \textbf{Hỗ trợ đầu vào đa phương thức}: Xử lý đồng thời văn bản, hình ảnh và mô tả.
-\end{itemize}
-
-\textbf{Nhược điểm:}
-\begin{itemize}
-    \item \textbf{Phụ thuộc dịch vụ bên thứ ba}: Cần quản lý khóa API và giới hạn sử dụng.
-    \item \textbf{Chi phí có thể tăng}: Đặc biệt với tính năng tạo video, cần quản lý usage limit.
-\end{itemize}
-
-\subsubsection{Dịch vụ email}
-
-Hệ thống cần gửi email xác thực, thông báo đơn hàng, \dots Nhóm lựa chọn:
-
-\begin{itemize}
-    \item \textbf{Gmail SMTP} kết hợp với thư viện gửi email trong Node.js.
-\end{itemize}
-
-\textbf{Ưu điểm:} Dễ cấu hình cho môi trường thử nghiệm, học tập. Không phát sinh chi phí cho khối lượng nhỏ, đáp ứng nhu cầu dự án.
-
-\subsubsection{Lưu trữ hình ảnh và tệp}
-
-Hệ thống có nhiều loại tệp đa phương tiện: ảnh đại diện, ảnh bìa, ảnh bài viết, ảnh sản phẩm, \dots Nhóm cân nhắc:
-
-\begin{itemize}
-    \item \textbf{Lưu trữ local trên server}
-    \item \textbf{Dịch vụ lưu trữ đám mây (Cloudinary, AWS S3, \dots)}
-\end{itemize}
-
-\paragraph{Lưu trữ local}
-
-\textbf{Ưu điểm:} Triển khai đơn giản, chỉ cần lưu file trong thư mục trên server.
-
-\textbf{Nhược điểm:} Khó mở rộng khi scale nhiều server (đồng bộ file phức tạp). Không có CDN, thời gian tải chậm nếu người dùng ở xa server.
-
-\paragraph{Cloudinary}
-
-\textbf{Ưu điểm:} Phân phối nội dung qua CDN, tối ưu tốc độ tải. Xử lý ảnh linh hoạt (resize, crop, nén) qua tham số URL. SDK hỗ trợ tốt cho Node.js và frontend.
-
-\textbf{Nhược điểm:} Cần tài khoản và cấu hình ban đầu, nhưng đối với đồ án thì chấp nhận được.
-
-\subsubsection{Kết luận lựa chọn dịch vụ hỗ trợ}
-
-Nhóm lựa chọn:
-
-\begin{itemize}
-    \item \textbf{Gemini API} cho AI content generation.
-    \item \textbf{Gmail SMTP} cho dịch vụ gửi email.
-    \item \textbf{Cloudinary} cho lưu trữ và phân phối file đa phương tiện.
-\end{itemize}
-
-\section{Lựa chọn công nghệ cho cache và tối ưu hiệu năng}
-
-Để tối ưu hiệu năng và giảm tải cho CSDL chính, nhóm cân nhắc việc sử dụng hệ thống cache:
-
-\begin{itemize}
-    \item \textbf{Redis}
-    \item Không sử dụng cache (truy vấn trực tiếp CSDL)
-\end{itemize}
-
-\paragraph{Redis}
-
-\textbf{Ưu điểm:} Lưu trữ trong RAM, tốc độ truy xuất nhanh, phù hợp cache dữ liệu truy vấn nhiều (feed, ranking). Hỗ trợ nhiều cấu trúc dữ liệu (String, Hash, List, Set, Sorted Set). Phù hợp quản lý session, token.
-
-\textbf{Nhược điểm:} Gia tăng độ phức tạp hệ thống, cần thêm một service để quản lý.
-
-\paragraph{Không dùng cache}
-
-\textbf{Ưu điểm:} Kiến trúc đơn giản hơn, ít service, dễ triển khai.
-
-\textbf{Nhược điểm:} Hiệu năng kém khi tải lớn, mọi request đều truy vấn CSDL, có thể gây nghẽn khi lượng người dùng tăng.
-
-\subsubsection{Kết luận lựa chọn cache}
-
-Nhóm lựa chọn:
-
-\begin{itemize}
-    \item \textbf{Redis} làm \textbf{cache layer} và công cụ quản lý session, sẵn sàng cho việc mở rộng hệ thống và tối ưu hiệu năng.
-\end{itemize}
-
-\section{Tổng kết lựa chọn công nghệ cho dự án}
-
-Dựa trên toàn bộ phân tích ưu, nhược điểm và các tiêu chí ban đầu, stack công nghệ được lựa chọn cho dự án SOCO như sau:
-
-\begin{itemize}
-    \item \textbf{Frontend (View Layer)}:
-    \begin{itemize}
-        \item \textbf{React.js} để xây dựng giao diện SPA.
-        \item \textbf{Vite} làm công cụ bundling và dev server.
-        \item \textbf{Tailwind CSS} để xây dựng UI hiện đại, responsive.
-    \end{itemize}
-    \item \textbf{Backend (Controller \& Service Layer)}:
-    \begin{itemize}
-        \item \textbf{Node.js} làm nền tảng chạy server.
-        \item \textbf{Express.js} để triển khai RESTful API theo kiến trúc \textbf{MVCS}.
-        \item \textbf{Socket.IO} cho các chức năng real-time (chat, notification).
-    \end{itemize}
-    \item \textbf{Persistence (Model Layer \& Database)}:
-    \begin{itemize}
-        \item \textbf{PostgreSQL} làm CSDL quan hệ chính.
-        \item \textbf{Sequelize ORM} để ánh xạ model--bảng, quản lý migration và quan hệ.
-        \item \textbf{Redis} cho cache và quản lý session.
-    \end{itemize}
-    \item \textbf{External Services}:
-    \begin{itemize}
-        \item \textbf{Google Gemini API \& Google Veo 2} cho tính năng AI content generation đa phương thức (văn bản, hình ảnh, video ngắn).
-        \item \textbf{Cloudinary} cho lưu trữ và phân phối file đa phương tiện.
-        \item \textbf{Gmail SMTP} cho gửi email hệ thống.
-    \end{itemize}
-\end{itemize}
+Trong đề tài, Cloudinary là nơi lưu trữ media thay cho lưu local, giúp hệ thống dễ mở rộng và ổn định hơn.

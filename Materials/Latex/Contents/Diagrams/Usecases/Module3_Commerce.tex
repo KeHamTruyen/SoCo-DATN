@@ -34,7 +34,10 @@
     \item Hệ thống truy vấn cơ sở dữ liệu và trả về danh sách sản phẩm khớp.
     \item Giao diện hiển thị kết quả tìm kiếm cho người mua.
 \end{enumerate} \\ \hline
-\textbf{Ngoại lệ} & E1: Không tìm thấy sản phẩm nào $\rightarrow$ Hệ thống hiển thị thông báo ``Không tìm thấy kết quả phù hợp''. \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Không tìm thấy sản phẩm nào $\rightarrow$ Hệ thống hiển thị thông báo ``Không tìm thấy kết quả phù hợp''.
+\end{itemize} \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Tìm kiếm sản phẩm}
 \end{table}
@@ -56,7 +59,10 @@
     \item Hệ thống tải và hiển thị trang chi tiết sản phẩm với đầy đủ thông tin.
     \item Người mua có thể xem các hình ảnh, chọn các biến thể (nếu có) và đọc các đánh giá.
 \end{enumerate} \\ \hline
-\textbf{Ngoại lệ} & E1: Sản phẩm không còn tồn tại hoặc đã bị ẩn $\rightarrow$ Hệ thống hiển thị trang lỗi ``Sản phẩm không tìm thấy''. \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Sản phẩm không còn tồn tại hoặc đã bị ẩn $\rightarrow$ Hệ thống hiển thị trang lỗi ``Sản phẩm không tìm thấy''.
+\end{itemize} \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Xem chi tiết sản phẩm}
 \end{table}
@@ -83,11 +89,13 @@
 \begin{enumerate}
     \item Trên trang chi tiết sản phẩm, người mua chọn số lượng và các biến thể mong muốn.
     \item Người mua nhấn ``Thêm vào giỏ hàng''.
-    \item Hệ thống xác định biến thể theo \textit{variantId} (hoặc map từ lựa chọn biến thể), kiểm tra trạng thái sản phẩm và tồn kho.
-    \item Hệ thống thêm mới hoặc cập nhật cart item tương ứng trong giỏ hàng của người mua.
+    \item Hệ thống lưu thông tin sản phẩm vào giỏ hàng của người mua.
     \item Hệ thống hiển thị thông báo thành công.
 \end{enumerate} \\ \hline
-\textbf{Ngoại lệ} & E1: Sản phẩm đã hết hàng $\rightarrow$ Hệ thống báo lỗi và không cho phép thêm vào giỏ. \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Sản phẩm đã hết hàng $\rightarrow$ Hệ thống báo lỗi và không cho phép thêm vào giỏ.
+\end{itemize} \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Thêm vào giỏ hàng}
 \end{table}
@@ -110,7 +118,10 @@
     \item Người mua có thể: Tăng/giảm số lượng hoặc xóa sản phẩm.
     \item Hệ thống tự động cập nhật lại tổng số tiền.
 \end{enumerate} \\ \hline
-\textbf{Ngoại lệ} & E1: Cập nhật số lượng vượt quá số lượng tồn kho $\rightarrow$ Hệ thống báo lỗi. \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Cập nhật số lượng vượt quá số lượng tồn kho $\rightarrow$ Hệ thống báo lỗi.
+\end{itemize} \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Quản lý giỏ hàng}
 \end{table}
@@ -130,21 +141,23 @@
 \end{itemize} \\ \hline
 \textbf{Điều kiện sau} & 
 \begin{itemize}
-    \item Một đơn hàng mới được tạo trong hệ thống với trạng thái ``PENDING'' và ``paymentStatus=PENDING''.
+    \item Một đơn hàng mới được tạo trong hệ thống với trạng thái ``Đang xử lý''.
     \item Giỏ hàng của người mua được làm rỗng.
     \item Người mua được chuyển đến trang xác nhận đơn hàng thành công.
 \end{itemize} \\ \hline
 \textbf{Luồng sự kiện chính} & 
 \begin{enumerate}
     \item Từ giỏ hàng, người mua nhấn ``Thanh toán''.
-    \item Hệ thống kiểm tra tồn kho lần cuối cho từng cart item.
     \item Người mua điền thông tin giao hàng.
     \item Người mua chọn phương thức thanh toán (giả lập).
     \item Người mua xác nhận đơn hàng.
-    \item Hệ thống tạo bản ghi Order/OrderItem, chốt đơn giá tại thời điểm đặt hàng và trừ tồn kho.
+    \item Hệ thống tạo bản ghi đơn hàng mới.
     \item Hệ thống hiển thị thông báo đặt hàng thành công.
 \end{enumerate} \\ \hline
-\textbf{Ngoại lệ} & E1: Một sản phẩm trong giỏ đã hết hàng $\rightarrow$ Hệ thống báo lỗi và yêu cầu cập nhật giỏ hàng. \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Một sản phẩm trong giỏ đã hết hàng $\rightarrow$ Hệ thống báo lỗi và yêu cầu cập nhật giỏ hàng.
+\end{itemize} \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Thanh toán}
 \end{table}
@@ -191,13 +204,16 @@
 \end{itemize} \\ \hline
 \textbf{Luồng sự kiện chính} & 
 \begin{enumerate}
-    \item Người mua vào mục đơn hàng đã giao hoặc hoàn thành.
+    \item Người mua vào mục đơn hàng đã hoàn thành.
     \item Người mua chọn sản phẩm muốn đánh giá và nhấn ``Đánh giá''.
     \item Hệ thống hiển thị form đánh giá (chọn sao, viết bình luận, tải ảnh).
     \item Người mua điền thông tin và nhấn ``Gửi đánh giá''.
-    \item Hệ thống xác thực quyền theo \textit{orderItemId} và lưu đánh giá.
+    \item Hệ thống lưu lại đánh giá.
 \end{enumerate} \\ \hline
-\textbf{Ngoại lệ} & E1: Người mua cố gắng đánh giá một sản phẩm họ chưa mua hoặc đã đánh giá trước đó $\rightarrow$ Hệ thống không cho phép. \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Người mua cố gắng đánh giá một sản phẩm họ chưa mua $\rightarrow$ Hệ thống không cho phép.
+\end{itemize} \\ \hline
 \textbf{Ghi chú} & Đánh giá là một phần quan trọng để xây dựng lòng tin trong cộng đồng. \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Đánh giá sản phẩm}
@@ -230,7 +246,10 @@
     \item Hệ thống xác thực dữ liệu và tạo một bản ghi sản phẩm mới.
     \item Người bán có thể chọn một sản phẩm có sẵn để ``Sửa'' hoặc ``Xóa''.
 \end{enumerate} \\ \hline
-\textbf{Ngoại lệ} & E1: Dữ liệu nhập vào không hợp lệ (ví dụ: giá âm) $\rightarrow$ Hệ thống báo lỗi. \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Dữ liệu nhập vào không hợp lệ (ví dụ: giá âm) $\rightarrow$ Hệ thống báo lỗi.
+\end{itemize} \\ \hline
 \textbf{Ghi chú} & Đây là chức năng cốt lõi cho phép người bán đưa hàng hóa lên nền tảng. \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Quản lý sản phẩm}
@@ -300,9 +319,8 @@
 \textbf{Luồng sự kiện chính} & 
 \begin{enumerate}
     \item Người bán nhận được thông báo về một yêu cầu hoàn tiền mới.
-    \item Người bán vào mục ``Yêu cầu hoàn tiền'' để xem danh sách yêu cầu có trạng thái chờ xử lý.
+    \item Người bán vào mục ``Yêu cầu hoàn tiền'' để xem chi tiết lý do.
     \item Người bán đưa ra quyết định ``Chấp nhận'' hoặc ``Từ chối'' yêu cầu.
-    \item Nếu chấp nhận, hệ thống cập nhật đơn hàng sang ``REFUNDED''; nếu từ chối, hệ thống lưu lý do từ chối.
     \item Hệ thống ghi nhận quyết định và thông báo lại cho người mua.
     \item Người bán có thể liên hệ với người mua qua tin nhắn để thảo luận thêm.
 \end{enumerate} \\ \hline

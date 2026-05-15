@@ -1,6 +1,6 @@
 \subsection{Architectural pattern}
 
-Dự án sử dụng mô hình \textbf{MVCS}. Kiến trúc chuẩn của \textbf{MVCS} được thể hiện trong \ref{fig:mvcs-pattern}:
+Dự án sử dụng mô hình \textbf{MVCS} (Model--View--Controller--Service) cho backend API, kết hợp với kiến trúc frontend theo feature/module ở phía React. Kiến trúc chuẩn của \textbf{MVCS} được thể hiện trong \ref{fig:mvcs-pattern}:
 
 \begin{figure}[htbp]
     \centering
@@ -9,18 +9,18 @@ Dự án sử dụng mô hình \textbf{MVCS}. Kiến trúc chuẩn của \textbf
     \label{fig:mvcs-pattern}
 \end{figure}
 
-\textbf{MVCS} là viết tắt của \textbf{Model-View-Controller-Service}. Mô hình này cho phép lập trình viên định nghĩa trước sự tương tác giữa các phần code và dễ dàng chỉnh sửa bằng cách chia code thành các \textbf{layer} theo chức năng. Kiến trúc này không thuộc về bất kỳ ngôn ngữ lập trình hay framework cụ thể nào. \textbf{Pattern} này tách biệt \textbf{Database} hoặc \textbf{networking interaction} khỏi \textbf{Controller}. Mỗi phần đóng vai trò quan trọng trong việc phát triển ứng dụng.
+\textbf{MVCS} giúp tách rõ trách nhiệm giữa giao diện, API endpoint, business logic và tầng truy cập dữ liệu. Cách tổ chức này phù hợp với hệ thống Social Commerce vì các miền nghiệp vụ như xác thực, bài viết, sản phẩm, đơn hàng, tin nhắn, thông báo, AI và quản trị đều có logic riêng nhưng vẫn cần chia sẻ dữ liệu qua cùng database.
 
 \begin{itemize}
-    \item \textbf{View Layer}: Đại diện cho cách dữ liệu được render lên giao diện người dùng. Trong dự án này, \textbf{View Layer} được xây dựng bằng \textbf{React.js} với các \textbf{Router} quản lý navigation và các \textbf{Component} hiển thị dữ liệu.
-    \item \textbf{Controller Layer}: Chịu trách nhiệm chỉ nhận \textbf{request} và hiển thị kết quả của thao tác. \textbf{Controller} được sử dụng để giao tiếp giữa \textbf{Model}, \textbf{Service} và \textbf{View}. Trong \textbf{Backend Node.js}, các \textbf{Controller} như \textbf{Auth Controller}, \textbf{User Controller}, \textbf{Post Controller} xử lý các request từ \textbf{Frontend} và trả về \textbf{response} tương ứng.
-    \item \textbf{Service Layer}: Còn được gọi là \textbf{Business Layer}, chứa các chức năng tạo nên core của ứng dụng, do đó trở nên \textbf{highly reusable} cho controllers và services. \textbf{Service Layer} xử lý \textbf{business logic} phức tạp, tách biệt khỏi \textbf{Controller} để dễ dàng maintain và test.
-    \item \textbf{Model Layer}: Chịu trách nhiệm định nghĩa cách \textbf{data model} được định nghĩa. \textbf{Model Layer} sử dụng \textbf{Sequelize ORM} để ánh xạ các \textbf{entity} trong database như \textbf{User}, \textbf{Post}, \textbf{Product}, \textbf{Order}, \textbf{Message} và \textbf{Notification}.
+    \item \textbf{View Layer}: Được xây dựng bằng \textbf{React.js}, \textbf{TypeScript} và \textbf{Vite}. Dự án có hai frontend riêng: ứng dụng người dùng trong thư mục \texttt{frontend} và ứng dụng quản trị trong thư mục \texttt{admin/frontend}.
+    \item \textbf{Controller Layer}: Được xây dựng bằng \textbf{Express.js}. Controller nhận HTTP request, gọi service phù hợp và trả response chuẩn hóa cho frontend.
+    \item \textbf{Service Layer}: Chứa business logic như xác thực, seller verification, feed, product CRUD, cart/order, refund giả lập, messaging, notification, AI content generation, AI shopping assistant, report moderation và cache invalidation cho các dữ liệu đọc nhiều.
+    \item \textbf{Model/Data Access Layer}: Sử dụng \textbf{Prisma ORM} để truy cập \textbf{PostgreSQL}. Schema được định nghĩa tại \texttt{database/prisma/schema.prisma} và Prisma Client được generate cho backend.
 \end{itemize}
 
 \subsection{Architecture diagram}
 
-\ref{fig:architecture-diagram} minh họa tổng quan cách chúng tôi lên kế hoạch triển khai hệ thống. Đối với \textbf{frontend}, tất cả các thiết kế đã được thực hiện với \textbf{Figma} sẽ được implement bằng \textbf{React.js} và cấu trúc được tổ chức như trong hình. \textbf{Frontend} được kết nối với \textbf{Backend Node.js} thông qua \textbf{HTTP request} và \textbf{WebSocket connection}.
+\ref{fig:architecture-diagram} minh họa tổng quan kiến trúc hệ thống. Hệ thống được chia thành bốn ứng dụng triển khai riêng: frontend người dùng, core API, frontend admin và admin API. Các frontend giao tiếp với backend thông qua HTTP request; tính năng real-time như chat và notification sử dụng Socket.IO trên core API.
 
 \begin{figure}[htbp]
     \centering
@@ -29,94 +29,65 @@ Dự án sử dụng mô hình \textbf{MVCS}. Kiến trúc chuẩn của \textbf
     \label{fig:architecture-diagram}
 \end{figure}
 
-\paragraph{Frontend Structure} Cấu trúc \textbf{Frontend} được tổ chức thành các thành phần chính:
+\paragraph{Frontend Structure} Ứng dụng người dùng được tổ chức theo các vùng chức năng chính:
 
 \begin{itemize}
-    \item \textbf{Routers}: Quản lý navigation giữa các trang
-    \begin{itemize}
-        \item \textbf{Authentication}: Trang xác thực người dùng
-        \item \textbf{Home/Feed}: Trang chủ và bảng tin
-        \item \textbf{Profile}: Trang hồ sơ người dùng
-        \item \textbf{Chat}: Trang nhắn tin
-        \item \textbf{Admin}: Trang quản trị
-    \end{itemize}
-    \item \textbf{Components}: Được tổ chức theo chức năng
-    \begin{itemize}
-        \item \textbf{Authentication \& Profile}: Xác thực và quản lý hồ sơ
-        \item \textbf{Post Management}: Quản lý bài viết
-        \item \textbf{Product Management}: Quản lý sản phẩm
-        \item \textbf{Cart \& Order}: Giỏ hàng và đơn hàng
-        \item \textbf{Chat \& Messages}: Tin nhắn và cuộc trò chuyện
-        \item \textbf{Admin Dashboard}: Bảng điều khiển quản trị
-    \end{itemize}
-    \item \textbf{Services}: Kết nối với Backend
-    \begin{itemize}
-        \item \textbf{API Client (Axios)}: Thực hiện \textbf{HTTP request}
-        \item \textbf{Socket.io Client}: Thiết lập kết nối \textbf{WebSocket} cho các tính năng \textbf{real-time}
-    \end{itemize}
+    \item \textbf{Routing}: Quản lý navigation cho auth, feed, marketplace, product detail, cart, checkout, orders, groups, messages, notifications, saved items, AI creative lab và seller dashboard.
+    \item \textbf{Features}: Chia theo nghiệp vụ như authentication, feed, profile, product, cart, order, group, messaging, notification, seller, report, AI creative lab và AI shopping assistant.
+    \item \textbf{Shared Layer}: Chứa API client, UI components, auth guards, utilities và các thành phần dùng chung.
+    \item \textbf{API Client}: Sử dụng fetch wrapper nội bộ để gọi REST API và gắn token khi route yêu cầu xác thực.
+    \item \textbf{Socket.IO Client}: Kết nối real-time cho notification, message dock, typing indicator và trạng thái online.
 \end{itemize}
 
-\paragraph{Backend Structure} \textbf{Backend} được xây dựng bằng \textbf{Node.js} với \textbf{Express.js framework}. Cấu trúc bao gồm:
+\paragraph{Admin Frontend Structure} Ứng dụng admin là frontend riêng, phục vụ các trang quản trị:
 
 \begin{itemize}
-    \item \textbf{API Routes}: Đóng vai trò \textbf{entry point} nhận các request từ \textbf{Frontend}
-    \item \textbf{Middleware}: Xử lý request qua chuỗi middleware
-    \begin{itemize}
-        \item \textbf{Auth Middleware}: Xác thực \textbf{JWT} và quản lý \textbf{session}
-        \item \textbf{Validator}: Kiểm tra và validate dữ liệu đầu vào
-        \item \textbf{Rate Limiter}: Giới hạn số lượng request để bảo vệ hệ thống
-    \end{itemize}
-    \item \textbf{Controllers}: Xử lý logic nghiệp vụ
-    \begin{itemize}
-        \item \textbf{Auth Controller}: Xử lý xác thực
-        \item \textbf{User Controller}: Quản lý người dùng
-        \item \textbf{Post Controller}: Quản lý bài viết
-        \item \textbf{Product Controller}: Quản lý sản phẩm
-        \item \textbf{Order Controller}: Quản lý đơn hàng
-        \item \textbf{Message Controller}: Quản lý tin nhắn
-        \item \textbf{Admin Controller}: Quản lý quản trị
-    \end{itemize}
-    \item \textbf{Models}: Đại diện cho các entity trong hệ thống
-    \begin{itemize}
-        \item \textbf{User}: Người dùng
-        \item \textbf{Post}: Bài viết
-        \item \textbf{Product}: Sản phẩm
-        \item \textbf{Order}: Đơn hàng
-        \item \textbf{Message}: Tin nhắn
-        \item \textbf{Notification}: Thông báo
-        \item Các Model hỗ trợ khác
-    \end{itemize}
+    \item \textbf{Dashboard}: Thống kê tổng quan user, seller, buyer, product, post, order, revenue và growth.
+    \item \textbf{Users}: Tìm kiếm, lọc, khóa/mở khóa và thay đổi role phù hợp.
+    \item \textbf{Content}: Quản lý bài viết và sản phẩm.
+    \item \textbf{Reports}: Xem chi tiết và xử lý báo cáo vi phạm.
+    \item \textbf{Categories}: Quản lý danh mục sản phẩm.
+    \item \textbf{Sellers}: Duyệt hồ sơ seller và yêu cầu thay đổi dữ liệu nhạy cảm.
 \end{itemize}
 
-\paragraph{Database} Các \textbf{Model} này kết nối trực tiếp với database \textbf{PostgreSQL} thông qua \textbf{Sequelize ORM} để thực hiện các thao tác \textbf{CRUD} (Create, Read, Update, Delete).
-
-\paragraph{Code \& Version Control} Để quản lý code và version, nhóm sử dụng \textbf{GitHub} và từ đó chúng tôi lên kế hoạch triển khai website thông qua \textbf{Cloud Platform} sử dụng các dịch vụ:
+\paragraph{Core Backend Structure} Core backend nằm trong thư mục \texttt{backend} và được xây dựng bằng \textbf{Node.js} + \textbf{Express.js}. Cấu trúc bao gồm:
 
 \begin{itemize}
-    \item \textbf{Elastic Beanstalk}: Triển khai và quản lý ứng dụng
-    \item \textbf{CodePipeline}: Tự động hóa quy trình CI/CD
-    \item \textbf{Amazon RDS}: Quản lý database
+    \item \textbf{API Routes}: Mount các module tại \texttt{/api/auth}, \texttt{/api/users}, \texttt{/api/posts}, \texttt{/api/products}, \texttt{/api/cart}, \texttt{/api/orders}, \texttt{/api/reviews}, \texttt{/api/saved-items}, \texttt{/api/search}, \texttt{/api/notifications}, \texttt{/api/ai}, \texttt{/api/ai-assistant}, \texttt{/api/scheduled-posts}, \texttt{/api/seller}, \texttt{/api/messages}, \texttt{/api/groups} và \texttt{/api/reports}.
+    \item \textbf{Middleware}: Xác thực JWT, kiểm tra role, validate dữ liệu, rate limiting, CORS, helmet và error handling.
+    \item \textbf{Controllers}: Nhận request và điều phối sang service tương ứng.
+    \item \textbf{Services}: Chứa logic nghiệp vụ của từng module.
+    \item \textbf{Cache Layer}: Sử dụng Redis thông qua helper \texttt{backend/src/lib/cache.js} để cache danh sách/chi tiết sản phẩm, danh sách/chi tiết bài viết, bình luận bài viết và kết quả tìm kiếm. Khi tạo/sửa/xóa bài viết hoặc sản phẩm, controller xóa các cache key liên quan.
+    \item \textbf{Socket.IO}: Khởi tạo cùng HTTP server để hỗ trợ realtime message và notification.
+    \item \textbf{Scheduler}: Chạy node-cron để publish scheduled posts và purge sản phẩm đã soft-delete khi đến hạn.
 \end{itemize}
 
-Tất cả đều được cung cấp bởi các nhà cung cấp cloud.
+\paragraph{Admin Backend Structure} Admin backend nằm trong thư mục \texttt{admin/backend}. API này tách biệt với core API để phục vụ ứng dụng quản trị:
+
+\begin{itemize}
+    \item \textbf{Auth}: Đăng nhập admin, cấp admin JWT và kiểm tra phiên.
+    \item \textbf{Admin}: Quản lý users, posts, products, categories và dashboard.
+    \item \textbf{Reports}: Xem, lọc và resolve báo cáo vi phạm.
+    \item \textbf{Seller Admin}: Duyệt seller applications và sensitive change requests.
+\end{itemize}
+
+\paragraph{Database \& Cache} Hệ thống sử dụng \textbf{PostgreSQL} làm database chính. Backend truy cập database thông qua \textbf{Prisma ORM}. Schema tập trung trong \texttt{database/prisma/schema.prisma}, bao gồm các nhóm bảng cho user/auth, seller verification, product/category, cart/order, post/social, group, messaging, notification, review, AI history, analytics và report. Ngoài ra, core API có thể kết nối \textbf{Redis} qua biến môi trường \texttt{REDIS\_URL} để cache dữ liệu đọc nhiều; nếu Redis không được cấu hình, helper cache tự bỏ qua và hệ thống vẫn đọc trực tiếp từ PostgreSQL.
+
+\paragraph{Code \& Version Control} Source code được quản lý bằng \textbf{GitHub}. Cấu hình triển khai production được mô tả trong \texttt{render.yaml} với bốn service trên Render: \texttt{soco-api}, \texttt{soco-admin-api}, \texttt{soco-main} và \texttt{soco-admin}.
 
 \paragraph{Testing \& Development Tools} Hệ thống sử dụng các công cụ hỗ trợ:
 
 \begin{itemize}
-    \item \textbf{Testing}:
-    \begin{itemize}
-        \item \textbf{Postman}: Kiểm tra và đánh giá \textbf{API}
-    \end{itemize}
-    \item \textbf{Development Tools}:
-    \begin{itemize}
-        \item \textbf{Jira Software}: Bug tracking và project management
-    \end{itemize}
+    \item \textbf{API Testing}: Postman hoặc Swagger UI cho kiểm thử endpoint.
+    \item \textbf{Frontend Testing}: Vitest và Testing Library ở một số feature/hook.
+    \item \textbf{Database Tooling}: Prisma Client và Prisma schema để đồng bộ model với PostgreSQL.
 \end{itemize}
 
 \paragraph{External Services} Hệ thống tích hợp với các dịch vụ bên ngoài:
 
 \begin{itemize}
-    \item \textbf{AI API (Google Gemini \& Veo 2)}: Tạo nội dung đa phương thức (văn bản, hình ảnh, video ngắn)
-    \item \textbf{File Storage (Cloudinary)}: Lưu trữ và quản lý hình ảnh
-    \item \textbf{Email Service (Gmail SMTP)}: Gửi email xác thực và thông báo
+    \item \textbf{AI Text API}: Google Gemini là provider chính; OpenRouter/Groq có thể được cấu hình làm provider dự phòng cho text/vision và AI shopping assistant.
+    \item \textbf{AI Image API}: Hugging Face hoặc Replicate được dùng để tạo ảnh nếu token được cấu hình. Tạo video chưa nằm trong kiến trúc triển khai hiện tại.
+    \item \textbf{File Storage}: Cloudinary được dùng cho upload ảnh sản phẩm, bài viết, avatar, shop assets và giấy tờ seller.
+    \item \textbf{Email Service}: SMTP qua Nodemailer được dùng cho xác thực email, OTP 2FA và reset password.
 \end{itemize}

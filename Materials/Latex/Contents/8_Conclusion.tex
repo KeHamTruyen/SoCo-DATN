@@ -1,0 +1,52 @@
+\chapter{Kết luận}
+
+Đề tài đã xây dựng một hệ thống Social Commerce trên nền tảng web, kết hợp giữa các chức năng mạng xã hội, thương mại điện tử, quản lý người bán và hỗ trợ tạo nội dung bằng AI. Hệ thống hướng đến việc giúp người dùng khám phá sản phẩm thông qua nội dung xã hội, tương tác với người bán, mua hàng trực tiếp trên nền tảng và hỗ trợ seller quản lý hoạt động bán hàng trong một môi trường thống nhất.
+
+\section{Kết quả đạt được}
+
+Sau quá trình phân tích yêu cầu, thiết kế, hiện thực và kiểm thử, hệ thống đã hoàn thành các nhóm chức năng chính sau:
+
+\begin{itemize}
+    \item \textbf{Xác thực và quản lý tài khoản}: Hệ thống hỗ trợ đăng ký, đăng nhập, xác thực email, khôi phục mật khẩu, cập nhật hồ sơ và xác thực hai yếu tố. Việc phân quyền giữa buyer, seller và admin được áp dụng ở các API và giao diện tương ứng.
+    \item \textbf{Chức năng mạng xã hội}: Người dùng có thể xem feed, tạo bài viết, gắn sản phẩm vào bài viết, thích, bình luận, theo dõi người dùng khác, lưu bài viết/sản phẩm và nhận thông báo real-time.
+    \item \textbf{Chức năng thương mại}: Seller có thể tạo và quản lý sản phẩm, hình ảnh, biến thể, tồn kho và trạng thái sản phẩm. Buyer có thể duyệt marketplace, xem chi tiết sản phẩm, thêm vào giỏ hàng, đặt hàng, theo dõi đơn hàng và đánh giá sản phẩm sau mua.
+    \item \textbf{Quản lý seller}: Hệ thống hỗ trợ quy trình đăng ký seller, xác minh thông tin, quản lý dữ liệu nhạy cảm, theo dõi dashboard bán hàng, quản lý đơn bán và xử lý các thao tác liên quan đến sản phẩm.
+    \item \textbf{Nhắn tin, nhóm và thông báo}: Người dùng có thể tạo hội thoại, gửi tin nhắn, tham gia nhóm cộng đồng, đăng bài trong nhóm và nhận thông báo liên quan đến tương tác xã hội, đơn hàng, tin nhắn và hệ thống.
+    \item \textbf{AI hỗ trợ tạo nội dung và tư vấn mua sắm}: Hệ thống tích hợp các API AI để hỗ trợ seller tạo nội dung chữ, caption, hashtag, ý tưởng quảng bá, hình ảnh marketing khi nhà cung cấp AI được cấu hình; đồng thời cung cấp AI Shopping Assistant để người dùng hỏi sản phẩm, so sánh, xem gợi ý và tra cứu đơn hàng.
+    \item \textbf{Quản trị hệ thống}: Admin có thể đăng nhập ứng dụng quản trị riêng, xem dashboard tổng quan, quản lý người dùng, sản phẩm, bài viết, danh mục, hồ sơ seller và xử lý báo cáo vi phạm.
+    \item \textbf{Kiểm thử}: Các API chính đã được kiểm thử bằng Postman với cả trường hợp thành công và thất bại có chủ đích. Ngoài ra, giao diện cũng được đánh giá ở mức cơ bản thông qua Chrome DevTools và Lighthouse.
+\end{itemize}
+
+Về mặt kỹ thuật, hệ thống được triển khai theo kiến trúc tách biệt giữa frontend người dùng, backend core API, frontend admin và backend admin API. Backend sử dụng Node.js, Express.js, Prisma ORM và PostgreSQL; frontend sử dụng React.js, TypeScript và Vite. Kiến trúc này giúp hệ thống dễ bảo trì, tách rõ trách nhiệm giữa các module và thuận lợi cho việc mở rộng trong tương lai.
+
+\section{Hạn chế}
+
+Bên cạnh các kết quả đã đạt được, hệ thống vẫn còn một số hạn chế:
+
+\begin{itemize}
+    \item \textbf{Thanh toán và hoàn tiền}: Luồng thanh toán và hoàn tiền hiện chủ yếu được mô phỏng trong phạm vi đồ án, chưa tích hợp cổng thanh toán thực tế như VNPay, MoMo, Stripe hoặc PayPal.
+    \item \textbf{Vận chuyển}: Hệ thống chưa tích hợp đơn vị vận chuyển thật để tự động tính phí giao hàng, tạo vận đơn và đồng bộ trạng thái giao hàng.
+    \item \textbf{AI phụ thuộc nhà cung cấp bên ngoài}: Chức năng AI phụ thuộc vào API key, quota, tốc độ phản hồi và độ ổn định của nhà cung cấp. Chức năng tạo video bằng AI chưa được triển khai trong phạm vi hiện tại.
+    \item \textbf{Kiểm thử tải}: Phần kiểm thử hiệu suất mới dừng ở mức quan sát frontend bằng Chrome DevTools và Lighthouse, chưa có kiểm thử tải chuyên sâu bằng các công cụ như k6, JMeter hoặc Artillery.
+    \item \textbf{Tối ưu production}: Một số khía cạnh như logging tập trung, monitoring, alerting, backup tự động, CDN cho media và tối ưu bundle frontend cần được hoàn thiện thêm nếu triển khai ở quy mô lớn.
+\end{itemize}
+
+\section{Hướng phát triển}
+
+Trong các phiên bản tiếp theo, hệ thống có thể được mở rộng theo các hướng sau:
+
+\begin{itemize}
+    \item Tích hợp cổng thanh toán thật và hoàn thiện quy trình hoàn tiền, đối soát giao dịch.
+    \item Kết nối với dịch vụ vận chuyển để hỗ trợ tính phí, tạo vận đơn và theo dõi trạng thái giao hàng tự động.
+    \item Cải thiện hệ thống gợi ý sản phẩm và nội dung dựa trên hành vi xem, tìm kiếm, tương tác và lịch sử mua hàng.
+    \item Phát triển thêm công cụ phân tích cho seller như hiệu quả bài viết, tỷ lệ chuyển đổi, sản phẩm bán chạy và chân dung khách hàng.
+    \item Mở rộng moderation bằng AI để hỗ trợ phát hiện nội dung vi phạm, spam, sản phẩm không phù hợp và báo cáo bất thường.
+    \item Tăng cường kiểm thử tự động cho backend, frontend và end-to-end, đồng thời bổ sung kiểm thử tải để đánh giá khả năng chịu tải thực tế.
+    \item Hoàn thiện trải nghiệm mobile, tối ưu tốc độ tải trang, lazy loading media, cache tài nguyên và accessibility.
+\end{itemize}
+
+\section{Kết luận chung}
+
+Nhìn chung, đề tài đã hoàn thành mục tiêu xây dựng một nền tảng Social Commerce có đầy đủ các chức năng cốt lõi: nội dung xã hội, mua bán sản phẩm, quản lý seller, nhắn tin, thông báo, kiểm duyệt, hỗ trợ tạo nội dung bằng AI và trợ lý mua sắm AI. Hệ thống không chỉ đáp ứng các yêu cầu nghiệp vụ chính của đồ án mà còn tạo nền tảng kỹ thuật rõ ràng để tiếp tục mở rộng trong tương lai.
+
+Thông qua quá trình thực hiện, nhóm đã có cơ hội áp dụng các kiến thức về phân tích yêu cầu, thiết kế hệ thống, thiết kế cơ sở dữ liệu, phát triển REST API, xây dựng giao diện web, tích hợp dịch vụ bên ngoài, xử lý real-time và kiểm thử phần mềm. Đây là cơ sở quan trọng để tiếp tục hoàn thiện sản phẩm theo hướng thực tế hơn, ổn định hơn và phù hợp hơn với nhu cầu vận hành của một nền tảng social commerce hiện đại.

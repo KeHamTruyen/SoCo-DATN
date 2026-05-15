@@ -1,182 +1,227 @@
-Deployment diagram mô tả kiến trúc triển khai (deployment architecture) của hệ thống Social Commerce, bao gồm các thành phần phần cứng, phần mềm, môi trường triển khai và các kết nối giữa chúng. Diagram này giúp hiểu rõ cách hệ thống được triển khai trên môi trường production và cách các thành phần tương tác với nhau.
+\chapter{Triển khai hệ thống}
 
-\subsection{Tổng quan kiến trúc triển khai}
+Chương này mô tả cách đưa Social Commerce lên môi trường thực tế. Kiến trúc tổng thể xem Hình~\ref{fig:deployment-diagram} (chương Thiết kế hệ thống).
 
-\ref{fig:deployment-diagram} mô tả kiến trúc triển khai tổng thể của hệ thống, bao gồm các layers chính: Client Layer, CDN Layer, Application Server, Database và External Services.
+\begin{itemize}
+    \item \textbf{Frontend}: Vercel (Vite + React + TypeScript).
+    \item \textbf{Backend}: Amazon EC2 (Node.js, Express, Socket.IO).
+    \item \textbf{Cơ sở dữ liệu}: Neon (PostgreSQL, Prisma).
+    \item \textbf{Cache}: Redis (ví dụ Upstash hoặc AWS ElastiCache).
+\end{itemize}
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\textwidth]{Images/Deployment Diagram.png}
-    \caption{Deployment Diagram - Kiến trúc triển khai hệ thống}
-    \label{fig:deployment-diagram}
+%----------------------------------------------------------------------
+\section{Triển khai cơ sở dữ liệu (Neon) và Redis}
+%----------------------------------------------------------------------
+
+\textit{Nên có \texttt{DATABASE\_URL} và \texttt{REDIS\_URL} trước khi cấu hình \texttt{.env} trên EC2.}
+
+\subsection{Neon --- PostgreSQL}
+
+\begin{itemize}
+    \item Đăng ký / đăng nhập \href{https://neon.tech}{neon.tech}.
+    \item Tạo \textbf{Project} và database mặc định.
+    \item Sao chép \textbf{connection string} (PostgreSQL, có SSL) $\rightarrow$ dán vào \texttt{DATABASE\_URL} trong \texttt{backend/.env}.
+    \item Trên máy có mạng tới Neon: \texttt{cd backend} $\rightarrow$ \texttt{npm run prisma:generate} $\rightarrow$ \texttt{npm run prisma:migrate:deploy}.
+    \item Kiểm tra: Neon SQL Editor hoặc \texttt{npm run prisma:studio} (môi trường dev).
+    \item (Tùy chọn) \texttt{npm run prisma:seed} trên môi trường an toàn.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.92\textwidth]{Images/deploy/neon-project-connection.png}
+\fbox{\begin{minipage}{0.88\textwidth}\centering\vspace{2.2cm}
+\textit{[Chèn ảnh: Neon --- project / connection string / SQL editor]}\\[0.3em]
+\footnotesize Đặt file tại \texttt{Images/deploy/neon-project-connection.png} rồi bỏ comment \texttt{includegraphics} ở trên.
+\vspace{2.2cm}\end{minipage}}
+\caption{Minh họa: tạo project Neon và sao chép chuỗi kết nối.}
+\label{fig:deploy-neon}
 \end{figure}
 
-\subsection{Các thành phần chính}
-
-\subsubsection{Client Layer}
-
-\textbf{Client Layer} bao gồm các thiết bị và trình duyệt mà người dùng sử dụng để truy cập hệ thống:
+\subsection{Redis (cache)}
 
 \begin{itemize}
-    \item \textbf{Desktop Browser}: Chrome, Firefox, Safari trên máy tính
-    \item \textbf{Mobile Browser}: iOS Safari, Android Chrome trên điện thoại di động
-    \item \textbf{Tablet Browser}: Giao diện responsive trên máy tính bảng
+    \item Tạo database Redis (ví dụ \textbf{Upstash}: copy URL dạng \texttt{rediss://...}; hoặc \textbf{ElastiCache} trong AWS).
+    \item Gán \texttt{REDIS\_URL} trong \texttt{backend/.env}.
+    \item Khởi động lại tiến trình API (PM2) sau khi đổi biến.
 \end{itemize}
 
-Tất cả các client kết nối đến hệ thống thông qua giao thức \textbf{HTTPS (port 443)} cho các request thông thường và \textbf{WebSocket Secure (WSS)} cho các tính năng real-time như thông báo và chat.
+%----------------------------------------------------------------------
+\section{Triển khai back-end trên Amazon EC2}
+%----------------------------------------------------------------------
 
-\subsubsection{CDN Layer (Optional)}
+Stack: \textbf{Ubuntu + Node.js + PM2}; tùy chọn \textbf{Nginx + Certbot} (HTTPS, proxy tới cổng app).
 
-\textbf{Cloudflare CDN} là tầng tùy chọn được sử dụng để:
+\subsection{Tạo instance EC2}
 
 \begin{itemize}
-    \item \textbf{Caching}: Lưu cache các static assets (HTML, CSS, JavaScript, images) để tăng tốc độ tải trang
-    \item \textbf{DDoS Protection}: Bảo vệ hệ thống khỏi các cuộc tấn công DDoS
-    \item \textbf{SSL/TLS Termination}: Xử lý chứng chỉ SSL/TLS, giảm tải cho application server
+    \item AWS Console $\rightarrow$ EC2 $\rightarrow$ \textit{Launch instance}.
+    \item Chọn AMI \textbf{Ubuntu Server LTS} (x86\_64 hoặc Arm theo instance type).
+    \item Chọn instance type (ví dụ \texttt{t3.micro} / \texttt{t2.micro} nếu dùng free tier --- lưu ý giới hạn giờ).
+    \item Tạo hoặc chọn \textbf{key pair} (\texttt{.pem}); giữ file private key an toàn.
+    \item \textbf{Security group}: mở \textbf{22} (SSH, nên giới hạn IP nếu được), \textbf{80}, \textbf{443} cho HTTP/HTTPS từ Internet (Nginx chấm dứt TLS, proxy về app nội bộ).
+    \item Bật \textit{Auto-assign public IP} nếu cần truy cập từ Internet.
+    \item Ghi lại \textbf{Public IPv4} hoặc public DNS.
 \end{itemize}
 
-Khi CDN được triển khai, các static files sẽ được phục vụ từ CDN (cache hit), trong khi các request động sẽ được chuyển tiếp đến application server (cache miss). WebSocket connections có thể bypass CDN để kết nối trực tiếp với application server để đảm bảo độ trễ thấp.
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.92\textwidth]{Images/deploy/ec2-launch-instance.png}
+\fbox{\begin{minipage}{0.88\textwidth}\centering\vspace{2.2cm}
+\textit{[Chèn ảnh: EC2 --- Launch instance, chọn AMI / instance type]}\\[0.3em]
+\footnotesize File gợi ý: \texttt{Images/deploy/ec2-launch-instance.png}
+\vspace{2.2cm}\end{minipage}}
+\caption{Minh họa: khởi tạo instance EC2.}
+\label{fig:deploy-ec2-launch}
+\end{figure}
 
-\subsubsection{Application Server}
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.92\textwidth]{Images/deploy/ec2-security-group.png}
+\fbox{\begin{minipage}{0.88\textwidth}\centering\vspace{2.2cm}
+\textit{[Chèn ảnh: Security group --- cổng 22, 80, 443]}\\[0.3em]
+\footnotesize File gợi ý: \texttt{Images/deploy/ec2-security-group.png}
+\vspace{2.2cm}\end{minipage}}
+\caption{Minh họa: nhóm bảo mật (firewall) cho EC2.}
+\label{fig:deploy-ec2-sg}
+\end{figure}
 
-Hệ thống được triển khai trên \textbf{Render.com}, một platform-as-a-service (PaaS) cloud, với các thành phần sau:
-
-\paragraph{Node.js Runtime} 
-Môi trường thực thi sử dụng \textbf{Node.js version >= 18.0.0}, cung cấp nền tảng để chạy ứng dụng backend.
-
-\paragraph{React Frontend}
-Frontend được build bằng \textbf{Vite} và được deploy dưới dạng static files. Trong production, Express server phục vụ các static files này từ thư mục \texttt{frontend/dist/}, bao gồm:
-\begin{itemize}
-    \item HTML files
-    \item JavaScript bundles
-    \item CSS stylesheets
-    \item Assets (images, fonts, etc.)
-\end{itemize}
-
-\paragraph{Express API Server}
-Backend được xây dựng bằng \textbf{Express.js framework}, chịu trách nhiệm:
-\begin{itemize}
-    \item Xử lý các REST API endpoints
-    \item Áp dụng middleware stack (authentication, validation, rate limiting, error handling)
-    \item Thực thi business logic thông qua controllers
-    \item Tích hợp với các external services
-\end{itemize}
-
-\paragraph{Socket.IO Server}
-\textbf{Socket.IO server} được tích hợp vào cùng application server, cung cấp:
-\begin{itemize}
-    \item \textbf{WebSocket connections}: Kết nối real-time hai chiều với clients
-    \item \textbf{Real-time events}: Gửi và nhận events real-time
-    \item \textbf{Chat rooms}: Quản lý các phòng chat
-    \item \textbf{Push Notifications}: Gửi thông báo tức thì đến clients
-    \item \textbf{Live Updates}: Cập nhật trạng thái real-time (order status, notifications, etc.)
-\end{itemize}
-
-Socket.IO server tương tác với Express server để emit events khi có các thay đổi trong hệ thống (ví dụ: khi có đơn hàng mới, notification mới).
-
-\paragraph{Background Jobs}
-Hệ thống sử dụng \textbf{node-cron} để chạy các background jobs theo lịch:
-\begin{itemize}
-    \item \textbf{Auto-publish scheduled posts}: Tự động publish các bài viết đã được lên lịch
-    \item \textbf{Cleanup old notifications}: Xóa các thông báo cũ
-    \item \textbf{Reset monthly AI usage}: Reset số lần sử dụng AI theo tháng
-    \item \textbf{Clean expired content requests}: Xóa các yêu cầu tạo nội dung AI đã hết hạn
-\end{itemize}
-
-Các cron jobs được chạy in-process trong cùng application server, không cần infrastructure riêng biệt.
-
-\subsubsection{Database - PostgreSQL}
-
-Hệ thống sử dụng \textbf{PostgreSQL} làm database chính:
+\subsection{SSH và cài đặt máy chủ}
 
 \begin{itemize}
-    \item \textbf{Managed Database}: Database được quản lý bởi Render.com hoặc cloud provider khác
-    \item \textbf{ORM: Sequelize}: Sử dụng Sequelize ORM để tương tác với database, cung cấp abstraction layer và hỗ trợ migrations
-    \item \textbf{SSL/TLS Connection}: Tất cả các kết nối đến database đều được mã hóa bằng SSL/TLS để đảm bảo bảo mật
+    \item Từ máy dev, SSH vào instance (Windows: PowerShell / WSL / Terminal có sẵn \texttt{ssh}).
+    \item Ví dụ lệnh (đổi đường key và host):
+\begin{lstlisting}[language=bash]
+ssh -i "/duong/den/khoa.pem" ubuntu@ec2-xx-xx-xx-xx.ap-southeast-1.compute.amazonaws.com
+\end{lstlisting}
+    \item Trên server: \texttt{sudo apt update}; cài \texttt{git}.
+    \item Cài \textbf{Node.js LTS} (nvm hoặc NodeSource).
+    \item Cài PM2: \texttt{sudo npm install -g pm2}.
+    \item (Khuyến nghị) Cài \textbf{Nginx} + \textbf{Certbot} $\rightarrow$ chứng chỉ Let's Encrypt cho subdomain \texttt{api.*}; proxy \texttt{443} $\rightarrow$ \texttt{http://127.0.0.1:5000} và bật nâng cấp WebSocket cho Socket.IO.
 \end{itemize}
 
-Express server và cron jobs đều kết nối đến PostgreSQL thông qua Sequelize ORM để thực hiện các thao tác CRUD và query dữ liệu.
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.92\textwidth]{Images/deploy/ec2-ssh-connect.png}
+\fbox{\begin{minipage}{0.88\textwidth}\centering\vspace{2.2cm}
+\textit{[Chèn ảnh: AWS Console --- Connect / lệnh SSH hoặc terminal đã kết nối]}\\[0.3em]
+\footnotesize File gợi ý: \texttt{Images/deploy/ec2-ssh-connect.png}
+\vspace{2.2cm}\end{minipage}}
+\caption{Minh họa: kết nối SSH tới EC2.}
+\label{fig:deploy-ec2-ssh}
+\end{figure}
 
-\subsubsection{External Services}
+\subsection{Clone mã nguồn, Prisma, chạy API}
 
-Hệ thống tích hợp với các external services để cung cấp các tính năng bổ sung:
-
-\paragraph{AI Services}
-\textbf{Google Gemini API và Google Veo 2} được sử dụng để:
 \begin{itemize}
-    \item Tạo bài viết từ mô tả, ý tưởng và hình ảnh sản phẩm (Generate Text)
-    \item Tạo đồng thời bài viết và hình ảnh từ mô tả, ý tưởng và hình ảnh đầu vào (Generate Image + Text)
-    \item Tạo video ngắn kèm tối đa 3 hình ảnh và bài viết từ mô tả, ý tưởng và hình ảnh đầu vào (Generate Video + Images + Text)
+    \item \texttt{git clone} kho SoCo-DATN (monorepo).
+    \item \texttt{cd database \&\& npm install}; \texttt{cd ../backend \&\& npm install}.
+    \item Tạo \texttt{backend/.env}: \texttt{DATABASE\_URL}, \texttt{REDIS\_URL}, \texttt{JWT\_SECRET}, \texttt{SENSITIVE\_DATA\_KEY}, \texttt{FRONTEND\_URL} (sau có URL Vercel), Cloudinary/SMTP/AI nếu cần.
+    \item Chạy:
+\begin{lstlisting}[language=bash]
+cd backend
+npm run prisma:generate
+npm run prisma:migrate:deploy
+NODE_ENV=production pm2 start src/server.js --name soco-api
+pm2 save
+pm2 startup
+\end{lstlisting}
+    \item Sau khi có URL API HTTPS: dùng \texttt{https://.../api} cho \texttt{VITE\_API\_BASE\_URL} trên Vercel; cập nhật \texttt{FRONTEND\_URL} trên server $\rightarrow$ \texttt{pm2 restart soco-api}.
 \end{itemize}
 
-Kết nối đến Gemini API và Veo 2 sử dụng HTTPS/REST với API Key authentication. Hệ thống quản lý usage limit cho từng người dùng để kiểm soát chi phí và tài nguyên.
+%----------------------------------------------------------------------
+\section{Triển khai front-end trên Vercel}
+%----------------------------------------------------------------------
 
-\paragraph{File Storage}
-\textbf{Cloudinary} được sử dụng để:
+\subsection{Cấu hình project}
+
 \begin{itemize}
-    \item Lưu trữ và quản lý hình ảnh, video
-    \item Tối ưu hóa hình ảnh (resize, compress, format conversion)
-    \item Cung cấp CDN global để phân phối assets nhanh chóng
+    \item Đăng nhập \href{https://vercel.com}{vercel.com} (thường qua GitHub).
+    \item \textit{Add New $\rightarrow$ Project} $\rightarrow$ import repo chứa SoCo-DATN.
+    \item \textbf{Root Directory}: chọn \texttt{frontend}.
+    \item \textbf{Build Command}: \texttt{npm run build}.
+    \item \textbf{Output Directory}: \texttt{dist}.
+    \item \textbf{Install Command}: \texttt{npm install} (hoặc \texttt{npm ci} nếu nhóm dùng lockfile thống nhất).
 \end{itemize}
 
-Kết nối đến Cloudinary sử dụng HTTPS/REST API để upload và quản lý files.
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.92\textwidth]{Images/deploy/vercel-new-project.png}
+\fbox{\begin{minipage}{0.88\textwidth}\centering\vspace{2.2cm}
+\textit{[Chèn ảnh: Vercel --- Import / New Project, chọn repo]}\\[0.3em]
+\footnotesize File gợi ý: \texttt{Images/deploy/vercel-new-project.png}
+\vspace{2.2cm}\end{minipage}}
+\caption{Minh họa: tạo project Vercel từ GitHub.}
+\label{fig:deploy-vercel-new}
+\end{figure}
 
-\paragraph{Email Service}
-\textbf{Gmail SMTP} được sử dụng để:
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.92\textwidth]{Images/deploy/vercel-build-settings.png}
+\fbox{\begin{minipage}{0.88\textwidth}\centering\vspace{2.2cm}
+\textit{[Chèn ảnh: Root Directory = frontend, Build / Output]}\\[0.3em]
+\footnotesize File gợi ý: \texttt{Images/deploy/vercel-build-settings.png}
+\vspace{2.2cm}\end{minipage}}
+\caption{Minh họa: cấu hình build Vite (thư mục \texttt{frontend}, output \texttt{dist}).}
+\label{fig:deploy-vercel-build}
+\end{figure}
+
+\subsection{Biến môi trường và deploy}
+
 \begin{itemize}
-    \item Gửi email thông báo đến người dùng
-    \item Gửi email xác nhận đơn đăng ký seller
-    \item Gửi email thông báo về đơn hàng, reviews, etc.
+    \item \textit{Settings $\rightarrow$ Environment Variables}: thêm \texttt{VITE\_API\_BASE\_URL} = URL API HTTPS có \texttt{/api}.
+    \item \textit{Deploy}; khi xong, copy URL dạng \texttt{https://<ten>.vercel.app}.
+    \item Cập nhật \texttt{FRONTEND\_URL} trên EC2 khớp URL Vercel (hoặc domain custom) $\rightarrow$ restart PM2.
+    \item Push lên nhánh đã liên kết $\rightarrow$ Vercel có thể tự build lại (xem tab Deployments).
 \end{itemize}
 
-Kết nối sử dụng SMTP protocol (port 587) với TLS encryption, thông qua Nodemailer library.
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.92\textwidth]{Images/deploy/vercel-env-vars.png}
+\fbox{\begin{minipage}{0.88\textwidth}\centering\vspace{2.2cm}
+\textit{[Chèn ảnh: Vercel --- Environment Variables, \texttt{VITE\_API\_BASE\_URL}]}\\[0.3em]
+\footnotesize File gợi ý: \texttt{Images/deploy/vercel-env-vars.png}
+\vspace{2.2cm}\end{minipage}}
+\caption{Minh họa: thiết lập biến môi trường trên Vercel.}
+\label{fig:deploy-vercel-env}
+\end{figure}
 
-\paragraph{Payment Simulator}
-\textbf{Payment Simulator} là một mock service chạy local trong application server:
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.92\textwidth]{Images/deploy/vercel-deploy-success.png}
+\fbox{\begin{minipage}{0.88\textwidth}\centering\vspace{2.2cm}
+\textit{[Chèn ảnh: Vercel --- deployment thành công / preview URL]}\\[0.3em]
+\footnotesize File gợi ý: \texttt{Images/deploy/vercel-deploy-success.png}
+\vspace{2.2cm}\end{minipage}}
+\caption{Minh họa: kết quả triển khai frontend trên Vercel.}
+\label{fig:deploy-vercel-success}
+\end{figure}
+
+%----------------------------------------------------------------------
+\section{Backend quản trị và giao diện admin (tùy chọn)}
+%----------------------------------------------------------------------
+
 \begin{itemize}
-    \item Mô phỏng quá trình thanh toán (success/failure)
-    \item Chỉ sử dụng cho development và testing
-    \item Không có kết nối mạng ngoài, không xử lý tiền thật
+    \item \textbf{admin/backend}: tiến trình Node riêng (ví dụ PM2 thứ hai), cổng mặc định 5001; \texttt{DATABASE\_URL} trùng Neon; \texttt{ADMIN\_JWT\_SECRET}; \texttt{ADMIN\_CORS\_ORIGIN} khớp origin frontend admin.
+    \item \textbf{admin/frontend}: có thể tạo thêm project Vercel, Root \texttt{admin/frontend}; \texttt{VITE\_ADMIN\_API\_BASE\_URL}, \texttt{VITE\_CORE\_PUBLIC\_URL} (xem \texttt{admin/README.md}, \texttt{.env.example}).
 \end{itemize}
 
-\subsubsection{CI/CD Pipeline}
+%----------------------------------------------------------------------
+\section{Kết quả và checklist}
+%----------------------------------------------------------------------
 
-\textbf{GitHub} được sử dụng làm repository để:
+\subsection{Sau khi hoàn tất}
+
 \begin{itemize}
-    \item Lưu trữ source code
-    \item Version control
-    \item Quản lý pull requests và code reviews
+    \item Mở được SPA từ Vercel; REST và Socket.IO tới EC2 qua HTTPS/WSS.
+    \item Dữ liệu trên Neon; Redis hoạt động nếu đã cấu hình.
+    \item Ghi vào báo cáo: URL frontend production, URL kiểm tra \texttt{/health} (ví dụ \texttt{https://api.../health}).
 \end{itemize}
 
-\subsection{Đặc điểm kiến trúc}
+\subsection{Checklist production}
 
-\paragraph{Monolithic Deployment}
-Hệ thống được triển khai dưới dạng monolithic architecture, tất cả các components (Frontend, Backend API, Socket.IO, Cron Jobs) chạy trong cùng một application server. Điều này đơn giản hóa việc triển khai và quản lý, phù hợp với quy mô hiện tại của dự án.
-
-\paragraph{Server-Side Rendering Static Files}
-Frontend React được build thành static files và được phục vụ bởi Express server. Điều này cho phép:
 \begin{itemize}
-    \item Single deployment cho cả frontend và backend
-    \item Không cần CDN riêng cho static files (tùy chọn)
-    \item Dễ dàng quản lý và deploy
+    \item \texttt{NODE\_ENV=production}; không commit \texttt{.env}.
+    \item TLS cho API; \texttt{FRONTEND\_URL} và \texttt{VITE\_*} đúng domain công khai.
+    \item Đã chạy migration trên Neon; thử đăng nhập, upload Cloudinary, SMTP, AI (nếu bật).
+    \item Rà soát Security Group; hạn chế SSH mở rộng \texttt{0.0.0.0/0} nếu có thể.
 \end{itemize}
-
-\paragraph{Real-time Communication}
-Socket.IO được tích hợp trực tiếp vào application server, cho phép real-time communication mà không cần infrastructure riêng biệt. Điều này đơn giản hóa kiến trúc nhưng có thể ảnh hưởng đến khả năng mở rộng (scalability) nếu số lượng WebSocket connections tăng cao.
-
-\paragraph{External Service Integration}
-Hệ thống tích hợp với các external services thông qua REST API và SMTP, giúp:
-\begin{itemize}
-    \item Giảm tải cho application server (file storage, email sending)
-    \item Tận dụng các dịch vụ chuyên nghiệp (AI content generation, cloud storage)
-    \item Dễ dàng thay thế hoặc bổ sung services khi cần
-\end{itemize}
-
-\paragraph{Bảo mật}
-Tất cả các kết nối đều được mã hóa:
-\begin{itemize}
-    \item Client $\leftrightarrow$ Server: HTTPS/WSS (SSL/TLS)
-    \item Application $\leftrightarrow$ Database: SSL/TLS connection
-    \item Application $\leftrightarrow$ External Services: HTTPS (REST API) hoặc TLS (SMTP)
-\end{itemize}
-

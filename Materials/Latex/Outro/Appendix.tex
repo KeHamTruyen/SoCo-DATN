@@ -2,16 +2,21 @@
 
 \section{Phân chia công việc}
 
-Phần này trình bày chi tiết về phân chia công việc giữa các thành viên trong nhóm cho giai đoạn 1 của dự án (từ Chương 1 đến Chương 6). Công việc được phân chia một cách công bằng dựa trên khả năng và sở trường của từng thành viên, đồng thời đảm bảo tính hợp tác và hỗ trợ lẫn nhau trong quá trình phát triển dự án.
+Phần này trình bày phân chia công việc giữa các thành viên trong nhóm trong quá trình phân tích, thiết kế, hiện thực, kiểm thử và hoàn thiện báo cáo. Do quá trình phát triển hệ thống có nhiều phần phụ thuộc lẫn nhau, nhóm không tách công việc theo kiểu mỗi thành viên chỉ thực hiện một module độc lập. Thay vào đó, mỗi thành viên có một phạm vi phụ trách chính, đồng thời cùng tham gia review, chỉnh sửa và tích hợp các phần liên quan để đảm bảo hệ thống hoạt động thống nhất.
 
-\begin{longtable}{|p{1cm}|p{3.5cm}|p{10cm}|}
+{\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\begin{longtable}{|>{\centering\arraybackslash}p{0.05\textwidth}|>{\raggedright\arraybackslash}p{0.16\textwidth}|>{\raggedright\arraybackslash}p{0.285\textwidth}|>{\raggedright\arraybackslash}p{0.285\textwidth}|}
 \hline
-\textbf{STT} & \textbf{Họ và tên} & \textbf{Công việc} \\
+\textbf{STT} & \textbf{Họ và tên} & \textbf{Phạm vi phụ trách chính} & \textbf{Công việc phối hợp} \\
 \hline
 \endfirsthead
 
 \hline
-\textbf{STT} & \textbf{Họ và tên} & \textbf{Công việc} \\
+\textbf{STT} & \textbf{Họ và tên} & \textbf{Phạm vi phụ trách chính} & \textbf{Công việc phối hợp} \\
 \hline
 \endhead
 
@@ -21,60 +26,69 @@ Phần này trình bày chi tiết về phân chia công việc giữa các thà
 \hline
 \endlastfoot
 
-1 & Trần Hoàng Sơn & 1.1. Viết báo cáo Chương 1: Giới thiệu (động lực phát triển, phạm vi và mục tiêu dự án, cấu trúc báo cáo) \\
-& & 2.1.1. Nghiên cứu và phân tích các nền tảng social commerce hiện có (TikTok Shop, Facebook Marketplace) \\
-& & 2.1.2. Phân tích các hệ thống quản lý thương mại điện tử để tham khảo \\
-& & 3.1.3. Thiết kế Use Case Diagram cho Module 3: Hoạt động Thương mại (Products, Cart, Orders, Reviews) \\
-& & 3.2.3. Vẽ Activity Diagram cho các luồng E-commerce (thêm vào giỏ hàng, thanh toán, đánh giá sản phẩm) \\
-& & 3.3.3. Thiết kế Sequence Diagram cho các chức năng thương mại (đặt hàng, quản lý đơn hàng) \\
-& & 3.4.3. Thiết kế schema database cho các bảng liên quan đến E-commerce (Products, Cart, Orders, Reviews) \\
-& & 4.3. Nghiên cứu và so sánh các hệ quản trị cơ sở dữ liệu (PostgreSQL, MySQL, MongoDB) cho Chương 4 \\
-& & 5.1.3. Thiết kế giao diện UI/UX trên Figma cho Module 3: Thương mại (trang sản phẩm, giỏ hàng, thanh toán, quản lý đơn hàng) \\
-& & 5.2.3. Viết báo cáo Chương 5: Triển khai Hệ thống (phần thiết kế UI/UX Module 3) \\
-& & 6.1. Đóng góp vào viết báo cáo Chương 6: Tổng kết và Kế hoạch Tương lai \\
-& & 6.2. Review và chỉnh sửa toàn bộ tài liệu báo cáo \\
+1 & Trần Hoàng Sơn &
+\begin{itemize}
+    \item Phân tích yêu cầu và luồng nghiệp vụ thương mại: marketplace, sản phẩm, giỏ hàng, đặt hàng và đánh giá.
+    \item Thiết kế và rà soát các use case, activity diagram, sequence diagram cho nhóm chức năng Commerce.
+    \item Hiện thực và kiểm tra các luồng liên quan đến product, category, cart, order, review và seller dashboard.
+    \item Viết, chỉnh sửa các phần báo cáo liên quan đến yêu cầu, thiết kế và triển khai nhóm chức năng thương mại.
+\end{itemize}
+&
+\begin{itemize}
+    \item Phối hợp cập nhật ERD/schema cho các bảng sản phẩm, đơn hàng, đánh giá và thống kê seller.
+    \item Tham gia kiểm thử API bằng Postman cho các luồng product, cart, order, review và seller.
+    \item Review nội dung báo cáo, ảnh giao diện và các mô tả liên quan đến trải nghiệm mua hàng.
+\end{itemize}
+\\
 \hline
 
-2 & Phạm Lê Thanh & 2.1.1. Nghiên cứu và phân tích các nền tảng social commerce hiện có (Instagram Shopping, Pinterest Shopping) \\
-& & 2.2. Viết báo cáo Chương 2: Thu thập và Phân tích Yêu cầu (phân tích các hệ thống liên quan, xác định actors và functional requirements) \\
-& & 3.1.2. Thiết kế Use Case Diagram cho Module 2: Tương tác Xã hội (Posts, Comments, Follow, Messages, Groups) \\
-& & 3.2.2. Vẽ Activity Diagram cho các luồng Social (tạo bài đăng, tương tác, nhắn tin, tham gia nhóm) \\
-& & 3.3.2. Thiết kế Sequence Diagram cho các chức năng xã hội (đăng bài, bình luận, theo dõi, chat real-time) \\
-& & 3.4.2. Thiết kế schema database cho các bảng liên quan đến Social Features (Posts, Comments, Messages, Notifications) \\
-& & 4.1. Nghiên cứu và so sánh các công nghệ Frontend (React, Vue, Angular) cho Chương 4 \\
-& & 4.4. Nghiên cứu và so sánh các công nghệ Real-time (Socket.io, WebSocket, Server-Sent Events) cho Chương 4 \\
-& & 4.5. Viết báo cáo Chương 4: Nghiên cứu Công nghệ (phần Frontend và Real-time) \\
-& & 5.1.2. Thiết kế giao diện UI/UX trên Figma cho Module 2: Tương tác Xã hội (feed, tạo bài đăng, nhắn tin, nhóm) \\
-& & 5.1.4. Thiết kế giao diện UI/UX cho Module 6, 7: Lên lịch đăng bài và Hệ thống Thông báo \\
-& & 6.1. Đóng góp vào viết báo cáo Chương 6: Tổng kết và Kế hoạch Tương lai \\
+2 & Phạm Lê Thanh &
+\begin{itemize}
+    \item Phân tích yêu cầu và luồng nghiệp vụ mạng xã hội: feed, bài viết, bình luận, lượt thích, theo dõi, nhóm và nhắn tin.
+    \item Thiết kế và rà soát các use case, activity diagram, sequence diagram cho nhóm chức năng Social, Messaging, Group và Notification.
+    \item Hiện thực và kiểm tra các luồng liên quan đến post, product tag trong bài viết, comment, follow, group, message, notification và scheduled post.
+    \item Viết, chỉnh sửa các phần báo cáo liên quan đến frontend, real-time, social interaction và giao diện người dùng.
+\end{itemize}
+&
+\begin{itemize}
+    \item Phối hợp cập nhật ERD/schema cho các bảng post, post product tag, conversation, message, notification và group.
+    \item Tham gia kiểm thử API và kiểm thử giao diện cho các luồng feed, tạo bài, chat, thông báo và nhóm cộng đồng.
+    \item Review tính nhất quán giao diện, responsive và các ảnh minh họa trong chương triển khai.
+\end{itemize}
+\\
 \hline
 
-3 & Nguyễn Nhật Tân & 2.1.1. Nghiên cứu và phân tích các nền tảng social commerce hiện có (Shopee, Lazada) \\
-& & 2.2.1. Xác định và mô tả chi tiết các Actors (Visitor, User, Buyer, Seller, Admin) cho Chương 2 \\
-& & 2.3. Đặc tả các yêu cầu phi chức năng (Performance, Security, Availability, Usability, Scalability, Real-time) cho Chương 2 \\
-& & 3.1.1. Thiết kế Use Case Diagram cho Module 1: Quản lý Người dùng và Module 4: Hệ thống Quản trị \\
-& & 3.2.1. Vẽ Activity Diagram cho các luồng Authentication (đăng ký, đăng nhập, 2FA, quên mật khẩu) \\
-& & 3.3.1. Thiết kế Sequence Diagram cho các chức năng quản trị (quản lý người dùng, kiểm duyệt nội dung, xử lý báo cáo) \\
-& & 3.4.1. Thiết kế ERD tổng thể và schema database cho các bảng liên quan đến User Management và Admin \\
-& & 3.5. Thiết kế Architecture Diagram tổng thể của hệ thống \\
-& & 3.6. Thiết kế Component Diagram và Deployment Diagram \\
-& & 3.7. Viết báo cáo Chương 3: Thiết kế Hệ thống (phần Architecture Diagram, Component Diagram, Deployment Diagram) \\
-& & 4.2. Nghiên cứu và so sánh các công nghệ Backend (Node.js/Express, Django, Spring Boot) cho Chương 4 \\
-& & 4.6. Nghiên cứu và so sánh các công nghệ AI (Google Gemini, OpenAI GPT, Claude) cho Chương 4 \\
-& & 5.1.1. Thiết kế giao diện UI/UX trên Figma cho Module 1: Quản lý Người dùng (đăng ký, đăng nhập, profile, settings) \\
-& & 5.1.5. Thiết kế giao diện UI/UX trên Figma cho Module 4: Hệ thống Quản trị (dashboard, quản lý người dùng, báo cáo) \\
-& & 6.1. Đóng góp vào viết báo cáo Chương 6: Tổng kết và Kế hoạch Tương lai \\
+3 & Nguyễn Nhật Tân &
+\begin{itemize}
+    \item Phân tích và hiện thực các nhóm chức năng nền tảng: authentication, user/profile, 2FA, seller verification, admin và report moderation.
+    \item Thiết kế kiến trúc tổng thể, component diagram, deployment diagram và rà soát schema Prisma/PostgreSQL.
+    \item Hiện thực và kiểm tra các luồng AI content generation, AI Shopping Assistant, report, admin dashboard và seller approval.
+    \item Tổng hợp, chuẩn hóa và chỉnh sửa báo cáo theo source code thực tế; cập nhật ERD, architecture, testing và conclusion.
+\end{itemize}
+&
+\begin{itemize}
+    \item Phối hợp tích hợp frontend--backend, xử lý lỗi phát sinh khi các module giao tiếp qua API và Socket.IO.
+    \item Tham gia kiểm thử API tổng hợp, kiểm thử bảo mật/phân quyền và kiểm thử hiệu suất bằng Chrome DevTools/Lighthouse.
+    \item Review toàn bộ báo cáo cuối kỳ để đảm bảo thuật ngữ, sơ đồ và nội dung khớp với sản phẩm đã triển khai.
+\end{itemize}
+\\
 \hline
 
 \end{longtable}
 
-\section{Ghi chú về phân chia công việc}
+\section{Công việc thực hiện chung}
+
+Bên cạnh phạm vi phụ trách chính của từng thành viên, một số công việc được nhóm thực hiện chung do có ảnh hưởng đến nhiều phần của hệ thống:
 
 \begin{itemize}
-    \item Công việc được phân chia dựa trên sở trường và khả năng của từng thành viên, đảm bảo tính công bằng và hiệu quả.
-    \item Các công việc quan trọng như thiết kế ERD, Architecture Diagram được thực hiện chung để đảm bảo tính nhất quán và chất lượng.
-    \item Việc phân chia công việc được điều chỉnh linh hoạt trong quá trình phát triển dự án để đảm bảo tiến độ và chất lượng.
-    \item Tất cả các thành viên đều tham gia vào quá trình review và chỉnh sửa để đảm bảo chất lượng tài liệu.
-    \item Các module phức tạp được phân chia để tận dụng điểm mạnh của từng thành viên, đồng thời đảm bảo tính hợp tác.
+    \item \textbf{Phân tích yêu cầu}: cùng rà soát vai trò Guest, Buyer, Seller và Admin; thống nhất phạm vi chức năng đã triển khai so với yêu cầu ban đầu.
+    \item \textbf{Thiết kế hệ thống}: cùng kiểm tra Use Case Diagram, Activity Diagram, Sequence Diagram, ERD, Architecture Diagram, Component Diagram và Deployment Diagram để đảm bảo các sơ đồ không mâu thuẫn với source code.
+    \item \textbf{Tích hợp hệ thống}: cùng xử lý các vấn đề phát sinh giữa frontend, backend, admin app, database, Cloudinary, Socket.IO và các API AI.
+    \item \textbf{Kiểm thử}: cùng xây dựng và chạy test case Postman cho cả trường hợp thành công và thất bại có chủ đích; kiểm tra phân quyền, validation, side effect và dữ liệu trong database.
+    \item \textbf{Hoàn thiện báo cáo}: cùng cập nhật nội dung theo sản phẩm thực tế, chuẩn hóa thuật ngữ, thay hình minh họa, chỉnh bảng biểu và rà soát lỗi trình bày trước khi nộp.
 \end{itemize}
+
+\section{Ghi chú về phân chia công việc}
+
+Việc phân chia trên phản ánh phạm vi chịu trách nhiệm chính trong quá trình thực hiện đồ án. Trên thực tế, các thành viên thường xuyên hỗ trợ lẫn nhau, đặc biệt ở những phần có tính liên thông như post gắn sản phẩm, notification, order, seller dashboard, admin moderation và AI assistant. Vì vậy, bảng phân công được hiểu là vai trò chính và mức độ đóng góp nổi bật của từng thành viên, không phải ranh giới tuyệt đối giữa các phần việc.
 

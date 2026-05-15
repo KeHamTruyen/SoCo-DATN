@@ -1,0 +1,145 @@
+erDiagram
+    User {
+        String id PK
+        String email UK
+        String username UK
+        String passwordHash
+        String fullName
+        String phone
+        String avatarUrl
+        String coverImage
+        String bio
+        String address
+        string more_fields
+    }
+    Category {
+        String id PK
+        String name
+        String slug UK
+        String description
+        String iconUrl
+        String parentId
+        Int displayOrder
+        Boolean isActive
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    Product {
+        String id PK
+        String sellerId
+        String title
+        String slug UK
+        String description
+        Decimal price
+        Decimal compareAtPrice
+        Decimal costPrice
+        String sku
+        Int stockQuantity
+        string more_fields
+    }
+    ProductDeletionAudit {
+        String id PK
+        String productId
+        String actorId
+        String actorRole
+        String event
+        String reason
+        Json meta
+        DateTime createdAt
+    }
+    ProductImage {
+        String id PK
+        String productId
+        String imageUrl
+        String altText
+        Int displayOrder
+        Boolean isPrimary
+        DateTime createdAt
+    }
+    ProductVariant {
+        String id PK
+        String productId
+        String variantName
+        String sku
+        Decimal price
+        Int stockQuantity
+        Json options
+        Boolean isActive
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    Cart {
+        String id PK
+        String userId
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    CartItem {
+        String id PK
+        String cartId
+        String productId
+        String variantId
+        Int quantity
+        Decimal price
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    Order {
+        String id PK
+        String orderNumber UK
+        String buyerId
+        Decimal subtotal
+        Decimal shippingFee
+        Decimal tax
+        Decimal discount
+        Decimal total
+        String shippingName
+        String shippingPhone
+        string more_fields
+    }
+    OrderItem {
+        String id PK
+        String orderId
+        String productId
+        String variantId
+        String sellerId
+        String productName
+        String productImageUrl
+        Json variantInfo
+        Int quantity
+        Decimal unitPrice
+        string more_fields
+    }
+    Review {
+        String id PK
+        String productId
+        String orderItemId UK
+        String userId
+        Int rating
+        String title
+        String content
+        String images
+        String sellerResponse
+        DateTime sellerResponseAt
+        string more_fields
+    }
+    Category ||--o{ Category : parent
+    Category ||--o{ Category : children
+    Product ||--o{ Category : products
+    User ||--o{ Product : seller
+    Category ||--o{ Product : categories
+    Product ||--o{ ProductImage : product
+    Product ||--o{ ProductVariant : product
+    User ||--o{ Cart : user
+    Cart ||--o{ CartItem : cart
+    Product ||--o{ CartItem : product
+    ProductVariant ||--o{ CartItem : variant
+    User ||--o{ Order : buyer
+    Order ||--o{ OrderItem : order
+    Product ||--o{ OrderItem : product
+    ProductVariant ||--o{ OrderItem : variant
+    User ||--o{ OrderItem : seller
+    Review ||--o{ OrderItem : review
+    Product ||--o{ Review : product
+    OrderItem ||--o{ Review : orderItem
+    User ||--o{ Review : user

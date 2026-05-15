@@ -1,7 +1,6 @@
 \documentclass[a4paper,12pt]{report}
 % ================= GÓI CƠ BẢN & TIẾNG VIỆT =================
-\usepackage{vntex}
-\usepackage[utf8]{inputenc}
+\usepackage[utf8]{vntex}
 \usepackage[vietnamese]{babel}
 \usepackage{mathptmx} % Font
 \usepackage[a4paper,
@@ -17,6 +16,7 @@
 \usetikzlibrary{calc}
 \usepackage{float} % Để cố định hình ảnh bằng [H]
 \usepackage{subcaption} % Hỗ trợ chèn nhiều hình nhỏ (a, b) trong 1 hình lớn
+\usepackage{pdflscape} % Trang ngang cho hình lớn
 % ================= GÓI BẢNG BIỂU (TABLES) =================
 \usepackage{array}
 \usepackage{booktabs} % Kẻ bảng đẹp hơn (toprule, midrule...)
@@ -25,6 +25,7 @@
 \usepackage{longtable} % Bảng dài qua trang
 \usepackage{pgfgantt}
 \usepackage{tabularx} % Bảng tự co giãn độ rộng
+\usepackage{seqsplit} % Cho phép tự xuống dòng các chuỗi endpoint dài trong bảng
 % ================= GÓI MÃ NGUỒN (CODE LISTING) =================
 \usepackage{listings}
 \usepackage{xcolor}
@@ -76,7 +77,7 @@
     \footnotesize\textbf{Khoa KH \& KT Máy Tính}
   \end{tabular}%
 }
-\fancyfoot[L]{\scriptsize Báo cáo Đồ án chuyên ngành - HK1 2025-2026}
+\fancyfoot[L]{\scriptsize Báo cáo Đồ án tốt nghiệp - HK2 2025-2026}
 \fancyfoot[R]{\scriptsize Trang \thepage/\pageref{LastPage}}
 \renewcommand{\headrulewidth}{0.3pt}
 \renewcommand{\footrulewidth}{0.3pt}
@@ -98,26 +99,25 @@
 \includegraphics[width=3.6cm]{Images/hcmut.png}\\[8mm]
 % Tiêu đề đồ án
 {\fontsize{24}{28}\selectfont\bfseries BÁO CÁO}\\[4mm]
-{\fontsize{16}{19}\selectfont\bfseries ĐỒ ÁN CHUYÊN NGÀNH}\\[12mm]
+{\fontsize{16}{19}\selectfont\bfseries ĐỒ ÁN TỐT NGHIỆP}\\[12mm]
 % Tên đề tài
 \begin{minipage}{0.92\textwidth}
 \centering\fontsize{14}{17}\selectfont\bfseries
-XÂY DỰNG HỆ THỐNG SOCIAL COMMERCE TÍCH HỢP AI \\[2mm]
-CHO TẠO NỘI DUNG, BÁN HÀNG VÀ CHĂM SÓC KHÁCH
+XÂY DỰNG HỆ THỐNG SOCIAL COMMERCE  \\[2mm]
+
 \end{minipage}\\[10mm]
 {\fontsize{13}{16}\selectfont\bfseries NGÀNH: KHOA HỌC MÁY TÍNH}\\[14mm]
 % Thông tin hội đồng & sinh viên
 \begin{tabular}{>{\raggedleft\bfseries}p{4.2cm} p{8cm}}
-\fontsize{12}{14}\selectfont HỘI ĐỒNG: & \fontsize{12}{14}\selectfont Hội đồng 7L Đồ án chuyên ngành \\[5mm]
-\fontsize{12}{14}\selectfont GVHD: & \fontsize{12}{14}\selectfont Mr. Mai Duc Trung, MSc \\[5mm]
-                          & \fontsize{12}{14}\selectfont CN. Nguyễn Minh Tâm \\
-                          & \fontsize{13}{15}\selectfont ---o0o--- \\[6mm]
+\fontsize{12}{14}\selectfont HỘI ĐỒNG: & \fontsize{12}{14}\selectfont Hội đồng 5L Khoa học Máy tính \\[5mm]
+\fontsize{12}{14}\selectfont GVHD: & \fontsize{12}{14}\selectfont ThS. Mai Đức Trung \\[5mm]
+                          & \fontsize{12}{14}\selectfont ThS. Nguyễn Minh Tâm \\
 \fontsize{12}{14}\selectfont SVTH: & \fontsize{12}{14}\selectfont Nguyễn Nhật Tân (2213059) \\[4mm]
                           & \fontsize{12}{14}\selectfont Phạm Lê Thanh (2112273) \\[4mm]
                           & \fontsize{12}{14}\selectfont Trần Hoàng Sơn (2114672) \\
 \end{tabular}\\[12mm]
 % Năm
-{\fontsize{12}{14}\selectfont TP. HỒ CHÍ MINH, THÁNG 12 NĂM 2025}
+{\fontsize{12}{14}\selectfont TP. HỒ CHÍ MINH, THÁNG 5 NĂM 2026}
 \end{center}
 \end{titlepage}
 %===================================================================================
@@ -139,14 +139,23 @@ CHO TẠO NỘI DUNG, BÁN HÀNG VÀ CHĂM SÓC KHÁCH
 \clearpage
 \input{Contents/2_RequirementElicitation}
 \clearpage
-\input{Contents/3_SystemDesign}
-\clearpage
 \input{Contents/4_TechnologyResearch}
 \clearpage
+
+\input{Contents/3_SystemDesign}
+\clearpage
+
 \input{Contents/5_SystemImplementation}
 \clearpage
-\input{Contents/6_SummaryAndFuturePlan}
+\input{Contents/6_Testing}
 \clearpage
+
+\input{Contents/7_SystemDeploy}
+\clearpage
+
+\input{Contents/8_Conclusion}
+\clearpage
+
 \input{Outro/References}
 \clearpage
 \input{Outro/Appendix}

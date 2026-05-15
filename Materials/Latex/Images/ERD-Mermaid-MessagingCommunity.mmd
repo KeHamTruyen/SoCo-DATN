@@ -1,0 +1,121 @@
+erDiagram
+    User {
+        String id PK
+        String email UK
+        String username UK
+        String passwordHash
+        String fullName
+        String phone
+        String avatarUrl
+        String coverImage
+        String bio
+        String address
+        string more_fields
+    }
+    Conversation {
+        String id PK
+        ConversationType type
+        String name
+        String avatarUrl
+        String createdBy
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    ConversationParticipant {
+        String id PK
+        String conversationId
+        String userId
+        String role
+        DateTime joinedAt
+        DateTime lastReadAt
+    }
+    Message {
+        String id PK
+        String conversationId
+        String senderId
+        String content
+        MessageType messageType
+        String mediaUrl
+        String productId
+        String orderId
+        Boolean isRead
+        Boolean isDeleted
+        string more_fields
+    }
+    Notification {
+        String id PK
+        String userId
+        String type
+        String title
+        String message
+        String relatedUserId
+        String relatedProductId
+        String relatedOrderId
+        String relatedPostId
+        String actionUrl
+        string more_fields
+    }
+    Group {
+        String id PK
+        String name
+        String slug UK
+        String description
+        String coverImageUrl
+        String avatarUrl
+        GroupPrivacy privacy
+        Boolean isApprovedPosts
+        String createdBy
+        Int membersCount
+        string more_fields
+    }
+    GroupMember {
+        String id PK
+        String groupId
+        String userId
+        GroupMemberRole role
+        DateTime joinedAt
+    }
+    GroupJoinRequest {
+        String id PK
+        String groupId
+        String userId
+        GroupJoinRequestStatus status
+        String reviewedBy
+        DateTime reviewedAt
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    GroupInvite {
+        String id PK
+        String groupId
+        String code UK
+        String createdBy
+        String usedBy
+        DateTime expiresAt
+        Int maxUses
+        Int usedCount
+        Boolean isActive
+        DateTime createdAt
+        string more_fields
+    }
+    Notification ||--o{ User : notifications
+    Notification ||--o{ User : relatedNotifications
+    GroupJoinRequest ||--o{ User : reviewedGroupJoinRequests
+    GroupInvite ||--o{ User : createdGroupInvites
+    GroupInvite ||--o{ User : usedGroupInvites
+    User ||--o{ Conversation : creator
+    Conversation ||--o{ ConversationParticipant : conversation
+    User ||--o{ ConversationParticipant : user
+    Conversation ||--o{ Message : conversation
+    User ||--o{ Message : sender
+    User ||--o{ Notification : user
+    User ||--o{ Notification : relatedUser
+    User ||--o{ Group : creator
+    Group ||--o{ GroupMember : group
+    User ||--o{ GroupMember : user
+    Group ||--o{ GroupJoinRequest : group
+    User ||--o{ GroupJoinRequest : user
+    User ||--o{ GroupJoinRequest : reviewer
+    Group ||--o{ GroupInvite : group
+    User ||--o{ GroupInvite : creator
+    User ||--o{ GroupInvite : usedByUser

@@ -33,7 +33,10 @@ Module này cung cấp các công cụ quyền lực cho Quản trị viên (Adm
     \item Hệ thống yêu cầu xác nhận hành động.
     \item Quản trị viên xác nhận, và hệ thống cập nhật trạng thái của tài khoản.
 \end{enumerate} \\ \hline
-\textbf{Ngoại lệ} & E1: Quản trị viên cố gắng thực hiện hành động trên tài khoản quản trị viên khác có quyền hạn cao hơn $\rightarrow$ Hệ thống từ chối. \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Quản trị viên cố gắng thực hiện hành động trên tài khoản quản trị viên khác có quyền hạn cao hơn $\rightarrow$ Hệ thống từ chối.
+\end{itemize} \\ \hline
 \textbf{Ghi chú} & Chức năng này giúp admin duy trì sự kiểm soát đối với cộng đồng người dùng. \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Quản lý người dùng}
@@ -96,8 +99,14 @@ Module này cung cấp các công cụ quyền lực cho Quản trị viên (Adm
     \item Quản trị viên thực hiện hành động thông qua các công cụ quản lý.
     \item Quản trị viên đánh dấu báo cáo là ``Đã xử lý''.
 \end{enumerate} \\ \hline
-\textbf{Luồng thay thế} & A1: Quản trị viên xác định báo cáo là không hợp lệ và đánh dấu là ``Từ chối''. \\ \hline
-\textbf{Ngoại lệ} & E1: Nội dung bị báo cáo đã được người dùng tự xóa trước khi admin xử lý $\rightarrow$ Admin đánh dấu báo cáo là đã giải quyết. \\ \hline
+\textbf{Luồng thay thế} & 
+\begin{itemize}
+    \item A1: Quản trị viên xác định báo cáo là không hợp lệ và đánh dấu là ``Từ chối''.
+\end{itemize} \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Nội dung bị báo cáo đã được người dùng tự xóa trước khi admin xử lý $\rightarrow$ Admin đánh dấu báo cáo là đã giải quyết.
+\end{itemize} \\ \hline
 \textbf{Ghi chú} & Đây là chức năng tương tác trực tiếp với phản hồi của cộng đồng để duy trì một môi trường an toàn. \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Xử lý báo cáo}
@@ -124,7 +133,10 @@ Module này cung cấp các công cụ quyền lực cho Quản trị viên (Adm
     \item Hệ thống hiển thị các biểu đồ trực quan, chẳng hạn như: Biểu đồ đường thể hiện số lượng người dùng mới; Biểu đồ tròn thể hiện tỷ lệ giữa người mua và người bán.
     \item Quản trị viên có thể thay đổi khoảng thời gian xem thống kê (ví dụ: 7 ngày qua, 30 ngày qua).
 \end{enumerate} \\ \hline
-\textbf{Ngoại lệ} & E1: Lỗi khi tổng hợp dữ liệu $\rightarrow$ Hệ thống báo lỗi. \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Lỗi khi tổng hợp dữ liệu $\rightarrow$ Hệ thống báo lỗi.
+\end{itemize} \\ \hline
 \textbf{Ghi chú} & Các công cụ phân tích này rất quan trọng để theo dõi sự tăng trưởng của hệ thống. \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Thống kê hệ thống}

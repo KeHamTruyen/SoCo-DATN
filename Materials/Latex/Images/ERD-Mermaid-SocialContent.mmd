@@ -1,0 +1,126 @@
+erDiagram
+    User {
+        String id PK
+        String email UK
+        String username UK
+        String passwordHash
+        String fullName
+        String phone
+        String avatarUrl
+        String coverImage
+        String bio
+        String address
+        string more_fields
+    }
+    Product {
+        String id PK
+        String sellerId
+        String title
+        String slug UK
+        String description
+        Decimal price
+        Decimal compareAtPrice
+        Decimal costPrice
+        String sku
+        Int stockQuantity
+        string more_fields
+    }
+    Post {
+        String id PK
+        String authorId
+        String content
+        String mediaUrls
+        String mediaType
+        String groupId
+        String location
+        String feeling
+        String taggedUserIds
+        Int likesCount
+        string more_fields
+    }
+    PostProductTag {
+        String id PK
+        String postId
+        String productId
+        PostProductAnchorType anchorType
+        Float positionX
+        Float positionY
+        String blockId
+        Int startOffset
+        Int endOffset
+        Int sortOrder
+        string more_fields
+    }
+    PostLike {
+        String id PK
+        String postId
+        String userId
+        DateTime createdAt
+    }
+    PostComment {
+        String id PK
+        String postId
+        String userId
+        String parentId
+        String content
+        Int likesCount
+        DateTime createdAt
+        DateTime updatedAt
+    }
+    ScheduledPost {
+        String id PK
+        String userId
+        String content
+        String mediaUrls
+        String mediaType
+        String location
+        String feeling
+        String taggedUserIds
+        PostVisibility visibility
+        DateTime scheduledTime
+        string more_fields
+    }
+    ScheduledPostProductTag {
+        String id PK
+        String scheduledPostId
+        String productId
+        PostProductAnchorType anchorType
+        Float positionX
+        Float positionY
+        String blockId
+        Int startOffset
+        Int endOffset
+        Int sortOrder
+        string more_fields
+    }
+    Follow {
+        String id PK
+        String followerId
+        String followingId
+        DateTime createdAt
+    }
+    SavedItem {
+        String id PK
+        String userId
+        SavedItemType itemType
+        String targetId
+        DateTime createdAt
+    }
+    Follow ||--o{ User : followers
+    Follow ||--o{ User : following
+    User ||--o{ Product : seller
+    User ||--o{ Post : author
+    Post ||--o{ PostProductTag : post
+    Product ||--o{ PostProductTag : product
+    Post ||--o{ PostLike : post
+    User ||--o{ PostLike : user
+    Post ||--o{ PostComment : post
+    User ||--o{ PostComment : user
+    PostComment ||--o{ PostComment : parent
+    PostComment ||--o{ PostComment : replies
+    User ||--o{ ScheduledPost : user
+    ScheduledPost ||--o{ ScheduledPostProductTag : scheduledPost
+    Product ||--o{ ScheduledPostProductTag : product
+    User ||--o{ Follow : follower
+    User ||--o{ Follow : following
+    User ||--o{ SavedItem : user

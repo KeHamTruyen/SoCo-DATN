@@ -1,133 +1,181 @@
-Dưới đây là mô tả chi tiết các entity, nêu ra vai trò, attribute và các relationship trong hệ thống.
+Dưới đây là mô tả thiết kế cơ sở dữ liệu của hệ thống theo schema PostgreSQL thực tế được định nghĩa bằng Prisma. Do schema hiện tại có nhiều bảng và nhiều quan hệ xoay quanh các entity trung tâm như \textit{User}, \textit{Product}, \textit{Post} và \textit{Order}, sơ đồ ERD được trình bày bằng các sơ đồ tách theo nhóm chức năng. Cách tách này giúp hạn chế tình trạng đường nối chồng chéo khi đặt toàn bộ entity vào một hình duy nhất, đồng thời giúp người đọc dễ theo dõi từng miền dữ liệu.
+
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{Images/ERD.png}
-  \caption{Sơ đồ ERD (Entity Relationship Diagram) - Mô hình thực thể kết hợp của hệ thống}
-  \label{fig:erd-diagram}
+  \includegraphics[width=\textwidth]{Images/ERD-Mermaid-UserAuth.png}
+  \caption{ERD Mermaid cho nhóm User, Authentication và Seller Verification}
+  \label{fig:erd-user-auth}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/ERD-Mermaid-Commerce.png}
+  \caption{ERD Mermaid cho nhóm Product, Cart, Order và Review}
+  \label{fig:erd-commerce}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/ERD-Mermaid-SocialContent.png}
+  \caption{ERD Mermaid cho nhóm Social Content và Product Tags}
+  \label{fig:erd-social-content}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/ERD-Mermaid-MessagingCommunity.png}
+  \caption{ERD Mermaid cho nhóm Messaging, Notification và Community}
+  \label{fig:erd-messaging-community}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{Images/ERD-Mermaid-AIAnalyticsModeration.png}
+  \caption{ERD Mermaid cho nhóm AI, Analytics và Moderation}
+  \label{fig:erd-ai-analytics}
 \end{figure}
 
 \subsection{Thực thể (Entities)}
-\paragraph{USER} Entity đại diện cho người dùng chung của hệ thống (buyer hoặc seller). Attributes: \textit{userId} (PK), email (UK), password, username, fullName, role (buyer/seller), isVerified, isActive, aiUsageCount (số lần đã sử dụng AI), aiUsageLimit (giới hạn số lần sử dụng AI), followersCount, followingCount, (...), createdAt, updatedAt.
 
-\paragraph{PROFILE} Entity lưu trữ hồ sơ công khai/riêng tư gắn với người dùng. Attributes: \textit{profileId} (PK), \textit{userId} (FK), avatar, coverPhoto, bio, location, profileVisibility (public/followers/private), showEmail, allowMessages (all/followees), (...), createdAt, updatedAt.
+\paragraph{Admin} Entity đại diện cho tài khoản quản trị tách riêng khỏi tài khoản buyer/seller. Attributes chính: \textit{id} (PK), email (UK), username (UK), passwordHash, fullName, phone, department, jobTitle, permissions, isActive, lastLogin, createdAt, updatedAt. Admin có thể duyệt hồ sơ seller, xử lý báo cáo vi phạm và duyệt yêu cầu thay đổi dữ liệu nhạy cảm.
 
-\paragraph{AUTHENTICATION} Entity quản lý thông tin đăng nhập và bảo mật. Attributes: \textit{authId} (PK), \textit{userId} (FK), refreshToken, otpCode, otpExpiresAt, is2FAEnabled, loginAttempts, lockUntil, verificationToken, passwordResetToken, (...), createdAt, updatedAt.
+\paragraph{User} Entity đại diện cho người dùng chính của nền tảng với vai trò BUYER hoặc SELLER. Attributes chính: \textit{id} (PK), email (UK), username (UK), passwordHash, fullName, phone, avatarUrl, coverImage, bio, address, role, isVerified, isActive, privacySettings, shopInformation, lastLogin, createdAt, updatedAt.
 
-\paragraph{NOTIFICATION\_SETTINGS} Entity lưu trữ cấu hình thông báo cá nhân. Attributes: \textit{settingsId} (PK), \textit{userId} (FK), postInteractions, comments, follows, orderUpdates, reviews, messages, emailNotifications, emailDigest (never/daily/weekly), pushNotifications, quietHoursEnabled, (...), updatedAt.
+\paragraph{TwoFactorAuth} Entity lưu cấu hình xác thực hai yếu tố của người dùng. Attributes chính: \textit{id} (PK), userId (FK, UK), secretKey, backupCodes, isEnabled, createdAt, updatedAt.
 
-\paragraph{NOTIFICATION} Entity lưu trữ bản ghi thông báo gửi tới người dùng. Attributes: \textit{notificationId} (PK), fromUserId (FK), toUserId (FK), type, title, content, relatedId, relatedType, link, read, readAt, priority (low/normal/high/urgent), (...), createdAt.
+\paragraph{PasswordResetToken} Entity lưu token đặt lại mật khẩu. Attributes chính: \textit{id} (PK), userId (FK), token (UK), expiresAt, used, createdAt.
 
-\paragraph{POST} Entity đại diện cho bài viết của người dùng. Attributes: \textit{postId} (PK), \textit{userId} (FK), text (nội dung văn bản), images[] (danh sách ảnh), hashtags[], taggedProducts[], likesCount, commentsCount, viewsCount, visibility (public/followers/private), isAIGenerated (được tạo bởi AI), aiGenerationType (generate\_text/generate\_image\_text/generate\_video\_images\_text - loại tạo nội dung AI), status (draft/scheduled/published/archived), scheduledDate, publishedAt, (...), createdAt, updatedAt.
+\paragraph{SellerVerification} Entity lưu hồ sơ xác minh seller theo quy trình nhiều bước. Attributes chính: \textit{id} (PK), userId (FK, UK), step1Completed, idCardNumber, idCardFrontUrl, idCardBackUrl, shopLogoUrl, shopCoverUrl, dateOfBirth, address, step2Completed, businessName, businessType, businessLicenseNumber, businessLicenseUrl, taxCode, step3Completed, bankName, bankAccountNumber, bankAccountName, bankBranch, status, rejectionReason, verifiedAt, verifiedBy, createdAt, updatedAt.
 
-\paragraph{COMMENT} Entity đại diện cho bình luận trên bài viết. Attributes: \textit{commentId} (PK), \textit{postId} (FK), \textit{userId} (FK), text, isEdited, editedAt, createdAt, updatedAt.
+\paragraph{SellerSensitiveChangeRequest} Entity lưu yêu cầu thay đổi dữ liệu nhạy cảm sau khi đã trở thành seller. Attributes chính: \textit{id} (PK), userId (FK), status, idCardNumberCipher, bankAccountNumberCipher, idCardFrontPublicId, idCardBackPublicId, bankName, bankAccountName, rejectionReason, reviewedBy, reviewedAt, createdAt, updatedAt.
 
-\paragraph{GROUP} Entity đại diện cho nhóm cộng đồng. Attributes: \textit{groupId} (PK), name, description, adminIds[], isPrivate, createdAt, updatedAt.
+\paragraph{SellerSensitiveAuditLog} Entity ghi nhận audit log cho các thao tác liên quan đến dữ liệu nhạy cảm của seller. Attributes chính: \textit{id} (PK), subjectUserId, actorUserId, actorAdminId, action, entityType, entityId, meta, createdAt.
 
-\paragraph{MESSAGE} Entity lưu trữ tin nhắn giữa người dùng. Attributes: \textit{messageId} (PK), conversationId, senderId (FK), receiverId (FK), content, type (text/image/product\_link), linkedProductId, isRead, readAt, (...), createdAt.
+\paragraph{Category} Entity đại diện cho danh mục sản phẩm có hỗ trợ cây cha-con. Attributes chính: \textit{id} (PK), name, slug (UK), description, iconUrl, parentId, displayOrder, isActive, createdAt, updatedAt.
 
-\paragraph{PRODUCT} Entity đại diện cho sản phẩm do người bán đăng. Attributes: \textit{productId} (PK), sellerId (FK), name, description, images[], price, category, tags[], compareAtPrice, inventory, rating, reviewsCount, soldCount, viewsCount, isActive, (...), createdAt, updatedAt.
+\paragraph{Product} Entity đại diện cho sản phẩm do seller tạo. Attributes chính: \textit{id} (PK), sellerId (FK), title, slug (UK), description, price, compareAtPrice, costPrice, sku, stockQuantity, lowStockThreshold, trackInventory, weight, dimensions, status, deletionState, deletedAt, deletedBy, deleteReason, purgeAfter, metaTitle, metaDescription, metaKeywords, viewsCount, likesCount, commentsCount, salesCount, createdAt, updatedAt, publishedAt.
 
-\paragraph{CART} Entity đại diện cho giỏ hàng của người mua. Attributes: \textit{cartId} (PK), \textit{userId} (FK), totalPrice, totalItems, createdAt, updatedAt.
+\paragraph{ProductDeletionAudit} Entity ghi lịch sử xóa/khôi phục/purge sản phẩm. Attributes chính: \textit{id} (PK), productId, actorId, actorRole, event, reason, meta, createdAt.
 
-\paragraph{ORDER} Entity đại diện cho đơn hàng giữa người mua và người bán. Attributes: \textit{orderId} (PK), buyerId (FK), sellerId (FK), orderNumber (UK), subtotal, totalPrice, shippingFee, shippingAddress, shippingCity, paymentMethod, paymentStatus (pending/paid/failed/refunded), status (pending/confirmed/processing/shipped/delivered/cancelled/refunded), trackingNumber, refund\_status, refund\_reason, (...), createdAt, updatedAt.
+\paragraph{ProductImage} Entity lưu ảnh sản phẩm. Attributes chính: \textit{id} (PK), productId (FK), imageUrl, altText, displayOrder, isPrimary, createdAt.
 
-\paragraph{REVIEW} Entity đại diện cho đánh giá sản phẩm gắn với đơn. Attributes: \textit{reviewId} (PK), productId (FK), orderId (FK), userId (FK), rating, comment, isVerifiedPurchase, helpfulCount, sellerResponseContent, (...), createdAt, updatedAt.
+\paragraph{ProductVariant} Entity lưu biến thể sản phẩm. Attributes chính: \textit{id} (PK), productId (FK), variantName, sku, price, stockQuantity, options (Json), isActive, createdAt, updatedAt.
 
-\paragraph{REFUND\_REQUEST} Entity đại diện cho yêu cầu hoàn tiền cho đơn. \textbf{Lưu ý:} Trong schema thực tế, các trường refund được tích hợp vào bảng \textit{orders} (refund\_status, refund\_reason, refund\_requested\_at, refund\_processed\_at, refund\_processed\_by).
+\paragraph{Cart} Entity đại diện cho giỏ hàng của người dùng. Attributes chính: \textit{id} (PK), userId (FK), createdAt, updatedAt.
 
-\paragraph{CONTENT\_REQUEST} Entity lưu trữ yêu cầu tạo nội dung AI. Attributes: \textit{requestId} (PK), userId (FK), type (generate\_text/generate\_image\_text/generate\_video\_images\_text - loại yêu cầu), input (json - dữ liệu đầu vào), output (json - kết quả đầu ra), status (pending/processing/completed/failed), error, createdAt, completedAt.
+\paragraph{CartItem} Entity đại diện cho từng dòng sản phẩm trong giỏ hàng. Attributes chính: \textit{id} (PK), cartId (FK), productId (FK), variantId (FK, nullable), quantity, price, createdAt, updatedAt. Bảng có unique constraint trên cartId, productId và variantId.
 
-\paragraph{REPORT} Entity lưu trữ báo cáo vi phạm. Attributes: \textit{reportId} (PK), reporterId (FK), reportedId, type (post/comment/product/user/review), reason (spam/harassment/hate\_speech/violence/nudity/false\_information/scam/copyright/other), status (pending/under\_review/resolved/dismissed), description, reviewedBy, actionTaken (none/warning\_sent/content\_removed/account\_suspended/account\_banned), (...), createdAt, updatedAt.
+\paragraph{Order} Entity đại diện cho đơn hàng. Attributes chính: \textit{id} (PK), orderNumber (UK), buyerId (FK), subtotal, shippingFee, tax, discount, total, shippingName, shippingPhone, shippingAddress, shippingCity, shippingDistrict, shippingWard, shippingNote, paymentMethod, paymentStatus, paidAt, status, trackingNumber, carrier, confirmedAt, shippedAt, deliveredAt, cancelledAt, cancellationReason, createdAt, updatedAt.
 
-\paragraph{SELLER\_APPLICATION} Entity lưu trữ hồ sơ đăng ký trở thành người bán. Attributes: \textit{applicationId} (PK), userId (FK), shopName, description, businessType, taxId, documents (json), status (pending/under\_review/approved/rejected), reviewedBy, rejectionReason, submittedAt, reviewedAt.
+\paragraph{OrderItem} Entity đại diện cho từng dòng hàng của đơn. Attributes chính: \textit{id} (PK), orderId (FK), productId (FK, nullable), variantId (FK, nullable), sellerId (FK, nullable), productName, productImageUrl, variantInfo, quantity, unitPrice, totalPrice, status, createdAt.
 
-\paragraph{ADMIN} Entity đại diện cho tài khoản quản trị. Attributes: \textit{adminId} (PK, UUID), email (UK), password, fullName, avatar, permissions[] (manage\_users/manage\_content/manage\_reports/manage\_orders/view\_analytics/manage\_admins/system\_config/manage\_seller\_apps), adminLevel (super\_admin/admin/moderator), isActive, isVerified, lastLoginAt, createdAt, updatedAt.
+\paragraph{Post} Entity đại diện cho bài viết trong feed hoặc trong group. Attributes chính: \textit{id} (PK), authorId (FK), content, mediaUrls, mediaType, groupId (FK, nullable), location, feeling, taggedUserIds, likesCount, commentsCount, sharesCount, viewsCount, status, visibility, createdAt, updatedAt, publishedAt. Bài viết không còn lưu trực tiếp \textit{productId}; các sản phẩm được gắn thông qua bảng PostProductTag.
+
+\paragraph{PostProductTag} Entity lưu các sản phẩm được gắn vào bài viết. Attributes chính: \textit{id} (PK), postId (FK), productId (FK), anchorType, positionX, positionY, blockId, startOffset, endOffset, sortOrder, createdAt, updatedAt. Bảng này cho phép một bài viết gắn nhiều sản phẩm và lưu thêm vị trí/kiểu gắn thẻ.
+
+\paragraph{PostLike} Entity lưu lượt thích bài viết. Attributes chính: \textit{id} (PK), postId (FK), userId (FK), createdAt. Bảng có unique constraint trên postId và userId.
+
+\paragraph{PostComment} Entity lưu bình luận và reply của bài viết. Attributes chính: \textit{id} (PK), postId (FK), userId (FK), parentId (self-FK, nullable), content, likesCount, createdAt, updatedAt.
+
+\paragraph{ScheduledPost} Entity lưu bài viết đã lên lịch. Attributes chính: \textit{id} (PK), userId (FK), content, mediaUrls, mediaType, location, feeling, taggedUserIds, visibility, scheduledTime, timezone, status, publishedPostId, errorMessage, createdAt, updatedAt. Bài lên lịch cũng dùng bảng tag riêng thay vì lưu trực tiếp \textit{productId}.
+
+\paragraph{ScheduledPostProductTag} Entity lưu các sản phẩm được gắn vào bài viết đã lên lịch. Attributes chính: \textit{id} (PK), scheduledPostId (FK), productId (FK), anchorType, positionX, positionY, blockId, startOffset, endOffset, sortOrder, createdAt, updatedAt.
+
+\paragraph{Conversation} Entity đại diện cho cuộc trò chuyện. Attributes chính: \textit{id} (PK), type, name, avatarUrl, createdBy, createdAt, updatedAt.
+
+\paragraph{ConversationParticipant} Entity lưu thành viên trong conversation. Attributes chính: \textit{id} (PK), conversationId (FK), userId (FK), role, joinedAt, lastReadAt. Bảng có unique constraint trên conversationId và userId.
+
+\paragraph{Message} Entity lưu tin nhắn. Attributes chính: \textit{id} (PK), conversationId (FK), senderId (FK, nullable), content, messageType, mediaUrl, productId (FK, nullable), orderId (FK, nullable), isRead, isDeleted, createdAt, updatedAt.
+
+\paragraph{Notification} Entity lưu thông báo. Attributes chính: \textit{id} (PK), userId (FK), type, title, message, relatedUserId, relatedProductId, relatedOrderId, relatedPostId, actionUrl, isRead, readAt, createdAt.
+
+\paragraph{Follow} Entity lưu quan hệ theo dõi giữa người dùng. Attributes chính: \textit{id} (PK), followerId (FK), followingId (FK), createdAt. Bảng có unique constraint trên followerId và followingId.
+
+\paragraph{SavedItem} Entity lưu bài viết hoặc sản phẩm được người dùng lưu. Attributes chính: \textit{id} (PK), userId (FK), itemType (POST/PRODUCT), targetId, createdAt. Bảng có unique constraint trên userId, itemType và targetId.
+
+\paragraph{Group} Entity đại diện cho nhóm cộng đồng. Attributes chính: \textit{id} (PK), name, slug (UK), description, coverImageUrl, avatarUrl, privacy, isApprovedPosts, createdBy, membersCount, postsCount, createdAt, updatedAt.
+
+\paragraph{GroupMember} Entity lưu thành viên nhóm. Attributes chính: \textit{id} (PK), groupId (FK), userId (FK), role, joinedAt. Bảng có unique constraint trên groupId và userId.
+
+\paragraph{GroupJoinRequest} Entity lưu yêu cầu tham gia nhóm. Attributes chính: \textit{id} (PK), groupId (FK), userId (FK), status, reviewedBy, reviewedAt, createdAt, updatedAt.
+
+\paragraph{GroupInvite} Entity lưu mã mời tham gia nhóm. Attributes chính: \textit{id} (PK), groupId (FK), code (UK), createdBy, usedBy, expiresAt, maxUses, usedCount, isActive, createdAt, updatedAt.
+
+\paragraph{Review} Entity lưu đánh giá sản phẩm. Attributes chính: \textit{id} (PK), productId (FK), orderItemId (FK, UK, nullable), userId (FK), rating, title, content, images, sellerResponse, sellerResponseAt, helpfulCount, isVerifiedPurchase, isPublished, createdAt, updatedAt.
+
+\paragraph{AiContentHistory} Entity lưu lịch sử tạo nội dung bằng AI. Attributes chính: \textit{id} (PK), userId (FK), prompt, contentType, generatedContent, sourceIdea, linkedProductId, productTitle, productImageUrl, usedForId, usedForType, createdAt.
+
+\paragraph{ProductView} Entity lưu sự kiện xem sản phẩm để phục vụ thống kê và gợi ý. Attributes chính: \textit{id} (PK), productId (FK), viewedFromProductId (FK, nullable), userId (FK, nullable), sessionId, ipAddress, userAgent, createdAt.
+
+\paragraph{UserSearchEvent} Entity lưu lịch sử tìm kiếm sản phẩm của người dùng. Attributes chính: \textit{id} (PK), userId (FK), query, normalizedQuery, sessionId, createdAt.
+
+\paragraph{ProductCoView} Entity lưu quan hệ đồng xem giữa hai sản phẩm để hỗ trợ recommendation. Attributes chính: \textit{id} (PK), sourceProductId (FK), targetProductId (FK), score, lastViewedAt, createdAt, updatedAt.
+
+\paragraph{SellerStats} Entity lưu thống kê seller theo ngày. Attributes chính: \textit{id} (PK), sellerId (FK), date, totalSales, totalOrders, totalRevenue, totalProfit, totalProducts, totalViews, newFollowers, totalLikes, totalComments, createdAt, updatedAt.
+
+\paragraph{Report} Entity lưu báo cáo vi phạm. Attributes chính: \textit{id} (PK), reporterId (FK), targetType, targetId, reason, description, status, resolvedBy, resolvedAt, resolution, createdAt. Hệ thống hiện hỗ trợ targetType gồm post, comment, user và product.
 
 \subsection{Mối quan hệ (Relationships)}
 \begin{itemize}
-  \item \textbf{USER -- PROFILE}: 1:1. Mỗi USER có đúng một PROFILE; mỗi PROFILE chỉ thuộc một USER.
-  \item \textbf{USER -- AUTHENTICATION}: 1:1. Lưu token/OTP và cấu hình 2FA cho đúng một USER.
-  \item \textbf{USER -- NOTIFICATION\_SETTINGS}: 1:1. Mỗi USER có cấu hình thông báo riêng.
-  \item \textbf{USER -- NOTIFICATION}: 1:N. Một USER nhận nhiều thông báo qua toUserId; fromUserId ghi nhận tác nhân phát sinh.
-  \item \textbf{USER -- SELLER\_APPLICATION}: 1:N. Người dùng có thể nộp nhiều đơn đăng ký bán.
-  \item \textbf{ADMIN -- USER}: N:M (quản lý). ADMIN có thể quản lý nhiều USER và ngược lại (phân ca/phạm vi).
-  \item \textbf{USER -- USER (follow)}: N:M. Người dùng có thể theo dõi lẫn nhau.
-  \item \textbf{POST -- COMMENT}: 1:N. Một POST có nhiều COMMENT; COMMENT thuộc duy nhất một POST.
-  \item \textbf{USER -- POST}: 1:N. Người dùng tạo nhiều POST; mỗi POST thuộc một USER.
-  \item \textbf{USER -- COMMENT}: 1:N. Người dùng viết nhiều COMMENT.
-  \item \textbf{POST -- USER (liked\_by)}: N:M. Một bài có nhiều người thích; một người thích nhiều bài.
-  \item \textbf{POST -- GROUP (posted\_in)}: N:M. Bài viết có thể được đăng trong nhiều GROUP; GROUP chứa nhiều bài.
-  \item \textbf{POST -- PRODUCT (tags)}: N:M. Bài viết có thể gắn nhiều sản phẩm; sản phẩm có thể được tag ở nhiều bài.
-  \item \textbf{USER -- GROUP (member\_of)}: N:M. Người dùng có thể tham gia nhiều nhóm; nhóm có nhiều thành viên.
-  \item \textbf{USER -- MESSAGE}: N:M. Một USER gửi/nhận nhiều MESSAGE; mỗi MESSAGE có sender và receiver.
-  \item \textbf{USER -- POST (schedules)}: N:M qua thuộc tính scheduling. Một USER có thể lên lịch nhiều POST; một POST có thể có bản ghi lịch.
-  \item \textbf{USER -- PRODUCT}: 1:N. Một người bán đăng nhiều PRODUCT; mỗi PRODUCT thuộc một seller.
-  \item \textbf{CART -- PRODUCT}: N:M. Một CART chứa nhiều PRODUCT (kèm quantity/variant/price trên dòng giỏ); một PRODUCT có thể nằm trong nhiều CART.
-  \item \textbf{ORDER -- PRODUCT}: N:M. Một ORDER chứa nhiều PRODUCT (dòng hàng gồm quantity/variant/price); một PRODUCT xuất hiện trong nhiều ORDER.
-  \item \textbf{USER -- CART}: 1:N (thiết kế cho phép nhiều giỏ theo phiên; thực tế thường 1). Mỗi CART thuộc một USER.
-  \item \textbf{USER -- ORDER}: 1:N. Người mua có nhiều ORDER; mỗi ORDER gắn với một buyer. Đồng thời ORDER giữ sellerId để biết người bán.
-  \item \textbf{USER -- REVIEW}: 1:N. Người dùng viết nhiều REVIEW.
-  \item \textbf{PRODUCT -- REVIEW}: 1:N. Một PRODUCT có nhiều REVIEW.
-  \item \textbf{ORDER -- REFUND\_REQUEST}: 1:N. Một ORDER có thể phát sinh nhiều REFUND\_REQUEST.
-  \item \textbf{USER -- REFUND\_REQUEST}: 1:N. Người mua gửi nhiều yêu cầu hoàn.
-  \item \textbf{USER -- CONTENT\_REQUEST}: 1:N. Người dùng tạo nhiều yêu cầu AI; mỗi yêu cầu thuộc một USER.
-  \item \textbf{USER -- REPORT}: 1:N. Người dùng có thể gửi nhiều REPORT; mỗi REPORT có một reporter.
-  \item \textbf{ADMIN -- REPORT}: N:M. Nhiều ADMIN có thể xử lý các REPORT, mỗi REPORT có thể được giao/lưu vết nhiều admin.
+  \item \textbf{Admin -- SellerVerification}: 1:N qua verifiedBy; một admin có thể duyệt nhiều hồ sơ seller.
+  \item \textbf{Admin -- Report}: 1:N qua resolvedBy; một admin có thể xử lý nhiều báo cáo.
+  \item \textbf{User -- TwoFactorAuth}: 1:1; mỗi user có tối đa một cấu hình 2FA.
+  \item \textbf{User -- PasswordResetToken}: 1:N; một user có thể có nhiều token đặt lại mật khẩu theo thời gian.
+  \item \textbf{User -- SellerVerification}: 1:1; một user có tối đa một hồ sơ xác minh seller.
+  \item \textbf{User -- SellerSensitiveChangeRequest}: 1:N; seller có thể gửi nhiều yêu cầu thay đổi dữ liệu nhạy cảm.
+  \item \textbf{User -- Product}: 1:N; một seller có nhiều sản phẩm.
+  \item \textbf{Category -- Product}: N:M; sản phẩm có thể thuộc nhiều danh mục và danh mục có nhiều sản phẩm.
+  \item \textbf{Product -- ProductImage}: 1:N; một sản phẩm có nhiều ảnh.
+  \item \textbf{Product -- ProductVariant}: 1:N; một sản phẩm có nhiều biến thể.
+  \item \textbf{User -- Cart}: 1:N; một user có thể có nhiều cart record.
+  \item \textbf{Cart -- CartItem}: 1:N; một giỏ có nhiều dòng sản phẩm.
+  \item \textbf{Product/ProductVariant -- CartItem}: 1:N; cart item trỏ đến sản phẩm và có thể trỏ đến biến thể.
+  \item \textbf{User -- Order}: 1:N qua buyerId; một buyer có nhiều đơn hàng.
+  \item \textbf{Order -- OrderItem}: 1:N; một đơn hàng có nhiều dòng hàng.
+  \item \textbf{Product/ProductVariant/User(seller) -- OrderItem}: 1:N; order item lưu sản phẩm, biến thể và seller liên quan.
+  \item \textbf{User -- Post}: 1:N; một user tạo nhiều bài viết.
+  \item \textbf{Post -- PostProductTag}: 1:N; một bài viết có thể gắn nhiều sản phẩm.
+  \item \textbf{Product -- PostProductTag}: 1:N; một sản phẩm có thể được gắn trong nhiều bài viết.
+  \item \textbf{Post -- Group}: N:1; một bài viết có thể thuộc một nhóm.
+  \item \textbf{Post -- PostLike}: 1:N; mỗi bài viết có nhiều lượt thích.
+  \item \textbf{Post -- PostComment}: 1:N; mỗi bài viết có nhiều bình luận.
+  \item \textbf{PostComment -- PostComment}: 1:N self relation; bình luận có thể có replies.
+  \item \textbf{User -- ScheduledPost}: 1:N; một user có nhiều bài viết đã lên lịch.
+  \item \textbf{ScheduledPost -- ScheduledPostProductTag}: 1:N; một bài lên lịch có thể gắn nhiều sản phẩm.
+  \item \textbf{Product -- ScheduledPostProductTag}: 1:N; một sản phẩm có thể được gắn trong nhiều bài lên lịch.
+  \item \textbf{Conversation -- ConversationParticipant}: 1:N; một conversation có nhiều participant.
+  \item \textbf{Conversation -- Message}: 1:N; một conversation có nhiều message.
+  \item \textbf{User -- Message}: 1:N; một user có thể gửi nhiều message.
+  \item \textbf{User -- Notification}: 1:N; một user nhận nhiều thông báo.
+  \item \textbf{User -- User (Follow)}: N:M qua Follow; user có thể theo dõi và được theo dõi bởi nhiều user khác.
+  \item \textbf{User -- SavedItem}: 1:N; user có thể lưu nhiều bài viết hoặc sản phẩm.
+  \item \textbf{User -- Group}: N:M qua GroupMember; user có thể tham gia nhiều nhóm.
+  \item \textbf{Group -- GroupJoinRequest}: 1:N; nhóm có nhiều yêu cầu tham gia.
+  \item \textbf{Group -- GroupInvite}: 1:N; nhóm có nhiều mã mời.
+  \item \textbf{Product -- Review}: 1:N; một sản phẩm có nhiều đánh giá.
+  \item \textbf{OrderItem -- Review}: 1:1; một dòng đơn hàng có tối đa một đánh giá.
+  \item \textbf{User -- AiContentHistory}: 1:N; user có nhiều bản ghi lịch sử tạo nội dung AI.
+  \item \textbf{Product -- ProductView/UserSearchEvent/ProductCoView}: các bảng analytics hỗ trợ thống kê, tìm kiếm và gợi ý sản phẩm.
+  \item \textbf{User -- Report}: 1:N; user có thể gửi nhiều báo cáo vi phạm.
 \end{itemize}
 
 \subsection{Chuyển đổi từ ERD sang Database Schema}
 
-Quá trình chuyển đổi từ mô hình ERD sang database schema PostgreSQL đã được thực hiện với các quyết định thiết kế cụ thể để tối ưu performance, đảm bảo data integrity và hỗ trợ các tính năng của hệ thống.
-
-\subsubsection{Quyết định về cấu trúc bảng (Table Structure)}
-
-\paragraph{Junction Tables cho quan hệ N:M}
-Để hỗ trợ các relationship N:M, hệ thống đã tách thành các junction table riêng biệt thay vì sử dụng array:
+Database schema được triển khai bằng Prisma ORM trên PostgreSQL. Các quyết định thiết kế chính gồm:
 
 \begin{itemize}
-  \item \textbf{post\_likes}: Lưu trữ relationship giữa POST và USER (liked\_by). Mỗi record gồm post\_id, user\_id và created\_at. Có UNIQUE constraint (post\_id, user\_id) để đảm bảo một người dùng chỉ like một bài viết một lần.
-  \item \textbf{post\_saves}: Tương tự cho chức năng lưu bài viết (bookmark).
-  \item \textbf{post\_reposts}: Lưu trữ các bài viết được chia sẻ lại (repost).
-  \item \textbf{review\_helpful\_votes}: Lưu trữ các vote "hữu ích" cho đánh giá sản phẩm.
-  \item \textbf{group\_members}: Quản lý thành viên của nhóm với role (member/admin/moderator), thay vì chỉ dùng adminIds[] trong GROUP.
-  \item \textbf{user\_follows}: Relationship follow giữa người dùng với UNIQUE constraint (follower\_id, following\_id) và CHECK constraint để tránh tự follow.
-  \item \textbf{user\_blocks}: Relationship block giữa người dùng (không có trong ERD nhưng cần thiết cho tính năng chặn người dùng).
+  \item \textbf{Tách admin khỏi user}: Admin được lưu trong bảng \textit{admins}, trong khi người dùng sản phẩm chỉ có vai trò BUYER hoặc SELLER trong bảng \textit{users}.
+  \item \textbf{Gộp profile vào users}: Thông tin hồ sơ như avatar, cover, bio, address và privacySettings được lưu trực tiếp trong bảng \textit{users}, không dùng bảng PROFILE riêng.
+  \item \textbf{Tách bảo mật cần thiết}: 2FA và reset password được lưu ở \textit{two\_factor\_auth} và \textit{password\_reset\_tokens}; không dùng bảng AUTHENTICATION tổng hợp.
+  \item \textbf{Seller verification nhiều bước}: Hồ sơ seller nằm ở \textit{seller\_verifications}; dữ liệu nhạy cảm được mã hóa ở tầng service khi cấu hình khóa mã hóa.
+  \item \textbf{Soft delete sản phẩm}: Product có deletionState, deletedAt, purgeAfter và bảng \textit{product\_deletion\_audits} để hỗ trợ xóa mềm, khôi phục và purge.
+  \item \textbf{Biến thể và ảnh sản phẩm}: ProductImage và ProductVariant được tách riêng để quản lý media, giá, tồn kho và options theo từng biến thể.
+  \item \textbf{Order theo dòng hàng}: Order lưu thông tin tổng quan; OrderItem lưu sản phẩm, biến thể, seller và snapshot tên/ảnh/giá tại thời điểm mua.
+  \item \textbf{Gắn thẻ nhiều sản phẩm}: Bài viết và bài lên lịch không dùng cột \textit{productId} trực tiếp; hệ thống dùng \textit{post\_product\_tags} và \textit{scheduled\_post\_product\_tags} để hỗ trợ nhiều sản phẩm, thứ tự hiển thị và vị trí gắn thẻ.
+  \item \textbf{Scheduled post tách khỏi Post}: Bài lên lịch được lưu trong \textit{scheduled\_posts}; khi đến hạn, scheduler tạo bản ghi \textit{posts} tương ứng.
+  \item \textbf{Messaging theo conversation}: Tin nhắn được tổ chức qua \textit{conversations}, \textit{conversation\_participants} và \textit{messages}.
+  \item \textbf{Notification preferences}: Tùy chọn thông báo hiện được lưu trong \textit{users.privacySettings}, không có bảng NOTIFICATION\_SETTINGS riêng.
+  \item \textbf{AI history}: Kết quả tạo nội dung AI được lưu ở \textit{ai\_content\_history}, không dùng bảng CONTENT\_REQUEST riêng.
+  \item \textbf{Refund giả lập}: Yêu cầu hoàn tiền được xử lý trong logic đơn hàng và ghi vào trạng thái/lý do liên quan của Order, không có bảng REFUND\_REQUEST riêng.
 \end{itemize}
-
-\paragraph{Denormalization}
-Một số quyết định gộp bảng để tối ưu query performance:
-
-\begin{itemize}
-  \item \textbf{REFUND\_REQUEST → orders}: Thay vì tạo bảng REFUND\_REQUEST riêng như trong ERD, các trường refund được tích hợp trực tiếp vào bảng \textit{orders}:
-  \begin{itemize}
-    \item refund\_requested (BOOLEAN)
-    \item refund\_status (pending/approved/rejected)
-    \item refund\_reason (TEXT)
-    \item refund\_requested\_at, refund\_processed\_at (TIMESTAMP)
-    \item refund\_processed\_by (FK → users)
-  \end{itemize}
-  Lý do: Mỗi đơn hàng chỉ có tối đa một yêu cầu hoàn tiền, việc gộp giảm số lượng JOIN và tăng query performance.
-\end{itemize}
-
-\paragraph{Supporting Tables}
-Các bảng hỗ trợ được tách để quản lý metadata và lịch sử:
-
-\begin{itemize}
-  \item \textbf{product\_images}: Tách từ images[] trong PRODUCT để lưu metadata (url, public\_id, is\_primary, width, height) và hỗ trợ quản lý ảnh tốt hơn.
-  \item \textbf{post\_images}: Tương tự cho POST (mặc dù posts vẫn giữ images[] để backward compatibility).
-  \item \textbf{review\_images}: Ảnh đính kèm trong đánh giá sản phẩm.
-  \item \textbf{report\_screenshots}: Ảnh chụp màn hình trong báo cáo vi phạm.
-  \item \textbf{order\_status\_history}: Lưu lịch sử thay đổi trạng thái đơn hàng với timestamp, note và updated\_by để audit trail.
-  \item \textbf{product\_variants} và \textbf{product\_variant\_options}: Hỗ trợ biến thể sản phẩm (size, color, etc.) với giá và tồn kho riêng.
-\end{itemize}
-
-\subsubsection{Sơ đồ Relational Mapping}
-Hình \ref{fig:relational-mapping} mô tả sơ đồ relational mapping của hệ thống, thể hiện tất cả các bảng và mối quan hệ giữa chúng thông qua Primary Keys (PK) và Foreign Keys (FK). Sơ đồ này được tạo từ database schema PostgreSQL thực tế, bao gồm các junction tables cho quan hệ N:M và các supporting tables đã được mô tả ở trên.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{Images/Relation-Mapping.png}
-  \caption{Sơ đồ Relational Mapping - Các bảng và mối quan hệ trong database schema}
-  \label{fig:relational-mapping}
-\end{figure}

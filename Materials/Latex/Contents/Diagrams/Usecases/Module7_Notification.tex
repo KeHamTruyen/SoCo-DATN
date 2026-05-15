@@ -17,7 +17,7 @@ Hệ thống thông báo thời gian thực (Real-time) đóng vai trò then ch�
 \hline
 \textbf{Tên Use Case} & \textbf{UC7.1: Nhận thông báo tương tác xã hội} \\ \hline
 \textbf{Tác nhân} & Người dùng, Người bán \\ \hline
-\textbf{Mô tả} & Hệ thống tự động gửi thông báo ngay lập tức đến người sở hữu bài viết khi có người khác thực hiện các hành động: thích bài viết, bình luận, theo dõi người dùng, hoặc được nhắc đến trong bình luận/bài viết của người khác. \\ \hline
+\textbf{Mô tả} & Hệ thống tự động gửi thông báo đến người liên quan khi có người khác thực hiện các hành động như thích bài viết, bình luận hoặc theo dõi người dùng. \\ \hline
 \textbf{Kích hoạt} & Một người dùng khác thực hiện hành động tương tác với bài viết hoặc tài khoản của người nhận. \\ \hline
 \textbf{Điều kiện tiên quyết} & 
 \begin{itemize}
@@ -39,10 +39,14 @@ Hệ thống thông báo thời gian thực (Real-time) đóng vai trò then ch�
     \item Giao diện của Người dùng B hiển thị thông báo.
     \item Người dùng B có thể nhấn vào thông báo để chuyển thẳng đến nội dung liên quan.
 \end{enumerate} \\ \hline
-\textbf{Luồng thay thế} & A1: Người dùng B đang không online $\rightarrow$ Thông báo vẫn được lưu và sẽ hiển thị ngay khi người đó đăng nhập lại. A2: Người dùng B tắt âm thanh thông báo $\rightarrow$ chỉ hiển thị hình ảnh. \\ \hline
+\textbf{Luồng thay thế} & 
+\begin{itemize}
+    \item A1: Người dùng B đang không online $\rightarrow$ Thông báo vẫn được lưu và sẽ hiển thị ngay khi người đó đăng nhập lại.
+    \item A2: Người dùng B tắt âm thanh thông báo $\rightarrow$ chỉ hiển thị hình ảnh.
+\end{itemize} \\ \hline
 \textbf{Ngoại lệ} & 
 \begin{itemize}
-    \item E1: Người dùng B đã chặn Người dùng A $\rightarrow$ Không gửi thông báo.
+    \item E1: Chủ sở hữu nội dung không tồn tại hoặc nội dung đã bị xóa $\rightarrow$ Không gửi thông báo.
     \item E2: Bài viết ở chế độ riêng tư và Người dùng A không được phép xem $\rightarrow$ Không gửi thông báo.
 \end{itemize} \\ \hline
 \textbf{Ghi chú} & Tính năng quan trọng giúp tăng tính tương tác xã hội. \\ \hline
@@ -77,8 +81,14 @@ Hệ thống thông báo thời gian thực (Real-time) đóng vai trò then ch�
     \item Hệ thống gửi thông báo ``Đơn hàng của bạn đã được xác nhận'' cho Người mua.
     \item Tương tự với các trạng thái: đang giao, đã giao, hoàn thành, hủy, có đánh giá mới, có yêu cầu hoàn tiền…
 \end{enumerate} \\ \hline
-\textbf{Luồng thay thế} & A1: Một bên đang offline $\rightarrow$ Thông báo được lưu và hiển thị khi đăng nhập lại. A2: Có thể gửi thêm email nếu người dùng bật tùy chọn này. \\ \hline
-\textbf{Ngoại lệ} & E1: Đơn hàng bị hủy ngay lập tức bởi người mua trước khi người bán nhìn thấy $\rightarrow$ chỉ gửi thông báo hủy. \\ \hline
+\textbf{Luồng thay thế} & 
+\begin{itemize}
+    \item A1: Một bên đang offline $\rightarrow$ Thông báo được lưu và hiển thị khi đăng nhập lại.
+\end{itemize} \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Đơn hàng bị hủy ngay lập tức bởi người mua trước khi người bán nhìn thấy $\rightarrow$ chỉ gửi thông báo hủy.
+\end{itemize} \\ \hline
 \textbf{Ghi chú} & Tính năng này giúp người bán phản hồi nhanh đơn hàng và người mua luôn nắm được trạng thái mua sắm. \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Thông báo đơn hàng}
@@ -107,8 +117,14 @@ Hệ thống thông báo thời gian thực (Real-time) đóng vai trò then ch�
     \item Người dùng có thể: Nhấn vào thông báo; Đánh dấu đã đọc; Xóa.
     \item Hệ thống cập nhật lại trạng thái và giao diện ngay lập tức.
 \end{enumerate} \\ \hline
-\textbf{Luồng thay thế} & A1: Người dùng chọn ``Xóa tất cả thông báo'' $\rightarrow$ toàn bộ thông báo bị xóa vĩnh viễn. \\ \hline
-\textbf{Ngoại lệ} & E1: Không có thông báo nào $\rightarrow$ hiển thị dòng chữ ``Bạn chưa có thông báo nào''. \\ \hline
+\textbf{Luồng thay thế} & 
+\begin{itemize}
+    \item A1: Người dùng chọn ``Xóa tất cả thông báo'' $\rightarrow$ toàn bộ thông báo bị xóa vĩnh viễn.
+\end{itemize} \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Không có thông báo nào $\rightarrow$ hiển thị dòng chữ ``Bạn chưa có thông báo nào''.
+\end{itemize} \\ \hline
 \textbf{Ghi chú} & Giao diện nên hỗ trợ phân loại thông báo để dễ theo dõi. \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Quản lý danh sách thông báo}
@@ -121,7 +137,7 @@ Hệ thống thông báo thời gian thực (Real-time) đóng vai trò then ch�
 \hline
 \textbf{Tên Use Case} & \textbf{UC7.4: Tùy chỉnh cài đặt thông báo} \\ \hline
 \textbf{Tác nhân} & Người dùng \\ \hline
-\textbf{Mô tả} & Người dùng có thể tự quyết định sẽ nhận loại thông báo nào, qua kênh nào (trên web, âm thanh, email), và tắt hoàn toàn một số loại thông báo nếu muốn. \\ \hline
+\textbf{Mô tả} & Người dùng có thể tự quyết định sẽ nhận một số nhóm thông báo nào trên web, chẳng hạn thông báo xã hội, đơn hàng và hệ thống. \\ \hline
 \textbf{Kích hoạt} & Người dùng vào phần Cài đặt $\rightarrow$ Thông báo. \\ \hline
 \textbf{Điều kiện tiên quyết} & Người dùng đã đăng nhập. \\ \hline
 \textbf{Điều kiện sau} & Cài đặt thông báo của người dùng được lưu lại và áp dụng cho mọi phiên đăng nhập sau này. \\ \hline
@@ -129,12 +145,18 @@ Hệ thống thông báo thời gian thực (Real-time) đóng vai trò then ch�
 \begin{enumerate}
     \item Người dùng vào Trang cá nhân $\rightarrow$ Cài đặt $\rightarrow$ Thông báo.
     \item Hệ thống hiển thị danh sách các loại thông báo có thể bật/tắt.
-    \item Người dùng bật/tắt từng mục và chọn có nhận qua email hay không.
+    \item Người dùng bật/tắt từng nhóm thông báo được hệ thống hỗ trợ.
     \item Người dùng nhấn ``Lưu cài đặt''.
     \item Hệ thống lưu và áp dụng ngay lập tức.
 \end{enumerate} \\ \hline
-\textbf{Luồng thay thế} & A1: Người dùng chọn ``Tắt tất cả thông báo'' $\rightarrow$ toàn bộ thông báo (trừ thông báo hệ thống bắt buộc) sẽ không hiển thị nữa. \\ \hline
-\textbf{Ngoại lệ} & Không có. \\ \hline
+\textbf{Luồng thay thế} & 
+\begin{itemize}
+    \item A1: Người dùng chọn ``Tắt tất cả thông báo'' $\rightarrow$ toàn bộ thông báo (trừ thông báo hệ thống bắt buộc) sẽ không hiển thị nữa.
+\end{itemize} \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item Không có.
+\end{itemize} \\ \hline
 \textbf{Ghi chú} & Tính năng này quan trọng để tránh làm phiền và tăng trải nghiệm cá nhân hóa. \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Cài đặt thông báo}

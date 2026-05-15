@@ -180,7 +180,7 @@ Sau khi chạy xong:
 ```bash
 npm run dev
 npm start
-npm run ai:health
+kiêmnpm run ai:health
 npm run prisma:generate
 npm run prisma:push
 npm run prisma:reset

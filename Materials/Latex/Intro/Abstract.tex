@@ -4,22 +4,22 @@
 
 \vspace{0.5cm}
 
-Đề tài luận văn là \textbf{"Xây dựng hệ thống Social Commerce tích hợp AI cho tạo nội dung, bán hàng và chăm sóc khách hàng"}.
+Đề tài luận văn là \textbf{``Xây dựng hệ thống Social Commerce''}.
 
-Mục tiêu chính của đề tài là xây dựng một nền tảng thương mại xã hội (Social Commerce) toàn diện. Hệ thống này cho phép người bán quản lý hoạt động kinh doanh, tương tác với khách hàng trên các kênh mạng xã hội, và tối ưu hóa quy trình bán hàng bằng cách ứng dụng Trí tuệ Nhân tạo (AI). Nền tảng được thiết kế tập trung, giúp người bán quản lý tập trung sản phẩm, bài đăng bán hàng, đơn hàng, khách hàng, và các chiến dịch marketing. Đồng thời, người mua có thể dễ dàng tìm kiếm sản phẩm, đặt hàng, theo dõi trạng thái đơn hàng và tương tác với người bán.
+Mục tiêu chính là hiện thực một ứng dụng web kết hợp mạng xã hội và thương mại điện tử trên một nền tảng thống nhất, hướng tới trải nghiệm khám phá nội dung và mua sắm liền mạch trên trình duyệt (desktop/web). Người dùng có thể duyệt feed, tương tác với bài đăng, tham gia nhóm và nhắn tin; khi đăng nhập được lưu lịch sử, theo dõi người bán và thực hiện giao dịch. Người bán xuất phát từ vai trò người mua và được nâng cấp thông qua quy trình phê duyệt, sau đó quản lý sản phẩm, đơn hàng, đánh giá, hoàn tiền và dashboard kinh doanh. Hệ thống hỗ trợ cập nhật thời gian thực cho tin nhắn và thông báo (Socket.IO), đồng thời cho phép lên lịch đăng bài. Quản trị viên quản lý tài khoản, kiểm duyệt nội dung, xử lý báo cáo và phê duyệt yêu cầu trở thành người bán.
 
-Để đạt được mục tiêu đó, hệ thống được hiện thực hóa với các chức năng cốt lõi sau:
+Các nhóm chức năng cốt lõi được triển khai gồm:
 \begin{itemize}
-    \item \textbf{Quản lý tài khoản và tương tác:} Đăng nhập, đăng xuất, và quản lý thông tin cá nhân.
-    \item \textbf{Quản lý nội dung và sản phẩm:} Tạo, chỉnh sửa và quản lý các bài đăng bán hàng và danh mục sản phẩm.
-    \item \textbf{Quản lý giao dịch:} Quản lý giỏ hàng, tạo và theo dõi trạng thái đơn hàng, cùng với tính năng cập nhật tiến trình xử lý đơn hàng chi tiết.
-    \item \textbf{Quản trị hệ thống (Admin):} Cung cấp giao diện Quản trị viên để giám sát toàn bộ hoạt động của nền tảng, bao gồm quản lý người dùng, sản phẩm, và đơn hàng.
+    \item \textbf{Xác thực và hồ sơ người dùng:} Đăng ký, đăng nhập, xác thực hai yếu tố (2FA), khôi phục mật khẩu, chỉnh sửa hồ sơ và quyền riêng tư; quy trình đăng ký trở thành người bán.
+    \item \textbf{Mạng xã hội và cộng đồng:} Feed, tạo và quản lý bài đăng (có gắn sản phẩm), tương tác, nhóm, tìm kiếm và nhắn tin giữa người dùng.
+    \item \textbf{Thương mại điện tử:} Danh mục và chi tiết sản phẩm, giỏ hàng, thanh toán/đặt hàng, theo dõi đơn, đánh giá và xử lý hoàn tiền phía người bán.
+    \item \textbf{Quản trị hệ thống:} Giao diện quản trị viên cho quản lý người dùng và nội dung, xử lý báo cáo, phân loại và thống kê hoạt động.
 \end{itemize}
 
-Điểm đóng góp và nổi bật của luận văn là việc \textbf{tích hợp sâu các mô-đun AI} vào quy trình kinh doanh, bao gồm:
+Điểm nhấn của đề tài là \textbf{tích hợp AI phục vụ cả người mua và người bán}:
 \begin{itemize}
-    \item \textbf{AI tạo nội dung đa phương thức:} Sử dụng Google Gemini API và Google Veo 2 để hỗ trợ người dùng và người bán tạo nội dung chất lượng cao, bao gồm: (1) Tạo bài viết từ mô tả, ý tưởng và hình ảnh sản phẩm; (2) Tạo đồng thời bài viết và hình ảnh từ mô tả, ý tưởng và hình ảnh đầu vào; (3) Tạo video ngắn kèm tối đa 3 hình ảnh và bài viết từ các đầu vào đa phương thức. Tính năng này giúp tăng hiệu quả marketing và tiết kiệm thời gian sáng tạo nội dung.
-    \item \textbf{AI gợi ý sản phẩm:} Cung cấp tính năng gợi ý sản phẩm cá nhân hóa cho người mua dựa trên lịch sử hành vi và tương tác trước đó, nhằm tối ưu hóa tỷ lệ chuyển đổi.
+    \item \textbf{AI tạo nội dung đa phương thức:} Dùng Google Gemini API (và nhà cung cấp hình ảnh tùy cấu hình) để hỗ trợ soạn bài đăng/caption từ mô tả, ý tưởng và hình ảnh sản phẩm; có thể tạo đồng thời văn bản và hình ảnh minh họa khi image provider khả dụng. Tạo video bằng AI được định hướng là mở rộng sau này.
+    \item \textbf{Gợi ý và trợ lý mua sắm AI:} Gợi ý sản phẩm và nội dung dựa trên hành vi trong hệ thống; trợ lý dạng hội thoại hỗ trợ hỏi giá, tồn kho, so sánh sản phẩm và tra cứu đơn hàng, kèm các thao tác nhanh trên giao diện.
 \end{itemize}
 
 \clearpage

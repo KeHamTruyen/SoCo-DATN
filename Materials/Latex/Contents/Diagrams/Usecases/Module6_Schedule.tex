@@ -38,8 +38,14 @@ Module này cung cấp tiện ích giúp người dùng và người bán quản
     \item Hệ thống lưu bài đăng với trạng thái ``đã lên lịch'' và thời điểm xuất bản đã chọn.
     \item Hệ thống hiển thị thông báo ``Bài viết đã được lên lịch thành công''.
 \end{enumerate} \\ \hline
-\textbf{Luồng thay thế} & A1: Người dùng quyết định không lên lịch nữa và chọn ``Đăng ngay''. \\ \hline
-\textbf{Ngoại lệ} & E1: Người dùng chọn một thời điểm trong quá khứ $\rightarrow$ Hệ thống báo lỗi ``Vui lòng chọn một thời điểm trong tương lai''. \\ \hline
+\textbf{Luồng thay thế} & 
+\begin{itemize}
+    \item A1: Người dùng quyết định không lên lịch nữa và chọn ``Đăng ngay''.
+\end{itemize} \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Người dùng chọn một thời điểm trong quá khứ $\rightarrow$ Hệ thống báo lỗi ``Vui lòng chọn một thời điểm trong tương lai''.
+\end{itemize} \\ \hline
 \textbf{Ghi chú} & Backend cần có một cơ chế (ví dụ: cron job) để kiểm tra và tự động xuất bản các bài đăng đã đến hạn. \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Lên lịch đăng bài}
@@ -67,8 +73,14 @@ Module này cung cấp tiện ích giúp người dùng và người bán quản
     \item Người dùng chọn một bài viết và thực hiện một trong các hành động: Chỉnh sửa nội dung; Thay đổi lịch; Xóa; Đăng ngay.
     \item Hệ thống cập nhật thay đổi tương ứng vào cơ sở dữ liệu.
 \end{enumerate} \\ \hline
-\textbf{Luồng thay thế} & A1: Người dùng chọn một bài viết và quyết định ``Đăng ngay'' thay vì chờ đến thời gian đã lên lịch. \\ \hline
-\textbf{Ngoại lệ} & E1: Người dùng cố gắng chỉnh sửa một bài viết ngay tại thời điểm nó đang được hệ thống tự động xuất bản $\rightarrow$ Hệ thống báo lỗi hoặc thông báo bài viết đã được đăng. \\ \hline
+\textbf{Luồng thay thế} & 
+\begin{itemize}
+    \item A1: Người dùng chọn một bài viết và quyết định ``Đăng ngay'' thay vì chờ đến thời gian đã lên lịch.
+\end{itemize} \\ \hline
+\textbf{Ngoại lệ} & 
+\begin{itemize}
+    \item E1: Người dùng cố gắng chỉnh sửa một bài viết ngay tại thời điểm nó đang được hệ thống tự động xuất bản $\rightarrow$ Hệ thống báo lỗi hoặc thông báo bài viết đã được đăng.
+\end{itemize} \\ \hline
 \textbf{Ghi chú} & Giao diện này mang lại sự linh hoạt và quyền kiểm soát hoàn toàn cho người dùng đối với kế hoạch nội dung. \\ \hline
 \end{tabularx}
 \caption{Đặc tả Use Case Quản lý lịch đăng}

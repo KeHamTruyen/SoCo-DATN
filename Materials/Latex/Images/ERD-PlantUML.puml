@@ -1,0 +1,590 @@
+@startuml
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F2937
+  ArrowColor #2563EB
+}
+title ERD - Prisma Schema
+entity Admin {
+  * id : String
+  + email : String
+  + username : String
+    passwordHash : String
+    fullName : String
+    phone : String
+    department : String
+    jobTitle : String
+    permissions : Json
+    isActive : Boolean
+    createdAt : DateTime
+    updatedAt : DateTime
+    lastLogin : DateTime
+}
+entity User {
+  * id : String
+  + email : String
+  + username : String
+    passwordHash : String
+    fullName : String
+    phone : String
+    avatarUrl : String
+    coverImage : String
+    bio : String
+    address : String
+    role : UserRole
+    isVerified : Boolean
+    isActive : Boolean
+    privacySettings : Json
+    shopInformation : Json
+    createdAt : DateTime
+    updatedAt : DateTime
+    lastLogin : DateTime
+}
+entity TwoFactorAuth {
+  * id : String
+  + userId : String
+    secretKey : String
+    backupCodes : String
+    isEnabled : Boolean
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity PasswordResetToken {
+  * id : String
+    userId : String
+  + token : String
+    expiresAt : DateTime
+    used : Boolean
+    createdAt : DateTime
+}
+entity SellerVerification {
+  * id : String
+  + userId : String
+    step1Completed : Boolean
+    idCardNumber : String
+    idCardFrontUrl : String
+    idCardBackUrl : String
+    idCardFrontPublicId : String
+    idCardBackPublicId : String
+    shopLogoUrl : String
+    shopCoverUrl : String
+    shopLogoPublicId : String
+    shopCoverPublicId : String
+    dateOfBirth : DateTime
+    address : String
+    step2Completed : Boolean
+    businessName : String
+    businessType : String
+    businessLicenseNumber : String
+  .. +13 more fields ..
+}
+entity SellerSensitiveChangeRequest {
+  * id : String
+    userId : String
+    status : SensitiveChangeStatus
+    idCardNumberCipher : String
+    bankAccountNumberCipher : String
+    idCardFrontPublicId : String
+    idCardBackPublicId : String
+    bankName : String
+    bankAccountName : String
+    rejectionReason : String
+    reviewedBy : String
+    reviewedAt : DateTime
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity SellerSensitiveAuditLog {
+  * id : String
+    subjectUserId : String
+    actorUserId : String
+    actorAdminId : String
+    action : String
+    entityType : String
+    entityId : String
+    meta : Json
+    createdAt : DateTime
+}
+entity Category {
+  * id : String
+    name : String
+  + slug : String
+    description : String
+    iconUrl : String
+    parentId : String
+    displayOrder : Int
+    isActive : Boolean
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity Product {
+  * id : String
+    sellerId : String
+    title : String
+  + slug : String
+    description : String
+    price : Decimal
+    compareAtPrice : Decimal
+    costPrice : Decimal
+    sku : String
+    stockQuantity : Int
+    lowStockThreshold : Int
+    trackInventory : Boolean
+    weight : Decimal
+    dimensions : Json
+    status : ProductStatus
+    deletionState : ProductDeletionState
+    deletedAt : DateTime
+    deletedBy : String
+  .. +13 more fields ..
+}
+entity ProductDeletionAudit {
+  * id : String
+    productId : String
+    actorId : String
+    actorRole : String
+    event : String
+    reason : String
+    meta : Json
+    createdAt : DateTime
+}
+entity ProductImage {
+  * id : String
+    productId : String
+    imageUrl : String
+    altText : String
+    displayOrder : Int
+    isPrimary : Boolean
+    createdAt : DateTime
+}
+entity ProductVariant {
+  * id : String
+    productId : String
+    variantName : String
+    sku : String
+    price : Decimal
+    stockQuantity : Int
+    options : Json
+    isActive : Boolean
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity Cart {
+  * id : String
+    userId : String
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity CartItem {
+  * id : String
+    cartId : String
+    productId : String
+    variantId : String
+    quantity : Int
+    price : Decimal
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity Order {
+  * id : String
+  + orderNumber : String
+    buyerId : String
+    subtotal : Decimal
+    shippingFee : Decimal
+    tax : Decimal
+    discount : Decimal
+    total : Decimal
+    shippingName : String
+    shippingPhone : String
+    shippingAddress : String
+    shippingCity : String
+    shippingDistrict : String
+    shippingWard : String
+    shippingNote : String
+    paymentMethod : String
+    paymentStatus : PaymentStatus
+    paidAt : DateTime
+  .. +10 more fields ..
+}
+entity OrderItem {
+  * id : String
+    orderId : String
+    productId : String
+    variantId : String
+    sellerId : String
+    productName : String
+    productImageUrl : String
+    variantInfo : Json
+    quantity : Int
+    unitPrice : Decimal
+    totalPrice : Decimal
+    status : String
+    createdAt : DateTime
+}
+entity Post {
+  * id : String
+    authorId : String
+    content : String
+    mediaUrls : String
+    mediaType : String
+    groupId : String
+    location : String
+    feeling : String
+    taggedUserIds : String
+    likesCount : Int
+    commentsCount : Int
+    sharesCount : Int
+    viewsCount : Int
+    status : PostStatus
+    visibility : PostVisibility
+    createdAt : DateTime
+    updatedAt : DateTime
+    publishedAt : DateTime
+}
+entity PostProductTag {
+  * id : String
+    postId : String
+    productId : String
+    anchorType : PostProductAnchorType
+    positionX : Float
+    positionY : Float
+    blockId : String
+    startOffset : Int
+    endOffset : Int
+    sortOrder : Int
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity PostLike {
+  * id : String
+    postId : String
+    userId : String
+    createdAt : DateTime
+}
+entity PostComment {
+  * id : String
+    postId : String
+    userId : String
+    parentId : String
+    content : String
+    likesCount : Int
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity ScheduledPost {
+  * id : String
+    userId : String
+    content : String
+    mediaUrls : String
+    mediaType : String
+    location : String
+    feeling : String
+    taggedUserIds : String
+    visibility : PostVisibility
+    scheduledTime : DateTime
+    timezone : String
+    status : String
+    publishedPostId : String
+    errorMessage : String
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity ScheduledPostProductTag {
+  * id : String
+    scheduledPostId : String
+    productId : String
+    anchorType : PostProductAnchorType
+    positionX : Float
+    positionY : Float
+    blockId : String
+    startOffset : Int
+    endOffset : Int
+    sortOrder : Int
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity Conversation {
+  * id : String
+    type : ConversationType
+    name : String
+    avatarUrl : String
+    createdBy : String
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity ConversationParticipant {
+  * id : String
+    conversationId : String
+    userId : String
+    role : String
+    joinedAt : DateTime
+    lastReadAt : DateTime
+}
+entity Message {
+  * id : String
+    conversationId : String
+    senderId : String
+    content : String
+    messageType : MessageType
+    mediaUrl : String
+    productId : String
+    orderId : String
+    isRead : Boolean
+    isDeleted : Boolean
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity Notification {
+  * id : String
+    userId : String
+    type : String
+    title : String
+    message : String
+    relatedUserId : String
+    relatedProductId : String
+    relatedOrderId : String
+    relatedPostId : String
+    actionUrl : String
+    isRead : Boolean
+    readAt : DateTime
+    createdAt : DateTime
+}
+entity Follow {
+  * id : String
+    followerId : String
+    followingId : String
+    createdAt : DateTime
+}
+entity SavedItem {
+  * id : String
+    userId : String
+    itemType : SavedItemType
+    targetId : String
+    createdAt : DateTime
+}
+entity Group {
+  * id : String
+    name : String
+  + slug : String
+    description : String
+    coverImageUrl : String
+    avatarUrl : String
+    privacy : GroupPrivacy
+    isApprovedPosts : Boolean
+    createdBy : String
+    membersCount : Int
+    postsCount : Int
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity GroupMember {
+  * id : String
+    groupId : String
+    userId : String
+    role : GroupMemberRole
+    joinedAt : DateTime
+}
+entity GroupJoinRequest {
+  * id : String
+    groupId : String
+    userId : String
+    status : GroupJoinRequestStatus
+    reviewedBy : String
+    reviewedAt : DateTime
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity GroupInvite {
+  * id : String
+    groupId : String
+  + code : String
+    createdBy : String
+    usedBy : String
+    expiresAt : DateTime
+    maxUses : Int
+    usedCount : Int
+    isActive : Boolean
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity Review {
+  * id : String
+    productId : String
+  + orderItemId : String
+    userId : String
+    rating : Int
+    title : String
+    content : String
+    images : String
+    sellerResponse : String
+    sellerResponseAt : DateTime
+    helpfulCount : Int
+    isVerifiedPurchase : Boolean
+    isPublished : Boolean
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity AiContentHistory {
+  * id : String
+    userId : String
+    prompt : String
+    contentType : String
+    generatedContent : String
+    sourceIdea : String
+    linkedProductId : String
+    productTitle : String
+    productImageUrl : String
+    usedForId : String
+    usedForType : String
+    createdAt : DateTime
+}
+entity ProductView {
+  * id : String
+    productId : String
+    viewedFromProductId : String
+    userId : String
+    sessionId : String
+    ipAddress : String
+    userAgent : String
+    createdAt : DateTime
+}
+entity UserSearchEvent {
+  * id : String
+    userId : String
+    query : String
+    normalizedQuery : String
+    sessionId : String
+    createdAt : DateTime
+}
+entity ProductCoView {
+  * id : String
+    sourceProductId : String
+    targetProductId : String
+    score : Float
+    lastViewedAt : DateTime
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity SellerStats {
+  * id : String
+    sellerId : String
+    date : DateTime
+    totalSales : Decimal
+    totalOrders : Int
+    totalRevenue : Decimal
+    totalProfit : Decimal
+    totalProducts : Int
+    totalViews : Int
+    newFollowers : Int
+    totalLikes : Int
+    totalComments : Int
+    createdAt : DateTime
+    updatedAt : DateTime
+}
+entity Report {
+  * id : String
+    reporterId : String
+    targetType : String
+    targetId : String
+    reason : String
+    description : String
+    status : String
+    resolvedBy : String
+    resolvedAt : DateTime
+    resolution : String
+    createdAt : DateTime
+}
+Admin |o--o{ Report : resolverAdmin
+Admin |o--o{ SellerSensitiveAuditLog : actorAdmin
+Admin |o--o{ SellerSensitiveChangeRequest : reviewer
+Admin |o--o{ SellerVerification : verifierAdmin
+Cart ||--o{ CartItem : cart
+Category ||--o{ Category : children
+Category |o--o{ Category : parent
+Category ||--o{ Product : categories
+Conversation ||--o{ ConversationParticipant : conversation
+Conversation ||--o{ Message : conversation
+Follow ||--o{ User : followers
+Follow ||--o{ User : following
+Group ||--o{ GroupInvite : group
+Group ||--o{ GroupJoinRequest : group
+Group ||--o{ GroupMember : group
+GroupInvite ||--o{ User : createdGroupInvites
+GroupInvite ||--o{ User : usedGroupInvites
+GroupJoinRequest ||--o{ User : reviewedGroupJoinRequests
+Group |o--o{ Post : group
+Notification ||--o{ User : notifications
+Notification ||--o{ User : relatedNotifications
+OrderItem |o--o{ Review : orderItem
+Order |o--o{ Message : order
+Order ||--o{ OrderItem : order
+PostComment |o--o{ PostComment : parent
+PostComment ||--o{ PostComment : replies
+Post ||--o{ PostComment : post
+Post ||--o{ PostLike : post
+Post ||--o{ PostProductTag : post
+Product ||--o{ CartItem : product
+Product ||--o{ Category : products
+ProductCoView ||--o{ Product : coViewSources
+ProductCoView ||--o{ Product : coViewTargets
+Product |o--o{ Message : product
+Product |o--o{ OrderItem : product
+Product ||--o{ PostProductTag : product
+Product ||--o{ ProductCoView : sourceProduct
+Product ||--o{ ProductCoView : targetProduct
+Product ||--o{ ProductImage : product
+Product ||--o{ ProductVariant : product
+Product ||--o{ ProductView : product
+Product |o--o{ ProductView : viewedFromProduct
+Product ||--o{ Review : product
+Product ||--o{ ScheduledPostProductTag : product
+ProductVariant |o--o{ CartItem : variant
+ProductVariant |o--o{ OrderItem : variant
+ProductView ||--o{ Product : referrerViews
+Report ||--o{ Admin : resolvedReports
+Report ||--o{ User : reports
+Review |o--o{ OrderItem : review
+ScheduledPost ||--o{ ScheduledPostProductTag : scheduledPost
+SellerSensitiveAuditLog ||--o{ Admin : sensitiveAuditLogsAsActor
+SellerSensitiveAuditLog ||--o{ User : sensitiveAuditLogsAsActor
+SellerSensitiveChangeRequest ||--o{ Admin : reviewedSensitiveChangeRequests
+SellerVerification ||--o{ Admin : verifiedSellerApplications
+SellerVerification |o--o{ User : sellerVerification
+TwoFactorAuth |o--o{ User : twoFactorAuth
+User ||--o{ AiContentHistory : user
+User ||--o{ Cart : user
+User |o--o{ Conversation : creator
+User ||--o{ ConversationParticipant : user
+User ||--o{ Follow : follower
+User ||--o{ Follow : following
+User |o--o{ Group : creator
+User ||--o{ GroupInvite : creator
+User |o--o{ GroupInvite : usedByUser
+User |o--o{ GroupJoinRequest : reviewer
+User ||--o{ GroupJoinRequest : user
+User ||--o{ GroupMember : user
+User |o--o{ Message : sender
+User |o--o{ Notification : relatedUser
+User ||--o{ Notification : user
+User |o--o{ Order : buyer
+User |o--o{ OrderItem : seller
+User ||--o{ PasswordResetToken : user
+User ||--o{ Post : author
+User ||--o{ PostComment : user
+User ||--o{ PostLike : user
+User ||--o{ Product : seller
+User |o--o{ ProductView : user
+User ||--o{ Report : reporter
+User ||--o{ Review : user
+User ||--o{ SavedItem : user
+User ||--o{ ScheduledPost : user
+User |o--o{ SellerSensitiveAuditLog : actorUser
+User ||--o{ SellerSensitiveChangeRequest : user
+User ||--o{ SellerStats : seller
+User ||--o{ SellerVerification : user
+User ||--o{ TwoFactorAuth : user
+User ||--o{ UserSearchEvent : user
+@enduml

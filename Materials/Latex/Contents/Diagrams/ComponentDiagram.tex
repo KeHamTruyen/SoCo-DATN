@@ -2,7 +2,7 @@ Component diagram mô tả cấu trúc và mối quan hệ giữa các thành ph
 
 \subsubsection{Component diagram tổng quan}
 
-\ref{fig:component-overview} minh họa kiến trúc tổng quan của hệ thống theo mô hình \textbf{MVCS}, bao gồm bốn layers chính và các thành phần hỗ trợ.
+\ref{fig:component-overview} minh họa kiến trúc tổng quan của hệ thống, bao gồm frontend người dùng, core backend API, frontend admin, admin backend API, PostgreSQL, Redis cache và các dịch vụ ngoài.
 
 \begin{figure}[htbp]
     \centering
@@ -11,52 +11,59 @@ Component diagram mô tả cấu trúc và mối quan hệ giữa các thành ph
     \label{fig:component-overview}
 \end{figure}
 
-\paragraph{View Layer (Frontend)} \textbf{View Layer} được xây dựng bằng \textbf{React.js}, bao gồm:
+\paragraph{View Layer (Frontend)} \textbf{View Layer} được xây dựng bằng \textbf{React.js}, \textbf{TypeScript} và \textbf{Vite}, bao gồm:
 \begin{itemize}
-    \item \textbf{Pages \& Components}: Các trang và component giao diện người dùng
-    \item \textbf{State Management}: Quản lý state của ứng dụng
-    \item \textbf{API Services}: Các service giao tiếp với backend qua HTTP và WebSocket
+    \item \textbf{Main Frontend}: Ứng dụng cho buyer/seller/guest, gồm feed, marketplace, cart, checkout, orders, profile, groups, messages, notifications, AI creative lab, AI shopping assistant và seller dashboard.
+    \item \textbf{Admin Frontend}: Ứng dụng riêng cho admin, gồm dashboard, users, content, reports, categories, sellers và settings.
+    \item \textbf{State \& Context}: Quản lý auth state, notification state, messaging state và các state theo feature.
+    \item \textbf{API Services}: Giao tiếp với backend qua REST API bằng fetch wrapper và kết nối Socket.IO cho real-time.
 \end{itemize}
 
 \paragraph{Controller Layer (Backend)} \textbf{Controller Layer} được xây dựng bằng \textbf{Express.js}, chịu trách nhiệm:
 \begin{itemize}
-    \item \textbf{Request Handling}: Nhận và xử lý các HTTP request từ frontend
-    \item \textbf{Response Formatting}: Định dạng và trả về response
-    \item \textbf{Middleware Chain}: Chuỗi middleware xử lý validation, authentication, rate limiting
+    \item \textbf{Request Handling}: Nhận và xử lý HTTP request từ frontend.
+    \item \textbf{Response Formatting}: Trả response thống nhất cho client.
+    \item \textbf{Middleware Chain}: Áp dụng authentication, authorization, validation, rate limiting và error handling.
 \end{itemize}
 
 \paragraph{Service Layer (Backend)} \textbf{Service Layer} chứa business logic của hệ thống:
 \begin{itemize}
-    \item \textbf{Business Logic}: Xử lý các logic nghiệp vụ phức tạp
-    \item \textbf{Data Processing}: Xử lý và chuyển đổi dữ liệu
-    \item \textbf{External Integrations}: Tích hợp với các dịch vụ bên ngoài (AI, Storage, Email)
+    \item \textbf{Auth \& User Service}: Đăng ký, verify email, login, 2FA, reset password, profile và privacy settings.
+    \item \textbf{Social Services}: Feed, posts, likes, comments, follow, saved items, groups và reports.
+    \item \textbf{Commerce Services}: Products, variants, cart, orders, refunds, reviews, seller stats và product recommendations.
+    \item \textbf{Realtime Services}: Messaging, notification và Socket.IO event emission.
+    \item \textbf{AI Services}: Tạo nội dung text, image+text, lưu lịch sử AI, liên kết nội dung với post/scheduled post và cung cấp AI Shopping Assistant qua chatbox.
+    \item \textbf{Admin Services}: Quản lý users, content, categories, seller verification và reports.
+    \item \textbf{Cache Helper}: Đọc/ghi Redis cho các endpoint đọc nhiều như product list/detail, post list/detail, post comments và search; đồng thời xóa cache liên quan khi dữ liệu bài viết hoặc sản phẩm thay đổi.
 \end{itemize}
 
-\paragraph{Model Layer (Backend)} \textbf{Model Layer} sử dụng \textbf{Sequelize ORM} để:
+\paragraph{Model/Data Access Layer (Backend)} \textbf{Model Layer} sử dụng \textbf{Prisma ORM} để:
 \begin{itemize}
-    \item \textbf{Data Models}: Định nghĩa cấu trúc dữ liệu
-    \item \textbf{Database Schema}: Quản lý schema của database
-    \item \textbf{Relationships}: Định nghĩa các mối quan hệ giữa các entities
+    \item \textbf{Data Models}: Định nghĩa schema dữ liệu tại \texttt{database/prisma/schema.prisma}.
+    \item \textbf{Database Access}: Truy vấn và cập nhật PostgreSQL thông qua Prisma Client.
+    \item \textbf{Relationships}: Quản lý quan hệ giữa users, products, orders, posts, groups, messages, notifications, reports và các bảng hỗ trợ.
 \end{itemize}
 
 \paragraph{Data Storage \& External Services} Hệ thống sử dụng:
 \begin{itemize}
-    \item \textbf{PostgreSQL}: Database chính lưu trữ tất cả dữ liệu
-    \item \textbf{Redis}: Cache và quản lý sessions
-    \item \textbf{Google Gemini API \& Google Veo 2}: Dịch vụ AI để tạo nội dung đa phương thức (văn bản, hình ảnh, video ngắn)
-    \item \textbf{Cloudinary}: Lưu trữ và quản lý file (hình ảnh, video)
-    \item \textbf{Gmail SMTP}: Dịch vụ email để gửi thông báo
-    \item \textbf{Socket.IO}: Giao tiếp real-time giữa frontend và backend
+    \item \textbf{PostgreSQL}: Database chính lưu trữ dữ liệu nghiệp vụ.
+    \item \textbf{Prisma Client}: Tầng ORM/data access cho backend.
+    \item \textbf{Redis}: Cache tùy chọn cho dữ liệu đọc nhiều, được cấu hình bằng \texttt{REDIS\_URL}.
+    \item \textbf{Cloudinary}: Lưu trữ và quản lý hình ảnh/file upload.
+    \item \textbf{SMTP/Nodemailer}: Gửi email xác thực, OTP và reset password.
+    \item \textbf{Socket.IO}: Giao tiếp real-time giữa frontend và core backend.
+    \item \textbf{AI Providers}: Gemini cho text/vision; Hugging Face hoặc Replicate cho image generation nếu được cấu hình.
 \end{itemize}
 
-\paragraph{MVCS Flow} Luồng xử lý trong hệ thống tuân theo mô hình MVCS:
+\paragraph{MVCS Flow} Luồng xử lý trong hệ thống:
 \begin{enumerate}
-    \item \textbf{View Layer} gửi request đến \textbf{Controller Layer} qua HTTP hoặc WebSocket
-    \item \textbf{Controller Layer} xử lý request và gọi \textbf{Service Layer}
-    \item \textbf{Service Layer} thực hiện business logic và tương tác với \textbf{Model Layer}
-    \item \textbf{Model Layer} truy vấn hoặc cập nhật \textbf{PostgreSQL}
-    \item \textbf{Service Layer} có thể sử dụng \textbf{Redis} để cache hoặc tích hợp với các \textbf{External Services}
-    \item Kết quả được trả về ngược lại qua các layers đến \textbf{View Layer}
+    \item \textbf{View Layer} gửi request đến backend qua HTTP hoặc kết nối realtime qua Socket.IO.
+    \item \textbf{Controller Layer} xác thực, validate và gọi service phù hợp.
+    \item \textbf{Service Layer} thực hiện business logic và tương tác với Prisma Client.
+    \item \textbf{Prisma Client} truy vấn hoặc cập nhật \textbf{PostgreSQL}.
+    \item Với các endpoint đọc nhiều, \textbf{Controller/Cache Helper} có thể lấy dữ liệu từ \textbf{Redis} trước khi gọi service; khi có thay đổi dữ liệu, cache liên quan được invalidation theo pattern.
+    \item \textbf{Service Layer} có thể gọi \textbf{Cloudinary}, \textbf{SMTP} hoặc \textbf{AI Providers} khi cần.
+    \item Kết quả được trả về frontend; các sự kiện realtime được emit qua Socket.IO.
 \end{enumerate}
 
 \subsubsection{Component diagram theo vai trò người dùng}
@@ -74,24 +81,22 @@ Component diagram mô tả cấu trúc và mối quan hệ giữa các thành ph
 
 \textbf{View Layer} bao gồm các trang:
 \begin{itemize}
-    \item \textbf{HomePage}: Trang chủ hiển thị feed và bài viết
-    \item \textbf{ProductPage}: Trang sản phẩm để duyệt và mua sắm
-    \item \textbf{ChatPage}: Trang nhắn tin với người dùng khác
-    \item \textbf{ProfilePage}: Trang hồ sơ cá nhân
+    \item \textbf{Feed/Home}: Trang feed, bài viết và tương tác xã hội.
+    \item \textbf{Marketplace/Product Detail}: Duyệt, tìm kiếm, lọc và xem sản phẩm.
+    \item \textbf{Cart/Checkout/Orders}: Giỏ hàng, đặt hàng, xác nhận thanh toán và theo dõi đơn.
+    \item \textbf{Profile/Saved Items}: Hồ sơ, follow và danh sách đã lưu.
+    \item \textbf{Groups/Messages/Notifications}: Nhóm cộng đồng, nhắn tin và thông báo.
 \end{itemize}
 
 \textbf{Controller Layer} xử lý các request từ frontend:
 \begin{itemize}
-    \item \textbf{AuthController}: Xử lý đăng ký, đăng nhập, xác thực
-    \item \textbf{UserController}: Quản lý thông tin người dùng và profile
-    \item \textbf{PostController}: Quản lý bài viết, feed, tương tác
-    \item \textbf{ProductController}: Xem và tìm kiếm sản phẩm
-    \item \textbf{CartController}: Quản lý giỏ hàng
-    \item \textbf{OrderController}: Đặt hàng và theo dõi đơn hàng
-    \item \textbf{MessageController}: Gửi và nhận tin nhắn
+    \item \textbf{AuthController, UserController}: Xác thực, profile, follow.
+    \item \textbf{PostController, GroupController, ReportController}: Bài viết, nhóm, tương tác và báo cáo.
+    \item \textbf{ProductController, CartController, OrderController, ReviewController}: Marketplace, giỏ hàng, đơn hàng và đánh giá.
+    \item \textbf{MessageController, NotificationController}: Tin nhắn và thông báo realtime.
 \end{itemize}
 
-\textbf{Service Layer} thực hiện business logic tương ứng với từng controller, và \textbf{Model Layer} quản lý dữ liệu thông qua \textbf{PostgreSQL} và \textbf{Redis}.
+\textbf{Service Layer} thực hiện business logic tương ứng, còn \textbf{Model Layer} truy cập dữ liệu qua Prisma và PostgreSQL.
 
 \paragraph{Component diagram cho Seller} \ref{fig:component-seller} mô tả các components và flow dành cho người bán (Seller).
 
@@ -104,27 +109,24 @@ Component diagram mô tả cấu trúc và mối quan hệ giữa các thành ph
 
 \textbf{View Layer} cho Seller bao gồm:
 \begin{itemize}
-    \item \textbf{DashboardPage}: Trang dashboard hiển thị analytics và quản lý đơn hàng
-    \item \textbf{ProductPage}: Trang quản lý sản phẩm (thêm, sửa, xóa, quản lý inventory)
+    \item \textbf{Seller Registration}: Quy trình đăng ký seller nhiều bước, upload giấy tờ và theo dõi trạng thái duyệt.
+    \item \textbf{Seller Dashboard}: Tổng quan doanh thu, đơn hàng, lượt xem và tồn kho.
+    \item \textbf{Products/Inventory}: Quản lý sản phẩm, ảnh, biến thể, trạng thái và soft delete/restore.
+    \item \textbf{Orders/Refunds/Reviews}: Quản lý đơn bán, xử lý hoàn tiền và phản hồi đánh giá.
+    \item \textbf{Scheduled Posts/AI Lab}: Lên lịch bài đăng, tạo nội dung bằng AI và tư vấn mua sắm qua AI chatbox.
 \end{itemize}
 
 \textbf{Controller Layer} xử lý các chức năng của Seller:
 \begin{itemize}
-    \item \textbf{ProductController}: Quản lý sản phẩm (CRUD, inventory, variants)
-    \item \textbf{OrderController}: Xem và cập nhật trạng thái đơn hàng, xử lý hoàn tiền
-    \item \textbf{ReviewController}: Xem và phản hồi đánh giá từ người mua
-    \item \textbf{PostController}: Tạo bài viết quảng cáo sản phẩm
+    \item \textbf{SellerController}: Đăng ký seller, xác minh hồ sơ, sensitive re-auth và change request.
+    \item \textbf{ProductController}: Quản lý sản phẩm, inventory và variants.
+    \item \textbf{OrderController}: Xem/cập nhật trạng thái đơn hàng và xử lý hoàn tiền.
+    \item \textbf{ReviewController}: Phản hồi đánh giá.
+    \item \textbf{ScheduledPostController}: CRUD bài đăng đã lên lịch và publish ngay.
+    \item \textbf{AIController/AiAssistantController}: Tạo nội dung AI, quản lý lịch sử và xử lý chatbox tư vấn mua sắm.
 \end{itemize}
 
-\textbf{Service Layer} cung cấp các chức năng:
-\begin{itemize}
-    \item \textbf{ProductService}: Quản lý sản phẩm, inventory, variants
-    \item \textbf{OrderService}: Xử lý đơn hàng, cập nhật trạng thái, hoàn tiền
-    \item \textbf{ReviewService}: Quản lý đánh giá và phản hồi
-    \item \textbf{PostService}: Tạo và quản lý bài viết quảng cáo sản phẩm
-\end{itemize}
-
-Seller cũng sử dụng \textbf{Cloudinary} để upload và quản lý hình ảnh sản phẩm.
+Seller sử dụng \textbf{Cloudinary} để upload ảnh sản phẩm, shop logo/cover và giấy tờ xác minh.
 
 \paragraph{Component diagram cho Admin} \ref{fig:component-admin} mô tả các components và flow dành cho quản trị viên (Admin).
 
@@ -135,32 +137,29 @@ Seller cũng sử dụng \textbf{Cloudinary} để upload và quản lý hình �
     \label{fig:component-admin}
 \end{figure}
 
-\textbf{View Layer} cho Admin chỉ bao gồm:
+\textbf{View Layer} cho Admin bao gồm:
 \begin{itemize}
-    \item \textbf{AdminPage}: Trang quản trị với các chức năng quản lý hệ thống
+    \item \textbf{Admin Login}: Đăng nhập admin qua admin API.
+    \item \textbf{Dashboard}: Thống kê tổng quan và growth.
+    \item \textbf{Users}: Quản lý user, trạng thái active và role.
+    \item \textbf{Content}: Quản lý bài viết và sản phẩm.
+    \item \textbf{Reports}: Xem và xử lý báo cáo vi phạm.
+    \item \textbf{Categories}: Quản lý danh mục.
+    \item \textbf{Sellers}: Duyệt hồ sơ seller và yêu cầu thay đổi dữ liệu nhạy cảm.
 \end{itemize}
 
-\textbf{Controller Layer} xử lý các chức năng quản trị:
+\textbf{Controller/Service Layer} cho Admin bao gồm:
 \begin{itemize}
-    \item \textbf{AdminAuthController}: Xác thực và quản lý session cho admin
-    \item \textbf{AdminController}: Quản lý người dùng, nội dung, analytics, cấu hình hệ thống
-    \item \textbf{ReportController}: Xem và xử lý các báo cáo vi phạm
-    \item \textbf{SellerApplicationController}: Xem xét và phê duyệt đơn đăng ký trở thành seller
-\end{itemize}
-
-\textbf{Service Layer} cung cấp các chức năng quản trị:
-\begin{itemize}
-    \item \textbf{AuthService}: Xác thực admin
-    \item \textbf{AdminService}: Quản lý người dùng, kiểm duyệt nội dung, analytics, cấu hình hệ thống
-    \item \textbf{ReportService}: Xử lý báo cáo vi phạm và kiểm duyệt nội dung
-    \item \textbf{SellerApplicationService}: Xử lý đơn đăng ký seller, workflow phê duyệt
+    \item \textbf{AdminAuthController/AuthService}: Xác thực admin.
+    \item \textbf{AdminController/AdminService}: Users, content, categories và dashboard.
+    \item \textbf{ReportController/ReportService}: Reports và moderation actions.
+    \item \textbf{SellerAdmin Routes/SellerController}: Seller applications và sensitive change requests.
 \end{itemize}
 
 \paragraph{Lợi ích của việc chia nhỏ component diagram} Việc chia component diagram thành tổng quan và theo từng vai trò mang lại các lợi ích:
 \begin{itemize}
-    \item \textbf{Dễ hiểu}: Mỗi diagram tập trung vào một mục đích cụ thể, giảm độ phức tạp
-    \item \textbf{Dễ maintain}: Cập nhật và chỉnh sửa dễ dàng hơn khi hệ thống phát triển
-    \item \textbf{Dễ phát triển}: Developers có thể tập trung vào diagram liên quan đến tính năng đang phát triển
-    \item \textbf{Dễ tài liệu hóa}: Tài liệu rõ ràng hơn cho từng user type và tính năng
+    \item \textbf{Dễ hiểu}: Mỗi diagram tập trung vào một mục đích cụ thể.
+    \item \textbf{Dễ maintain}: Cập nhật dễ hơn khi một module thay đổi.
+    \item \textbf{Dễ phát triển}: Developers có thể tập trung vào diagram liên quan đến feature đang làm.
+    \item \textbf{Dễ tài liệu hóa}: Tài liệu rõ ràng hơn cho từng user type và nhóm chức năng.
 \end{itemize}
-

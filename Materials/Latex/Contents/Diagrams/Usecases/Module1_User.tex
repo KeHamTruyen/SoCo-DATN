@@ -31,7 +31,7 @@ Module này bao gồm các chức năng cốt lõi liên quan đến việc tạ
 \begin{itemize}
     \item Tài khoản mới được tạo với trạng thái ``chưa xác thực''.
     \item Vai trò người dùng được gán là Buyer.
-    \item Hệ thống gửi email/tin nhắn xác thực tài khoản.
+    \item Hệ thống gửi email xác thực tài khoản.
     \item Người dùng được chuyển hướng đến trang yêu cầu xác thực.
 \end{itemize} \\ \hline
 \textbf{Luồng sự kiện chính} & 
@@ -42,7 +42,7 @@ Module này bao gồm các chức năng cốt lõi liên quan đến việc tạ
     \item Hệ thống kiểm tra tính hợp lệ của dữ liệu.
     \item Hệ thống kiểm tra email đã tồn tại hay chưa.
     \item Hệ thống tạo người dùng mới với trạng thái ``chưa xác thực''.
-    \item Hệ thống gửi email/SMS xác thực.
+    \item Hệ thống gửi email xác thực.
     \item Hệ thống hiển thị thông báo thành công và yêu cầu xác thực.
 \end{enumerate} \\ \hline
 \textbf{Ngoại lệ} & 
@@ -118,7 +118,7 @@ Module này bao gồm các chức năng cốt lõi liên quan đến việc tạ
 \textbf{Luồng sự kiện chính} & 
 \begin{enumerate}
     \item Hệ thống hiển thị trang nhập mã 2FA.
-    \item Người dùng lấy mã từ email (hoặc ứng dụng Authenticator).
+    \item Người dùng lấy mã OTP từ email.
     \item Người dùng nhập mã 2FA.
     \item Người dùng nhấn ``Xác nhận''.
     \item Hệ thống kiểm tra mã.
@@ -227,7 +227,10 @@ Module này bao gồm các chức năng cốt lõi liên quan đến việc tạ
     \item Hệ thống xác thực và cập nhật dữ liệu.
     \item Hệ thống hiển thị thông báo thành công.
 \end{enumerate} \\ \hline
-\textbf{Luồng thay thế} & A1: Người dùng nhấn ``Hủy'' $\rightarrow$ Các thay đổi sẽ không được lưu. \\ \hline
+\textbf{Luồng thay thế} & 
+\begin{itemize}
+    \item A1: Người dùng nhấn ``Hủy'' $\rightarrow$ Các thay đổi sẽ không được lưu.
+\end{itemize} \\ \hline
 \textbf{Ngoại lệ} & 
 \begin{itemize}
     \item E1: Lỗi tải lên hình ảnh $\rightarrow$ Báo lỗi tương ứng.
@@ -254,7 +257,7 @@ Module này bao gồm các chức năng cốt lõi liên quan đến việc tạ
 \textbf{Luồng sự kiện chính} & 
 \begin{enumerate}
     \item Người dùng vào trang ``Cài đặt''.
-    \item Người dùng chọn tab ``Quyền riêng tư''.
+    \item Người dùng chọn tab ``Quyền riêng tư''100.
     \item Người dùng thay đổi các tùy chọn.
     \item Người dùng nhấn ``Lưu thay đổi''.
     \item Hệ thống cập nhật và hiển thị thông báo thành công.
@@ -282,24 +285,27 @@ Module này bao gồm các chức năng cốt lõi liên quan đến việc tạ
 \end{itemize} \\ \hline
 \textbf{Điều kiện sau} & 
 \begin{itemize}
-    \item Hồ sơ đăng ký Seller được lưu và chuyển sang trạng thái chờ duyệt (\textit{REVIEWING}) sau khi hoàn thành các bước bắt buộc.
-    \item Khi Admin phê duyệt, vai trò người dùng được cập nhật thành Seller.
+    \item Hồ sơ đăng ký seller được lưu với trạng thái chờ duyệt.
+    \item Sau khi admin duyệt, vai trò của người dùng được cập nhật thành Seller và người dùng có quyền truy cập các chức năng dành cho người bán.
 \end{itemize} \\ \hline
 \textbf{Luồng sự kiện chính} & 
 \begin{enumerate}
-    \item Người dùng truy cập trang ``Đăng ký Bán hàng'' và bắt đầu hồ sơ.
-    \item Người dùng hoàn thành bước 1 (thông tin cá nhân/định danh).
-    \item Người dùng hoàn thành bước 2 (thông tin kinh doanh).
-    \item Người dùng hoàn thành bước 3 (thông tin ngân hàng) và nộp hồ sơ.
-    \item Hệ thống chuyển hồ sơ sang trạng thái ``Đang xem xét''.
-    \item Admin xét duyệt hồ sơ.
-    \item Nếu được duyệt, hệ thống cập nhật vai trò thành Seller và gửi thông báo kết quả.
+    \item Người dùng truy cập trang ``Đăng ký Bán hàng''.
+    \item Người dùng điền các thông tin bổ sung.
+    \item Người dùng nhấn ``Đăng ký''.
+    \item Hệ thống lưu hồ sơ đăng ký với trạng thái chờ duyệt.
+    \item Admin xem xét hồ sơ và quyết định phê duyệt hoặc từ chối.
+    \item Nếu được phê duyệt, hệ thống cập nhật vai trò của người dùng thành Seller.
+    \item Hệ thống thông báo kết quả và cho phép seller truy cập Bảng điều khiển bán hàng.
 \end{enumerate} \\ \hline
-\textbf{Luồng thay thế} & A1: Người dùng hủy bỏ quá trình đăng ký. \\ \hline
+\textbf{Luồng thay thế} & 
+\begin{itemize}
+    \item A1: Người dùng hủy bỏ quá trình đăng ký.
+\end{itemize} \\ \hline
 \textbf{Ngoại lệ} & 
 \begin{itemize}
-    \item E1: Thông tin ở bất kỳ bước nào không hợp lệ $\rightarrow$ Báo lỗi và yêu cầu sửa.
-    \item E2: Hồ sơ bị từ chối $\rightarrow$ Hiển thị lý do từ chối để người dùng bổ sung.
+    \item E1: Thông tin cung cấp không hợp lệ $\rightarrow$ Báo lỗi.
+    \item E2: Quá trình xác minh thất bại $\rightarrow$ Báo lỗi và yêu cầu thử lại.
 \end{itemize} \\ \hline
 \textbf{Ghi chú} & Đây là use case cốt lõi thể hiện mô hình ``buyer-to-seller'' của dự án. \\ \hline
 \end{tabularx}

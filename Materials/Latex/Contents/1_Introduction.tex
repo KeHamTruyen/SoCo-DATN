@@ -1,5 +1,5 @@
 \chapter{Giới thiệu}
-Mục tiêu của Chương 1 là giới thiệu đề tài nghiên cứu "Xây dựng Nền tảng Social Commerce tích hợp AI". Chương cũng trình bày động lực phát triển đề tài, phạm vi và mục tiêu dự án, đồng thời giới thiệu cấu trúc tổng thể của báo cáo.
+Mục tiêu của Chương 1 là giới thiệu đề tài "Xây dựng hệ thống Social Commerce". Chương cũng trình bày động lực phát triển đề tài, phạm vi và mục tiêu dự án, đồng thời giới thiệu cấu trúc tổng thể của báo cáo.
 
 \section{Động lực phát triển}
 Trong bối cảnh nội dung dạng ngắn bùng nổ, TikTok đã gặt hái thành công lớn với mô hình video ngắn hấp dẫn và tiếp tục mở rộng sang thương mại điện tử thông qua TikTok Shop. Tuy nhiên, việc sử dụng TikTok hiện nay chủ yếu diễn ra trên thiết bị di động. Khi truy cập bằng trình duyệt web hoặc trên PC/laptop, người dùng vẫn thường xuyên lựa chọn các mạng xã hội truyền thống như Facebook hay Instagram. Điều này tạo ra một khoảng trống về trải nghiệm nội dung ngắn đi kèm khả năng mua sắm tức thì trên nền tảng web/desktop.
@@ -11,12 +11,12 @@ Hiện nay, các mạng xã hội nổi bật về khả năng tạo nội dung 
 \begin{itemize}
 \item \textbf{Thương mại theo định hướng cộng đồng:} Chuyển đổi tương tác xã hội (like, comment, share) thành động lực thúc đẩy hành vi mua hàng, ngay trong bối cảnh của từng bài đăng.
 \item \textbf{Mô hình buyer-to-seller minh bạch:} Mọi người dùng đều bắt đầu với vai trò người mua và có thể nâng cấp thành người bán thông qua quy trình phê duyệt rõ ràng. Cách tiếp cận này vừa mở rộng nguồn cung, vừa kiểm soát tốt chất lượng.
-\item \textbf{Trải nghiệm thời gian thực:} Các tính năng như chat, thông báo đơn hàng, lịch đăng bài và phản hồi đánh giá được cập nhật theo thời gian thực thông qua Socket.io, đáp ứng kỳ vọng “luôn trực tuyến” của người dùng.
-    \item \textbf{Năng suất nội dung được hỗ trợ bởi AI:} Hệ thống tích hợp Google Gemini API và Google Veo 2 để hỗ trợ tạo nội dung đa phương thức, bao gồm: tạo bài viết từ mô tả, ý tưởng và hình ảnh sản phẩm; tạo đồng thời bài viết và hình ảnh; tạo video ngắn kèm hình ảnh và bài viết. Tính năng này giúp người bán và nhà sáng tạo tiết kiệm thời gian và tạo ra nội dung chất lượng cao.
+\item \textbf{Trải nghiệm thời gian thực:} Các tính năng như chat, thông báo đơn hàng, lịch đăng bài và phản hồi đánh giá được cập nhật theo thời gian thực thông qua Socket.IO, đáp ứng kỳ vọng “luôn trực tuyến” của người dùng.
+    \item \textbf{Năng suất nội dung được hỗ trợ bởi AI:} Hệ thống tích hợp Google Gemini API để hỗ trợ tạo nội dung đa phương thức, bao gồm: tạo bài viết từ mô tả, ý tưởng và hình ảnh sản phẩm; tạo đồng thời bài viết và hình ảnh khi image provider khả dụng. Chức năng tạo video bằng AI hiện được xem là hướng mở rộng trong tương lai. Tính năng này giúp người bán và nhà sáng tạo tiết kiệm thời gian và tạo ra nội dung chất lượng cao.
 \item \textbf{An toàn và đáng tin cậy:} Nền tảng cung cấp cơ chế báo cáo, kiểm duyệt nội dung và phân quyền rõ ràng dựa trên vai trò nhằm giảm thiểu rủi ro gian lận và vi phạm nội dung.
 \end{itemize}
 
-Nền tảng tích hợp bộ công cụ AI phục vụ cả người dùng (gợi ý sản phẩm, cửa hàng, nội dung phù hợp) và người bán (Google Gemini API và Google Veo 2 hỗ trợ sáng tạo nội dung đa phương thức, tối ưu thông điệp, đề xuất khung giờ đăng bài).
+Nền tảng tích hợp bộ công cụ AI phục vụ cả người dùng (gợi ý sản phẩm, cửa hàng, nội dung phù hợp) và người bán (Google Gemini API hỗ trợ sáng tạo nội dung đa phương thức và tối ưu thông điệp).
 
 \section{Phạm vi và Mục tiêu Dự án}
 Mục tiêu tổng quát của dự án là cung cấp cho người dùng một trải nghiệm liền mạch trong việc khám phá sản phẩm thông qua tương tác xã hội. Để đạt được điều này, nhóm quyết định phát triển một hệ thống phần mềm đóng vai trò là nền tảng social commerce với giao diện thân thiện và khả năng truy cập thuận tiện trên trình duyệt.
@@ -36,18 +36,25 @@ Phần này trình bày tóm lược nội dung của toàn bộ báo cáo. Cấ
 
 Chương 1: Giới thiệu
 \begin{itemize}
-\item Phần 1: Trình bày lý do lựa chọn đề tài "Nền tảng Social Commerce tích hợp AI".
+\item Phần 1: Trình bày lý do lựa chọn đề tài "Xây dựng hệ thống Social Commerce".
 \item Phần 2: Tóm tắt phạm vi và mục tiêu dự án, bao gồm: vấn đề cần giải quyết, đối tượng hướng đến, các chức năng chính của hệ thống và cách người dùng tương tác với hệ thống.
 \end{itemize}
 
 Chương 2: Thu thập và Phân tích Yêu cầu
 \begin{itemize}
-\item Phần 1: Trình bày một số nền tảng social commerce cũng như một số phần mềm quản lý thương mại điện tử hiện tại, cùng với ưu điểm và nhược điểm của chúng.
+\item Phần 1: Trình bày bối cảnh bài toán, tham chiếu các nền tảng liên quan và khoảng trống mà hệ thống hướng tới giải quyết.
 \item Phần 2: Liệt kê và mô tả các bên liên quan trong dự án.
-\item Phần 3: Trình bày yêu cầu chức năng cho từng loại người dùng cụ thể và yêu cầu phi chức năng cho toàn bộ hệ thống.
+\item Phần 3: Trình bày yêu cầu chức năng, yêu cầu phi chức năng và các ràng buộc nghiệp vụ của hệ thống.
 \end{itemize}
 
-Chương 3: Thiết kế Hệ thống
+Chương 3: Công nghệ và phần mềm sử dụng
+\begin{itemize}
+\item Phần 1: Giới thiệu các công nghệ front-end được sử dụng như React, TypeScript, Vite, Tailwind CSS, React Router và các thư viện quản lý trạng thái.
+\item Phần 2: Trình bày các công nghệ back-end như Node.js, Express.js cùng các thành phần hỗ trợ bảo mật, xác thực và kiểm tra dữ liệu.
+\item Phần 3: Mô tả các công nghệ về cơ sở dữ liệu, ORM, cache, realtime và các dịch vụ tích hợp như PostgreSQL, Prisma, Redis, Socket.IO, Gemini, Nodemailer và Cloudinary.
+\end{itemize}
+
+Chương 4: Thiết kế Hệ thống
 \begin{itemize}
 \item Phần 1: Trình bày Use Case Diagram và mô tả chi tiết cho từng use case.
 \item Phần 2: Trình bày Activity Diagram và phần giải thích tương ứng.
@@ -55,27 +62,31 @@ Chương 3: Thiết kế Hệ thống
 \item Phần 4: Trình bày thiết kế cơ sở dữ liệu cho toàn bộ hệ thống, bao gồm ERD và mô hình ánh xạ quan hệ.
 \item Phần 5: Trình bày Architecture Diagram của dự án cùng phần giải thích.
 \item Phần 6: Trình bày Component Diagram cho toàn bộ hệ thống cùng phần giải thích.
-\item Phần 7: Trình bày Deployment Diagram và giải thích cho từng lớp (layer) triển khai.
+
 \end{itemize}
 
-Chương 4: Nghiên cứu Công nghệ
+Chương 5: Hiện thực Hệ thống
 \begin{itemize}
-\item Phần 1: Trình bày và so sánh một số framework front-end, đồng thời nêu rõ framework được lựa chọn.
-\item Phần 2: Trình bày và so sánh một số công nghệ back-end, đồng thời nêu rõ công nghệ được lựa chọn.
-\item Phần 3: Trình bày và so sánh một số hệ quản trị cơ sở dữ liệu, đồng thời nêu rõ phần mềm được lựa chọn.
-\item Phần 4: Trình bày và so sánh một số công cụ kiểm thử API và hiệu năng (performance), đồng thời nêu rõ công cụ được lựa chọn.
+\item Phần 1: Trình bày UI flow, các màn hình chính và cách hiện thực các luồng chức năng trọng yếu của hệ thống.
+\item Phần 2: Minh họa các giao diện đã triển khai cho người dùng, người bán và quản trị viên.
 \end{itemize}
 
-Chương 5: Triển khai Hệ thống
+Chương 6: Kiểm thử
 \begin{itemize}
-\item Phần 1: Trình bày sơ đồ UI Flow, thiết kế UI chi tiết và giải thích các bước hoạt động chính.
-\item Phần 2: Minh họa một số giao diện người dùng đã được triển khai trong hệ thống.
+\item Phần 1: Mô tả công cụ và quy trình kiểm thử API, chức năng và hiệu suất giao diện.
+\item Phần 2: Trình bày các bảng test case, kết quả kiểm thử tổng hợp và phân tích các chỉ số đo bằng Chrome DevTools và Lighthouse.
 \end{itemize}
 
-Chương 6: Tóm tắt và Kế hoạch Tương lai
+Chương 7: Triển khai hệ thống
 \begin{itemize}
-\item Phần 1: Tóm tắt các kết quả đã đạt được trong quá trình thực hiện dự án.
-\item Phần 2: Đề xuất kế hoạch phát triển và mở rộng dự án trong giai đoạn tiếp theo.
+\item Phần 1: Trình bày kiến trúc triển khai, môi trường chạy hệ thống và các thành phần hạ tầng liên quan.
+\item Phần 2: Mô tả cấu hình triển khai, dịch vụ sử dụng và cách tổ chức các thành phần của hệ thống trong môi trường thực thi.
 \end{itemize}
 
-Phụ lục: Trình bày đóng góp của từng thành viên và kế hoạch triển khai công việc chi tiết trong suốt quá trình thực hiện dự án.
+Chương 8: Kết luận
+\begin{itemize}
+\item Phần 1: Tóm tắt các kết quả đạt được trong quá trình phân tích, thiết kế, hiện thực và kiểm thử hệ thống.
+\item Phần 2: Nêu hạn chế hiện tại và đề xuất hướng phát triển trong tương lai.
+\end{itemize}
+
+Phụ lục: Trình bày đóng góp của từng thành viên, tài liệu bổ sung và các nội dung hỗ trợ cho báo cáo.
