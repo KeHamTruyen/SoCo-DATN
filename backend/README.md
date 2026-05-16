@@ -110,7 +110,29 @@ backend/
 - `npm run test:integration:ui` - Integration với Vitest UI
 - `npm run test:coverage:integration` - Integration + coverage (`coverage-integration/`)
 - `npm run test:all` - Chạy `test` rồi `test:integration` (giống CI backend)
+- `npm run postman:generate` - Sinh lại Postman collection/environment từ script
+- `npm run test:api:postman` - Chạy Postman API collection bằng Newman (cần backend đang chạy)
 - `npm run ai:health` - Kiểm tra tình trạng provider AI theo cấu hình `backend/.env` (Gemini/OpenRouter/Groq/HF/Replicate)
+- `npm run search:reindex` - Tạo/cập nhật index Elasticsearch cho tìm kiếm product/user/post/group
+
+### Postman/Newman API Test Cases
+
+Collection nằm tại:
+
+- `postman/SoCo-API-Test-Cases.postman_collection.json`
+- `postman/SoCo-Local.postman_environment.json`
+
+Import hai file này vào Postman để chạy thủ công, hoặc chạy bằng Newman:
+
+```bash
+npm run postman:generate
+npm run test:api:postman
+```
+
+Trước khi chạy full happy-path, cập nhật các biến trong environment như `buyerEmail`,
+`sellerEmail`, `adminEmail`, `productId`, `postId`, `orderId`. Nếu chỉ chạy smoke/guard
+test thì collection vẫn kiểm tra được các endpoint public, validation fail-path và các
+endpoint protected phải trả `401` khi thiếu token.
 
 ### AI Provider Health Check
 
@@ -118,6 +140,27 @@ Chạy kiểm tra nhanh:
 
 ```bash
 npm run ai:health
+```
+
+### Elasticsearch Search
+
+Hệ thống tìm kiếm dùng Elasticsearch khi cấu hình `ELASTICSEARCH_URL` hoặc `ELASTICSEARCH_CLOUD_ID`.
+Nếu không cấu hình Elasticsearch, backend tự fallback về tìm kiếm Prisma như trước.
+
+Các biến môi trường chính:
+
+```bash
+ELASTICSEARCH_URL=http://localhost:9200
+ELASTICSEARCH_INDEX_PREFIX=soco
+ELASTICSEARCH_USERNAME=
+ELASTICSEARCH_PASSWORD=
+ELASTICSEARCH_API_KEY=
+```
+
+Sau khi seed hoặc thay đổi dữ liệu lớn, chạy:
+
+```bash
+npm run search:reindex
 ```
 
 Ý nghĩa kết quả:

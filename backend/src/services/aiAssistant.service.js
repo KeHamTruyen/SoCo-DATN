@@ -1,5 +1,9 @@
 import prisma from '../config/database.js';
 import { getLlmClient } from './ai/text/llmClient.js';
+import {
+  orderBySearchIds,
+  searchProducts as searchProductsWithElasticsearch,
+} from './elasticsearch.service.js';
 
 const CHAT_HISTORY_MAX = 8;
 const PRODUCT_LIMIT = 5;
@@ -299,16 +303,44 @@ class AiAssistantService {
     const nextMemory = normalizeMemory(memory, extractedBudget, intent);
 
     const tokens = toSlugTokens(safeMessage);
-    const productsRaw = await prisma.product.findMany({
-      where: buildProductWhere(tokens, nextMemory),
-      include: {
-        images: { orderBy: { displayOrder: 'asc' }, take: 1 },
-        categories: { select: { id: true, name: true } },
-        seller: { select: { id: true, username: true, fullName: true } },
-      },
-      orderBy: [{ salesCount: 'desc' }, { createdAt: 'desc' }],
-      take: PRODUCT_LIMIT,
+    const elasticProducts = await searchProductsWithElasticsearch({
+      search: tokens.join(' ') || safeMessage,
+      page: 1,
+      limit: PRODUCT_LIMIT,
+      minPrice: nextMemory.budgetMin,
+      maxPrice: nextMemory.budgetMax,
+      sortBy: 'salesCount',
+      sortOrder: 'desc',
     });
+
+    const productsRaw = elasticProducts
+      ? orderBySearchIds(
+          elasticProducts.ids.length > 0
+            ? await prisma.product.findMany({
+                where: {
+                  id: { in: elasticProducts.ids },
+                  deletedAt: null,
+                  status: 'ACTIVE',
+                },
+                include: {
+                  images: { orderBy: { displayOrder: 'asc' }, take: 1 },
+                  categories: { select: { id: true, name: true } },
+                  seller: { select: { id: true, username: true, fullName: true } },
+                },
+              })
+            : [],
+          elasticProducts.ids,
+        )
+      : await prisma.product.findMany({
+          where: buildProductWhere(tokens, nextMemory),
+          include: {
+            images: { orderBy: { displayOrder: 'asc' }, take: 1 },
+            categories: { select: { id: true, name: true } },
+            seller: { select: { id: true, username: true, fullName: true } },
+          },
+          orderBy: [{ salesCount: 'desc' }, { createdAt: 'desc' }],
+          take: PRODUCT_LIMIT,
+        });
 
     const orderWhere = {
       buyerId: userId,

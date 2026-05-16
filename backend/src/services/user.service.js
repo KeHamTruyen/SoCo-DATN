@@ -1,4 +1,8 @@
 import prisma from '../config/database.js';
+import {
+  orderBySearchIds,
+  searchUsers as searchUsersWithElasticsearch,
+} from './elasticsearch.service.js';
 import notificationService from './notification.service.js';
 
 const USER_PROFILE_SELECT = {
@@ -246,6 +250,36 @@ class UserService {
         });
         scopedUserIds = rows.map((row) => row.followerId);
       }
+    }
+    const elasticResult = await searchUsersWithElasticsearch(query, {
+      page,
+      limit,
+      scopedUserIds,
+    });
+    if (elasticResult) {
+      const users =
+        elasticResult.ids.length > 0
+          ? await prisma.user.findMany({
+              where: {
+                id: { in: elasticResult.ids },
+                isActive: true,
+              },
+              select: {
+                id: true, username: true, fullName: true,
+                avatarUrl: true, isVerified: true, bio: true, role: true,
+                _count: { select: { followers: true, posts: true } },
+              },
+            })
+          : [];
+      return {
+        users: orderBySearchIds(users, elasticResult.ids),
+        pagination: {
+          page,
+          limit,
+          total: elasticResult.total,
+          totalPages: Math.ceil(elasticResult.total / limit),
+        },
+      };
     }
     const where = {
       isActive: true,

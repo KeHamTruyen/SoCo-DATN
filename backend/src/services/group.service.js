@@ -1,5 +1,9 @@
 import prisma from '../config/database.js';
 import crypto from 'crypto';
+import {
+  orderBySearchIds,
+  searchGroups as searchGroupsWithElasticsearch,
+} from './elasticsearch.service.js';
 
 function slugify(text) {
   return text
@@ -95,6 +99,39 @@ class GroupService {
 
   async getGroups({ page = 1, limit = 20, search, privacy, userId } = {}) {
     const skip = (page - 1) * limit;
+
+    const elasticResult = await searchGroupsWithElasticsearch({
+      page,
+      limit,
+      search,
+      privacy,
+      userId,
+    });
+    if (elasticResult) {
+      const groups =
+        elasticResult.ids.length > 0
+          ? await prisma.group.findMany({
+              where: {
+                id: { in: elasticResult.ids },
+                ...(privacy && { privacy }),
+                ...(!privacy ? { privacy: { not: 'SECRET' } } : {}),
+              },
+              include: {
+                creator: { select: MEMBER_USER_SELECT },
+                _count: { select: { members: true } },
+              },
+            })
+          : [];
+      return {
+        groups: orderBySearchIds(groups, elasticResult.ids),
+        pagination: {
+          page,
+          limit,
+          total: elasticResult.total,
+          totalPages: Math.ceil(elasticResult.total / limit),
+        },
+      };
+    }
 
     const where = {
       ...(privacy && { privacy }),

@@ -1,5 +1,9 @@
 import prisma from '../config/database.js';
 import notificationService from './notification.service.js';
+import {
+  orderBySearchIds,
+  searchPosts as searchPostsWithElasticsearch,
+} from './elasticsearch.service.js';
 
 const MAX_TAGGED_USERS = 10;
 
@@ -218,6 +222,45 @@ export const getPosts = async (filters = {}) => {
       });
       scopedAuthorIds = rows.map((row) => row.followerId);
     }
+  }
+
+  const elasticResult = await searchPostsWithElasticsearch({
+    ...filters,
+    page,
+    limit,
+    visibility,
+    status,
+    scopedAuthorIds,
+  });
+  if (elasticResult) {
+    const posts =
+      elasticResult.ids.length > 0
+        ? await prisma.post.findMany({
+            where: {
+              id: { in: elasticResult.ids },
+              status,
+              ...(visibility && { visibility }),
+              ...(authorId && { authorId }),
+            },
+            include: {
+              ...POST_INCLUDE,
+              ...(userId && { likes: { where: { userId }, select: { id: true } } }),
+            },
+          })
+        : [];
+    const ordered = orderBySearchIds(posts, elasticResult.ids);
+    const result = userId
+      ? ordered.map((p) => {
+          p.isLiked = p.likes?.length > 0;
+          delete p.likes;
+          return p;
+        })
+      : ordered;
+
+    return {
+      posts: result,
+      pagination: { page, limit, total: elasticResult.total, totalPages: Math.ceil(elasticResult.total / limit) },
+    };
   }
 
   const where = {

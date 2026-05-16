@@ -1,6 +1,10 @@
 import prisma from '../config/database.js';
 import slugify from 'slugify';
 import { deleteImage, getPublicIdFromUrl } from '../config/cloudinary.js';
+import {
+  orderBySearchIds,
+  searchProducts as searchProductsWithElasticsearch,
+} from './elasticsearch.service.js';
 
 const RETENTION_DAYS = 180;
 
@@ -163,11 +167,53 @@ class ProductService {
     } = filters;
 
     const skip = (page - 1) * limit;
-
-    // Build where clause
     const isPublicListing = !sellerId;
     const effectiveStatus = isPublicListing ? 'ACTIVE' : status;
 
+    const elasticResult = await searchProductsWithElasticsearch(filters);
+    if (elasticResult) {
+      const whereByIds = {
+        id: { in: elasticResult.ids },
+        deletedAt: null,
+        ...(sellerId && { sellerId }),
+        ...(effectiveStatus && { status: effectiveStatus }),
+      };
+      const products =
+        elasticResult.ids.length > 0
+          ? await prisma.product.findMany({
+              where: whereByIds,
+              include: {
+                images: {
+                  orderBy: { displayOrder: 'asc' }
+                },
+                categories: true,
+                seller: {
+                  select: {
+                    id: true,
+                    username: true,
+                    fullName: true,
+                    avatarUrl: true
+                  }
+                },
+                _count: {
+                  select: { reviews: true }
+                }
+              }
+            })
+          : [];
+
+      return {
+        products: orderBySearchIds(products, elasticResult.ids).map(withPrimaryCategory),
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: elasticResult.total,
+          totalPages: Math.ceil(elasticResult.total / limit)
+        }
+      };
+    }
+
+    // Build where clause
     const ratingWhere =
       ratingFilter === '5_only'
         ? {

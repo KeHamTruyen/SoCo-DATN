@@ -16,7 +16,10 @@
         "test:integration": "vitest run --config vitest.integration.config.js",
         "test:integration:ui": "vitest --config vitest.integration.config.js --ui",
         "test:all": "npm run test && npm run test:integration",
+        "postman:generate": "node scripts/generate-postman-api-tests.js",
+        "test:api:postman": "npx newman run postman/SoCo-API-Test-Cases.postman_collection.json -e postman/SoCo-Local.postman_environment.json",
         "ai:health": "node scripts/check-ai-health.js",
+        "search:reindex": "node scripts/reindex-elasticsearch.js",
         "prisma:generate": "npm run generate --prefix ../database",
         "prisma:push": "npm run db:push --prefix ../database",
         "prisma:reset": "npm run db:reset --prefix ../database",
@@ -35,6 +38,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@elastic/elasticsearch": "^8.19.1",
         "@google/generative-ai": "^0.24.1",
         "@prisma/client": "^5.9.1",
         "bcryptjs": "^2.4.3",
