@@ -4,7 +4,7 @@ import {
   isElasticsearchConfigured,
   SEARCH_INDEXES,
 } from '../config/elasticsearch.js';
-import { logError, logInfo, logWarn } from '../utils/logger.js';
+import { logError, logInfo } from '../utils/logger.js';
 
 const INDEX_SETTINGS = {
   settings: {
@@ -177,7 +177,7 @@ async function safeSearch(kind, request) {
     return buildSearchResult(response);
   } catch (error) {
     if (!isIndexUnavailable(error)) {
-      logWarn(`Elasticsearch ${kind} search failed; falling back to Prisma`, {
+      logInfo(`Elasticsearch ${kind} search failed; falling back to Prisma`, {
         message: error.message,
       });
     }

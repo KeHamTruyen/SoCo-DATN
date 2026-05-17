@@ -163,6 +163,21 @@ Sau khi seed hoặc thay đổi dữ liệu lớn, chạy:
 npm run search:reindex
 ```
 
+Chạy Elasticsearch local bằng Docker từ thư mục gốc project:
+
+```bash
+docker compose -f docker-compose.elasticsearch.yml up -d
+```
+
+Với cấu hình local này, đặt trong `backend/.env`:
+
+```bash
+ELASTICSEARCH_URL=http://localhost:9200
+ELASTICSEARCH_USERNAME=
+ELASTICSEARCH_PASSWORD=
+ELASTICSEARCH_API_KEY=
+```
+
 Ý nghĩa kết quả:
 
 - `OK`: provider hoạt động bình thường.
