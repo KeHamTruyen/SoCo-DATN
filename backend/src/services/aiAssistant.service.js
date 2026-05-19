@@ -2,6 +2,7 @@ import prisma from '../config/database.js';
 import { getLlmClient } from './ai/text/llmClient.js';
 import {
   orderBySearchIds,
+  retrieveRagContext,
   searchProducts as searchProductsWithElasticsearch,
 } from './elasticsearch.service.js';
 
@@ -198,7 +199,7 @@ function summarizeOrders(orders) {
   }));
 }
 
-function buildPrompt({ message, history, intent, memory, productContext, orderContext }) {
+function buildPrompt({ message, history, intent, memory, ragContext, productContext, orderContext }) {
   const compactHistory = history
     .slice(-CHAT_HISTORY_MAX)
     .map((item) => `${item.role === 'assistant' ? 'Assistant' : 'User'}: ${item.content}`)
@@ -207,9 +208,13 @@ function buildPrompt({ message, history, intent, memory, productContext, orderCo
   return `You are SoCo Shopping Assistant for a Vietnamese social commerce platform.
 Respond in natural Vietnamese, concise and practical.
 Never invent data not in context. If data is missing, say it clearly and ask a follow-up.
+Prioritize RAG context, product context, and order context over general knowledge.
 
 Current intent: ${intent}
 Session memory: ${JSON.stringify(memory)}
+
+Retrieved knowledge context from RAG (JSON):
+${JSON.stringify(ragContext)}
 
 Recent chat:
 ${compactHistory || 'No previous history.'}
@@ -363,6 +368,7 @@ class AiAssistantService {
 
     const products = summarizeProducts(productsRaw);
     const orders = summarizeOrders(ordersRaw);
+    const ragContext = await retrieveRagContext(safeMessage, { limit: 5 });
 
     const llm = getLlmClient();
     const prompt = buildPrompt({
@@ -370,6 +376,7 @@ class AiAssistantService {
       history,
       intent,
       memory: nextMemory,
+      ragContext,
       productContext: products,
       orderContext: orders,
     });
@@ -400,11 +407,13 @@ class AiAssistantService {
       cards: {
         products,
         orders,
+        sources: ragContext,
       },
       meta: {
         intent,
         matchedProducts: products.length,
         matchedOrders: orders.length,
+        ragSources: ragContext.length,
       },
     };
   }

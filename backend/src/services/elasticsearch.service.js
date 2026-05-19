@@ -26,6 +26,8 @@ const INDEX_SETTINGS = {
   },
 };
 
+const RAG_VECTOR_DIMS = 128;
+
 const INDEX_MAPPINGS = {
   products: {
     ...INDEX_SETTINGS,
@@ -107,6 +109,27 @@ const INDEX_MAPPINGS = {
       },
     },
   },
+  ragDocuments: {
+    ...INDEX_SETTINGS,
+    mappings: {
+      properties: {
+        id: { type: 'keyword' },
+        sourceType: { type: 'keyword' },
+        sourceId: { type: 'keyword' },
+        title: {
+          type: 'text',
+          analyzer: 'soco_text',
+          fields: { keyword: { type: 'keyword', normalizer: 'lowercase_keyword' } },
+        },
+        content: { type: 'text', analyzer: 'soco_text' },
+        tags: { type: 'keyword', normalizer: 'lowercase_keyword' },
+        route: { type: 'keyword' },
+        visibility: { type: 'keyword' },
+        embedding: { type: 'dense_vector', dims: RAG_VECTOR_DIMS },
+        updatedAt: { type: 'date' },
+      },
+    },
+  },
 };
 
 function normalizeSearchText(value) {
@@ -162,6 +185,45 @@ function keywordQuery(query, fields) {
   };
 }
 
+function normalizeEmbeddingText(value) {
+  return String(value ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .trim();
+}
+
+function stableHash(value) {
+  let hash = 2166136261;
+  const text = String(value || '');
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+export function embedTextLocal(value) {
+  const vector = Array.from({ length: RAG_VECTOR_DIMS }, () => 0);
+  const tokens = normalizeEmbeddingText(value)
+    .split(/\s+/)
+    .filter((token) => token.length >= 2);
+
+  for (const token of tokens) {
+    const weight = token.length > 5 ? 1.25 : 1;
+    const primaryIndex = stableHash(token) % RAG_VECTOR_DIMS;
+    const secondaryIndex = stableHash(`${token}:secondary`) % RAG_VECTOR_DIMS;
+    vector[primaryIndex] += weight;
+    vector[secondaryIndex] += weight * 0.35;
+  }
+
+  const magnitude = Math.sqrt(vector.reduce((sum, item) => sum + item * item, 0));
+  if (!magnitude) return vector;
+  return vector.map((item) => Number((item / magnitude).toFixed(6)));
+}
+
 function buildSearchResult(response) {
   return {
     ids: idsFromHits(response),
@@ -182,6 +244,56 @@ async function safeSearch(kind, request) {
       });
     }
     return null;
+  }
+}
+
+export async function retrieveRagContext(query, { limit = 5 } = {}) {
+  if (!isElasticsearchConfigured() || !hasSearchText(query)) return [];
+  const client = getElasticsearchClient();
+  if (!client) return [];
+
+  const size = Math.min(Math.max(parseInt(limit, 10) || 5, 1), 10);
+  const queryText = normalizeSearchText(query);
+  const queryVector = embedTextLocal(queryText);
+
+  try {
+    const response = await client.search({
+      index: SEARCH_INDEXES.ragDocuments,
+      size,
+      query: {
+        script_score: {
+          query: {
+            bool: {
+              should: [
+                keywordQuery(queryText, ['title^4', 'tags^3', 'content^2']),
+              ],
+              filter: [{ term: { visibility: 'PUBLIC' } }],
+            },
+          },
+          script: {
+            source: "cosineSimilarity(params.query_vector, 'embedding') + 1.0",
+            params: { query_vector: queryVector },
+          },
+        },
+      },
+      _source: ['id', 'sourceType', 'sourceId', 'title', 'content', 'tags', 'route'],
+    });
+
+    return (response?.hits?.hits || []).map((hit) => ({
+      ...hit._source,
+      score: hit._score,
+      content:
+        typeof hit._source?.content === 'string'
+          ? hit._source.content.slice(0, 900)
+          : hit._source?.content,
+    }));
+  } catch (error) {
+    if (!isIndexUnavailable(error)) {
+      logInfo('Elasticsearch RAG retrieval failed; continuing without retrieved context', {
+        message: error.message,
+      });
+    }
+    return [];
   }
 }
 
@@ -335,6 +447,7 @@ export async function ensureSearchIndexes() {
     createIndexIfMissing(SEARCH_INDEXES.users, INDEX_MAPPINGS.users),
     createIndexIfMissing(SEARCH_INDEXES.posts, INDEX_MAPPINGS.posts),
     createIndexIfMissing(SEARCH_INDEXES.groups, INDEX_MAPPINGS.groups),
+    createIndexIfMissing(SEARCH_INDEXES.ragDocuments, INDEX_MAPPINGS.ragDocuments),
   ]);
 }
 
@@ -410,6 +523,135 @@ function groupToDocument(group) {
   };
 }
 
+const STATIC_RAG_DOCUMENTS = [
+  {
+    id: 'policy-order-checkout',
+    sourceType: 'policy',
+    sourceId: 'order-checkout',
+    title: 'Hướng dẫn đặt hàng và thanh toán',
+    content:
+      'Người dùng đăng nhập có thể thêm sản phẩm vào giỏ hàng, cập nhật số lượng, nhập thông tin giao hàng và tạo đơn hàng. Trạng thái thanh toán và trạng thái vận chuyển được cập nhật trong chi tiết đơn hàng.',
+    tags: ['checkout', 'cart', 'payment', 'order', 'đặt hàng', 'thanh toán'],
+    route: '/cart',
+    visibility: 'PUBLIC',
+    updatedAt: new Date(),
+  },
+  {
+    id: 'policy-order-refund',
+    sourceType: 'policy',
+    sourceId: 'order-refund',
+    title: 'Hủy đơn và yêu cầu hoàn tiền',
+    content:
+      'Đơn hàng có thể được hủy hoặc gửi yêu cầu hoàn tiền theo trạng thái hiện tại của đơn. Hệ thống ghi nhận lý do hủy hoặc hoàn tiền giả lập trên dữ liệu đơn hàng để buyer và seller theo dõi.',
+    tags: ['refund', 'cancel', 'order', 'hoàn tiền', 'hủy đơn'],
+    route: '/orders',
+    visibility: 'PUBLIC',
+    updatedAt: new Date(),
+  },
+  {
+    id: 'policy-seller-verification',
+    sourceType: 'policy',
+    sourceId: 'seller-verification',
+    title: 'Nâng cấp tài khoản seller',
+    content:
+      'Người dùng muốn bán hàng cần gửi hồ sơ xác minh seller gồm thông tin cá nhân, cửa hàng, kinh doanh và ngân hàng. Admin duyệt hoặc từ chối hồ sơ trước khi tài khoản có quyền tạo sản phẩm và quản lý đơn bán.',
+    tags: ['seller', 'verification', 'shop', 'xác minh', 'người bán'],
+    route: '/seller/verification',
+    visibility: 'PUBLIC',
+    updatedAt: new Date(),
+  },
+  {
+    id: 'policy-ai-assistant',
+    sourceType: 'policy',
+    sourceId: 'ai-assistant',
+    title: 'AI Shopping Assistant',
+    content:
+      'AI Shopping Assistant hỗ trợ người dùng hỏi về sản phẩm, so sánh lựa chọn, tra cứu đơn hàng của chính tài khoản hiện tại và tạo quick action như xem sản phẩm, mở marketplace, thêm vào giỏ hoặc xem chi tiết đơn hàng.',
+    tags: ['ai', 'assistant', 'chatbox', 'recommendation', 'tư vấn'],
+    route: '/messages',
+    visibility: 'PUBLIC',
+    updatedAt: new Date(),
+  },
+];
+
+function productToRagDocument(product) {
+  const categoryNames = (product.categories || []).map((category) => category.name).filter(Boolean);
+  const sellerName = product.seller?.fullName || product.seller?.username || '';
+  return {
+    id: `product:${product.id}`,
+    sourceType: 'product',
+    sourceId: product.id,
+    title: product.title,
+    content: [
+      product.description,
+      product.metaTitle,
+      product.metaDescription,
+      `Giá: ${Number(product.price || 0)} VND.`,
+      `Tồn kho: ${product.trackInventory ? product.stockQuantity : 'không theo dõi'}.`,
+      categoryNames.length ? `Danh mục: ${categoryNames.join(', ')}.` : '',
+      sellerName ? `Người bán: ${sellerName}.` : '',
+    ]
+      .filter(Boolean)
+      .join(' '),
+    tags: [...(product.metaKeywords || []), ...categoryNames, 'product', 'sản phẩm'],
+    route: `/products/${product.id}`,
+    visibility: product.status === 'ACTIVE' && !product.deletedAt ? 'PUBLIC' : 'PRIVATE',
+    updatedAt: product.updatedAt,
+  };
+}
+
+function categoryToRagDocument(category) {
+  return {
+    id: `category:${category.id}`,
+    sourceType: 'category',
+    sourceId: category.id,
+    title: category.name,
+    content: category.description || `Danh mục sản phẩm ${category.name}.`,
+    tags: ['category', 'danh mục', category.name],
+    route: `/marketplace?category=${category.id}`,
+    visibility: category.isActive ? 'PUBLIC' : 'PRIVATE',
+    updatedAt: category.updatedAt,
+  };
+}
+
+function groupToRagDocument(group) {
+  return {
+    id: `group:${group.id}`,
+    sourceType: 'group',
+    sourceId: group.id,
+    title: group.name,
+    content: [
+      group.description,
+      `Quyền riêng tư: ${group.privacy}.`,
+      `Số thành viên: ${group.membersCount || 0}.`,
+      `Số bài viết: ${group.postsCount || 0}.`,
+    ]
+      .filter(Boolean)
+      .join(' '),
+    tags: ['group', 'community', 'nhóm', group.name, group.privacy],
+    route: `/groups/${group.id}`,
+    visibility: group.privacy === 'SECRET' ? 'PRIVATE' : 'PUBLIC',
+    updatedAt: group.updatedAt,
+  };
+}
+
+function ragDocumentToIndexed(document) {
+  const tags = (document.tags || []).filter(Boolean).map((tag) => String(tag));
+  const contentForEmbedding = [document.title, document.content, tags.join(' ')].filter(Boolean).join(' ');
+  return {
+    id: document.id,
+    sourceType: document.sourceType,
+    sourceId: document.sourceId,
+    title: document.title,
+    content: document.content,
+    tags,
+    route: document.route,
+    visibility: document.visibility || 'PUBLIC',
+    embedding: embedTextLocal(contentForEmbedding),
+    updatedAt: document.updatedAt || new Date(),
+  };
+}
+
 async function bulkIndex(index, rows, mapper) {
   const client = getElasticsearchClient();
   if (!client || rows.length === 0) return { indexed: 0 };
@@ -454,6 +696,19 @@ export async function reindexSearchDocuments({ batchSize = 500 } = {}) {
   });
   summary.groups = await bulkIndex(SEARCH_INDEXES.groups, groups, groupToDocument);
 
+  const categories = await prisma.category.findMany();
+  const ragDocuments = [
+    ...STATIC_RAG_DOCUMENTS,
+    ...products.map(productToRagDocument),
+    ...categories.map(categoryToRagDocument),
+    ...groups.map(groupToRagDocument),
+  ];
+  summary.ragDocuments = await bulkIndex(
+    SEARCH_INDEXES.ragDocuments,
+    ragDocuments,
+    ragDocumentToIndexed,
+  );
+
   logInfo('Elasticsearch reindex completed', { summary, batchSize });
   return summary;
 }
@@ -463,6 +718,7 @@ export default {
   searchUsers,
   searchPosts,
   searchGroups,
+  retrieveRagContext,
   orderBySearchIds,
   ensureSearchIndexes,
   reindexSearchDocuments,

@@ -20,6 +20,7 @@ export const SEARCH_INDEXES = {
   users: `${getSearchIndexPrefix()}_users`,
   posts: `${getSearchIndexPrefix()}_posts`,
   groups: `${getSearchIndexPrefix()}_groups`,
+  ragDocuments: `${getSearchIndexPrefix()}_rag_documents`,
 };
 
 export function getElasticsearchClient() {
@@ -48,4 +49,3 @@ export function getElasticsearchClient() {
   client = new Client(options);
   return client;
 }
-

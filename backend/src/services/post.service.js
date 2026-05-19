@@ -74,6 +74,41 @@ function normalizeProductTags(raw) {
     }));
 }
 
+function normalizeInterestText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .trim();
+}
+
+function tokenizeInterestText(value) {
+  return normalizeInterestText(value)
+    .split(/\s+/)
+    .filter((token) => token.length >= 2)
+    .slice(0, 16);
+}
+
+function addWeightedScore(map, key, score) {
+  if (!key) return;
+  map.set(key, (map.get(key) || 0) + score);
+}
+
+function recencyWeight(date, halfLifeHours = 48) {
+  const timestamp = new Date(date || 0).getTime();
+  if (!timestamp) return 0;
+  const ageHours = Math.max((Date.now() - timestamp) / 36e5, 0);
+  return 1 / (1 + ageHours / halfLifeHours);
+}
+
+function mapPostLikeFlag(post) {
+  post.isLiked = post.likes?.length > 0;
+  delete post.likes;
+  return post;
+}
+
 // ─── Create post (UC2.2) ───────────────────────────────
 
 export const createPost = async (authorId, data) => {
@@ -130,7 +165,9 @@ export const createPost = async (authorId, data) => {
 // ─── Personalized feed (UC2.1) ─────────────────────────
 
 export const getPersonalizedFeed = async (userId, { page = 1, limit = 20 } = {}) => {
-  const skip = (page - 1) * limit;
+  const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
+  const limitNumber = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 50);
+  const skip = (pageNumber - 1) * limitNumber;
 
   const followingIds = (
     await prisma.follow.findMany({
@@ -139,52 +176,170 @@ export const getPersonalizedFeed = async (userId, { page = 1, limit = 20 } = {})
     })
   ).map((f) => f.followingId);
 
-  const followedPostsLimit = Math.ceil(limit * 0.7);
-  const suggestedPostsLimit = limit - followedPostsLimit;
-
   const baseWhere = { status: 'PUBLISHED', visibility: 'PUBLIC' };
+  const candidateWhere = { ...baseWhere, authorId: { not: userId } };
+  const poolSize = Math.max((pageNumber * limitNumber + limitNumber) * 6, 80);
 
-  const [followedPosts, suggestedPosts] = await Promise.all([
-    followingIds.length > 0
-      ? prisma.post.findMany({
-          where: { ...baseWhere, authorId: { in: followingIds } },
-          skip,
-          take: followedPostsLimit,
-          orderBy: { createdAt: 'desc' },
-          include: {
-            ...POST_INCLUDE,
-            likes: { where: { userId }, select: { id: true } },
+  const [
+    recentLikes,
+    recentComments,
+    recentProductViews,
+    recentSearches,
+    candidates,
+    total,
+  ] = await Promise.all([
+    prisma.postLike.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 80,
+      include: {
+        post: {
+          select: {
+            authorId: true,
+            content: true,
+            productTags: {
+              select: { product: { select: { title: true, metaKeywords: true } } },
+            },
           },
-        })
-      : [],
-    prisma.post.findMany({
-      where: {
-        ...baseWhere,
-        authorId: { notIn: [...followingIds, userId] },
+        },
       },
-      skip,
-      take: suggestedPostsLimit,
-      orderBy: [{ likesCount: 'desc' }, { createdAt: 'desc' }],
+    }),
+    prisma.postComment.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 80,
+      include: {
+        post: {
+          select: {
+            authorId: true,
+            content: true,
+            productTags: {
+              select: { product: { select: { title: true, metaKeywords: true } } },
+            },
+          },
+        },
+      },
+    }),
+    prisma.productView.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 80,
+      include: {
+        product: {
+          select: {
+            title: true,
+            metaKeywords: true,
+            categories: { select: { name: true } },
+          },
+        },
+      },
+    }),
+    prisma.userSearchEvent.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 40,
+    }),
+    prisma.post.findMany({
+      where: candidateWhere,
+      take: poolSize,
+      orderBy: [{ createdAt: 'desc' }],
       include: {
         ...POST_INCLUDE,
         likes: { where: { userId }, select: { id: true } },
       },
     }),
+    prisma.post.count({ where: candidateWhere }),
   ]);
 
-  const addLikeFlag = (p) => {
-    p.isLiked = p.likes?.length > 0;
-    delete p.likes;
-    return p;
-  };
+  const authorScores = new Map();
+  const interestScores = new Map();
 
-  const combined = [...followedPosts, ...suggestedPosts].map(addLikeFlag);
+  for (const like of recentLikes) {
+    const weight = recencyWeight(like.createdAt, 72);
+    addWeightedScore(authorScores, like.post?.authorId, 2.2 * weight);
+    for (const token of tokenizeInterestText(like.post?.content)) addWeightedScore(interestScores, token, 0.45 * weight);
+    for (const tag of like.post?.productTags || []) {
+      for (const token of tokenizeInterestText(tag.product?.title)) addWeightedScore(interestScores, token, 1.0 * weight);
+      for (const token of tag.product?.metaKeywords || []) addWeightedScore(interestScores, normalizeInterestText(token), 1.1 * weight);
+    }
+  }
 
-  const total = await prisma.post.count({ where: baseWhere });
+  for (const comment of recentComments) {
+    const weight = recencyWeight(comment.createdAt, 72);
+    addWeightedScore(authorScores, comment.post?.authorId, 2.8 * weight);
+    for (const token of tokenizeInterestText(comment.post?.content)) addWeightedScore(interestScores, token, 0.55 * weight);
+    for (const tag of comment.post?.productTags || []) {
+      for (const token of tokenizeInterestText(tag.product?.title)) addWeightedScore(interestScores, token, 1.2 * weight);
+      for (const token of tag.product?.metaKeywords || []) addWeightedScore(interestScores, normalizeInterestText(token), 1.2 * weight);
+    }
+  }
+
+  for (const view of recentProductViews) {
+    const weight = recencyWeight(view.createdAt, 96);
+    for (const token of tokenizeInterestText(view.product?.title)) addWeightedScore(interestScores, token, 1.2 * weight);
+    for (const token of view.product?.metaKeywords || []) addWeightedScore(interestScores, normalizeInterestText(token), 1.4 * weight);
+    for (const category of view.product?.categories || []) {
+      for (const token of tokenizeInterestText(category.name)) addWeightedScore(interestScores, token, 1.3 * weight);
+    }
+  }
+
+  for (const search of recentSearches) {
+    const weight = recencyWeight(search.createdAt, 120);
+    for (const token of tokenizeInterestText(search.normalizedQuery || search.query)) {
+      addWeightedScore(interestScores, token, 1.6 * weight);
+    }
+  }
+
+  const followingSet = new Set(followingIds);
+  const rankedPosts = candidates
+    .map((post) => {
+      const followScore = followingSet.has(post.authorId) ? 5 : 0;
+      const authorAffinityScore = Math.min(authorScores.get(post.authorId) || 0, 6);
+      const engagementScore = Math.log1p(
+        (post.likesCount || 0) * 2
+          + (post.commentsCount || 0) * 3
+          + (post.sharesCount || 0) * 4
+          + (post.viewsCount || 0) * 0.25,
+      );
+      const freshnessScore = recencyWeight(post.createdAt, 36) * 5;
+      const contentTokens = [
+        ...tokenizeInterestText(post.content),
+        ...tokenizeInterestText(post.location),
+        ...tokenizeInterestText(post.feeling),
+        ...(post.productTags || []).flatMap((tag) => tokenizeInterestText(tag.product?.title)),
+      ];
+      const interestScore = Math.min(
+        contentTokens.reduce((sum, token) => sum + (interestScores.get(token) || 0), 0),
+        8,
+      );
+      const score = followScore + authorAffinityScore + engagementScore + freshnessScore + interestScore;
+      return { post, score };
+    })
+    .sort((left, right) => {
+      if (right.score !== left.score) return right.score - left.score;
+      return new Date(right.post.createdAt).getTime() - new Date(left.post.createdAt).getTime();
+    });
+
+  const diversified = [];
+  const authorCounts = new Map();
+  for (const item of rankedPosts) {
+    const count = authorCounts.get(item.post.authorId) || 0;
+    const authorLimit = followingSet.has(item.post.authorId) ? 4 : 2;
+    if (count >= authorLimit && diversified.length < skip + limitNumber) continue;
+    diversified.push(item.post);
+    authorCounts.set(item.post.authorId, count + 1);
+  }
+
+  const combined = diversified.slice(skip, skip + limitNumber).map(mapPostLikeFlag);
 
   return {
     posts: combined,
-    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    pagination: {
+      page: pageNumber,
+      limit: limitNumber,
+      total,
+      totalPages: Math.ceil(total / limitNumber),
+    },
   };
 };
 
