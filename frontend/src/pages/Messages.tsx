@@ -8,7 +8,6 @@ import { MessageList } from "../features/messaging/components/MessageList";
 import { useMessaging } from "../features/messaging/context/MessagingContext";
 import { useChatActions } from "../features/messaging/hooks/useChatActions";
 import { useAuthSession } from "../shared/auth/useAuthSession";
-import { PageShell, UnifiedHeader } from "../shared/ui";
 
 export default function Messages() {
     const { t } = useTranslation();
@@ -123,14 +122,7 @@ export default function Messages() {
     }, [conversations, activeConversationId, userIdParam, openingUser]);
 
     return (
-        <PageShell className="flex min-h-screen flex-col bg-background text-foreground">
-            <UnifiedHeader
-                navItems={[
-                    { label: t("messaging.navFeed"), to: "/feed" },
-                    { label: t("messaging.navMarketplace"), to: "/marketplace" },
-                ]}
-            />
-            <div className="mx-auto flex w-full max-w-[1440px] flex-1 overflow-hidden">
+        <div className="mx-auto flex w-full max-w-[1440px] flex-1 overflow-hidden">
                 <div
                     className="m-4 flex h-[calc(100vh-64px)] w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm"
                     role="main"
@@ -170,7 +162,6 @@ export default function Messages() {
                         )}
                     </section>
                 </div>
-            </div>
-        </PageShell>
+        </div>
     );
 }

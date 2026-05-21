@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { GuestAuthModal, UnifiedHeader } from "../shared/ui";
+import { GuestAuthModal } from "../shared/ui";
 import { cn } from "../shared/lib/cn";
 
 // Components
@@ -233,9 +233,8 @@ function ProfileContent() {
     };
 
     return (
-        <div className="flex min-h-0 flex-1 flex-col bg-background text-foreground">
-            <UnifiedHeader navItems={[{ label: "Feed", to: "/feed" }, { label: "Marketplace", to: "/marketplace" }]} />
-            <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        <>
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
                 {ctx.isLoading ? (
                     <div className="space-y-6">
                         <div className="h-32 animate-pulse rounded-2xl bg-muted" />
@@ -310,7 +309,7 @@ function ProfileContent() {
                 open={ctx.showGuestAuthModal}
                 onClose={() => ctx.setShowGuestAuthModal(false)}
             />
-        </div>
+        </>
     );
 }
 

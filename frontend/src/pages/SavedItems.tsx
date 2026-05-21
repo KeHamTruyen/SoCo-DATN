@@ -9,7 +9,6 @@ import type {
 } from "../features/saved-items/types/savedItems.types";
 import { httpClient } from "../shared/api/httpClient";
 import { formatCurrencyVnd } from "../shared/lib/formatCurrencyVnd";
-import { UnifiedHeader } from "../shared/ui";
 import { truncatePlainPreview } from "../shared/tiptap/postHtmlUtils";
 
 interface CategoryOption {
@@ -130,16 +129,7 @@ export default function SavedItems() {
     const isEmpty = !loading && items.length === 0 && !error;
 
     return (
-        <div className="flex min-h-0 flex-1 flex-col">
-            <UnifiedHeader
-                navItems={[
-                    { label: "Feed", to: "/feed" },
-                    { label: "Marketplace", to: "/marketplace" },
-                ]}
-                activePath="/feed"
-            />
-
-            <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-8 md:px-12 md:py-12 lg:px-16">
+        <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-8 md:px-12 md:py-12 lg:px-16">
                 <section className="w-full">
                     <header className="mb-8">
                         <h1 className="mb-8 text-3xl font-extrabold tracking-tight md:text-4xl lg:text-5xl">
@@ -484,7 +474,6 @@ export default function SavedItems() {
                         </>
                     )}
                 </section>
-            </main>
-        </div>
+        </main>
     );
 }

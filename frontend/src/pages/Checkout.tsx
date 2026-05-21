@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCheckoutPage } from "../features/checkout/hooks";
 import { formatCurrencyVnd } from "../shared/lib/formatCurrencyVnd";
-import { Button, UnifiedHeader } from "../shared/ui";
+import { Button } from "../shared/ui";
 
 const PAYMENT_METHODS = [
     {
@@ -44,15 +44,7 @@ export default function Checkout() {
     } = useCheckoutPage();
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark">
-            <UnifiedHeader
-                navItems={[
-                    { label: "Feed", to: "/feed" },
-                    { label: "Marketplace", to: "/marketplace" },
-                ]}
-                activePath="/marketplace"
-            />
-            <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
                 <div className="mb-8 flex flex-col gap-2">
                     <h1 className="text-3xl font-black tracking-tight">Checkout</h1>
                     <p className="text-neutral-500 dark:text-neutral-400">
@@ -206,7 +198,6 @@ export default function Checkout() {
                         </div>
                     </div>
                 </form>
-            </main>
-        </div>
+        </main>
     );
 }

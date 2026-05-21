@@ -4,7 +4,7 @@ import { feedApi } from "../features/feed/api/feedApi";
 import { FeedPostCard } from "../features/feed/components/FeedPostCard";
 import type { FeedPost } from "../features/feed/types/feed.types";
 import { useAuthSession } from "../shared/auth/useAuthSession";
-import { GuestAuthModal, UnifiedHeader } from "../shared/ui";
+import { GuestAuthModal } from "../shared/ui";
 
 export default function PostDetail() {
     const { id, postId } = useParams<{ id?: string; postId?: string }>();
@@ -84,14 +84,7 @@ export default function PostDetail() {
     };
 
     return (
-        <div className="flex min-h-0 flex-1 flex-col">
-            <UnifiedHeader
-                navItems={[
-                    { label: "Feed", to: "/feed" },
-                    { label: "Marketplace", to: "/marketplace" },
-                ]}
-                activePath="/feed"
-            />
+        <>
             <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6">
                 {!isLoading && !error && post?.group ? (
                     <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
@@ -140,6 +133,6 @@ export default function PostDetail() {
                 open={showGuestAuthModal}
                 onClose={() => setShowGuestAuthModal(false)}
             />
-        </div>
+        </>
     );
 }

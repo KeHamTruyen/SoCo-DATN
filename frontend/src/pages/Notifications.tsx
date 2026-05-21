@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useNotificationCenter } from "../features/notification/context/NotificationContext";
 import { NotificationItem } from "../features/notification/components/NotificationItem";
 import { cn } from "../shared/lib/cn";
-import { Button, UnifiedHeader } from "../shared/ui";
+import { Button } from "../shared/ui";
 
 type TabFilter = "all" | "social" | "order" | "system";
 
@@ -40,14 +40,7 @@ export default function Notifications() {
     }, [activeTab, notifications]);
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark">
-            <UnifiedHeader
-                navItems={[
-                    { label: "Feed", to: "/feed" },
-                    { label: "Marketplace", to: "/marketplace" },
-                ]}
-            />
-            <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
+        <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6">
                 <div className="mb-6 flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold">Notifications</h1>
@@ -146,7 +139,6 @@ export default function Notifications() {
                         <Button variant="outline">Load More</Button>
                     </div>
                 )}
-            </main>
-        </div>
+        </main>
     );
 }

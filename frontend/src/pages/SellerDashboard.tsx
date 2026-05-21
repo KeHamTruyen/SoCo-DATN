@@ -23,7 +23,6 @@ import type {
 import { useAuthSession } from "../shared/auth/useAuthSession";
 import { Avatar } from "../shared/ui/atoms/avatar";
 import { Button } from "../shared/ui/atoms/button";
-import { UnifiedHeader } from "../shared/ui";
 
 const EMPTY_STATS: SellerStats = {
     monthlySales: 0,
@@ -201,30 +200,14 @@ export default function SellerDashboard() {
 
     if (!profile) {
         return (
-            <div className="min-h-screen bg-background-light dark:bg-background-dark">
-                <UnifiedHeader
-                    navItems={[
-                        { label: t("messaging.navFeed", "Feed"), to: "/feed" },
-                        { label: t("messaging.navMarketplace", "Marketplace"), to: "/marketplace" },
-                    ]}
-                />
-                <div className="mx-auto max-w-7xl px-4 py-16">
-                    <div className="h-40 animate-pulse rounded-2xl bg-neutral-200 dark:bg-neutral-800" />
-                </div>
+            <div className="mx-auto max-w-7xl px-4 py-16">
+                <div className="h-40 animate-pulse rounded-2xl bg-neutral-200 dark:bg-neutral-800" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark">
-            <UnifiedHeader
-                navItems={[
-                    { label: t("messaging.navFeed", "Feed"), to: "/feed" },
-                    { label: t("messaging.navMarketplace", "Marketplace"), to: "/marketplace" },
-                ]}
-            />
-
-            <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex min-w-0 flex-col gap-6">
                     <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -272,7 +255,6 @@ export default function SellerDashboard() {
                         />
                     </div>
                 </div>
-            </main>
-        </div>
+        </main>
     );
 }

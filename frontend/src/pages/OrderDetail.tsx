@@ -14,7 +14,7 @@ import { useOrderDetailPage } from "../features/order/hooks";
 import type { Order, OrderStatus } from "../features/order/types/order.types";
 import { cn } from "../shared/lib/cn";
 import { formatCurrencyVnd } from "../shared/lib/formatCurrencyVnd";
-import { Button, UnifiedHeader } from "../shared/ui";
+import { Button } from "../shared/ui";
 
 const STATUS_STEPS: { key: OrderStatus; label: string; icon: React.ReactNode }[] = [
     { key: "pending", label: "Order Placed", icon: <ShoppingBag className="h-5 w-5" /> },
@@ -48,14 +48,7 @@ export default function OrderDetail() {
         : -1;
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark">
-            <UnifiedHeader
-                navItems={[
-                    { label: t("messaging.navFeed", "Feed"), to: "/feed" },
-                    { label: t("messaging.navMarketplace", "Marketplace"), to: "/marketplace" },
-                ]}
-            />
-            <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
                 {isLoading ? (
                     <div className="space-y-6">
                         <div className="h-12 w-64 animate-pulse rounded-xl bg-neutral-200 dark:bg-neutral-800" />
@@ -379,7 +372,6 @@ export default function OrderDetail() {
                         />
                     </>
                 )}
-            </main>
-        </div>
+        </main>
     );
 }

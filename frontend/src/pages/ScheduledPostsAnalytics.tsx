@@ -17,7 +17,7 @@ import type {
     ScheduledAnalyticsRange,
     ScheduledPostsAnalyticsResponse,
 } from "../features/feed/types/feed.types";
-import { Button, UnifiedHeader } from "../shared/ui";
+import { Button } from "../shared/ui";
 import { stripHtmlToPlain } from "../shared/tiptap/postHtmlUtils";
 
 const RANGE_OPTIONS: Array<{ value: ScheduledAnalyticsRange; label: string }> = [
@@ -131,16 +131,7 @@ export default function ScheduledPostsAnalytics() {
     ];
 
     return (
-        <div className="flex min-h-0 flex-1 flex-col">
-            <UnifiedHeader
-                navItems={[
-                    { label: "Feed", to: "/feed" },
-                    { label: "Marketplace", to: "/marketplace" },
-                ]}
-                activePath="/feed"
-            />
-
-            <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 p-4 lg:p-8">
+        <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 p-4 lg:p-8">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                     <div>
                         <Button variant="ghost" className="mb-3 px-0" onClick={() => navigate("/scheduled-posts")}>
@@ -312,7 +303,6 @@ export default function ScheduledPostsAnalytics() {
                         </div>
                     )}
                 </section>
-            </main>
-        </div>
+        </main>
     );
 }

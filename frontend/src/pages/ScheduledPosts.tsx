@@ -5,7 +5,7 @@ import { feedApi } from "../features/feed/api/feedApi";
 import { CreatePostModal } from "../features/feed/components/CreatePostModal";
 import { ScheduledPostsList } from "../features/feed/components/ScheduledPostsList";
 import type { CreatePostPayload, FeedPost } from "../features/feed/types/feed.types";
-import { Button, UnifiedHeader } from "../shared/ui";
+import { Button } from "../shared/ui";
 import { stripHtmlToPlain } from "../shared/tiptap/postHtmlUtils";
 
 type ScheduledBucket = "scheduled" | "published";
@@ -171,15 +171,8 @@ export default function ScheduledPosts() {
     }).length;
 
     return (
-        <div className="flex min-h-0 flex-1 flex-col">
-            <UnifiedHeader
-                navItems={[
-                    { label: "Feed", to: "/feed" },
-                    { label: "Marketplace", to: "/marketplace" },
-                ]}
-                activePath="/feed"
-            />
-            <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 p-4 lg:p-8">
+        <>
+        <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 p-4 lg:p-8">
                 <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">
@@ -356,6 +349,6 @@ export default function ScheduledPosts() {
                     </div>
                 </div>
             ) : null}
-        </div>
+        </>
     );
 }

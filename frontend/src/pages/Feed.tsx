@@ -11,7 +11,7 @@ import { PostComposer } from "../features/feed/components/PostComposer";
 import { useFeed } from "../features/feed/hooks/useFeed";
 import { useAuthSession } from "../shared/auth/useAuthSession";
 import { isSellerRole } from "../shared/auth/roleGuards";
-import { Button, GuestAuthModal, UnifiedHeader } from "../shared/ui";
+import { Button, GuestAuthModal } from "../shared/ui";
 
 export default function Feed() {
     const { user, isAuthenticated } = useAuthSession();
@@ -47,15 +47,7 @@ export default function Feed() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-background-light dark:bg-background-dark">
-            <UnifiedHeader
-                navItems={[
-                    { label: "Feed", to: "/feed" },
-                    { label: "Marketplace", to: "/marketplace" },
-                ]}
-                activePath="/feed"
-            />
-
+        <>
             <main className="mx-auto flex w-full max-w-[1440px] flex-1 gap-6 px-6 py-6">
                 <LeftSidebar isSeller={isSeller} />
 
@@ -128,6 +120,6 @@ export default function Feed() {
                 open={showGuestAuthModal}
                 onClose={() => setShowGuestAuthModal(false)}
             />
-        </div>
+        </>
     );
 }

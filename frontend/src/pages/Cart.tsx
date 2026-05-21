@@ -14,7 +14,6 @@ import { CartSummary } from "../features/cart/components/CartSummary";
 import { useCartPage } from "../features/cart/hooks";
 import { marketplaceApi } from "../features/marketplace/api/marketplaceApi";
 import type { ProductListItem } from "../features/marketplace/types/marketplace.types";
-import { UnifiedHeader } from "../shared/ui";
 
 function CartProductStrip({
     title,
@@ -111,41 +110,23 @@ export default function Cart() {
         handleDeleteSelected,
     } = useCartPage();
 
-    const shell = (
-        <>
-            <UnifiedHeader
-                navItems={[
-                    { label: "Feed", to: "/feed" },
-                    { label: "Marketplace", to: "/marketplace" },
-                ]}
-                activePath="/marketplace"
-            />
-        </>
-    );
-
     if (isLoading) {
         return (
-            <div className="flex min-h-screen flex-col bg-background-light dark:bg-background-dark">
-                {shell}
-                <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-8">
+            <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-8">
                     <div className="rounded-xl border border-neutral-200 bg-white p-8 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900">
                         Loading your cart...
                     </div>
-                </main>
-            </div>
+            </main>
         );
     }
 
     if (error) {
         return (
-            <div className="flex min-h-screen flex-col bg-background-light dark:bg-background-dark">
-                {shell}
-                <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-8">
+            <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-8">
                     <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-400">
                         {error}
                     </div>
-                </main>
-            </div>
+            </main>
         );
     }
 
@@ -153,8 +134,7 @@ export default function Cart() {
         (cart?.groups ?? []).reduce((n, g) => n + (g.items?.length ?? 0), 0);
     if (!cart || groupCount === 0) {
         return (
-            <div className="flex min-h-screen flex-col bg-background-light dark:bg-background-dark">
-                {shell}
+            <>
                 <main className="flex flex-1 flex-col items-center justify-center px-6 py-12">
                     <div className="mx-auto flex max-w-[480px] flex-col items-center text-center">
                         <div className="relative mb-8 flex h-64 w-64 items-center justify-center rounded-full bg-primary/5 dark:bg-primary/10">
@@ -210,13 +190,12 @@ export default function Cart() {
                     </div>
                 </main>
                 <CartProductStrip title="Trending with your friends" columns="trending" />
-            </div>
+            </>
         );
     }
 
     return (
-        <div className="flex min-h-screen flex-col bg-background-light dark:bg-background-dark">
-            {shell}
+        <>
             <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-8">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
@@ -322,6 +301,6 @@ export default function Cart() {
                     />
                 </div>
             </main>
-        </div>
+        </>
     );
 }

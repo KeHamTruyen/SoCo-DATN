@@ -8,7 +8,7 @@ import { groupApi } from "../features/group/api/groupApi";
 import type { Group } from "../features/group/types/group.types";
 import { HttpError } from "../shared/api/httpClient";
 import { useAuthSession } from "../shared/auth/useAuthSession";
-import { GuestAuthModal, UnifiedHeader } from "../shared/ui";
+import { GuestAuthModal } from "../shared/ui";
 
 type GroupFilter = "discover" | "suggested" | "popular";
 
@@ -320,16 +320,8 @@ export default function Groups() {
     };
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark">
-            <UnifiedHeader
-                navItems={[
-                    { label: "Feed", to: "/feed" },
-                    { label: "Marketplace", to: "/marketplace" },
-                ]}
-                activePath="/feed"
-            />
-
-            <main className="mx-auto flex w-full max-w-[1440px] gap-6 px-4 py-8 sm:px-6 lg:px-8">
+        <>
+            <main className="mx-auto flex w-full max-w-[1440px] flex-1 gap-6 px-4 py-8 sm:px-6 lg:px-8">
                 {/* ── Sidebar ── */}
                 <aside className="hidden w-64 shrink-0 space-y-6 lg:block">
                     {/* Navigation filters */}
@@ -593,6 +585,6 @@ export default function Groups() {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 }

@@ -12,7 +12,8 @@ import {
     type SearchTab,
     type SourceScope,
 } from "../features/search/hooks/useSearchPage";
-import { Avatar, UnifiedHeader } from "../shared/ui";
+import { useConfigureAppHeader } from "../app/layouts/AppHeaderContext";
+import { Avatar } from "../shared/ui";
 
 function asObject(value: unknown): Record<string, unknown> {
     return value && typeof value === "object"
@@ -103,15 +104,14 @@ export default function SearchPage() {
         submitSearch,
     } = useSearchPage();
 
+    useConfigureAppHeader({
+        searchValue: draftQuery,
+        onSearch: setDraftQuery,
+        onSearchSubmit: submitSearch,
+    });
+
     return (
-        <div className="flex min-h-screen flex-col bg-background text-foreground">
-            <UnifiedHeader
-                activePath="/marketplace"
-                searchValue={draftQuery}
-                onSearch={setDraftQuery}
-                onSearchSubmit={submitSearch}
-            />
-            <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-8 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-8 sm:px-6 lg:px-8">
                 <div className="mb-8">
                     <h1 className="mb-6 text-3xl font-extrabold">
                         Search Results for:{" "}
@@ -530,7 +530,6 @@ export default function SearchPage() {
                         ) : null}
                     </div>
                 ) : null}
-            </main>
-        </div>
+        </main>
     );
 }

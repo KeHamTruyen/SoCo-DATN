@@ -1,7 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
-import { UnifiedHeader } from "../shared/ui";
 import { AiStudioProvider } from "../features/ai/context/AiStudioContext";
 import {
     AiStudioSidebar,
@@ -15,7 +13,6 @@ import { AiLibraryPanel } from "../features/ai/components/library/AiLibraryPanel
 import "react-day-picker/style.css";
 
 function AiCreativeLabContent() {
-    const { t } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const activeTab: CreativeLabMainTab = useMemo(
@@ -41,14 +38,6 @@ function AiCreativeLabContent() {
     return (
         <AiStudioProvider onSwitchToStudioTab={switchToStudioTab}>
             <div className="flex min-h-0 flex-1 flex-col">
-                <UnifiedHeader
-                    navItems={[
-                        { label: t("messaging.navFeed"), to: "/feed" },
-                        { label: t("messaging.navMarketplace"), to: "/marketplace" },
-                    ]}
-                    activePath="/feed"
-                />
-
                 <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col lg:flex-row">
                     <AiStudioSidebar activeTab={activeTab} onSelectTab={onSelectTab} />
 

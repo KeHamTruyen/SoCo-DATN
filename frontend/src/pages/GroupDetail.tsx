@@ -1,4 +1,4 @@
-import { GuestAuthModal, UnifiedHeader } from "../shared/ui";
+import { GuestAuthModal } from "../shared/ui";
 import { XCircle } from "lucide-react";
 import { GroupProvider, useGroupContext } from "../features/group/context/GroupContext";
 import { GroupHeader } from "../features/group/components/GroupHeader";
@@ -19,15 +19,7 @@ function GroupDetailInner() {
     } = useGroupContext();
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark">
-            <UnifiedHeader
-                navItems={[
-                    { label: "Feed", to: "/feed" },
-                    { label: "Marketplace", to: "/marketplace" },
-                ]}
-                activePath="/feed"
-            />
-
+        <>
             {/* ── Loading skeleton ── */}
             {isLoading ? (
                 <div className="mx-auto max-w-360 space-y-6 px-4 py-8 sm:px-6">
@@ -93,7 +85,7 @@ function GroupDetailInner() {
                 open={showGuestAuthModal}
                 onClose={() => setShowGuestAuthModal(false)}
             />
-        </div>
+        </>
     );
 }
 

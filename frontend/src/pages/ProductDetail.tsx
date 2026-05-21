@@ -6,7 +6,7 @@ import { useProductDetailPage, type ProductDetailTab } from "../features/product
 import { ProductDetailPanel } from "../features/product/components/ProductDetailPanel";
 import { ProductGallery } from "../features/product/components/ProductGallery";
 import { useAuthSession } from "../shared/auth/useAuthSession";
-import { Footer, GuestAuthModal, UnifiedHeader } from "../shared/ui";
+import { GuestAuthModal } from "../shared/ui";
 
 function formatReviewDate(date: string): string {
     const value = new Date(date);
@@ -117,41 +117,27 @@ export default function ProductDetail() {
 
     if (isLoading) {
         return (
-            <div className="flex min-h-screen flex-col">
-                <UnifiedHeader activePath="/marketplace" />
-                <main className="flex flex-1 items-center justify-center">
-                    <div className="animate-pulse text-lg font-medium text-muted-foreground">Loading product details...</div>
-                </main>
-            </div>
+            <main className="flex flex-1 items-center justify-center">
+                <div className="animate-pulse text-lg font-medium text-muted-foreground">Loading product details...</div>
+            </main>
         );
     }
 
     if (error || !product) {
         return (
-            <div className="flex min-h-screen flex-col">
-                <UnifiedHeader activePath="/marketplace" />
-                <main className="flex flex-1 items-center justify-center px-4">
-                    <div className="max-w-md text-center">
-                        <h2 className="mb-2 text-2xl font-bold text-foreground">Oops!</h2>
-                        <p className="mb-6 text-muted-foreground">{error || "Product not found."}</p>
-                        <Link to="/marketplace" className="text-primary font-bold hover:underline">Back to Marketplace</Link>
-                    </div>
-                </main>
-            </div>
+            <main className="flex flex-1 items-center justify-center px-4">
+                <div className="max-w-md text-center">
+                    <h2 className="mb-2 text-2xl font-bold text-foreground">Oops!</h2>
+                    <p className="mb-6 text-muted-foreground">{error || "Product not found."}</p>
+                    <Link to="/marketplace" className="text-primary font-bold hover:underline">Back to Marketplace</Link>
+                </div>
+            </main>
         );
     }
 
     return (
-        <div className="flex min-h-screen flex-col bg-background">
-            <UnifiedHeader
-                navItems={[
-                    { label: "Feed", to: "/feed" },
-                    { label: "Marketplace", to: "/marketplace" },
-                ]}
-                activePath="/marketplace"
-            />
-            
-            <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <>
+            <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
                 {/* Breadcrumbs */}
                 <nav className="mb-8 flex items-center gap-2 text-sm text-muted-foreground">
                     <Link className="hover:text-primary transition-colors" to="/">Home</Link>
@@ -528,14 +514,12 @@ export default function ProductDetail() {
                     )}
                 </div>
             </main>
-
-            <Footer />
             <GuestAuthModal
                 open={showGuestAuthModal}
                 onClose={() => setShowGuestAuthModal(false)}
             />
             {photoModal}
-        </div>
+        </>
     );
 }
 
