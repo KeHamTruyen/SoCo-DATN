@@ -1,13 +1,29 @@
 import { Route } from "react-router-dom";
-import { AppShellHeaderOnlyLayout } from "../layouts/AppShellLayout";
+import {
+    AppShellHeaderFooterLayout,
+    AppShellHeaderLayout,
+} from "../layouts/AppShellLayout";
 import Marketplace from "../../pages/Marketplace";
 import ProductDetail from "../../pages/ProductDetail";
+import { MARKETPLACE_ACTIVE_HEADER } from "./routeHandle";
 
 export function MarketplaceRoutes() {
     return (
-        <Route element={<AppShellHeaderOnlyLayout />}>
-            <Route path="/marketplace" element={<Marketplace />} />
-            <Route path="/products/:id" element={<ProductDetail />} />
-        </Route>
+        <>
+            <Route element={<AppShellHeaderLayout />}>
+                <Route
+                    path="/marketplace"
+                    element={<Marketplace />}
+                    handle={MARKETPLACE_ACTIVE_HEADER}
+                />
+            </Route>
+            <Route element={<AppShellHeaderFooterLayout />}>
+                <Route
+                    path="/products/:id"
+                    element={<ProductDetail />}
+                    handle={MARKETPLACE_ACTIVE_HEADER}
+                />
+            </Route>
+        </>
     );
 }

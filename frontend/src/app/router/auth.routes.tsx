@@ -1,5 +1,6 @@
 import { Route } from "react-router-dom";
 import AuthLayout from "../layouts/AuthLayout";
+import BareLayout from "../layouts/BareLayout";
 import ForgotPassword from "../../pages/ForgotPassword";
 import Login from "../../pages/Login";
 import ResetPassword from "../../pages/ResetPassword";
@@ -28,11 +29,13 @@ export function AuthRoutes() {
                 </Route>
             </Route>
             <Route element={<ProtectedRoute />}>
-                <Route path="/become-seller" element={<SellerRegistration />} />
-                <Route
-                    path="/seller-registration/success"
-                    element={<SellerRegistrationSuccess />}
-                />
+                <Route element={<BareLayout />}>
+                    <Route path="/become-seller" element={<SellerRegistration />} />
+                    <Route
+                        path="/seller-registration/success"
+                        element={<SellerRegistrationSuccess />}
+                    />
+                </Route>
             </Route>
         </>
     );
