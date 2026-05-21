@@ -10,30 +10,34 @@ import { FEED_ACTIVE_HEADER } from "./routeHandle";
 
 export function SocialRoutes() {
     return (
-        <Route element={<AppShellHeaderLayout />}>
-            <Route path="/groups" element={<Groups />} handle={FEED_ACTIVE_HEADER} />
-            <Route
-                path="/groups/:id"
-                element={<GroupDetail />}
-                handle={FEED_ACTIVE_HEADER}
-            />
-            <Route
-                path="/groups/:groupId/posts/:postId"
-                element={<GroupPostDetail />}
-                handle={FEED_ACTIVE_HEADER}
-            />
-            <Route element={<UserAreaProtectedRoute />}>
+        <>
+            <Route element={<AppShellHeaderLayout />}>
+                <Route path="/groups" element={<Groups />} handle={FEED_ACTIVE_HEADER} />
                 <Route
-                    path="/messages"
-                    element={<Messages />}
+                    path="/groups/:id"
+                    element={<GroupDetail />}
                     handle={FEED_ACTIVE_HEADER}
                 />
                 <Route
-                    path="/notifications"
-                    element={<Notifications />}
+                    path="/groups/:groupId/posts/:postId"
+                    element={<GroupPostDetail />}
                     handle={FEED_ACTIVE_HEADER}
                 />
             </Route>
-        </Route>
+            <Route element={<UserAreaProtectedRoute />}>
+                <Route element={<AppShellHeaderLayout />}>
+                    <Route
+                        path="/messages"
+                        element={<Messages />}
+                        handle={FEED_ACTIVE_HEADER}
+                    />
+                    <Route
+                        path="/notifications"
+                        element={<Notifications />}
+                        handle={FEED_ACTIVE_HEADER}
+                    />
+                </Route>
+            </Route>
+        </>
     );
 }

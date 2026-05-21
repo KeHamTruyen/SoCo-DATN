@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Outlet, useMatches } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Footer, UnifiedHeader } from "../../shared/ui";
 import {
     AppHeaderProvider,
@@ -7,28 +7,19 @@ import {
 } from "./AppHeaderContext";
 import {
     DEFAULT_HEADER_NAV_ITEMS,
-    type AppRouteHandle,
+    resolveHeaderConfigForPath,
 } from "../router/routeHandle";
 
 const shellClassName =
     "flex min-h-screen flex-col bg-background text-foreground";
 
-function resolveStaticHeaderConfig(matches: ReturnType<typeof useMatches>) {
-    const handle = [...matches]
-        .reverse()
-        .find((m) => (m.handle as AppRouteHandle | undefined)?.header)
-        ?.handle as AppRouteHandle | undefined;
-
-    return handle?.header;
-}
-
 function AppShellChrome({ showFooter }: { showFooter: boolean }) {
-    const matches = useMatches();
+    const { pathname } = useLocation();
     const dynamicConfig = useAppHeaderDynamicConfig();
 
     const staticConfig = useMemo(
-        () => resolveStaticHeaderConfig(matches),
-        [matches],
+        () => resolveHeaderConfigForPath(pathname),
+        [pathname],
     );
 
     const headerProps = useMemo(
