@@ -26,10 +26,11 @@
 
   ## App shell layouts (header / footer)
 
-  Authenticated pages under [`src/app/router/feed.routes.tsx`](src/app/router/feed.routes.tsx) and [`src/app/router/marketplace.routes.tsx`](src/app/router/marketplace.routes.tsx) use [`AppShellWithFooterLayout`](src/app/layouts/AppShellLayout.tsx) or [`AppShellHeaderOnlyLayout`](src/app/layouts/AppShellLayout.tsx) as parent routes. The shell owns `min-h-screen`, background, and optional global `Footer`.
+  App pages use [`AppShellHeaderLayout`](src/app/layouts/AppShellLayout.tsx) or [`AppShellHeaderFooterLayout`](src/app/layouts/AppShellLayout.tsx) as parent routes. The shell owns `min-h-screen`, background, [`UnifiedHeader`](src/shared/ui/organisms/unified-header/UnifiedHeader.tsx), and optional global `Footer`.
 
-  - **With footer:** register the route inside `AppShellWithFooterLayout` (e.g. saved items, AI creative lab). Sticky footer is handled by the shell.
-  - **Header only:** use `AppShellHeaderOnlyLayout` for feeds, marketplace, or infinite-scroll pages (no site footer).
-  - **Page root:** the routed page should use a root wrapper `className="flex min-h-0 flex-1 flex-col"` and put primary content in `<main className="flex-1 ...">` (or equivalent) so the flex column fills the shell between header and footer.
-
-  Add new routes by nesting the correct layout alongside siblings in the same route file; avoid duplicating `min-h-screen` on the page when the shell already provides it.
+  - **With footer:** register inside `AppShellHeaderFooterLayout` (e.g. product detail, saved items, AI creative lab).
+  - **Header only:** use `AppShellHeaderLayout` for feed, marketplace, social, commerce, etc.
+  - **No chrome:** auth flows use `AuthLayout`; checkout success and seller onboarding use `BareLayout`.
+  - **Route `handle`:** set `handle={{ header: { activePath: "/feed" } }}` on routes (see [`routeHandle.ts`](src/app/router/routeHandle.ts)).
+  - **Dynamic header (search):** pages call `useConfigureAppHeader` from [`AppHeaderContext`](src/app/layouts/AppHeaderContext.tsx).
+  - **Page root:** render `<main className="flex-1 ...">` only; do not import `UnifiedHeader` on pages under a shell layout.
