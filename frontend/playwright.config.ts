@@ -2,14 +2,17 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
     testDir: "./e2e",
-    timeout: 30_000,
+    timeout: 60_000,
     expect: {
-        timeout: 8_000,
+        timeout: 10_000,
     },
-    fullyParallel: true,
+    // Single worker: one Vite dev server cannot reliably serve many parallel browser sessions.
+    fullyParallel: false,
+    workers: 1,
     reporter: [["list"], ["html", { open: "never" }]],
     use: {
         baseURL: "http://127.0.0.1:3000",
+        navigationTimeout: 60_000,
         trace: "retain-on-failure",
         screenshot: "only-on-failure",
         video: "off",
@@ -23,7 +26,8 @@ export default defineConfig({
     webServer: {
         command: "npm run dev",
         url: "http://127.0.0.1:3000",
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
+        // Always start a dedicated server to avoid stale/conflicting dev instances on :3000.
+        reuseExistingServer: false,
+        timeout: 180_000,
     },
 });

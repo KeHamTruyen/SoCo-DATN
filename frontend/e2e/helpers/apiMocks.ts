@@ -35,13 +35,29 @@ function product(id: string, title: string, price: string, keywords: string[] = 
     };
 }
 
-export async function mockGuestApi(page: Page) {
+type GuestMockOptions = {
+    /** When true, POST /auth/login completes without 2FA (for auth-login.spec). */
+    directLogin?: boolean;
+};
+
+export async function mockGuestApi(page: Page, options: GuestMockOptions = {}) {
     await page.route(API_PATTERN, async (route) => {
         const url = new URL(route.request().url());
         const path = url.pathname.replace("/api", "");
         const method = route.request().method();
 
         if (method === "POST" && path === "/auth/login") {
+            if (options.directLogin) {
+                return json(route, {
+                    success: true,
+                    data: {
+                        requires2FA: false,
+                        accessToken: "e2e-access-token",
+                        refreshToken: "e2e-refresh-token",
+                        user: buyerUser,
+                    },
+                });
+            }
             return json(route, {
                 success: true,
                 data: {
