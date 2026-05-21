@@ -2,6 +2,8 @@
 
 Tài liệu này mô tả cách chạy và hiểu bộ test của API Express (không mở port thật trong hầu hết test — gọi trực tiếp `app` qua HTTP giả lập).
 
+Tổng quan monorepo (frontend + CI): [TESTING.md](../TESTING.md).
+
 ## Stack
 
 | Thành phần              | Vai trò                                                                                      |
@@ -103,3 +105,18 @@ Trên GitHub Actions, job backend thường: cài dependency → validate Prisma
 - **Integration**: thêm `*.integration.test.js` trong `test/integration/`, bọc bằng `integrationDescribe` từ [`integrationEnv.js`](test/helpers/integrationEnv.js), tái sử dụng fixture/login nếu cần.
 
 File cấu hình chính: [`vitest.config.js`](vitest.config.js) (unit + http), [`vitest.integration.config.js`](vitest.integration.config.js) (integration).
+
+## Xử lý lỗi thường gặp
+
+| Triệu chứng | Hướng xử lý |
+| ----------- | ----------- |
+| Integration toàn bộ **skipped** | Thiếu `DATABASE_URL` — set trong `backend/.env` rồi chạy lại `npm run test:integration`. |
+| `QA buyer login failed` | DB chưa migrate/seed; chạy `npm run prisma:migrate:deploy` và/hoặc seed; hoặc set `INTEGRATION_BUYER_EMAIL` / `INTEGRATION_BUYER_PASSWORD`. |
+| Unit/HTTP chậm lần đầu | `vitest.setup.js` khởi động app một lần (`beforeAll`) — lần sau ổn định hơn. |
+| Prisma client lỗi | Từ `backend`: `npm run prisma:generate` (client generate từ package `database`). |
+| Pass local, fail CI | CI luôn có Postgres + seed; so sánh biến `JWT_SECRET`, schema migrate. |
+
+## Liên kết
+
+- Tổng quan + frontend: [TESTING.md](../TESTING.md)
+- Frontend Vitest / Playwright: [frontend/TEST.md](../frontend/TEST.md)
