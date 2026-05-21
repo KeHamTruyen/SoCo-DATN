@@ -32,8 +32,8 @@ vi.mock("react-i18next", async (importOriginal) => {
     };
 });
 
-vi.mock("../../shared/ui", () => ({
-    UnifiedHeader: () => <div data-testid="header">Header</div>,
+vi.mock("../../app/layouts/AppHeaderContext", () => ({
+    useConfigureAppHeader: vi.fn(),
 }));
 
 function renderPage(path = "/marketplace?q=bag&sort=popular") {

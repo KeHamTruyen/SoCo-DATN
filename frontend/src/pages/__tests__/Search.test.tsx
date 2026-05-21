@@ -54,12 +54,11 @@ vi.mock("../../features/marketplace/components/SearchResults", () => ({
     ),
 }));
 
+vi.mock("../../app/layouts/AppHeaderContext", () => ({
+    useConfigureAppHeader: vi.fn(),
+}));
+
 vi.mock("../../shared/ui", () => ({
-    UnifiedHeader: (props: { onSearchSubmit?: (v: string) => void }) => (
-        <button type="button" onClick={() => props.onSearchSubmit?.("phone")}>
-            Header
-        </button>
-    ),
     Avatar: () => <div data-testid="avatar">Avatar</div>,
 }));
 
