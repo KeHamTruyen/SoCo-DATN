@@ -1,13 +1,13 @@
+# SoCo-DATN — single root gitignore (monorepo)
+
 # Dependencies
 node_modules/
 */node_modules/
 
-# Environment variables
+# Environment (keep *.env.example tracked)
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
 
 # Build outputs
 dist/
@@ -15,11 +15,22 @@ build/
 */dist/
 */build/
 
-# Uploads - Keep folder structure but ignore uploaded files
+# Backend uploads — keep folder structure, ignore uploaded files
 backend/src/uploads/avatars/*
 backend/src/uploads/posts/*
 backend/src/uploads/products/*
 !backend/src/uploads/**/.gitkeep
+
+# Frontend — Playwright / Vitest artifacts
+frontend/playwright-report/
+frontend/test-results/
+frontend/blob-report/
+frontend/playwright/.cache/
+
+# Testing / coverage
+coverage/
+coverage-integration/
+.nyc_output/
 
 # Logs
 logs/
@@ -51,23 +62,18 @@ desktop.ini
 *.sln
 *.sw?
 
-# Database
+# Local databases
 *.sqlite
 *.sqlite3
 *.db
 
-# Testing
-coverage/
-coverage-integration/
-.nyc_output/
-
-# Cache
+# Cache / tooling
 .cache/
 .parcel-cache/
 .eslintcache
 .stylelintcache
-
-# Misc
 .turbo
 *.tsbuildinfo
+
+# Code intelligence index (local)
 .gitnexus
