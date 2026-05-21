@@ -8,6 +8,8 @@ export default defineConfig({
         include: ["test/integration/**/*.integration.test.js"],
         fileParallelism: false,
         pool: "forks",
+        testTimeout: 30_000,
+        hookTimeout: 30_000,
         coverage: {
             provider: "v8",
             reporter: ["text", "html"],

@@ -10,7 +10,10 @@ function createRedisClient() {
     url,
     socket: {
       connectTimeout: Number(process.env.REDIS_CONNECT_TIMEOUT_MS || 5000),
+      // Fail fast when URL/TLS is wrong — avoids hanging API/tests on reconnect loops.
+      reconnectStrategy: () => false,
     },
+    disableOfflineQueue: true,
   });
 
   client.on('error', () => {});
