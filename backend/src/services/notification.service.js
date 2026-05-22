@@ -291,7 +291,7 @@ class NotificationService {
             title: "Người theo dõi mới",
             message: `${followerUser.fullName || followerUser.username} đã theo dõi bạn`,
             relatedUserId: followerUser.id,
-            actionUrl: `/profile/${followerUser.username}`,
+            actionUrl: `/profile/${followerUser.id}`,
         });
     }
 
