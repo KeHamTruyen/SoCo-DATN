@@ -2,6 +2,11 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { useSavedPostItem } from "../useSavedPostItem";
 import { savedItemsApi } from "../../../saved-items/api/savedItemsApi";
 import type { SavedItemType } from "../../../saved-items/types/savedItems.types";
+import { useAuthSession } from "../../../../shared/auth/useAuthSession";
+
+vi.mock("../../../../shared/auth/useAuthSession", () => ({
+    useAuthSession: vi.fn(),
+}));
 
 const savedRow = (id: string, targetId: string) => ({
     id,
@@ -20,9 +25,27 @@ vi.mock("../../../saved-items/api/savedItemsApi", () => ({
 
 describe("useSavedPostItem", () => {
     beforeEach(() => {
+        vi.mocked(useAuthSession).mockReturnValue({
+            isAuthenticated: true,
+            user: { id: "u1" },
+        } as ReturnType<typeof useAuthSession>);
         vi.mocked(savedItemsApi.lookup).mockReset();
         vi.mocked(savedItemsApi.save).mockReset();
         vi.mocked(savedItemsApi.remove).mockReset();
+    });
+
+    it("skips lookup when guest", async () => {
+        vi.mocked(useAuthSession).mockReturnValue({
+            isAuthenticated: false,
+            user: null,
+        } as ReturnType<typeof useAuthSession>);
+
+        const { result } = renderHook(() => useSavedPostItem("post-guest"));
+
+        await waitFor(() => {
+            expect(savedItemsApi.lookup).not.toHaveBeenCalled();
+            expect(result.current.savedId).toBeNull();
+        });
     });
 
     it("loads savedId from lookup on mount", async () => {
