@@ -16,6 +16,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import type { ProductListItem } from "../../marketplace/types/marketplace.types";
 import type { Order } from "../../order/types/order.types";
+import { profileApi } from "../../profile/api/profileApi";
 import type { PublicUserProfile } from "../../profile/types/profile.types";
 import { loadFeedSidebarData } from "../utils/feedSidebarDataCache";
 import { DEFAULT_USER_AVATAR_URL } from "../../../shared/config/defaultAssets";
