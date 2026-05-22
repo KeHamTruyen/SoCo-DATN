@@ -28,6 +28,13 @@ export function getSearchHistory(): string[] {
     return readRawHistory();
 }
 
+/** Filter recent searches that match the current query (case-insensitive). */
+export function filterSearchHistory(items: string[], query: string): string[] {
+    const normalized = String(query ?? "").trim().toLowerCase();
+    if (!normalized) return items;
+    return items.filter((item) => item.toLowerCase().includes(normalized));
+}
+
 export function saveSearchTerm(term: string): string[] {
     if (typeof window === "undefined") return [];
     const normalized = String(term ?? "").trim();

@@ -11,7 +11,7 @@ import {
     User,
     X,
 } from "lucide-react";
-import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { MessageDropdown } from "../../../../features/messaging/components/MessageDropdown";
 import { useMessagingOptional } from "../../../../features/messaging/context/MessagingContext";
@@ -21,7 +21,11 @@ import { useNotificationCenter } from "../../../../features/notification/context
 import { useAuthSession } from "../../../auth/useAuthSession";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../../lib/cn";
-import { getSearchHistory, saveSearchTerm } from "../../../lib/searchHistory";
+import {
+    filterSearchHistory,
+    getSearchHistory,
+    saveSearchTerm,
+} from "../../../lib/searchHistory";
 import { ThemePickerModal } from "../../molecules/theme-picker-modal/ThemePickerModal";
 import { Avatar, Button, Input } from "../../atoms";
 import { BrandLogo } from "../brand-logo/BrandLogo";
@@ -164,6 +168,9 @@ export function UnifiedHeader({
             setInternalSearch(value);
         }
         onSearch?.(value);
+        setHistoryItems(getSearchHistory());
+        setVisibleHistoryCount(7);
+        setSearchHistoryOpen(true);
     };
 
     const openSearchHistory = () => {
@@ -185,7 +192,12 @@ export function UnifiedHeader({
     };
 
     const currentSearchValue = searchValue !== undefined ? searchValue : internalSearch;
-    const visibleHistory = historyItems.slice(0, visibleHistoryCount);
+    const filteredHistory = useMemo(
+        () => filterSearchHistory(historyItems, currentSearchValue),
+        [historyItems, currentSearchValue],
+    );
+    const visibleHistory = filteredHistory.slice(0, visibleHistoryCount);
+    const trimmedSearch = currentSearchValue.trim();
 
     return (
         <>
@@ -233,6 +245,16 @@ export function UnifiedHeader({
                                 <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
                                     {t("header.recentSearches")}
                                 </p>
+                                {trimmedSearch ? (
+                                    <button
+                                        type="button"
+                                        className="mb-1 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm font-medium text-primary hover:bg-primary/10"
+                                        onClick={() => submitSearch(trimmedSearch)}
+                                    >
+                                        <Search className="h-4 w-4 shrink-0" />
+                                        {t("header.searchForQuery", { query: trimmedSearch })}
+                                    </button>
+                                ) : null}
                                 {visibleHistory.length > 0 ? (
                                     <div className="space-y-1">
                                         {visibleHistory.map((term) => (
@@ -251,10 +273,12 @@ export function UnifiedHeader({
                                     </div>
                                 ) : (
                                     <p className="px-2 py-2 text-sm text-neutral-500 dark:text-neutral-400">
-                                        {t("header.noRecentSearches")}
+                                        {historyItems.length > 0
+                                            ? t("header.noMatchingSearches")
+                                            : t("header.noRecentSearches")}
                                     </p>
                                 )}
-                                {historyItems.length > visibleHistoryCount ? (
+                                {filteredHistory.length > visibleHistoryCount ? (
                                     <button
                                         type="button"
                                         className="mt-1 w-full rounded-lg px-2 py-2 text-left text-sm font-semibold text-primary hover:bg-primary/10"
@@ -295,6 +319,7 @@ export function UnifiedHeader({
                                         unreadCount={unreadCount}
                                         onClose={() => setNotifOpen(false)}
                                         onMarkAllRead={() => void markAllRead()}
+                                        onMarkRead={(id) => void markRead(id)}
                                     />
                                 )}
                             </div>
@@ -460,6 +485,16 @@ export function UnifiedHeader({
                                 <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
                                     {t("header.recentSearches")}
                                 </p>
+                                {trimmedSearch ? (
+                                    <button
+                                        type="button"
+                                        className="mb-1 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm font-medium text-primary hover:bg-primary/10"
+                                        onClick={() => submitSearch(trimmedSearch)}
+                                    >
+                                        <Search className="h-4 w-4 shrink-0" />
+                                        {t("header.searchForQuery", { query: trimmedSearch })}
+                                    </button>
+                                ) : null}
                                 {visibleHistory.length > 0 ? (
                                     <div className="space-y-1">
                                         {visibleHistory.map((term) => (
@@ -478,10 +513,12 @@ export function UnifiedHeader({
                                     </div>
                                 ) : (
                                     <p className="px-2 py-2 text-sm text-neutral-500 dark:text-neutral-400">
-                                        {t("header.noRecentSearches")}
+                                        {historyItems.length > 0
+                                            ? t("header.noMatchingSearches")
+                                            : t("header.noRecentSearches")}
                                     </p>
                                 )}
-                                {historyItems.length > visibleHistoryCount ? (
+                                {filteredHistory.length > visibleHistoryCount ? (
                                     <button
                                         type="button"
                                         className="mt-1 w-full rounded-lg px-2 py-2 text-left text-sm font-semibold text-primary hover:bg-primary/10"
