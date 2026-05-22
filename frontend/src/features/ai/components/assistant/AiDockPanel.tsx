@@ -1,6 +1,6 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Minus, Sparkles, X } from "lucide-react";
+import { Minus, Send, Sparkles, X } from "lucide-react";
 import { useAuthSession } from "../../../../shared/auth/useAuthSession";
 import { Button } from "../../../../shared/ui";
 import { cartApi } from "../../../cart/api/cartApi";
@@ -21,16 +21,23 @@ type ChatMessage = {
     followUps?: string[];
 };
 
+type PersistedAssistantChat = {
+    v: 1;
+    updatedAt: number;
+    memory: AssistantMemory;
+    messages: ChatMessage[];
+};
+
 interface AiDockPanelProps {
     onMinimize: () => void;
     onClose: () => void;
 }
 
 function statusLabel(stock: number | null): string {
-    if (stock == null) return "Co san";
-    if (stock <= 0) return "Het hang";
-    if (stock <= 5) return `Sap het (${stock})`;
-    return `Con hang (${stock})`;
+    if (stock == null) return "Có sẵn";
+    if (stock <= 0) return "Hết hàng";
+    if (stock <= 5) return `Sắp hết (${stock})`;
+    return `Còn hàng (${stock})`;
 }
 
 function toHistory(messages: ChatMessage[]): AssistantHistoryItem[] {
@@ -39,21 +46,72 @@ function toHistory(messages: ChatMessage[]): AssistantHistoryItem[] {
         .slice(-8);
 }
 
-export function AiDockPanel({ onMinimize, onClose }: AiDockPanelProps) {
-    const navigate = useNavigate();
-    const { isAuthenticated } = useAuthSession();
-    const [input, setInput] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    const [memory, setMemory] = useState<AssistantMemory>({});
-    const [messages, setMessages] = useState<ChatMessage[]>([
+function createDefaultMessages(): ChatMessage[] {
+    return [
         {
             id: "init",
             role: "assistant",
             content:
-                "Xin chao. Minh la tro ly mua sam AI. Ban co the hoi gia, ton kho, so sanh san pham hoac tra cuu don hang.",
-            followUps: ["Goi y dien thoai tam 5 trieu", "Don ORD123... cua toi dang o dau?"],
+                "Xin chào. Mình là trợ lý mua sắm AI. Bạn có thể hỏi giá, tồn kho, so sánh sản phẩm hoặc tra cứu đơn hàng.",
+            followUps: [
+                "Gợi ý điện thoại tầm 5 triệu",
+                "Đơn ORD123... của tôi đang ở đâu?",
+            ],
         },
-    ]);
+    ];
+}
+
+export function AiDockPanel({ onMinimize, onClose }: AiDockPanelProps) {
+    const navigate = useNavigate();
+    const { isAuthenticated, user } = useAuthSession();
+    const [input, setInput] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [memory, setMemory] = useState<AssistantMemory>({});
+    const [messages, setMessages] = useState<ChatMessage[]>(() => createDefaultMessages());
+
+    const storageKey = useMemo(
+        () => (user?.id ? `ai-assistant:dock:${user.id}` : null),
+        [user?.id],
+    );
+
+    useEffect(() => {
+        if (!storageKey) return;
+        try {
+            const raw = localStorage.getItem(storageKey);
+            if (!raw) return;
+
+            const parsed = JSON.parse(raw) as PersistedAssistantChat;
+            if (!parsed || parsed.v !== 1 || !Array.isArray(parsed.messages)) return;
+
+            const maxAgeMs = 7 * 24 * 60 * 60 * 1000;
+            if (typeof parsed.updatedAt !== "number" || Date.now() - parsed.updatedAt > maxAgeMs) {
+                localStorage.removeItem(storageKey);
+                setMessages(createDefaultMessages());
+                setMemory({});
+                return;
+            }
+
+            setMessages(parsed.messages.length > 0 ? parsed.messages : createDefaultMessages());
+            setMemory(parsed.memory ?? {});
+        } catch {
+            // ignore invalid persisted payloads
+        }
+    }, [storageKey]);
+
+    useEffect(() => {
+        if (!storageKey) return;
+        try {
+            const payload: PersistedAssistantChat = {
+                v: 1,
+                updatedAt: Date.now(),
+                memory,
+                messages: messages.slice(-50),
+            };
+            localStorage.setItem(storageKey, JSON.stringify(payload));
+        } catch {
+            // ignore quota / serialization errors
+        }
+    }, [memory, messages, storageKey]);
 
     const canSend = useMemo(
         () => isAuthenticated && !isLoading && input.trim().length > 0,
@@ -75,12 +133,12 @@ export function AiDockPanel({ onMinimize, onClose }: AiDockPanelProps) {
         if (action.type === "add_to_cart" && action.productId) {
             try {
                 await cartApi.addItem(action.productId, 1);
-                appendAssistantError("Da them san pham vao gio hang.");
+                appendAssistantError("Đã thêm sản phẩm vào giỏ hàng.");
             } catch (error) {
                 const message =
                     error instanceof Error
                         ? error.message
-                        : "Khong the them vao gio luc nay.";
+                        : "Không thể thêm vào giỏ lúc này.";
                 appendAssistantError(message);
             }
             return;
@@ -132,7 +190,7 @@ export function AiDockPanel({ onMinimize, onClose }: AiDockPanelProps) {
             const message =
                 error instanceof Error
                     ? error.message
-                    : "Khong the nhan phan hoi tu AI luc nay.";
+                    : "Không thể nhận phản hồi từ AI lúc này.";
             appendAssistantError(message);
         } finally {
             setIsLoading(false);
@@ -155,7 +213,7 @@ export function AiDockPanel({ onMinimize, onClose }: AiDockPanelProps) {
                         type="button"
                         className="group rounded-md p-1.5 text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground active:scale-95"
                         onClick={onMinimize}
-                        aria-label="Thu gon AI chat"
+                        aria-label="Thu gọn AI chat"
                     >
                         <Minus className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
                     </button>
@@ -163,7 +221,7 @@ export function AiDockPanel({ onMinimize, onClose }: AiDockPanelProps) {
                         type="button"
                         className="group rounded-md p-1.5 text-muted-foreground transition-all duration-200 hover:bg-destructive/15 hover:text-destructive active:scale-95"
                         onClick={onClose}
-                        aria-label="Dong AI chat"
+                        aria-label="Đóng AI chat"
                     >
                         <X className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 group-hover:rotate-90" />
                     </button>
@@ -173,9 +231,9 @@ export function AiDockPanel({ onMinimize, onClose }: AiDockPanelProps) {
             <div className="flex-1 space-y-3 overflow-y-auto bg-muted/20 px-3 py-3">
                 {!isAuthenticated && (
                     <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">
-                        Vui long dang nhap de dung tro ly AI mua sam.
+                        Vui lòng đăng nhập để dùng trợ lý AI mua sắm.
                         <div className="mt-2">
-                            <Button size="sm" onClick={() => navigate("/login")}>Dang nhap</Button>
+                            <Button size="sm" onClick={() => navigate("/login")}>Đăng nhập</Button>
                         </div>
                     </div>
                 )}
@@ -242,7 +300,7 @@ export function AiDockPanel({ onMinimize, onClose }: AiDockPanelProps) {
 
                 {isLoading && (
                     <div className="mr-auto rounded-xl border border-border bg-background px-3 py-2 text-xs text-muted-foreground">
-                        Tro ly dang xu ly...
+                        Trợ lý đang xử lý...
                     </div>
                 )}
             </div>
@@ -252,11 +310,18 @@ export function AiDockPanel({ onMinimize, onClose }: AiDockPanelProps) {
                     <input
                         value={input}
                         onChange={(event) => setInput(event.target.value)}
-                        placeholder="Hoi gia, ton kho, so sanh, don hang..."
+                        placeholder="Hỏi giá, tồn kho, so sánh, đơn hàng..."
                         className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none ring-primary/30 placeholder:text-muted-foreground focus:ring-2"
                     />
-                    <Button type="submit" disabled={!canSend} size="sm" className="h-10 px-4">
-                        Gui
+                    <Button
+                        type="submit"
+                        disabled={!canSend}
+                        size="sm"
+                        className="h-10 w-10 px-0"
+                        aria-label="Gửi"
+                        title="Gửi"
+                    >
+                        <Send className="h-4 w-4" />
                     </Button>
                 </div>
             </form>

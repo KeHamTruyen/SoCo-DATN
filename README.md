@@ -39,6 +39,7 @@ Các cổng mặc định khi chạy local:
 
 - Node.js, Express, ES Modules
 - PostgreSQL, Prisma ORM
+- Elasticsearch (optional) cho search + AI retrieval
 - JWT, bcryptjs, cookie-parser, cors, express-validator
 - Socket.IO cho realtime
 - Cloudinary + multer cho upload media
@@ -74,6 +75,7 @@ SoCo-DATN/
 - Node.js `>= 18`
 - PostgreSQL `>= 14`
 - npm
+- Docker (optional) — nếu muốn chạy Elasticsearch local
 
 ## Khởi động nhanh
 
@@ -139,6 +141,16 @@ npm run prisma:generate
 
 Mở 4 terminal riêng:
 
+### (Optional) Elasticsearch (search + AI retrieval)
+
+Nếu bạn muốn bật luồng tìm kiếm Elasticsearch (marketplace search, một phần AI assistant), chạy từ thư mục gốc dự án:
+
+```bash
+docker compose -f docker-compose.elasticsearch.yml up -d
+```
+
+Sau đó cấu hình `ELASTICSEARCH_URL=http://localhost:9200` trong `backend/.env` (xem thêm `backend/README.md`).
+
 ### Core backend
 
 ```bash
@@ -180,7 +192,7 @@ Sau khi chạy xong:
 ```bash
 npm run dev
 npm start
-kiêmnpm run ai:health
+npm run ai:health
 npm run prisma:generate
 npm run prisma:push
 npm run prisma:reset

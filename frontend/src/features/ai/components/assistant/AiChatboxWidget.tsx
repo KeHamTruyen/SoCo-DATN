@@ -1,6 +1,6 @@
 import { FormEvent, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageCircle, Minus, Sparkles, X } from "lucide-react";
+import { MessageCircle, Minus, Send, Sparkles, X } from "lucide-react";
 import { useAuthSession } from "../../../../shared/auth/useAuthSession";
 import { Button } from "../../../../shared/ui";
 import { cartApi } from "../../../cart/api/cartApi";
@@ -256,8 +256,15 @@ export function AiChatboxWidget() {
                                 placeholder="Hỏi giá, tồn kho, so sánh, đơn hàng..."
                                 className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none ring-primary/30 placeholder:text-muted-foreground focus:ring-2"
                             />
-                            <Button type="submit" disabled={!canSend} size="sm" className="h-10 px-4">
-                                Gửi
+                            <Button
+                                type="submit"
+                                disabled={!canSend}
+                                size="sm"
+                                className="h-10 w-10 px-0"
+                                aria-label="Gửi"
+                                title="Gửi"
+                            >
+                                <Send className="h-4 w-4" />
                             </Button>
                         </div>
                     </form>
