@@ -1,6 +1,7 @@
 import { Flag, MessageSquarePlus, MoreHorizontal, Trash2 } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { cn } from "../../../shared/lib/cn";
+import { Link } from "react-router-dom";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { Button, GuestAuthModal } from "../../../shared/ui";
 import { ReportModal } from "../../report/components/ReportModal";
@@ -14,8 +15,10 @@ import { FeedPostCardActions } from "./FeedPostCardActions";
 import { PostAuthorMetaHeader } from "./PostAuthorMetaHeader";
 import { useSavedPostItem } from "../hooks/useSavedPostItem";
 import { usePostCommentsPagination } from "../hooks/usePostCommentsPagination";
-import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 import { PostMediaCarousel } from "./PostMediaCarousel";
+import { ShoppableProductHotspot } from "./ShoppableProductHotspot";
+import { layoutMediaHotspots } from "../utils/hotspotLayout";
+import { resolvePostMediaUrls } from "../utils/postMediaUtils";
 
 interface FeedPostCardProps {
     post: FeedPost;
@@ -49,7 +52,6 @@ function FeedPostCardComponent({
     mode = "feed",
 }: FeedPostCardProps) {
     const { user } = useAuthSession();
-    const navigate = useNavigate();
     const [newComment, setNewComment] = useState("");
     const [isCommenting, setIsCommenting] = useState(false);
     const [showPostModal, setShowPostModal] = useState(false);
@@ -68,6 +70,7 @@ function FeedPostCardComponent({
     });
     const shareMenuRef = useRef<HTMLDivElement>(null);
     const moreMenuRef = useRef<HTMLDivElement>(null);
+    const commentInputRef = useRef<HTMLInputElement>(null);
     const { t } = useTranslation();
 
     const closeShareMenu = useCallback(() => {
@@ -156,18 +159,28 @@ function FeedPostCardComponent({
         })();
     };
 
-    const mediaTaggedProducts =
-        post.taggedProducts?.filter((tag) => (tag.anchorType ?? "MEDIA_HOTSPOT") === "MEDIA_HOTSPOT") ?? [];
+    const mediaTaggedProducts = layoutMediaHotspots(
+        post.taggedProducts?.filter((tag) => (tag.anchorType ?? "MEDIA_HOTSPOT") === "MEDIA_HOTSPOT") ?? [],
+    );
     const inlineTaggedProducts =
         post.taggedProducts?.filter((tag) => tag.anchorType === "INLINE_TEXT" || tag.anchorType === "CONTENT_BLOCK") ??
         [];
     const hasProducts = (post.taggedProducts?.length ?? 0) > 0;
-    const primaryMedia = post.imageUrl;
-    const mediaUrls = post.mediaUrls?.length
-        ? post.mediaUrls
-        : primaryMedia
-          ? [primaryMedia]
-          : [];
+    const mediaUrls = resolvePostMediaUrls(post);
+
+    const openPostModal = () => {
+        if (mode === "feed") {
+            setShowPostModal(true);
+        }
+    };
+
+    const handleCommentIconClick = () => {
+        if (!user) {
+            setShowGuestAuthModal(true);
+            return;
+        }
+        commentInputRef.current?.focus();
+    };
     const authorProfileLink =
         user?.id && user.id === post.author.id ? "/profile" : `/profile/${post.author.id}`;
     const isOwnPost = user?.id === post.author.id;
@@ -245,6 +258,7 @@ function FeedPostCardComponent({
                                 <Link
                                     to={`/profile/${u.id}`}
                                     className="font-medium text-primary hover:underline"
+                                    onClick={(e) => e.stopPropagation()}
                                 >
                                     {u.fullName ?? u.username ?? "User"}
                                 </Link>
@@ -258,7 +272,17 @@ function FeedPostCardComponent({
                         {inlineTaggedProducts.map((tag, i) => (
                             <span key={tag.id}>
                                 {i > 0 ? ", " : ""}
-                                {tag.productName}
+                                {tag.productId ? (
+                                    <Link
+                                        to={`/products/${tag.productId}`}
+                                        className="font-medium text-primary hover:underline"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        {tag.productName}
+                                    </Link>
+                                ) : (
+                                    tag.productName
+                                )}
                             </span>
                         ))}
                     </p>
@@ -267,43 +291,47 @@ function FeedPostCardComponent({
 
             {/* Media with shoppable overlays */}
             {mediaUrls.length > 0 ? (
-                <PostMediaCarousel
-                    mediaUrls={mediaUrls}
-                    mediaType={post.mediaType}
-                    className="aspect-video"
-                    imageAlt="Post attachment"
+                <div
+                    className={cn(mode === "feed" && "cursor-pointer")}
+                    onClick={mode === "feed" ? openPostModal : undefined}
+                    onKeyDown={
+                        mode === "feed"
+                            ? (e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                      e.preventDefault();
+                                      openPostModal();
+                                  }
+                              }
+                            : undefined
+                    }
+                    role={mode === "feed" ? "button" : undefined}
+                    tabIndex={mode === "feed" ? 0 : undefined}
+                    aria-label={t("feed.viewPost", "View post")}
                 >
-                    {mediaTaggedProducts.map((tag) => (
-                        <button
-                            key={tag.id}
-                            type="button"
-                            className="absolute transition-transform group-hover:scale-110"
-                            style={{
-                                top: `${tag.positionY}%`,
-                                left: `${tag.positionX}%`,
-                            }}
-                            onClick={() => {
-                                if (tag.productId) {
-                                    navigate(`/products/${tag.productId}`);
-                                }
-                            }}
-                            aria-label={`View product: ${tag.productName}`}
-                            title={tag.productName}
-                        >
-                            <div className="relative">
-                                <div className="h-4 w-4 animate-pulse rounded-full border-2 border-white bg-primary" />
-                                <div className="absolute left-0 top-6 whitespace-nowrap rounded-lg bg-white/90 px-2 py-1 text-[10px] font-bold shadow-lg backdrop-blur dark:bg-neutral-900/90">
-                                    {tag.productName} • {formatCurrencyVnd(tag.price ?? 0)}
-                                </div>
+                    <PostMediaCarousel
+                        mediaUrls={mediaUrls}
+                        mediaType={post.mediaType}
+                        className="aspect-video"
+                        imageAlt="Post attachment"
+                    >
+                        {mediaTaggedProducts.map((tag) => (
+                            <div
+                                key={tag.id}
+                                onClick={(e) => e.stopPropagation()}
+                                onKeyDown={(e) => e.stopPropagation()}
+                            >
+                                <ShoppableProductHotspot product={tag} />
                             </div>
-                        </button>
-                    ))}
-                </PostMediaCarousel>
+                        ))}
+                    </PostMediaCarousel>
+                </div>
             ) : null}
 
             <FeedPostCardActions
                 post={post}
                 onLike={onLike}
+                onCommentClick={handleCommentIconClick}
+                onCommentsCountClick={openPostModal}
                 shareMenuRef={shareMenuRef}
                 shareMenuOpen={shareMenuOpen}
                 setShareMenuOpen={setShareMenuOpen}
@@ -358,6 +386,7 @@ function FeedPostCardComponent({
                 )}
                 <div className="mt-3 flex items-center gap-2">
                     <input
+                        ref={commentInputRef}
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                         onKeyDown={(e) => {

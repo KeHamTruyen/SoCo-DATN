@@ -1,9 +1,11 @@
 import { ShoppingCart, Tag } from "lucide-react";
-import { Button } from "../../../shared/ui/atoms/button";
 import type { FeedPost } from "../types/feed.types";
 import { ShoppableProductHotspot } from "./ShoppableProductHotspot";
 import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
+import { Link } from "react-router-dom";
 import { PostMediaCarousel } from "./PostMediaCarousel";
+import { layoutMediaHotspots } from "../utils/hotspotLayout";
+import { resolvePostMediaUrls } from "../utils/postMediaUtils";
 
 interface PostDetailMediaColumnProps {
     post: FeedPost;
@@ -13,9 +15,11 @@ interface PostDetailMediaColumnProps {
 
 export function PostDetailMediaColumn({ post, primaryMedia, isVideo }: PostDetailMediaColumnProps) {
     const hasProducts = (post.taggedProducts?.length ?? 0) > 0;
-    const mediaTags =
-        post.taggedProducts?.filter((tag) => (tag.anchorType ?? "MEDIA_HOTSPOT") === "MEDIA_HOTSPOT") ?? [];
-    const mediaUrls = post.mediaUrls?.length ? post.mediaUrls : [primaryMedia];
+    const mediaTags = layoutMediaHotspots(
+        post.taggedProducts?.filter((tag) => (tag.anchorType ?? "MEDIA_HOTSPOT") === "MEDIA_HOTSPOT") ?? [],
+    );
+    const resolvedUrls = resolvePostMediaUrls(post);
+    const mediaUrls = resolvedUrls.length > 0 ? resolvedUrls : [primaryMedia];
 
     return (
         <div className="lg:col-span-7">
@@ -44,7 +48,10 @@ export function PostDetailMediaColumn({ post, primaryMedia, isVideo }: PostDetai
                     <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
                         {post.taggedProducts.map((product) => (
                             <div key={product.id} className="flex items-center justify-between p-4">
-                                <div className="flex items-center gap-3">
+                                <Link
+                                    to={product.productId ? `/products/${product.productId}` : "#"}
+                                    className="flex min-w-0 flex-1 items-center gap-3 transition-opacity hover:opacity-80"
+                                >
                                     {product.imageUrl && (
                                         <img
                                             src={product.imageUrl}
@@ -52,17 +59,22 @@ export function PostDetailMediaColumn({ post, primaryMedia, isVideo }: PostDetai
                                             className="h-12 w-12 rounded-lg object-cover"
                                         />
                                     )}
-                                    <div>
+                                    <div className="min-w-0">
                                         <p className="font-semibold">{product.productName}</p>
                                         <p className="text-sm font-bold text-primary">
                                             {formatCurrencyVnd(product.price)}
                                         </p>
                                     </div>
-                                </div>
-                                <Button size="sm" className="gap-1">
-                                    <ShoppingCart className="h-3 w-3" />
-                                    Add to Cart
-                                </Button>
+                                </Link>
+                                {product.productId ? (
+                                    <Link
+                                        to={`/products/${product.productId}`}
+                                        className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-primary-700"
+                                    >
+                                        <ShoppingCart className="h-3 w-3" />
+                                        View Product
+                                    </Link>
+                                ) : null}
                             </div>
                         ))}
                     </div>

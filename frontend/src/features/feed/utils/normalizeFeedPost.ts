@@ -99,14 +99,22 @@ export function normalizeFeedPost(raw: Record<string, unknown> | null | undefine
         };
     }
 
-    const mediaUrls = (raw.mediaUrls as string[] | undefined) ?? [];
-    const firstMedia = raw.imageUrl != null ? String(raw.imageUrl) : mediaUrls[0];
+    const rawMediaUrls = (raw.mediaUrls as string[] | undefined) ?? [];
+    const primaryFromField = raw.imageUrl != null ? String(raw.imageUrl) : undefined;
+    const mergedMedia = [
+        ...new Set(
+            [...rawMediaUrls, ...(primaryFromField ? [primaryFromField] : [])].filter(
+                (url) => typeof url === "string" && url.trim().length > 0,
+            ),
+        ),
+    ];
+    const firstMedia = primaryFromField ?? mergedMedia[0];
 
     return {
         id: String(raw.id ?? ""),
         content: raw.content != null ? String(raw.content) : "",
         imageUrl: firstMedia,
-        mediaUrls: mediaUrls.length ? mediaUrls : undefined,
+        mediaUrls: mergedMedia.length ? mergedMedia : undefined,
         mediaType: (raw.mediaType as PostMediaType | null | undefined) ?? undefined,
         linkUrl: raw.linkUrl != null ? String(raw.linkUrl) : undefined,
         createdAt: String(

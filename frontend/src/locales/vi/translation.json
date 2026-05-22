@@ -63,6 +63,8 @@
         "language": "Ngôn ngữ",
         "recentSearches": "Tìm kiếm gần đây",
         "noRecentSearches": "Chưa có tìm kiếm gần đây.",
+        "noMatchingSearches": "Không có tìm kiếm gần đây khớp.",
+        "searchForQuery": "Tìm kiếm \"{{query}}\"",
         "loadMoreSearches": "Tải thêm",
         "openAccountMenu": "Mở menu tài khoản",
         "toggleNavigation": "Bật/tắt điều hướng"
@@ -90,6 +92,9 @@
         "copyPostLink": "Sao chép liên kết",
         "linkCopied": "Đã sao chép!",
         "reportPost": "Báo cáo bài viết",
+        "buyNow": "Mua ngay",
+        "taggedProducts": "Sản phẩm được gắn",
+        "viewPost": "Xem bài viết",
         "whatsOnYourMind": "Bạn đang nghĩ gì? Hãy chia sẻ cập nhật sản phẩm...",
         "photo": "Ảnh",
         "tagProduct": "Gắn sản phẩm",

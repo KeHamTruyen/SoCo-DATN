@@ -65,7 +65,10 @@ export function PostMediaCarousel({
                     <button
                         type="button"
                         aria-label="Previous media"
-                        onClick={goPrev}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            goPrev();
+                        }}
                         className="absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-950/65 text-white shadow transition hover:bg-neutral-950/80"
                     >
                         <ChevronLeft className="h-5 w-5" />
@@ -73,7 +76,10 @@ export function PostMediaCarousel({
                     <button
                         type="button"
                         aria-label="Next media"
-                        onClick={goNext}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            goNext();
+                        }}
                         className="absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-neutral-950/65 text-white shadow transition hover:bg-neutral-950/80"
                     >
                         <ChevronRight className="h-5 w-5" />
@@ -88,7 +94,10 @@ export function PostMediaCarousel({
                                 type="button"
                                 aria-label={`Show media ${index + 1}`}
                                 aria-pressed={index === activeIndex}
-                                onClick={() => setActiveIndex(index)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveIndex(index);
+                                }}
                                 className={cn(
                                     "h-2 rounded-full transition-all",
                                     index === activeIndex

@@ -62,6 +62,8 @@
         "language": "Language",
         "recentSearches": "Recent searches",
         "noRecentSearches": "No recent searches yet.",
+        "noMatchingSearches": "No matching recent searches.",
+        "searchForQuery": "Search for \"{{query}}\"",
         "loadMoreSearches": "Load more",
         "openAccountMenu": "Open account menu",
         "toggleNavigation": "Toggle navigation"
@@ -90,6 +92,9 @@
         "copyPostLink": "Copy link",
         "linkCopied": "Copied!",
         "reportPost": "Report post",
+        "buyNow": "Buy Now",
+        "taggedProducts": "Tagged products",
+        "viewPost": "View post",
 
         "whatsOnYourMind": "What's on your mind? Share a product update...",
         "photo": "Photo",

@@ -9,7 +9,7 @@ import {
     Trash2,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Avatar } from "../../../shared/ui/atoms/avatar";
 import { Button } from "../../../shared/ui/atoms/button";
@@ -21,6 +21,9 @@ import { CommentList } from "./CommentList";
 import { PostBodyHtml } from "./PostBodyHtml";
 import { PostAuthorMetaHeader } from "./PostAuthorMetaHeader";
 import { PostDetailMediaColumn } from "./PostDetailMediaColumn";
+import { getUniqueTaggedProducts } from "../utils/postProductActions";
+import { PostBuyNowDropdown } from "./PostBuyNowDropdown";
+import { resolvePostMediaUrls } from "../utils/postMediaUtils";
 import { ReportModal } from "../../report/components/ReportModal";
 import { useSavedPostItem } from "../hooks/useSavedPostItem";
 import { usePostCommentsPagination } from "../hooks/usePostCommentsPagination";
@@ -35,13 +38,13 @@ interface PostDetailViewProps {
 export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDetailViewProps) {
     const { t } = useTranslation();
     const { user } = useAuthSession();
-    const navigate = useNavigate();
     const [commentInput, setCommentInput] = useState("");
     const { savedId, saveBusy, toggleSave } = useSavedPostItem(post.id);
     const [moreMenuOpen, setMoreMenuOpen] = useState(false);
     const [reportModalOpen, setReportModalOpen] = useState(false);
     const [deletedCommentIds, setDeletedCommentIds] = useState<string[]>([]);
     const moreMenuRef = useRef<HTMLDivElement>(null);
+    const commentInputRef = useRef<HTMLInputElement>(null);
 
     const embeddedCount = post.comments?.length ?? 0;
     const { olderComments, loadingMore, hasMore, loadMoreComments } = usePostCommentsPagination({
@@ -64,8 +67,10 @@ export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDe
     };
 
     const isOwnPost = user?.id === post.author.id;
-    const primaryTaggedProductId =
-        post.taggedProducts?.find((tag) => tag.productId?.trim())?.productId?.trim() ?? null;
+
+    const handleCommentIconClick = () => {
+        commentInputRef.current?.focus();
+    };
 
     useEffect(() => {
         if (!moreMenuOpen) return;
@@ -92,10 +97,12 @@ export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDe
         }
     };
 
-    const primaryMedia = post.imageUrl;
+    const mediaUrls = resolvePostMediaUrls(post);
+    const primaryMedia = mediaUrls[0];
     const isVideo = post.mediaType === "VIDEO";
-    const hasPrimaryMedia = Boolean(primaryMedia);
+    const hasPrimaryMedia = mediaUrls.length > 0;
     const hasProducts = (post.taggedProducts?.length ?? 0) > 0;
+    const taggedProductsForBuy = hasProducts ? getUniqueTaggedProducts(post) : [];
 
     return (
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
@@ -193,6 +200,7 @@ export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDe
                             </button>
                             <button
                                 type="button"
+                                onClick={handleCommentIconClick}
                                 className="flex items-center gap-1.5 text-sm text-neutral-600 transition-colors hover:text-primary dark:text-neutral-400"
                             >
                                 <MessageCircle className="h-5 w-5" />
@@ -221,18 +229,8 @@ export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDe
                             </button>
                         </div>
                         <div className="flex items-center gap-2">
-                            {hasProducts ? (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        if (primaryTaggedProductId) {
-                                            navigate(`/products/${primaryTaggedProductId}`);
-                                        }
-                                    }}
-                                    className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:bg-primary-700"
-                                >
-                                    Buy Now
-                                </button>
+                            {taggedProductsForBuy.length > 0 ? (
+                                <PostBuyNowDropdown products={taggedProductsForBuy} menuAlign="right" />
                             ) : post.linkUrl ? (
                                 <a
                                     href={post.linkUrl}
@@ -271,6 +269,7 @@ export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDe
                         </div>
                         <div className="mt-3 flex items-center gap-2">
                             <input
+                                ref={commentInputRef}
                                 type="text"
                                 value={commentInput}
                                 onChange={(e) => setCommentInput(e.target.value)}

@@ -1,12 +1,15 @@
 import { Bookmark, Link2, Share2 } from "lucide-react";
 import type { RefObject } from "react";
 import type { TFunction } from "i18next";
-import { useNavigate } from "react-router-dom";
 import type { FeedPost } from "../types/feed.types";
+import { getUniqueTaggedProducts } from "../utils/postProductActions";
+import { PostBuyNowDropdown } from "./PostBuyNowDropdown";
 
 interface FeedPostCardActionsProps {
     post: FeedPost;
     onLike: () => void;
+    onCommentClick?: () => void;
+    onCommentsCountClick?: () => void;
     shareMenuRef: RefObject<HTMLDivElement | null>;
     shareMenuOpen: boolean;
     setShareMenuOpen: (v: boolean | ((prev: boolean) => boolean)) => void;
@@ -23,6 +26,8 @@ interface FeedPostCardActionsProps {
 export function FeedPostCardActions({
     post,
     onLike,
+    onCommentClick,
+    onCommentsCountClick,
     shareMenuRef,
     shareMenuOpen,
     setShareMenuOpen,
@@ -35,9 +40,7 @@ export function FeedPostCardActions({
     t,
     hasProducts,
 }: FeedPostCardActionsProps) {
-    const navigate = useNavigate();
-    const primaryTaggedProductId =
-        post.taggedProducts?.find((tag) => tag.productId?.trim())?.productId?.trim() ?? null;
+    const taggedProducts = hasProducts ? getUniqueTaggedProducts(post) : [];
 
     return (
         <div className="flex items-center justify-between border-t border-neutral-100 px-4 py-3 dark:border-neutral-800">
@@ -63,21 +66,31 @@ export function FeedPostCardActions({
                     <span className="text-xs font-semibold">{post.likesCount}</span>
                 </button>
 
-                <button
-                    type="button"
-                    className="flex items-center gap-1.5 text-sm text-neutral-600 transition-colors hover:text-primary dark:text-neutral-400"
-                >
-                    <svg
-                        className="h-5 w-5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
+                <div className="flex items-center gap-1">
+                    <button
+                        type="button"
+                        onClick={onCommentClick}
+                        aria-label={t("feed.writeComment", "Write a comment")}
+                        className="flex items-center text-neutral-600 transition-colors hover:text-primary dark:text-neutral-400"
                     >
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                    </svg>
-                    <span className="text-xs font-semibold">{post.commentsCount}</span>
-                </button>
+                        <svg
+                            className="h-5 w-5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                        >
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onCommentsCountClick}
+                        className="text-xs font-semibold text-neutral-600 transition-colors hover:text-primary dark:text-neutral-400"
+                    >
+                        {post.commentsCount}
+                    </button>
+                </div>
 
                 <div ref={shareMenuRef} className="relative">
                     <button
@@ -132,20 +145,8 @@ export function FeedPostCardActions({
                 </button>
             </div>
 
-            {hasProducts ? (
-                <button
-                    type="button"
-                    onClick={() => {
-                        if (primaryTaggedProductId) {
-                            navigate(`/products/${primaryTaggedProductId}`);
-                        } else {
-                            navigate(`/post/${post.id}`);
-                        }
-                    }}
-                    className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:bg-primary-700"
-                >
-                    Buy Now
-                </button>
+            {taggedProducts.length > 0 ? (
+                <PostBuyNowDropdown products={taggedProducts} menuAlign="right" />
             ) : post.linkUrl ? (
                 <a
                     href={post.linkUrl}
