@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Bell, MessageSquare, Package, Send, Tag } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { Notification } from "../types/notification.types";
 
 function formatRelativeTime(isoString: string, t: any) {
@@ -45,6 +45,7 @@ interface NotificationDropdownProps {
     unreadCount: number;
     onClose: () => void;
     onMarkAllRead: () => void;
+    onMarkRead?: (id: string) => void;
 }
 
 export function NotificationDropdown({
@@ -52,8 +53,10 @@ export function NotificationDropdown({
     unreadCount,
     onClose,
     onMarkAllRead,
+    onMarkRead,
 }: NotificationDropdownProps) {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const [visibleCount, setVisibleCount] = useState(5);
 
     useEffect(() => {
@@ -102,8 +105,29 @@ export function NotificationDropdown({
                 ) : (
                     visibleNotifications.map((n) => {
                         const iconConf = TYPE_ICON[n.iconType ?? n.type] ?? TYPE_ICON.system;
+                        const handleItemClick = () => {
+                            if (!n.isRead) {
+                                onMarkRead?.(n.id);
+                            }
+                            onClose();
+                            if (n.link) {
+                                navigate(n.link);
+                            }
+                        };
+
                         const body = (
-                            <div className="group relative flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
+                            <div
+                                className="group relative flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+                                onClick={handleItemClick}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        handleItemClick();
+                                    }
+                                }}
+                                role="button"
+                                tabIndex={0}
+                            >
                                 <div className="shrink-0">
                                     <div
                                         className={`flex h-10 w-10 items-center justify-center rounded-full ${iconConf.bgClass}`}
@@ -130,11 +154,7 @@ export function NotificationDropdown({
                             </div>
                         );
 
-                        return n.link ? (
-                            <Link key={n.id} to={n.link} onClick={onClose}>
-                                {body}
-                            </Link>
-                        ) : (
+                        return (
                             <div key={n.id}>{body}</div>
                         );
                     })

@@ -24,16 +24,13 @@ export function CommentList({
     reverseOrder = true,
 }: CommentListProps) {
     const { user } = useAuthSession();
+    const { t } = useTranslation();
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [reportCommentId, setReportCommentId] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
-    if (comments.length === 0) {
-        return null; // Do not render anything if no comments
-    }
 
     const displayComments = reverseOrder ? [...comments].reverse() : comments;
     const hasMore = totalCount > comments.length;
-    const { t } = useTranslation();
 
     useEffect(() => {
         if (!openMenuId) return;
@@ -52,6 +49,10 @@ export function CommentList({
             document.removeEventListener("keydown", onKey);
         };
     }, [openMenuId]);
+
+    if (comments.length === 0) {
+        return null;
+    }
 
     return (
         <div className="space-y-3">

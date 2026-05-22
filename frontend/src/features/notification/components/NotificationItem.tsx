@@ -1,5 +1,5 @@
 import { Heart, MessageSquare, Package, Settings, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { cn } from "../../../shared/lib/cn";
 import type { Notification } from "../types/notification.types";
 
@@ -28,9 +28,19 @@ interface NotificationItemProps {
 }
 
 export function NotificationItem({ notification, onRead }: NotificationItemProps) {
+    const navigate = useNavigate();
     const iconConfig = notification.iconType ? ICON_MAP[notification.iconType] : null;
 
-    const content = (
+    const handleActivate = () => {
+        if (!notification.isRead) {
+            onRead?.(notification.id);
+        }
+        if (notification.link) {
+            navigate(notification.link);
+        }
+    };
+
+    const inner = (
         <div
             className={cn(
                 "group relative flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-all",
@@ -38,7 +48,15 @@ export function NotificationItem({ notification, onRead }: NotificationItemProps
                     ? "border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800"
                     : "border-primary/10 bg-primary/5 hover:bg-primary/10",
             )}
-            onClick={() => !notification.isRead && onRead?.(notification.id)}
+            onClick={handleActivate}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleActivate();
+                }
+            }}
+            role="button"
+            tabIndex={0}
         >
             {!notification.isRead && (
                 <div className="absolute left-2 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-primary" />
@@ -95,9 +113,5 @@ export function NotificationItem({ notification, onRead }: NotificationItemProps
         </div>
     );
 
-    return notification.link ? (
-        <Link to={notification.link}>{content}</Link>
-    ) : (
-        content
-    );
+    return inner;
 }

@@ -27,8 +27,11 @@ interface BackendNotification {
     createdAt: string;
     readAt?: string | null;
     userId?: string;
+    relatedUserId?: string | null;
+    relatedPostId?: string | null;
     actionUrl?: string | null;
     relatedUser?: {
+        id?: string;
         fullName?: string | null;
         username?: string | null;
         avatarUrl?: string | null;
@@ -71,6 +74,28 @@ function mapIconType(rawType: string): Notification["iconType"] {
     }
 }
 
+function resolveNotificationLink(raw: BackendNotification, rawType: string): string | undefined {
+    const relatedUserId = raw.relatedUserId || raw.relatedUser?.id;
+    const relatedPostId = raw.relatedPostId ?? undefined;
+
+    if ((rawType === "post_like" || rawType === "post_comment") && relatedPostId) {
+        return `/post/${relatedPostId}`;
+    }
+    if (raw.actionUrl?.startsWith("/post/")) {
+        return raw.actionUrl;
+    }
+    if (rawType === "new_follower" && relatedUserId) {
+        return `/profile/${relatedUserId}`;
+    }
+    if (raw.actionUrl?.startsWith("/profile/") && relatedUserId) {
+        const segment = raw.actionUrl.slice("/profile/".length);
+        if (segment && segment !== relatedUserId) {
+            return `/profile/${relatedUserId}`;
+        }
+    }
+    return raw.actionUrl || undefined;
+}
+
 function toNotification(raw: BackendNotification): Notification {
     const actor = raw.actor || raw.relatedUser;
     const rawType = raw.rawType || raw.type || "system";
@@ -85,7 +110,7 @@ function toNotification(raw: BackendNotification): Notification {
         actorAvatarUrl: actor?.avatarUrl || undefined,
         isRead: raw.isRead,
         createdAt: raw.createdAt,
-        link: raw.actionUrl || undefined,
+        link: resolveNotificationLink(raw, rawType),
         iconType: mapIconType(rawType),
     };
 }
