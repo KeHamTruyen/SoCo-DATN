@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     useInfiniteQuery,
     useMutation,
@@ -15,6 +16,7 @@ import type {
     ProductReviewItem,
     ProductReviewPhoto,
 } from "../types/product.types";
+import { useMessagingOptional } from "../../messaging/context/MessagingContext";
 import { queryKeys } from "../../../shared/query/queryKeys";
 
 const REVIEW_PAGE_SIZE = 3;
@@ -36,6 +38,8 @@ export function useProductDetailPage(options?: UseProductDetailPageOptions | str
         onAuthRequired = () => {},
     } = normalizedOptions;
     const queryClient = useQueryClient();
+    const messaging = useMessagingOptional();
+    const navigate = useNavigate();
     const [reviewFilters, setReviewFilters] = useState<ProductReviewFilters>({
         sortBy: "createdAt",
         sortOrder: "desc",
@@ -63,8 +67,8 @@ export function useProductDetailPage(options?: UseProductDetailPageOptions | str
             const previousProductId = window.sessionStorage.getItem(lastViewedKey) ?? undefined;
             window.sessionStorage.setItem(lastViewedKey, detail.id);
             void marketplaceApi
-                .trackProductView(detail.id, { sessionId, previousProductId })
-                .catch(() => {});
+                .trackProductView?.(detail.id, { sessionId, previousProductId })
+                ?.catch(() => {});
 
             if (!detail.seller?.id) {
                 return detail;
@@ -78,6 +82,9 @@ export function useProductDetailPage(options?: UseProductDetailPageOptions | str
                               ...detail.seller,
                               followersCount: sellerProfile.followersCount ?? 0,
                               shopRating: sellerProfile.shopRating ?? 0,
+                              isFollowing: isAuthenticated
+                                  ? Boolean(sellerProfile.isFollowing)
+                                  : false,
                           }
                         : detail.seller,
                 };
@@ -174,6 +181,67 @@ export function useProductDetailPage(options?: UseProductDetailPageOptions | str
         setActivePhotoIndex((prev) => (prev + 1) % reviewPhotos.length);
     };
 
+    const toggleSellerFollow = useCallback(async () => {
+        if (!isAuthenticated) {
+            onAuthRequired();
+            return;
+        }
+        const activeProduct = productQuery.data;
+        const sellerId = activeProduct?.seller?.id;
+        if (!sellerId || !productId) return;
+
+        const wasFollowing = Boolean(activeProduct.seller?.isFollowing);
+        const res = wasFollowing
+            ? await profileApi.unfollowUser(sellerId)
+            : await profileApi.followUser(sellerId);
+
+        queryClient.setQueryData<ProductDetail>(
+            queryKeys.product.detail(productId),
+            (old) => {
+                if (!old?.seller) return old;
+                const nowFollowing = Boolean(res.followed);
+                let followersCount = old.seller.followersCount ?? 0;
+                if (nowFollowing && !wasFollowing) followersCount += 1;
+                if (!nowFollowing && wasFollowing) {
+                    followersCount = Math.max(0, followersCount - 1);
+                }
+                return {
+                    ...old,
+                    seller: {
+                        ...old.seller,
+                        isFollowing: nowFollowing,
+                        followersCount,
+                    },
+                };
+            },
+        );
+    }, [
+        isAuthenticated,
+        onAuthRequired,
+        productId,
+        productQuery.data,
+        queryClient,
+    ]);
+
+    const messageSeller = useCallback(async () => {
+        if (!isAuthenticated) {
+            onAuthRequired();
+            return;
+        }
+        const sellerId = productQuery.data?.seller?.id;
+        if (!sellerId) return;
+
+        if (messaging?.startConversationWithUser && messaging.openInDock) {
+            const conversationId = await messaging.startConversationWithUser(sellerId);
+            await messaging.refreshConversations();
+            messaging.setDockExpanded(true);
+            messaging.openInDock(conversationId);
+            return;
+        }
+
+        navigate(`/messages?userId=${sellerId}`);
+    }, [isAuthenticated, messaging, navigate, onAuthRequired, productQuery.data?.seller?.id]);
+
     const addToCartWithStatus = async (
         quantity: number,
         variantId?: string,
@@ -227,5 +295,7 @@ export function useProductDetailPage(options?: UseProductDetailPageOptions | str
         showPrevPhoto,
         showNextPhoto,
         addToCartWithStatus,
+        toggleSellerFollow,
+        messageSeller,
     };
 }

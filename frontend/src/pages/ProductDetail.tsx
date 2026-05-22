@@ -43,6 +43,8 @@ export default function ProductDetail() {
         showPrevPhoto,
         showNextPhoto,
         addToCartWithStatus,
+        toggleSellerFollow,
+        messageSeller,
     } = useProductDetailPage({
         productId: id,
         isAuthenticated,
@@ -164,6 +166,9 @@ export default function ProductDetail() {
                             product={product}
                             onAddToCart={handleAddToCart}
                             onBuyNow={handleBuyNow}
+                            onToggleFollow={toggleSellerFollow}
+                            onMessageSeller={messageSeller}
+                            onAuthRequired={() => setShowGuestAuthModal(true)}
                         />
                     </div>
                 </div>

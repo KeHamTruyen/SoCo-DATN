@@ -158,6 +158,9 @@ export function mapApiProductToDetail(raw: Record<string, unknown>): ProductDeta
                   avatarUrl: (raw.seller as { avatarUrl?: string }).avatarUrl,
                   followersCount: num((raw.seller as { followersCount?: unknown }).followersCount, 0),
                   shopRating: num((raw.seller as { shopRating?: unknown }).shopRating, 0),
+                  isFollowing: Boolean(
+                      (raw.seller as { isFollowing?: unknown }).isFollowing,
+                  ),
               }
             : undefined,
         variants: variants.length > 0 ? variants : undefined,

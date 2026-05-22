@@ -73,6 +73,7 @@ export interface ProductDetail {
         avatarUrl?: string;
         followersCount?: number;
         shopRating?: number;
+        isFollowing?: boolean;
     };
     variants?: ProductVariantRow[];
 }

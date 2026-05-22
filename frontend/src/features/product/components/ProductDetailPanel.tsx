@@ -1,23 +1,42 @@
 import { useMemo, useState } from "react";
-import { Star, ShoppingCart, Mail, CheckCircle2, Plus, Minus, Store } from "lucide-react";
+import {
+    Star,
+    ShoppingCart,
+    CheckCircle2,
+    Plus,
+    Minus,
+    Store,
+    UserPlus,
+    UserCheck,
+    MessageCircle,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../../../shared/ui";
 import type { ProductDetail } from "../types/product.types";
 import { Link } from "react-router-dom";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
+import { cn } from "../../../shared/lib/cn";
 
 interface ProductDetailPanelProps {
     product: ProductDetail;
     onAddToCart?: (quantity: number, variantId?: string) => void | Promise<void>;
     onBuyNow?: (quantity: number, variantId?: string) => void | Promise<void>;
+    onToggleFollow?: () => void | Promise<void>;
+    onMessageSeller?: () => void | Promise<void>;
+    onAuthRequired?: () => void;
 }
 
 export function ProductDetailPanel({
     product,
     onAddToCart,
     onBuyNow,
+    onToggleFollow,
+    onMessageSeller,
+    onAuthRequired,
 }: ProductDetailPanelProps) {
-    const { user } = useAuthSession();
+    const { t } = useTranslation();
+    const { user, isAuthenticated } = useAuthSession();
     const variants = product.variants ?? [];
     const needsVariant = variants.length > 0;
     const [selectedId, setSelectedId] = useState<string | null>(
@@ -26,6 +45,7 @@ export function ProductDetailPanel({
     const [quantity, setQuantity] = useState(1);
 
     const isOwnProduct = user?.id === product.seller?.id;
+    const isFollowingSeller = Boolean(product.seller?.isFollowing);
 
     const selected = useMemo(
         () => variants.find((v) => v.id === selectedId),
@@ -39,13 +59,21 @@ export function ProductDetailPanel({
         (selectedId != null &&
             (!selected || selected.stockQuantity > 0));
 
-    const discountPercent = product.oldPrice 
+    const discountPercent = product.oldPrice
         ? Math.round(((product.oldPrice - displayPrice) / product.oldPrice) * 100)
         : null;
 
     const handleQuantityChange = (val: number) => {
         if (val < 1) return;
         setQuantity(val);
+    };
+
+    const requireAuth = (action: () => void | Promise<void>) => {
+        if (!isAuthenticated) {
+            onAuthRequired?.();
+            return;
+        }
+        void action();
     };
 
     return (
@@ -60,7 +88,7 @@ export function ProductDetailPanel({
                 <div className="flex items-center gap-4">
                     <div className="flex items-center text-amber-500">
                         {[1, 2, 3, 4, 5].map((s) => (
-                            <Star 
+                            <Star
                                 key={s}
                                 className={`h-5 w-5 ${s <= (product.rating?.average ?? 0) ? "fill-current" : ""}`}
                             />
@@ -89,24 +117,29 @@ export function ProductDetailPanel({
                         <span className="text-xl text-muted-foreground line-through">
                             {formatCurrencyVnd(product.oldPrice)}
                         </span>
-                        {discountPercent && (
+                        {discountPercent ? (
                             <span className="text-sm font-bold bg-primary/20 text-primary px-2 py-1 rounded">
                                 -{discountPercent}% OFF
                             </span>
-                        )}
+                        ) : null}
                     </>
                 ) : null}
             </div>
 
             <div className="space-y-6">
-                {/* Variant Selection */}
                 {variants.length > 0 && (
                     <div>
                         <div className="flex justify-between items-center mb-3">
                             <p className="text-sm font-bold uppercase tracking-wide">
-                                Options: <span className="text-muted-foreground">{selected?.name ?? "Select"}</span>
+                                Options:{" "}
+                                <span className="text-muted-foreground">
+                                    {selected?.name ?? "Select"}
+                                </span>
                             </p>
-                            <button className="text-xs font-bold text-primary hover:underline">
+                            <button
+                                type="button"
+                                className="text-xs font-bold text-primary hover:underline"
+                            >
                                 Size Guide
                             </button>
                         </div>
@@ -114,6 +147,7 @@ export function ProductDetailPanel({
                             {variants.map((variant) => (
                                 <button
                                     key={variant.id}
+                                    type="button"
                                     disabled={variant.stockQuantity <= 0}
                                     onClick={() => setSelectedId(variant.id)}
                                     className={`py-3 rounded-lg border text-sm font-bold transition-all ${
@@ -129,20 +163,25 @@ export function ProductDetailPanel({
                     </div>
                 )}
 
-                {/* Quantity Picker */}
                 <div className="space-y-3">
                     <p className="text-sm font-bold uppercase tracking-wide">Quantity</p>
                     <div className="flex items-center gap-4">
                         <div className="flex h-12 items-center rounded-xl border border-border bg-card p-1">
-                            <button 
+                            <button
+                                type="button"
+                                aria-label="Decrease quantity"
                                 onClick={() => handleQuantityChange(quantity - 1)}
                                 className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
                                 disabled={quantity <= 1}
                             >
                                 <Minus className="h-4 w-4" />
                             </button>
-                            <span className="w-12 text-center font-bold text-foreground">{quantity}</span>
-                            <button 
+                            <span className="w-12 text-center font-bold text-foreground">
+                                {quantity}
+                            </span>
+                            <button
+                                type="button"
+                                aria-label="Increase quantity"
                                 onClick={() => handleQuantityChange(quantity + 1)}
                                 className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                             >
@@ -150,19 +189,25 @@ export function ProductDetailPanel({
                             </button>
                         </div>
                         <span className="text-xs font-medium text-muted-foreground">
-                            {selected && selected.stockQuantity > 0 ? `${selected.stockQuantity} items left` : ""}
+                            {selected && selected.stockQuantity > 0
+                                ? `${selected.stockQuantity} items left`
+                                : ""}
                         </span>
                     </div>
                 </div>
 
-                {/* Action Buttons */}
                 {!isOwnProduct ? (
                     <div className="flex flex-col gap-3">
                         <Button
                             size="lg"
                             className="w-full h-14 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary-hover transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
                             disabled={!canPurchase}
-                            onClick={() => void onAddToCart?.(quantity, needsVariant ? selectedId ?? undefined : undefined)}
+                            onClick={() =>
+                                void onAddToCart?.(
+                                    quantity,
+                                    needsVariant ? selectedId ?? undefined : undefined,
+                                )
+                            }
                         >
                             <ShoppingCart className="h-5 w-5" />
                             Add to Cart
@@ -171,33 +216,42 @@ export function ProductDetailPanel({
                             size="lg"
                             className="w-full h-14 bg-foreground text-background font-bold rounded-xl hover:opacity-90 transition-all"
                             disabled={!canPurchase}
-                            onClick={() => void onBuyNow?.(quantity, needsVariant ? selectedId ?? undefined : undefined)}
+                            onClick={() =>
+                                void onBuyNow?.(
+                                    quantity,
+                                    needsVariant ? selectedId ?? undefined : undefined,
+                                )
+                            }
                         >
                             Buy It Now
                         </Button>
                     </div>
                 ) : (
                     <div className="p-4 rounded-xl border-2 border-dashed border-primary/20 bg-primary/5 text-center">
-                        <p className="text-sm font-bold text-primary">You are viewing your own product</p>
+                        <p className="text-sm font-bold text-primary">
+                            You are viewing your own product
+                        </p>
                     </div>
                 )}
 
-                {/* Seller Profile Card */}
                 {product.seller && (
                     <div className="p-6 rounded-2xl bg-card border border-border shadow-sm">
                         <div className="flex items-center gap-4 mb-6">
                             <div className="relative">
                                 <img
                                     className="w-14 h-14 rounded-full object-cover ring-2 ring-background shadow-md"
-                                    src={product.seller.avatarUrl || "https://via.placeholder.com/150"}
+                                    src={
+                                        product.seller.avatarUrl ||
+                                        "https://via.placeholder.com/150"
+                                    }
                                     alt={product.seller.name}
                                 />
                                 <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground p-1 rounded-full border-2 border-background shadow-sm">
                                     <CheckCircle2 className="h-3 w-3 fill-current" />
                                 </div>
                             </div>
-                            <div className="flex-1">
-                                <h4 className="font-bold text-lg text-foreground">
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-lg text-foreground truncate">
                                     {product.seller.name}
                                 </h4>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -208,27 +262,57 @@ export function ProductDetailPanel({
                                         </span>
                                     </div>
                                     <span>•</span>
-                                    <span className="font-medium">{product.seller.followersCount ?? 0} Followers</span>
+                                    <span className="font-medium">
+                                        {product.seller.followersCount ?? 0}{" "}
+                                        {t("user.followers", "Followers")}
+                                    </span>
                                 </div>
                             </div>
                             {isOwnProduct ? (
-                                <Link 
-                                    to={`/seller/dashboard`}
-                                    className="px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-bold hover:bg-primary/20 transition-colors flex items-center gap-2"
+                                <Link
+                                    to="/seller/dashboard"
+                                    className="px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-bold hover:bg-primary/20 transition-colors flex items-center gap-2 shrink-0"
                                 >
                                     <Store className="h-4 w-4" />
                                     View Shop
                                 </Link>
                             ) : (
-                                <button className="px-4 py-2 border border-border rounded-lg text-sm font-bold hover:bg-muted transition-colors">
-                                    Follow
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        requireAuth(() => onToggleFollow?.())
+                                    }
+                                    className={cn(
+                                        "px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shrink-0 border",
+                                        isFollowingSeller
+                                            ? "border-border bg-muted text-muted-foreground hover:bg-muted/80"
+                                            : "border-primary bg-primary text-primary-foreground hover:bg-primary-hover",
+                                    )}
+                                >
+                                    {isFollowingSeller ? (
+                                        <>
+                                            <UserCheck className="h-4 w-4" />
+                                            {t("profile.following")}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <UserPlus className="h-4 w-4" />
+                                            {t("profile.follow")}
+                                        </>
+                                    )}
                                 </button>
                             )}
                         </div>
                         {!isOwnProduct && (
-                            <button className="w-full py-2 bg-card border border-border rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:border-primary transition-colors">
-                                <Mail className="h-4 w-4" />
-                                Message Seller
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    requireAuth(() => onMessageSeller?.())
+                                }
+                                className="w-full py-2 bg-card border border-border rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:border-primary transition-colors"
+                            >
+                                <MessageCircle className="h-4 w-4" />
+                                {t("profile.message")}
                             </button>
                         )}
                     </div>
