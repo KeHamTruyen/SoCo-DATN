@@ -48,12 +48,14 @@ export async function cacheSet(key, value, ttlSeconds) {
 export async function cacheDelByPattern(pattern) {
   const client = await getRedisClient();
   if (!client) return 0;
-  const keys = [];
-  for await (const key of client.scanIterator({ MATCH: pattern, COUNT: 100 })) {
-    keys.push(key);
+  let deleted = 0;
+  // node-redis v5 scanIterator yields string[] chunks, not individual keys
+  for await (const chunk of client.scanIterator({ MATCH: pattern, COUNT: 100 })) {
+    const keys = Array.isArray(chunk) ? chunk : [chunk];
+    if (keys.length === 0) continue;
+    deleted += await client.del(keys);
   }
-  if (keys.length === 0) return 0;
-  return client.del(keys);
+  return deleted;
 }
 
 export async function getOrSetCache(key, ttlSeconds, loader) {

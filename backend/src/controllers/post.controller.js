@@ -19,7 +19,11 @@ export const createPost = async (req, res, next) => {
   try {
     const post = await postService.createPost(req.user.id, req.body);
     const formatted = await formatPostForResponse(post);
-    await invalidatePostCaches(post.id);
+    try {
+      await invalidatePostCaches(post.id);
+    } catch (cacheError) {
+      console.warn('[post] create cache invalidation failed', cacheError?.message || cacheError);
+    }
     res.status(201).json({
       success: true,
       message: 'Post created successfully',
@@ -140,7 +144,11 @@ export const addComment = async (req, res, next) => {
   try {
     const { content, parentId } = req.body;
     const comment = await postService.addComment(req.params.id, req.user.id, content, parentId);
-    await invalidatePostCaches(req.params.id);
+    try {
+      await invalidatePostCaches(req.params.id);
+    } catch (cacheError) {
+      console.warn('[post] comment cache invalidation failed', cacheError?.message || cacheError);
+    }
     res.status(201).json({ success: true, message: 'Comment added successfully', data: { comment } });
   } catch (error) {
     if (error.message === 'Post not found') {
