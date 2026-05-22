@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.use(protect);
 
+router.get('/lookup-batch', savedItemController.lookupSavedItemsBatch);
 router.get('/lookup', savedItemController.lookupSavedItem);
 router.get('/', savedItemController.listSavedItems);
 router.post('/', savedItemController.addSavedItem);

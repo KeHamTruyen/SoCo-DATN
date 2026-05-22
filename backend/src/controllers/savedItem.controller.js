@@ -73,3 +73,31 @@ export const lookupSavedItem = async (req, res) => {
     });
   }
 };
+
+export const lookupSavedItemsBatch = async (req, res) => {
+  try {
+    const rawIds = req.query.targetIds;
+    const targetIds =
+      typeof rawIds === 'string'
+        ? rawIds.split(',').map((id) => id.trim()).filter(Boolean)
+        : Array.isArray(rawIds)
+          ? rawIds
+          : [];
+    const data = await savedItemService.lookupSavedItemsBatch(
+      req.user.id,
+      req.query.itemType,
+      targetIds,
+    );
+    res.json({ success: true, data });
+  } catch (error) {
+    if (error.statusCode === 400) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.error('Batch lookup saved items error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to batch lookup saved items',
+      error: error.message,
+    });
+  }
+};

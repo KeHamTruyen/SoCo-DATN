@@ -242,3 +242,32 @@ export const lookupSavedItem = async (userId, rawType, targetId) => {
   });
   return { id: row?.id ?? null };
 };
+
+const BATCH_LOOKUP_MAX = 80;
+
+export const lookupSavedItemsBatch = async (userId, rawType, targetIds) => {
+  const itemType = normalizeItemType(rawType);
+  if (!itemType) {
+    const err = new Error('itemType is required');
+    err.statusCode = 400;
+    throw err;
+  }
+  const ids = [...new Set((Array.isArray(targetIds) ? targetIds : []).map((id) => String(id).trim()).filter(Boolean))];
+  if (ids.length > BATCH_LOOKUP_MAX) {
+    const err = new Error(`Maximum ${BATCH_LOOKUP_MAX} targetIds per batch lookup`);
+    err.statusCode = 400;
+    throw err;
+  }
+  if (ids.length === 0) {
+    return { byTargetId: {} };
+  }
+  const rows = await prisma.savedItem.findMany({
+    where: { userId, itemType, targetId: { in: ids } },
+    select: { id: true, targetId: true },
+  });
+  const byTargetId = Object.fromEntries(ids.map((id) => [id, null]));
+  for (const row of rows) {
+    byTargetId[row.targetId] = row.id;
+  }
+  return { byTargetId };
+};
