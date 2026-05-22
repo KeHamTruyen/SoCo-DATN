@@ -9,7 +9,7 @@ import {
     Trash2,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Avatar } from "../../../shared/ui/atoms/avatar";
 import { Button } from "../../../shared/ui/atoms/button";
@@ -35,6 +35,7 @@ interface PostDetailViewProps {
 export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDetailViewProps) {
     const { t } = useTranslation();
     const { user } = useAuthSession();
+    const navigate = useNavigate();
     const [commentInput, setCommentInput] = useState("");
     const { savedId, saveBusy, toggleSave } = useSavedPostItem(post.id);
     const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -63,6 +64,8 @@ export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDe
     };
 
     const isOwnPost = user?.id === post.author.id;
+    const primaryTaggedProductId =
+        post.taggedProducts?.find((tag) => tag.productId?.trim())?.productId?.trim() ?? null;
 
     useEffect(() => {
         if (!moreMenuOpen) return;
@@ -221,6 +224,11 @@ export function PostDetailView({ post, onLike, onComment, onDeletePost }: PostDe
                             {hasProducts ? (
                                 <button
                                     type="button"
+                                    onClick={() => {
+                                        if (primaryTaggedProductId) {
+                                            navigate(`/products/${primaryTaggedProductId}`);
+                                        }
+                                    }}
                                     className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:bg-primary-700"
                                 >
                                     Buy Now

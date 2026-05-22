@@ -8,6 +8,7 @@ import type {
     SavedTab,
 } from "../features/saved-items/types/savedItems.types";
 import { httpClient } from "../shared/api/httpClient";
+import { HttpError } from "../shared/api/httpClient";
 import { formatCurrencyVnd } from "../shared/lib/formatCurrencyVnd";
 import { truncatePlainPreview } from "../shared/tiptap/postHtmlUtils";
 
@@ -78,9 +79,11 @@ export default function SavedItems() {
                 totalPages: res.pagination?.totalPages ?? 0,
             });
         } catch (e) {
-            setError(
-                e instanceof Error ? e.message : "Failed to load saved items",
-            );
+            if (e instanceof HttpError && e.status === 401) {
+                setError("Vui lòng đăng nhập để xem danh sách đã lưu.");
+            } else {
+                setError("Không thể tải danh sách đã lưu.");
+            }
             setItems([]);
         } finally {
             setLoading(false);
@@ -133,22 +136,22 @@ export default function SavedItems() {
                 <section className="w-full">
                     <header className="mb-8">
                         <h1 className="mb-8 text-3xl font-extrabold tracking-tight md:text-4xl lg:text-5xl">
-                            Saved Items
+                            Mục đã lưu
                         </h1>
                         <nav
-                            aria-label="Saved filters"
+                            aria-label="Bộ lọc mục đã lưu"
                             className="flex flex-wrap gap-6 border-b border-neutral-200 dark:border-neutral-800"
                         >
                             {(
                                 [
-                                    { id: "all" as const, label: "All Items" },
+                                    { id: "all" as const, label: "Tất cả" },
                                     {
                                         id: "products" as const,
-                                        label: "Products",
+                                        label: "Sản phẩm",
                                     },
                                     {
                                         id: "posts" as const,
-                                        label: "Editorial Posts",
+                                        label: "Bài viết",
                                     },
                                 ] as const
                             ).map((t) => (
@@ -178,8 +181,8 @@ export default function SavedItems() {
                                 value={searchDraft}
                                 onChange={(e) => setSearchDraft(e.target.value)}
                                 className="w-full rounded-xl border border-neutral-200 bg-white py-2.5 pl-10 pr-4 text-sm text-neutral-900 shadow-sm outline-none ring-primary/30 transition placeholder:text-neutral-400 focus:border-primary focus:ring-2 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500"
-                                placeholder="Search in saved"
-                                aria-label="Search saved items"
+                                placeholder="Tìm trong mục đã lưu"
+                                aria-label="Tìm trong mục đã lưu"
                             />
                         </form>
 
@@ -189,7 +192,7 @@ export default function SavedItems() {
                                     className="sr-only"
                                     htmlFor="saved-filter-category"
                                 >
-                                    Category
+                                    Danh mục
                                 </label>
                                 <select
                                     id="saved-filter-category"
@@ -199,7 +202,7 @@ export default function SavedItems() {
                                     }
                                     className="rounded-xl border border-neutral-200 bg-white py-2.5 pl-3 pr-3 text-sm font-medium text-neutral-900 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                                 >
-                                    <option value="">All categories</option>
+                                    <option value="">Tất cả danh mục</option>
                                     {categories.map((c) => (
                                         <option key={c.id} value={c.id}>
                                             {c.name}
@@ -211,7 +214,7 @@ export default function SavedItems() {
                                     className="sr-only"
                                     htmlFor="saved-filter-price"
                                 >
-                                    Price
+                                    Mức giá
                                 </label>
                                 <select
                                     id="saved-filter-price"
@@ -223,7 +226,7 @@ export default function SavedItems() {
                                     }
                                     className="rounded-xl border border-neutral-200 bg-white py-2.5 pl-3 pr-3 text-sm font-medium text-neutral-900 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                                 >
-                                    <option value="">All prices</option>
+                                    <option value="">Tất cả mức giá</option>
                                     <option value="under50">Dưới {formatCurrencyVnd(50)}</option>
                                     <option value="50to150">{formatCurrencyVnd(50)} – {formatCurrencyVnd(150)}</option>
                                     <option value="over150">Trên {formatCurrencyVnd(150)}</option>
@@ -233,7 +236,7 @@ export default function SavedItems() {
                                     className="sr-only"
                                     htmlFor="saved-filter-sort"
                                 >
-                                    Sort
+                                    Sắp xếp
                                 </label>
                                 <select
                                     id="saved-filter-sort"
@@ -243,13 +246,9 @@ export default function SavedItems() {
                                     }
                                     className="rounded-xl border border-neutral-200 bg-white py-2.5 pl-3 pr-3 text-sm font-medium text-neutral-900 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
                                 >
-                                    <option value="recent">Recent</option>
-                                    <option value="price_asc">
-                                        Price: low to high
-                                    </option>
-                                    <option value="price_desc">
-                                        Price: high to low
-                                    </option>
+                                    <option value="recent">Mới nhất</option>
+                                    <option value="price_asc">Giá: thấp đến cao</option>
+                                    <option value="price_desc">Giá: cao đến thấp</option>
                                 </select>
                             </div>
                         ) : null}
@@ -275,24 +274,23 @@ export default function SavedItems() {
                                 </div>
                             </div>
                             <h2 className="mb-3 text-2xl font-extrabold">
-                                Your collection is empty
+                                Chưa có mục nào được lưu
                             </h2>
                             <p className="mb-8 max-w-md text-sm text-neutral-600 dark:text-neutral-400">
-                                Save products and posts you love—they’ll show up
-                                here for quick access anytime.
+                                Lưu sản phẩm hoặc bài viết bạn thích — chúng sẽ hiển thị ở đây để bạn truy cập nhanh bất cứ lúc nào.
                             </p>
                             <div className="flex flex-wrap justify-center gap-3">
                                 <Link
                                     to="/feed"
                                     className="rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
                                 >
-                                    Explore Feed
+                                    Khám phá bảng tin
                                 </Link>
                                 <Link
                                     to="/marketplace"
                                     className="rounded-full border border-neutral-200 bg-background-light px-6 py-2.5 text-sm font-bold transition hover:bg-neutral-100 dark:border-neutral-600 dark:bg-background-dark dark:hover:bg-neutral-800"
                                 >
-                                    Browse Products
+                                    Xem sản phẩm
                                 </Link>
                             </div>
                         </div>
@@ -334,7 +332,7 @@ export default function SavedItems() {
                                                         )
                                                     }
                                                     className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-primary shadow-md backdrop-blur transition hover:scale-110 disabled:opacity-50 dark:bg-neutral-900/90"
-                                                    aria-label="Remove from saved"
+                                                    aria-label="Bỏ lưu"
                                                 >
                                                     <Bookmark className="h-5 w-5 fill-current" />
                                                 </button>
@@ -396,7 +394,7 @@ export default function SavedItems() {
                                                         )
                                                     }
                                                     className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-primary shadow-md backdrop-blur dark:bg-neutral-900/90"
-                                                    aria-label="Remove from saved"
+                                                    aria-label="Bỏ lưu"
                                                 >
                                                     <Bookmark className="h-5 w-5 fill-current" />
                                                 </button>
@@ -421,14 +419,14 @@ export default function SavedItems() {
                                                             row.post
                                                                 .likesCount ??
                                                             0}{" "}
-                                                        likes
+                                                        lượt thích
                                                     </span>
                                                 </div>
                                                 <Link
                                                     to={`/post/${row.post.id}`}
                                                     className="mt-3 text-xs font-bold text-primary hover:underline"
                                                 >
-                                                    Read post
+                                                    Xem bài viết
                                                 </Link>
                                             </div>
                                         </article>
@@ -446,11 +444,10 @@ export default function SavedItems() {
                                         }
                                         className="rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-900 shadow-sm transition hover:bg-neutral-50 disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
                                     >
-                                        Previous
+                                        Trước
                                     </button>
                                     <span className="flex items-center px-2 text-sm text-neutral-600 dark:text-neutral-400">
-                                        Page {page} of{" "}
-                                        {pagination.totalPages || 1}
+                                        Trang {page} / {pagination.totalPages || 1}
                                     </span>
                                     <button
                                         type="button"
@@ -467,7 +464,7 @@ export default function SavedItems() {
                                         }
                                         className="rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-900 shadow-sm transition hover:bg-neutral-50 disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
                                     >
-                                        Next
+                                        Sau
                                     </button>
                                 </div>
                             ) : null}

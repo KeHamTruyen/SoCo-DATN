@@ -939,6 +939,14 @@ async function main() {
                     sortOrder: 0,
                 },
                 {
+                    postId: postOne.id,
+                    productId: products.phoneCase.id,
+                    anchorType: "MEDIA_HOTSPOT",
+                    positionX: 66,
+                    positionY: 56,
+                    sortOrder: 1,
+                },
+                {
                     postId: postTwo.id,
                     productId: products.cottonShirt.id,
                     anchorType: "INLINE_TEXT",
@@ -1392,12 +1400,14 @@ async function main() {
 
     await prisma.$transaction(async (tx) => {
         await tx.savedItem.upsert({
-            where: { id: FIXED_IDS.savedItemPost },
-            update: {
-                userId: users.buyerOne.id,
-                itemType: "POST",
-                targetId: posts.postOne.id,
+            where: {
+                userId_itemType_targetId: {
+                    userId: users.buyerOne.id,
+                    itemType: "POST",
+                    targetId: posts.postOne.id,
+                },
             },
+            update: {},
             create: {
                 id: FIXED_IDS.savedItemPost,
                 userId: users.buyerOne.id,
@@ -1406,12 +1416,14 @@ async function main() {
             },
         });
         await tx.savedItem.upsert({
-            where: { id: FIXED_IDS.savedItemProduct },
-            update: {
-                userId: users.buyerTwo.id,
-                itemType: "PRODUCT",
-                targetId: products.wirelessEarbuds.id,
+            where: {
+                userId_itemType_targetId: {
+                    userId: users.buyerTwo.id,
+                    itemType: "PRODUCT",
+                    targetId: products.wirelessEarbuds.id,
+                },
             },
+            update: {},
             create: {
                 id: FIXED_IDS.savedItemProduct,
                 userId: users.buyerTwo.id,
@@ -1593,7 +1605,6 @@ async function main() {
                 totalComments: 2,
             },
             create: {
-                id: FIXED_IDS.sellerStatsToday,
                 sellerId: users.seller.id,
                 date: today,
                 totalSales: "1317000",

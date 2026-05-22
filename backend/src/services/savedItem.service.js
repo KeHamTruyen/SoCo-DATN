@@ -11,18 +11,6 @@ const AUTHOR_SELECT = {
 
 const POST_INCLUDE = {
   author: { select: AUTHOR_SELECT },
-  product: {
-    select: {
-      id: true,
-      title: true,
-      price: true,
-      images: {
-        where: { isPrimary: true },
-        take: 1,
-        select: { imageUrl: true, altText: true },
-      },
-    },
-  },
   _count: { select: { likes: true, comments: true } },
 };
 

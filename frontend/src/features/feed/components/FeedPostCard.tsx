@@ -1,6 +1,6 @@
 import { Flag, MessageSquarePlus, MoreHorizontal, Trash2 } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { Button, GuestAuthModal } from "../../../shared/ui";
 import { ReportModal } from "../../report/components/ReportModal";
@@ -48,6 +48,7 @@ function FeedPostCardComponent({
     mode = "feed",
 }: FeedPostCardProps) {
     const { user } = useAuthSession();
+    const navigate = useNavigate();
     const [newComment, setNewComment] = useState("");
     const [isCommenting, setIsCommenting] = useState(false);
     const [showPostModal, setShowPostModal] = useState(false);
@@ -284,22 +285,30 @@ function FeedPostCardComponent({
                         </div>
                     ) : null}
                     {mediaTaggedProducts.map((tag) => (
-                            <div
-                                key={tag.id}
-                                className="absolute transition-transform group-hover:scale-110"
-                                style={{
-                                    top: `${tag.positionY}%`,
-                                    left: `${tag.positionX}%`,
-                                }}
-                            >
-                                <div className="relative">
-                                    <div className="h-4 w-4 animate-pulse rounded-full border-2 border-white bg-primary" />
-                                    <div className="absolute top-6 left-0 whitespace-nowrap rounded-lg bg-white/90 px-2 py-1 text-[10px] font-bold shadow-lg backdrop-blur dark:bg-neutral-900/90">
-                                        {tag.productName} • {formatCurrencyVnd(tag.price ?? 0)}
-                                    </div>
+                        <button
+                            key={tag.id}
+                            type="button"
+                            className="absolute transition-transform group-hover:scale-110"
+                            style={{
+                                top: `${tag.positionY}%`,
+                                left: `${tag.positionX}%`,
+                            }}
+                            onClick={() => {
+                                if (tag.productId) {
+                                    navigate(`/products/${tag.productId}`);
+                                }
+                            }}
+                            aria-label={`View product: ${tag.productName}`}
+                            title={tag.productName}
+                        >
+                            <div className="relative">
+                                <div className="h-4 w-4 animate-pulse rounded-full border-2 border-white bg-primary" />
+                                <div className="absolute left-0 top-6 whitespace-nowrap rounded-lg bg-white/90 px-2 py-1 text-[10px] font-bold shadow-lg backdrop-blur dark:bg-neutral-900/90">
+                                    {tag.productName} • {formatCurrencyVnd(tag.price ?? 0)}
                                 </div>
                             </div>
-                        ))}
+                        </button>
+                    ))}
                 </div>
             ) : null}
 

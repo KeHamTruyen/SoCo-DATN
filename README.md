@@ -243,7 +243,7 @@ npm run preview
 | [backend/README.md](backend/README.md)                       | Hướng dẫn chi tiết cho core backend                          |
 | [admin/README.md](admin/README.md)                           | Hướng dẫn chi tiết cho cụm admin                             |
 | [frontend/README.md](frontend/README.md)                     | Ghi chú riêng cho frontend                                   |
-| [backend/API_TESTING_GUIDE.md](backend/API_TESTING_GUIDE.md) | Gợi ý kiểm thử API                                           |
+| [TESTING.md](TESTING.md)                                     | Tổng quan kiểm thử (FE/BE) + link tài liệu chi tiết          |
 
 ## Ghi chú triển khai
 

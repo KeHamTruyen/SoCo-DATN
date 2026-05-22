@@ -1,6 +1,7 @@
 import { Bookmark, Link2, Share2 } from "lucide-react";
 import type { RefObject } from "react";
 import type { TFunction } from "i18next";
+import { useNavigate } from "react-router-dom";
 import type { FeedPost } from "../types/feed.types";
 
 interface FeedPostCardActionsProps {
@@ -34,6 +35,10 @@ export function FeedPostCardActions({
     t,
     hasProducts,
 }: FeedPostCardActionsProps) {
+    const navigate = useNavigate();
+    const primaryTaggedProductId =
+        post.taggedProducts?.find((tag) => tag.productId?.trim())?.productId?.trim() ?? null;
+
     return (
         <div className="flex items-center justify-between border-t border-neutral-100 px-4 py-3 dark:border-neutral-800">
             <div className="flex items-center gap-3">
@@ -130,6 +135,13 @@ export function FeedPostCardActions({
             {hasProducts ? (
                 <button
                     type="button"
+                    onClick={() => {
+                        if (primaryTaggedProductId) {
+                            navigate(`/products/${primaryTaggedProductId}`);
+                        } else {
+                            navigate(`/post/${post.id}`);
+                        }
+                    }}
                     className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:bg-primary-700"
                 >
                     Buy Now
