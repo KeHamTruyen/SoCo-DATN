@@ -15,6 +15,7 @@ import { PostAuthorMetaHeader } from "./PostAuthorMetaHeader";
 import { useSavedPostItem } from "../hooks/useSavedPostItem";
 import { usePostCommentsPagination } from "../hooks/usePostCommentsPagination";
 import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
+import { PostMediaCarousel } from "./PostMediaCarousel";
 
 interface FeedPostCardProps {
     post: FeedPost;
@@ -162,9 +163,11 @@ function FeedPostCardComponent({
         [];
     const hasProducts = (post.taggedProducts?.length ?? 0) > 0;
     const primaryMedia = post.imageUrl;
-    const extraMedia =
-        (post.mediaUrls?.length ?? 0) > 1 ? (post.mediaUrls!.length - 1) : 0;
-    const isVideo = post.mediaType === "VIDEO";
+    const mediaUrls = post.mediaUrls?.length
+        ? post.mediaUrls
+        : primaryMedia
+          ? [primaryMedia]
+          : [];
     const authorProfileLink =
         user?.id && user.id === post.author.id ? "/profile" : `/profile/${post.author.id}`;
     const isOwnPost = user?.id === post.author.id;
@@ -262,28 +265,14 @@ function FeedPostCardComponent({
                 ) : null}
             </div>
 
-            {/* Image with shoppable overlays */}
-            {primaryMedia ? (
-                <div className="group relative aspect-video bg-neutral-200">
-                    {isVideo ? (
-                        <video
-                            src={primaryMedia}
-                            controls
-                            className="h-full w-full object-cover"
-                            playsInline
-                        />
-                    ) : (
-                        <img
-                            src={primaryMedia}
-                            alt="Post attachment"
-                            className="h-full w-full object-cover"
-                        />
-                    )}
-                    {extraMedia > 0 ? (
-                        <div className="absolute bottom-2 right-2 rounded-full bg-neutral-900/80 px-2 py-0.5 text-xs font-semibold text-white">
-                            +{extraMedia}
-                        </div>
-                    ) : null}
+            {/* Media with shoppable overlays */}
+            {mediaUrls.length > 0 ? (
+                <PostMediaCarousel
+                    mediaUrls={mediaUrls}
+                    mediaType={post.mediaType}
+                    className="aspect-video"
+                    imageAlt="Post attachment"
+                >
                     {mediaTaggedProducts.map((tag) => (
                         <button
                             key={tag.id}
@@ -309,7 +298,7 @@ function FeedPostCardComponent({
                             </div>
                         </button>
                     ))}
-                </div>
+                </PostMediaCarousel>
             ) : null}
 
             <FeedPostCardActions

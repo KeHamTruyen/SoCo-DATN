@@ -26,8 +26,8 @@ export default defineConfig({
     webServer: {
         command: "npm run dev",
         url: "http://127.0.0.1:3000",
-        // Always start a dedicated server to avoid stale/conflicting dev instances on :3000.
-        reuseExistingServer: false,
+        // Reuse a running Vite server on :3000 when the developer already has the app open.
+        reuseExistingServer: true,
         timeout: 180_000,
     },
 });

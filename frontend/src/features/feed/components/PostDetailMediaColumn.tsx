@@ -3,6 +3,7 @@ import { Button } from "../../../shared/ui/atoms/button";
 import type { FeedPost } from "../types/feed.types";
 import { ShoppableProductHotspot } from "./ShoppableProductHotspot";
 import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
+import { PostMediaCarousel } from "./PostMediaCarousel";
 
 interface PostDetailMediaColumnProps {
     post: FeedPost;
@@ -14,20 +15,16 @@ export function PostDetailMediaColumn({ post, primaryMedia, isVideo }: PostDetai
     const hasProducts = (post.taggedProducts?.length ?? 0) > 0;
     const mediaTags =
         post.taggedProducts?.filter((tag) => (tag.anchorType ?? "MEDIA_HOTSPOT") === "MEDIA_HOTSPOT") ?? [];
+    const mediaUrls = post.mediaUrls?.length ? post.mediaUrls : [primaryMedia];
 
     return (
         <div className="lg:col-span-7">
-            <div className="group relative aspect-4/5 overflow-hidden rounded-2xl bg-neutral-200 shadow-xl dark:bg-neutral-800">
-                {isVideo ? (
-                    <video
-                        src={primaryMedia}
-                        controls
-                        className="h-full w-full object-cover"
-                        playsInline
-                    />
-                ) : (
-                    <img src={primaryMedia} alt="Post" className="h-full w-full object-cover" />
-                )}
+            <PostMediaCarousel
+                mediaUrls={mediaUrls}
+                mediaType={isVideo ? "VIDEO" : post.mediaType}
+                className="aspect-4/5 rounded-2xl shadow-xl"
+                imageAlt="Post"
+            >
                 {mediaTags.map((product) => (
                     <ShoppableProductHotspot key={product.id} product={product} />
                 ))}
@@ -37,7 +34,7 @@ export function PostDetailMediaColumn({ post, primaryMedia, isVideo }: PostDetai
                         {post.taggedProducts.length} product(s) tagged
                     </div>
                 )}
-            </div>
+            </PostMediaCarousel>
 
             {hasProducts && post.taggedProducts ? (
                 <div className="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
