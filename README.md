@@ -236,14 +236,14 @@ npm run preview
 
 ## Tài liệu liên quan
 
-| Tài liệu                                                     | Mục đích                                                     |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md)         | Tiến độ tính năng, checklist và hạng mục đang tinh chỉnh     |
-| [EXTERNAL_SERVICES_GUIDE.md](EXTERNAL_SERVICES_GUIDE.md)     | Hướng dẫn cấu hình Cloudinary, SMTP, Gemini và dịch vụ ngoài |
-| [backend/README.md](backend/README.md)                       | Hướng dẫn chi tiết cho core backend                          |
-| [admin/README.md](admin/README.md)                           | Hướng dẫn chi tiết cho cụm admin                             |
-| [frontend/README.md](frontend/README.md)                     | Ghi chú riêng cho frontend                                   |
-| [TESTING.md](TESTING.md)                                     | Tổng quan kiểm thử (FE/BE) + link tài liệu chi tiết          |
+| Tài liệu                                                 | Mục đích                                                     |
+| -------------------------------------------------------- | ------------------------------------------------------------ |
+| [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md)     | Tiến độ tính năng, checklist và hạng mục đang tinh chỉnh     |
+| [EXTERNAL_SERVICES_GUIDE.md](EXTERNAL_SERVICES_GUIDE.md) | Hướng dẫn cấu hình Cloudinary, SMTP, Gemini và dịch vụ ngoài |
+| [backend/README.md](backend/README.md)                   | Hướng dẫn chi tiết cho core backend                          |
+| [admin/README.md](admin/README.md)                       | Hướng dẫn chi tiết cho cụm admin                             |
+| [frontend/README.md](frontend/README.md)                 | Ghi chú riêng cho frontend                                   |
+| [TESTING.md](TESTING.md)                                 | Tổng quan kiểm thử (FE/BE) + link tài liệu chi tiết          |
 
 ## Ghi chú triển khai
 
