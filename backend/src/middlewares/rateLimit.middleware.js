@@ -31,13 +31,16 @@ const standardRateLimitConfig = {
 
 const isDevEnvironment = process.env.NODE_ENV !== "production";
 const isApiRateLimitDisabled = toBoolean(process.env.RATE_LIMIT_DISABLED, isDevEnvironment);
+const apiRateLimitMax = isDevEnvironment
+    ? toInt(process.env.RATE_LIMIT_MAX, 5000)
+    : toInt(process.env.RATE_LIMIT_MAX, 300);
 
 export const apiRateLimiter = isApiRateLimitDisabled
     ? (req, res, next) => next()
     : rateLimit({
           ...standardRateLimitConfig,
           windowMs: toInt(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),
-          max: toInt(process.env.RATE_LIMIT_MAX, 300),
+          max: apiRateLimitMax,
           handler: createRateLimitHandler("Too many requests. Please try again later."),
       });
 
