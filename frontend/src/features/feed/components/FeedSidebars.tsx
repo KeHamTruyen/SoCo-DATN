@@ -14,12 +14,10 @@ import {
 } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { marketplaceApi } from "../../marketplace/api/marketplaceApi";
 import type { ProductListItem } from "../../marketplace/types/marketplace.types";
-import { orderApi } from "../../order/api/orderApi";
 import type { Order } from "../../order/types/order.types";
-import { profileApi } from "../../profile/api/profileApi";
 import type { PublicUserProfile } from "../../profile/types/profile.types";
+import { loadFeedSidebarData } from "../utils/feedSidebarDataCache";
 import { DEFAULT_USER_AVATAR_URL } from "../../../shared/config/defaultAssets";
 import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 
@@ -381,38 +379,31 @@ export function RightSidebar() {
     const [usersLoading, setUsersLoading] = useState(true);
 
     useEffect(() => {
+        let cancelled = false;
         void (async () => {
             try {
-                const res = await orderApi.listOrders({ status: "shipping", pageSize: 3 });
-                setOrders(res?.items ?? []);
+                const data = await loadFeedSidebarData();
+                if (cancelled) return;
+                setOrders(data.orders);
+                setProducts(data.products);
+                setSuggestedUsers(data.suggestedUsers);
             } catch {
-                setOrders([]);
+                if (!cancelled) {
+                    setOrders([]);
+                    setProducts([]);
+                    setSuggestedUsers([]);
+                }
             } finally {
-                setOrdersLoading(false);
+                if (!cancelled) {
+                    setOrdersLoading(false);
+                    setProductsLoading(false);
+                    setUsersLoading(false);
+                }
             }
         })();
-
-        void (async () => {
-            try {
-                const res = await marketplaceApi.listProducts({ pageSize: 4 });
-                setProducts(res?.items ?? []);
-            } catch {
-                setProducts([]);
-            } finally {
-                setProductsLoading(false);
-            }
-        })();
-
-        void (async () => {
-            try {
-                const res = await profileApi.listSuggestedUsers();
-                setSuggestedUsers(res);
-            } catch {
-                setSuggestedUsers([]);
-            } finally {
-                setUsersLoading(false);
-            }
-        })();
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     return (

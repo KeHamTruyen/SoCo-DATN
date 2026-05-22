@@ -8,6 +8,7 @@ import {
     RightSidebar,
 } from "../features/feed/components/FeedSidebars";
 import { PostComposer } from "../features/feed/components/PostComposer";
+import { SavedPostsStatusProvider } from "../features/feed/context/SavedPostsStatusContext";
 import { useFeed } from "../features/feed/hooks/useFeed";
 import { useAuthSession } from "../shared/auth/useAuthSession";
 import { isSellerRole } from "../shared/auth/roleGuards";
@@ -78,20 +79,22 @@ export default function Feed() {
                             No posts yet. Be the first one to share!
                         </div>
                     ) : (
-                        posts.map((post) => (
-                            <FeedPostCard
-                                key={post.id}
-                                post={post}
-                                onLike={() => toggleLike(post.id)}
-                                onComment={(content) =>
-                                    addComment(post.id, content)
-                                }
-                                onDeletePost={async (postId) => {
-                                    await feedApi.deletePost(postId);
-                                    await loadInitial();
-                                }}
-                            />
-                        ))
+                        <SavedPostsStatusProvider postIds={posts.map((p) => p.id)}>
+                            {posts.map((post) => (
+                                <FeedPostCard
+                                    key={post.id}
+                                    post={post}
+                                    onLike={() => toggleLike(post.id)}
+                                    onComment={(content) =>
+                                        addComment(post.id, content)
+                                    }
+                                    onDeletePost={async (postId) => {
+                                        await feedApi.deletePost(postId);
+                                        await loadInitial();
+                                    }}
+                                />
+                            ))}
+                        </SavedPostsStatusProvider>
                     )}
 
                     {hasMore ? (

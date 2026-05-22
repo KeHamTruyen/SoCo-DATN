@@ -91,4 +91,17 @@ export const savedItemsApi = {
         });
         return res.data?.id ?? null;
     },
+
+    async lookupBatch(itemType: SavedItemType, targetIds: string[]) {
+        if (targetIds.length === 0) return {} as Record<string, string | null>;
+        const sp = new URLSearchParams({
+            itemType,
+            targetIds: [...new Set(targetIds)].join(","),
+        });
+        const res = await httpClient.get<{
+            success?: boolean;
+            data?: { byTargetId?: Record<string, string | null> };
+        }>(`/saved-items/lookup-batch?${sp}`, { requiresAuth: true });
+        return res.data?.byTargetId ?? {};
+    },
 };
