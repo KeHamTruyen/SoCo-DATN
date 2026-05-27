@@ -793,5 +793,63 @@
 
     "common": {
         "more": "thêm"
+    },
+    "cart": {
+        "loading": "Đang tải giỏ hàng...",
+        "emptyTitle": "Giỏ hàng của bạn đang trống",
+        "emptyDescription": "Có vẻ bạn chưa tìm thấy sản phẩm yêu thích nào. Hãy bắt đầu khám phá bảng tin để xem các xu hướng mới nhất và ưu đãi từ cộng đồng.",
+        "continueShopping": "Tiếp tục mua sắm",
+        "orderHistory": "Lịch sử đơn hàng",
+        "savedItems": "Sản phẩm đã lưu",
+        "trendingWithFriends": "Đang thịnh hành với bạn bè",
+        "recentlyViewedRecommended": "Đã xem gần đây & Gợi ý cho bạn",
+        "viewAll": "Xem tất cả",
+        "noImage": "Không có ảnh",
+        "title": "Giỏ hàng",
+        "itemCount": "{{count}} sản phẩm",
+        "selectAll": "Chọn tất cả sản phẩm",
+        "deleteSelected": "Xóa mục đã chọn",
+        "topSeller": "Người bán nổi bật",
+        "checkoutSelectRequired": "Vui lòng chọn ít nhất một sản phẩm để thanh toán.",
+        "removeItem": "Xóa sản phẩm",
+        "lineTotal": "Tổng dòng",
+        "decreaseQuantity": "Giảm số lượng",
+        "increaseQuantity": "Tăng số lượng",
+        "summary": {
+            "orderSummary": "Tóm tắt đơn hàng",
+            "itemsSelected": "Đã chọn {{count}} sản phẩm",
+            "subtotal": "Tạm tính",
+            "shippingEst": "Phí vận chuyển dự kiến",
+            "free": "Miễn phí",
+            "discount": "Giảm giá",
+            "promoQuestion": "Bạn có mã khuyến mãi?",
+            "enterCode": "Nhập mã",
+            "apply": "Áp dụng",
+            "total": "Tổng cộng",
+            "includingVat": "Đã bao gồm VAT",
+            "proceedToCheckout": "Tiến hành thanh toán",
+            "securePurchase": "Thanh toán an toàn",
+            "secureDescription": "Dữ liệu của bạn được mã hóa và bảo vệ bởi SocialCommerce SecurePay."
+        }
+    },
+
+    "notifications": {
+        "title": "Thông báo",
+        "unreadCount": "{{count}} thông báo chưa đọc",
+        "markAllRead": "Đánh dấu tất cả là đã đọc",
+        "tabs": {
+            "all": "Tất cả",
+            "social": "Xã hội",
+            "orders": "Đơn hàng",
+            "system": "Hệ thống"
+        },
+        "preferences": "Tùy chọn thông báo",
+        "preferenceTypes": {
+            "social": "Xã hội",
+            "order": "Đơn hàng",
+            "system": "Hệ thống"
+        },
+        "empty": "Không có thông báo.",
+        "loadMore": "Tải thêm"
     }
 }

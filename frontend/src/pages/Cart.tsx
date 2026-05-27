@@ -8,12 +8,14 @@ import {
     Tag,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { CartItem } from "../features/cart/components/CartItem";
 import { CartSummary } from "../features/cart/components/CartSummary";
 import { useCartPage } from "../features/cart/hooks";
 import { marketplaceApi } from "../features/marketplace/api/marketplaceApi";
 import type { ProductListItem } from "../features/marketplace/types/marketplace.types";
+import { UnifiedHeader } from "../shared/ui";
 
 function CartProductStrip({
     title,
@@ -22,6 +24,7 @@ function CartProductStrip({
     title: string;
     columns?: "trending" | "recommendations";
 }) {
+    const { t } = useTranslation();
     const [items, setItems] = useState<ProductListItem[]>([]);
 
     useEffect(() => {
@@ -32,7 +35,9 @@ function CartProductStrip({
                 if (!cancelled) setItems(res.items);
             })
             .catch(() => {});
-        return () => { cancelled = true; };
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     if (items.length === 0) return null;
@@ -46,14 +51,22 @@ function CartProductStrip({
 
     return (
         <section className="border-t border-neutral-200 bg-background-light px-6 py-12 dark:border-neutral-800 dark:bg-background-dark">
-            <div className={columns === "trending" ? "mx-auto max-w-[1200px]" : "mx-auto max-w-[1440px]"}>
+            <div
+                className={
+                    columns === "trending"
+                        ? "mx-auto max-w-[1200px]"
+                        : "mx-auto max-w-[1440px]"
+                }
+            >
                 <div className="mb-8 flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">{title}</h3>
+                    <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                        {title}
+                    </h3>
                     <Link
                         to="/marketplace"
                         className="text-sm font-bold text-primary transition-colors hover:text-primary/90"
                     >
-                        View all
+                        {t("cart.viewAll")}
                     </Link>
                 </div>
                 <div className={gridClass}>
@@ -72,15 +85,16 @@ function CartProductStrip({
                                     />
                                 ) : (
                                     <div className="flex h-full w-full items-center justify-center text-xs text-neutral-400">
-                                        No image
+                                        {t("cart.noImage")}
                                     </div>
                                 )}
                             </div>
                             <div className="flex flex-col">
-                                <span className="line-clamp-1 text-sm font-bold">{p.name}</span>
+                                <span className="line-clamp-1 text-sm font-bold">
+                                    {p.name}
+                                </span>
                                 <span className="text-sm text-neutral-500">
-                                    $
-                                    {p.price.toFixed(2)}
+                                    ${p.price.toFixed(2)}
                                 </span>
                             </div>
                         </Link>
@@ -92,6 +106,7 @@ function CartProductStrip({
 }
 
 export default function Cart() {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const {
         cart,
@@ -110,31 +125,41 @@ export default function Cart() {
         handleDeleteSelected,
     } = useCartPage();
 
+
+
     if (isLoading) {
         return (
-            <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-8">
+            <div className="flex min-h-screen flex-col bg-background-light dark:bg-background-dark">
+                
+                <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-8">
                     <div className="rounded-xl border border-neutral-200 bg-white p-8 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900">
-                        Loading your cart...
+                        {t("cart.loading")}
                     </div>
-            </main>
+                </main>
+            </div>
         );
     }
 
     if (error) {
         return (
-            <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-8">
+            <div className="flex min-h-screen flex-col bg-background-light dark:bg-background-dark">
+            
+                <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-8">
                     <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-400">
                         {error}
                     </div>
-            </main>
+                </main>
+            </div>
         );
     }
 
     const groupCount =
         (cart?.groups ?? []).reduce((n, g) => n + (g.items?.length ?? 0), 0);
+
     if (!cart || groupCount === 0) {
         return (
-            <>
+            <div className="flex min-h-screen flex-col bg-background-light dark:bg-background-dark">
+               
                 <main className="flex flex-1 flex-col items-center justify-center px-6 py-12">
                     <div className="mx-auto flex max-w-[480px] flex-col items-center text-center">
                         <div className="relative mb-8 flex h-64 w-64 items-center justify-center rounded-full bg-primary/5 dark:bg-primary/10">
@@ -158,18 +183,17 @@ export default function Cart() {
                             </div>
                         </div>
                         <h1 className="mb-3 text-3xl font-bold text-neutral-900 dark:text-white">
-                            Your cart is empty
+                            {t("cart.emptyTitle")}
                         </h1>
                         <p className="mb-10 text-lg leading-relaxed text-neutral-600 dark:text-neutral-400">
-                            Looks like you haven&apos;t discovered anything you love yet. Start browsing the
-                            feed for the latest trends and exclusive community deals.
+                            {t("cart.emptyDescription")}
                         </p>
                         <Link
                             to="/marketplace"
                             className="inline-flex h-14 min-w-[240px] items-center justify-center gap-3 rounded-xl bg-primary px-8 text-lg font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] hover:bg-primary/90 active:scale-95"
                         >
                             <Compass className="h-6 w-6" aria-hidden />
-                            Continue Shopping
+                            {t("cart.continueShopping")}
                         </Link>
                         <div className="mt-12 flex flex-wrap justify-center gap-6">
                             <Link
@@ -177,31 +201,35 @@ export default function Cart() {
                                 className="flex items-center gap-2 text-sm font-medium text-neutral-500 transition-colors hover:text-primary dark:text-neutral-500"
                             >
                                 <History className="h-5 w-5" aria-hidden />
-                                Order History
+                                {t("cart.orderHistory")}
                             </Link>
                             <Link
                                 to="/saved-items"
                                 className="flex items-center gap-2 text-sm font-medium text-neutral-500 transition-colors hover:text-primary dark:text-neutral-500"
                             >
                                 <Bookmark className="h-5 w-5" aria-hidden />
-                                Saved Items
+                                {t("cart.savedItems")}
                             </Link>
                         </div>
                     </div>
                 </main>
-                <CartProductStrip title="Trending with your friends" columns="trending" />
-            </>
+                <CartProductStrip
+                    title={t("cart.trendingWithFriends")}
+                    columns="trending"
+                />
+            </div>
         );
     }
 
     return (
-        <>
+        <div className="flex min-h-screen flex-col bg-background-light dark:bg-background-dark">
+          
             <main className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-8">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
-                        Shopping Cart{" "}
+                        {t("cart.title")}{" "}
                         <span className="text-lg font-normal text-neutral-500">
-                            ({cart.itemCount} items)
+                            ({t("cart.itemCount", { count: cart.itemCount })})
                         </span>
                     </h1>
                 </div>
@@ -213,15 +241,20 @@ export default function Cart() {
                                 {actionError}
                             </div>
                         ) : null}
+
                         <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                             <label className="flex cursor-pointer items-center gap-3">
                                 <input
                                     type="checkbox"
                                     checked={allSelected}
-                                    onChange={(e) => handleSelectAll(e.target.checked)}
+                                    onChange={(e) =>
+                                        handleSelectAll(e.target.checked)
+                                    }
                                     className="h-5 w-5 rounded border-neutral-300 text-primary focus:ring-primary dark:border-neutral-700"
                                 />
-                                <span className="font-medium">Select All Items</span>
+                                <span className="font-medium">
+                                    {t("cart.selectAll")}
+                                </span>
                             </label>
                             <button
                                 type="button"
@@ -229,7 +262,7 @@ export default function Cart() {
                                 onClick={() => void handleDeleteSelected()}
                                 className="text-sm font-medium text-neutral-500 transition-colors hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                                Delete Selected
+                                {t("cart.deleteSelected")}
                             </button>
                         </div>
 
@@ -244,20 +277,30 @@ export default function Cart() {
                                             type="checkbox"
                                             checked={
                                                 group.items.length > 0 &&
-                                                group.items.every((i) => selectedIds.has(i.id))
+                                                group.items.every((i) =>
+                                                    selectedIds.has(i.id),
+                                                )
                                             }
                                             onChange={(e) =>
                                                 group.items.forEach((i) =>
-                                                    handleSelect(i.id, e.target.checked),
+                                                    handleSelect(
+                                                        i.id,
+                                                        e.target.checked,
+                                                    ),
                                                 )
                                             }
                                             className="h-5 w-5 rounded border-neutral-300 text-primary focus:ring-primary dark:border-neutral-700"
                                         />
-                                        <Store className="h-5 w-5 shrink-0 text-primary" aria-hidden />
-                                        <span className="font-bold">{group.sellerName}</span>
+                                        <Store
+                                            className="h-5 w-5 shrink-0 text-primary"
+                                            aria-hidden
+                                        />
+                                        <span className="font-bold">
+                                            {group.sellerName}
+                                        </span>
                                         {group.isTopSeller && (
                                             <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-                                                Top Seller
+                                                {t("cart.topSeller")}
                                             </span>
                                         )}
                                     </div>
@@ -269,8 +312,15 @@ export default function Cart() {
                                             item={item}
                                             selected={selectedIds.has(item.id)}
                                             onSelect={handleSelect}
-                                            onQuantityChange={(id, qty) => void handleQuantityChange(id, qty)}
-                                            onRemove={(id) => void handleRemove(id)}
+                                            onQuantityChange={(id, qty) =>
+                                                void handleQuantityChange(
+                                                    id,
+                                                    qty,
+                                                )
+                                            }
+                                            onRemove={(id) =>
+                                                void handleRemove(id)
+                                            }
                                         />
                                     ))}
                                 </div>
@@ -284,11 +334,17 @@ export default function Cart() {
                         selectedSubtotal={selectedSubtotal}
                         onCheckout={() => {
                             if (selectedCount === 0) {
-                                setActionError("Please select at least one item to checkout.");
+                                setActionError(
+                                    t("cart.checkoutSelectRequired"),
+                                );
                                 return;
                             }
                             navigate("/checkout", {
-                                state: { selectedCartItemIds: Array.from(selectedIds) },
+                                state: {
+                                    selectedCartItemIds: Array.from(
+                                        selectedIds,
+                                    ),
+                                },
                             });
                         }}
                     />
@@ -296,11 +352,11 @@ export default function Cart() {
 
                 <div className="-mx-6 mt-16">
                     <CartProductStrip
-                        title="Recently Viewed & Recommended"
+                        title={t("cart.recentlyViewedRecommended")}
                         columns="recommendations"
                     />
                 </div>
             </main>
-        </>
+        </div>
     );
 }

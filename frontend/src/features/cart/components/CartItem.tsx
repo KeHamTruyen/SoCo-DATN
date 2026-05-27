@@ -1,4 +1,5 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../../../shared/ui/atoms/button";
 import type { CartItem as CartItemType } from "../types/cart.types";
 import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
@@ -18,6 +19,7 @@ export function CartItem({
     onQuantityChange,
     onRemove,
 }: CartItemProps) {
+    const { t } = useTranslation();
     const variantText = item.variants?.map((v) => `${v.name}: ${v.value}`).join(" | ");
     const lineTotal = item.price * item.quantity;
 
@@ -39,7 +41,7 @@ export function CartItem({
                         />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center text-xs text-neutral-400">
-                            No image
+                            {t("cart.noImage")}
                         </div>
                     )}
                 </div>
@@ -57,7 +59,7 @@ export function CartItem({
                         size="icon"
                         className="shrink-0 text-neutral-400 hover:text-destructive"
                         onClick={() => onRemove(item.id)}
-                        aria-label="Remove item"
+                        aria-label={t("cart.removeItem")}
                     >
                         <Trash2 className="h-4 w-4" />
                     </Button>
@@ -69,17 +71,19 @@ export function CartItem({
                         </span>
                         {item.quantity > 1 && (
                             <p className="text-xs text-neutral-500">
-                                Line total · {formatCurrencyVnd(lineTotal)}
+                                {t("cart.lineTotal")} · {formatCurrencyVnd(lineTotal)}
                             </p>
                         )}
                     </div>
                     <div className="flex items-center overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700">
                         <button
                             type="button"
-                            onClick={() => onQuantityChange(item.id, Math.max(1, item.quantity - 1))}
+                            onClick={() =>
+                                onQuantityChange(item.id, Math.max(1, item.quantity - 1))
+                            }
                             disabled={item.quantity <= 1}
                             className="border-r border-neutral-200 px-3 py-1 transition-colors hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
-                            aria-label="Decrease quantity"
+                            aria-label={t("cart.decreaseQuantity")}
                         >
                             <Minus className="h-3 w-3" />
                         </button>
@@ -88,7 +92,7 @@ export function CartItem({
                             type="button"
                             onClick={() => onQuantityChange(item.id, item.quantity + 1)}
                             className="border-l border-neutral-200 px-3 py-1 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
-                            aria-label="Increase quantity"
+                            aria-label={t("cart.increaseQuantity")}
                         >
                             <Plus className="h-3 w-3" />
                         </button>

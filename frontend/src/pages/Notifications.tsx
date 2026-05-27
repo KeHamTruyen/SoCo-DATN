@@ -1,20 +1,22 @@
 import { CheckCheck } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNotificationCenter } from "../features/notification/context/NotificationContext";
 import { NotificationItem } from "../features/notification/components/NotificationItem";
 import { cn } from "../shared/lib/cn";
-import { Button } from "../shared/ui";
+import { Button, UnifiedHeader } from "../shared/ui";
 
 type TabFilter = "all" | "social" | "order" | "system";
 
-const TABS: { value: TabFilter; label: string }[] = [
-    { value: "all", label: "All" },
-    { value: "social", label: "Social" },
-    { value: "order", label: "Orders" },
-    { value: "system", label: "System" },
+const TABS: { value: TabFilter; labelKey: string }[] = [
+    { value: "all", labelKey: "notifications.tabs.all" },
+    { value: "social", labelKey: "notifications.tabs.social" },
+    { value: "order", labelKey: "notifications.tabs.orders" },
+    { value: "system", labelKey: "notifications.tabs.system" },
 ];
 
 export default function Notifications() {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<TabFilter>("all");
     const {
         notifications,
@@ -40,13 +42,19 @@ export default function Notifications() {
     }, [activeTab, notifications]);
 
     return (
-        <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6">
+        <div className="min-h-screen bg-background-light dark:bg-background-dark">
+   
+            <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
                 <div className="mb-6 flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold">Notifications</h1>
+                        <h1 className="text-3xl font-bold">
+                            {t("notifications.title")}
+                        </h1>
                         {unreadCount > 0 && (
                             <p className="mt-1 text-sm text-neutral-500">
-                                {unreadCount} unread notification(s)
+                                {t("notifications.unreadCount", {
+                                    count: unreadCount,
+                                })}
                             </p>
                         )}
                     </div>
@@ -57,7 +65,7 @@ export default function Notifications() {
                             onClick={() => void handleMarkAllRead()}
                         >
                             <CheckCheck className="h-4 w-4" />
-                            Mark all read
+                            {t("notifications.markAllRead")}
                         </Button>
                     )}
                 </div>
@@ -76,7 +84,7 @@ export default function Notifications() {
                                         : "border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-300",
                                 )}
                             >
-                                {tab.label}
+                                {t(tab.labelKey)}
                                 {tab.value === "all" && unreadCount > 0 && (
                                     <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
                                         {unreadCount}
@@ -88,7 +96,9 @@ export default function Notifications() {
                 </div>
 
                 <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-                    <p className="mb-3 text-sm font-semibold">Notification preferences</p>
+                    <p className="mb-3 text-sm font-semibold">
+                        {t("notifications.preferences")}
+                    </p>
                     <div className="flex flex-wrap gap-2">
                         {(Object.keys(preferences) as Array<keyof typeof preferences>).map(
                             (key) => (
@@ -102,7 +112,7 @@ export default function Notifications() {
                                         })
                                     }
                                 >
-                                    {key}
+                                    {t(`notifications.preferenceTypes.${key}`)}
                                 </Button>
                             ),
                         )}
@@ -120,7 +130,9 @@ export default function Notifications() {
                     </div>
                 ) : filteredNotifications.length === 0 ? (
                     <div className="rounded-xl border border-neutral-200 bg-white p-12 text-center dark:border-neutral-800 dark:bg-neutral-900">
-                        <p className="text-neutral-400">No notifications.</p>
+                        <p className="text-neutral-400">
+                            {t("notifications.empty")}
+                        </p>
                     </div>
                 ) : (
                     <div className="space-y-1">
@@ -136,9 +148,12 @@ export default function Notifications() {
 
                 {filteredNotifications.length > 0 && (
                     <div className="mt-6 flex justify-center">
-                        <Button variant="outline">Load More</Button>
+                        <Button variant="outline">
+                            {t("notifications.loadMore")}
+                        </Button>
                     </div>
                 )}
-        </main>
+            </main>
+        </div>
     );
 }

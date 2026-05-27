@@ -797,5 +797,63 @@
 
     "common": {
         "more": "more"
+    },
+    "cart": {
+        "loading": "Loading your cart...",
+        "emptyTitle": "Your cart is empty",
+        "emptyDescription": "Looks like you haven't discovered anything you love yet. Start browsing the feed for the latest trends and exclusive community deals.",
+        "continueShopping": "Continue Shopping",
+        "orderHistory": "Order History",
+        "savedItems": "Saved Items",
+        "trendingWithFriends": "Trending with your friends",
+        "recentlyViewedRecommended": "Recently Viewed & Recommended",
+        "viewAll": "View all",
+        "noImage": "No image",
+        "title": "Shopping Cart",
+        "itemCount": "{{count}} items",
+        "selectAll": "Select All Items",
+        "deleteSelected": "Delete Selected",
+        "topSeller": "Top Seller",
+        "checkoutSelectRequired": "Please select at least one item to checkout.",
+        "removeItem": "Remove item",
+        "lineTotal": "Line total",
+        "decreaseQuantity": "Decrease quantity",
+        "increaseQuantity": "Increase quantity",
+        "summary": {
+            "orderSummary": "Order Summary",
+            "itemsSelected": "Items selected ({{count}})",
+            "subtotal": "Subtotal",
+            "shippingEst": "Shipping (est.)",
+            "free": "Free",
+            "discount": "Discount",
+            "promoQuestion": "Have a promo code?",
+            "enterCode": "Enter code",
+            "apply": "Apply",
+            "total": "Total",
+            "includingVat": "Including VAT",
+            "proceedToCheckout": "Proceed to Checkout",
+            "securePurchase": "Secure Purchase",
+            "secureDescription": "Your data is encrypted and protected by SocialCommerce SecurePay."
+        }
+    },
+
+    "notifications": {
+        "title": "Notifications",
+        "unreadCount": "{{count}} unread notification(s)",
+        "markAllRead": "Mark all read",
+        "tabs": {
+            "all": "All",
+            "social": "Social",
+            "orders": "Orders",
+            "system": "System"
+        },
+        "preferences": "Notification preferences",
+        "preferenceTypes": {
+            "social": "social",
+            "order": "order",
+            "system": "system"
+        },
+        "empty": "No notifications.",
+        "loadMore": "Load More"
     }
 }
