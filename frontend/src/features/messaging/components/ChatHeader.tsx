@@ -15,11 +15,13 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
     return (
         <div className="flex h-16 items-center justify-between border-b border-border bg-card/80 px-6 backdrop-blur-sm">
             <div className="flex min-w-0 items-center gap-3">
-                <div
-                    className="h-10 w-10 shrink-0 rounded-full bg-muted bg-cover bg-center"
+                <Link
+                    to={`/profile/${conversation.participantId}`}
+                    className="h-10 w-10 shrink-0 rounded-full bg-muted bg-cover bg-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     style={{
                         backgroundImage: `url(${conversation.participantAvatarUrl ?? DEFAULT_USER_AVATAR_URL})`,
                     }}
+                    aria-label={`View profile of ${conversation.participantName}`}
                 />
                 <div className="min-w-0">
                     <h2 className="truncate text-sm font-bold text-foreground">

@@ -1,5 +1,6 @@
 import { ChevronDown, MessageCircle, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import type { Conversation } from "../types/messaging.types";
 import { DEFAULT_USER_AVATAR_URL } from "../../../shared/config/defaultAssets";
 
@@ -8,7 +9,6 @@ interface DockAvatarStripProps {
     dockAvatarIds: string[];
     dockOpenIds: string[];
     dockExpanded: boolean;
-    onTogglePanel: (conversationId: string) => void;
     aiOpen: boolean;
     onToggleAi: () => void;
     onToggleExpanded: () => void;
@@ -23,12 +23,12 @@ export function DockAvatarStrip({
     dockAvatarIds,
     dockOpenIds,
     dockExpanded,
-    onTogglePanel,
     aiOpen,
     onToggleAi,
     onToggleExpanded,
 }: DockAvatarStripProps) {
     const { t } = useTranslation();
+    const navigate = useNavigate();
 
     return (
         <div className="flex flex-col items-center gap-2">
@@ -42,7 +42,7 @@ export function DockAvatarStrip({
                             <button
                                 key={id}
                                 type="button"
-                                onClick={() => onTogglePanel(id)}
+                                onClick={() => navigate(`/profile/${c.participantId}`)}
                                 className={`relative h-10 w-10 shrink-0 rounded-full border-2 bg-cover bg-center shadow-md transition hover:ring-2 hover:ring-primary ${
                                     panelOpen
                                         ? "border-primary ring-2 ring-primary/40"
@@ -56,6 +56,7 @@ export function DockAvatarStrip({
                                         ? `${c.participantName} — ${t("messaging.dockAvatarUnreadAria", { count: c.unreadCount })}`
                                         : c.participantName
                                 }
+                                aria-label={`View profile of ${c.participantName}`}
                                 aria-pressed={panelOpen}
                             >
                                 {c.unreadCount > 0 ? (

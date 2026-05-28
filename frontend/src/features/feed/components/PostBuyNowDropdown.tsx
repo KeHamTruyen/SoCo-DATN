@@ -42,15 +42,25 @@ export function PostBuyNowDropdown({
 
     if (products.length === 0) return null;
 
-    const label = t("feed.buyNow", "Buy Now");
+    const label =
+        products.length > 1
+            ? `${t("feed.buyNow", "Buy Now")} (${products.length})`
+            : t("feed.buyNow", "Buy Now");
+    const primaryProduct = products[0];
 
     return (
         <div ref={rootRef} className={cn("relative", className)}>
             <button
                 type="button"
                 aria-expanded={open}
-                aria-haspopup="menu"
-                onClick={() => setOpen((v) => !v)}
+                aria-haspopup={products.length > 1 ? "menu" : undefined}
+                onClick={() => {
+                    if (products.length === 1 && primaryProduct?.productId) {
+                        navigate(`/products/${primaryProduct.productId}`);
+                        return;
+                    }
+                    setOpen((v) => !v);
+                }}
                 className="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:bg-primary-700"
             >
                 {label}

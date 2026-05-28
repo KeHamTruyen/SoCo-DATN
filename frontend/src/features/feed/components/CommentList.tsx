@@ -67,11 +67,21 @@ export function CommentList({
             )}
             {displayComments.map((comment) => (
                 <div key={comment.id} className="flex gap-2">
-                    <Avatar
-                        src={comment.user?.avatarUrl}
-                        alt={comment.user?.fullName ?? comment.user?.username ?? "User"}
-                        wrapperClassName="h-8 w-8 shrink-0"
-                    />
+                    <Link
+                        to={
+                            user?.id && user.id === comment.user?.id
+                                ? "/profile"
+                                : `/profile/${comment.user?.id}`
+                        }
+                        className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        aria-label={`View profile of ${comment.user?.fullName ?? comment.user?.username ?? "user"}`}
+                    >
+                        <Avatar
+                            src={comment.user?.avatarUrl}
+                            alt={comment.user?.fullName ?? comment.user?.username ?? "User"}
+                            wrapperClassName="h-8 w-8"
+                        />
+                    </Link>
                     <div className="flex min-w-0 items-start gap-2">
                         <div className="inline-block max-w-full rounded-2xl bg-neutral-100 px-3 py-2 text-sm dark:bg-neutral-800">
                             <div className="flex items-center gap-2">

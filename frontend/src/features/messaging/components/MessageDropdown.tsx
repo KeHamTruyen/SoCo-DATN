@@ -1,7 +1,7 @@
 import { Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { searchUsers } from "../../auth/api/userApi";
 import type { TaggedUserBrief } from "../../feed/types/feed.types";
 import { useMessagingOptional } from "../context/MessagingContext";
@@ -22,6 +22,7 @@ function displayUserName(u: TaggedUserBrief): string {
 
 export function MessageDropdown({ onClose }: MessageDropdownProps) {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const { user } = useAuthSession();
     const messaging = useMessagingOptional();
     const conversations = messaging?.conversations ?? [];
@@ -191,9 +192,24 @@ export function MessageDropdown({ onClose }: MessageDropdownProps) {
                                     className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-muted/60"
                                 >
                                     <div
-                                        className="h-10 w-10 shrink-0 rounded-full bg-cover bg-center"
+                                        role="link"
+                                        tabIndex={0}
+                                        aria-label={`View profile of ${displayUserName(u)}`}
+                                        className="h-10 w-10 shrink-0 rounded-full bg-cover bg-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                         style={{
                                             backgroundImage: `url(${u.avatarUrl ?? DEFAULT_USER_AVATAR_URL})`,
+                                        }}
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            onClose();
+                                            navigate(user?.id === u.id ? "/profile" : `/profile/${u.id}`);
+                                        }}
+                                        onKeyDown={(event) => {
+                                            if (event.key !== "Enter" && event.key !== " ") return;
+                                            event.preventDefault();
+                                            event.stopPropagation();
+                                            onClose();
+                                            navigate(user?.id === u.id ? "/profile" : `/profile/${u.id}`);
                                         }}
                                     />
                                     <span className="truncate text-sm font-medium text-foreground">
@@ -222,9 +238,24 @@ export function MessageDropdown({ onClose }: MessageDropdownProps) {
                             className="flex w-full cursor-pointer items-start gap-3 border-b border-border/60 px-4 py-3 text-left transition-colors last:border-0 hover:bg-muted/50"
                         >
                             <div
-                                className="h-10 w-10 shrink-0 rounded-full bg-cover bg-center"
+                                role="link"
+                                tabIndex={0}
+                                aria-label={`View profile of ${c.participantName}`}
+                                className="h-10 w-10 shrink-0 rounded-full bg-cover bg-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                 style={{
                                     backgroundImage: `url(${c.participantAvatarUrl ?? DEFAULT_USER_AVATAR_URL})`,
+                                }}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    onClose();
+                                    navigate(`/profile/${c.participantId}`);
+                                }}
+                                onKeyDown={(event) => {
+                                    if (event.key !== "Enter" && event.key !== " ") return;
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    onClose();
+                                    navigate(`/profile/${c.participantId}`);
                                 }}
                             />
                             <div className="min-w-0 flex-1">

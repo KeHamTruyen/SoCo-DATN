@@ -30,7 +30,6 @@ export function MessageDock() {
         setDockExpanded,
         minimizeDockChat,
         closeDockChat,
-        toggleDockPanel,
         loadMessagesForConversation,
     } = messaging;
 
@@ -69,7 +68,6 @@ export function MessageDock() {
                 dockAvatarIds={dockAvatarIds}
                 dockOpenIds={dockOpenIds}
                 dockExpanded={dockExpanded}
-                onTogglePanel={toggleDockPanel}
                 aiOpen={aiOpen}
                 onToggleAi={() => {
                     setDockExpanded(true);

@@ -175,6 +175,10 @@ function FeedPostCardComponent({
     };
 
     const handleCommentIconClick = () => {
+        if (mode === "feed") {
+            setShowPostModal(true);
+            return;
+        }
         if (!user) {
             setShowGuestAuthModal(true);
             return;

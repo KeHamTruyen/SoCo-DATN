@@ -6,10 +6,12 @@ import { FeedRoutes } from "./feed.routes";
 import { MarketplaceRoutes } from "./marketplace.routes";
 import { SocialRoutes } from "./social.routes";
 import RootRedirect from "./RootRedirect";
+import ScrollToTop from "./ScrollToTop";
 
 export default function AppRouter() {
     return (
         <BrowserRouter>
+            <ScrollToTop />
             <Routes>
                 <Route path="/" element={<RootRedirect />} />
                 {AuthRoutes()}

@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import type { Conversation } from "../types/messaging.types";
 import { DEFAULT_USER_AVATAR_URL } from "../../../shared/config/defaultAssets";
 import { cn } from "../../../shared/lib/cn";
@@ -19,6 +20,7 @@ export function ConversationSidebar({
     onSelect,
 }: ConversationSidebarProps) {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const [query, setQuery] = useState("");
 
     const filtered = useMemo(() => {
@@ -74,9 +76,22 @@ export function ConversationSidebar({
                         >
                             <div className="relative shrink-0">
                                 <div
-                                    className="h-12 w-12 rounded-full bg-muted bg-cover bg-center"
+                                    role="link"
+                                    tabIndex={0}
+                                    aria-label={`View profile of ${conv.participantName}`}
+                                    className="h-12 w-12 rounded-full bg-muted bg-cover bg-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                     style={{
                                         backgroundImage: `url(${conv.participantAvatarUrl ?? DEFAULT_USER_AVATAR_URL})`,
+                                    }}
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        navigate(`/profile/${conv.participantId}`);
+                                    }}
+                                    onKeyDown={(event) => {
+                                        if (event.key !== "Enter" && event.key !== " ") return;
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        navigate(`/profile/${conv.participantId}`);
                                     }}
                                 />
                                 {conv.isOnline && (

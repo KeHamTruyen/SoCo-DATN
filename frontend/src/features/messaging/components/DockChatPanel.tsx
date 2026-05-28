@@ -55,12 +55,23 @@ export function DockChatPanel({
             {/* Header */}
             <div className="flex shrink-0 items-center justify-between border-b border-border bg-muted/40 px-3 py-2">
                 <div className="flex min-w-0 items-center gap-2">
-                    <div
-                        className="h-8 w-8 shrink-0 rounded-full bg-cover bg-center"
-                        style={{
-                            backgroundImage: `url(${conversation?.participantAvatarUrl ?? DEFAULT_USER_AVATAR_URL})`,
-                        }}
-                    />
+                    {conversation?.participantId ? (
+                        <Link
+                            to={`/profile/${conversation.participantId}`}
+                            className="h-8 w-8 shrink-0 rounded-full bg-cover bg-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            style={{
+                                backgroundImage: `url(${conversation.participantAvatarUrl ?? DEFAULT_USER_AVATAR_URL})`,
+                            }}
+                            aria-label={`View profile of ${conversation.participantName}`}
+                        />
+                    ) : (
+                        <div
+                            className="h-8 w-8 shrink-0 rounded-full bg-cover bg-center"
+                            style={{
+                                backgroundImage: `url(${DEFAULT_USER_AVATAR_URL})`,
+                            }}
+                        />
+                    )}
                     <span className="truncate text-sm font-semibold text-foreground">
                         {conversation?.participantName ??
                             t("messaging.loadingConversation")}

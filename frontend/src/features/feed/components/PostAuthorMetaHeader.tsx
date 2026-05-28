@@ -56,11 +56,17 @@ export function PostAuthorMetaHeader({ post, variant, authorProfilePath }: PostA
                             post.group.name.slice(0, 2).toUpperCase()
                         )}
                     </div>
-                    <Avatar
-                        src={post.author.avatarUrl}
-                        alt={post.author.fullName ?? post.author.email ?? ""}
-                        wrapperClassName="absolute -bottom-1 -right-1 h-6 w-6 border-2 border-white dark:border-neutral-900"
-                    />
+                    <Link
+                        to={resolvedAuthorPath}
+                        className="absolute -bottom-1 -right-1 block rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        aria-label={`View profile of ${post.author.fullName ?? post.author.username ?? "user"}`}
+                    >
+                        <Avatar
+                            src={post.author.avatarUrl}
+                            alt={post.author.fullName ?? post.author.email ?? ""}
+                            wrapperClassName="h-6 w-6 border-2 border-white dark:border-neutral-900"
+                        />
+                    </Link>
                 </div>
                 <div className="min-w-0">
                     <Link to={`/groups/${post.group.id}`} className={titleGroupClass}>
@@ -103,11 +109,17 @@ export function PostAuthorMetaHeader({ post, variant, authorProfilePath }: PostA
 
     return (
         <div className="flex items-center gap-3">
-            <Avatar
-                src={post.author.avatarUrl}
-                alt={post.author.fullName ?? post.author.email ?? ""}
-                wrapperClassName={isCompact ? "h-10 w-10 shrink-0 border-2 border-primary" : undefined}
-            />
+            <Link
+                to={resolvedAuthorPath}
+                className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                aria-label={`View profile of ${post.author.fullName ?? post.author.username ?? "user"}`}
+            >
+                <Avatar
+                    src={post.author.avatarUrl}
+                    alt={post.author.fullName ?? post.author.email ?? ""}
+                    wrapperClassName={isCompact ? "h-10 w-10 border-2 border-primary" : undefined}
+                />
+            </Link>
             <div className="min-w-0">
                 <Link to={resolvedAuthorPath} className={titleAuthorClass}>
                     {post.author.fullName ?? post.author.username ?? "User"}
