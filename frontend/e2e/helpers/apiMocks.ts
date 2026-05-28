@@ -587,10 +587,14 @@ export async function mockBuyerApi(page: Page, options: BuyerMockOptions = {}) {
         // Notifications
         if (method === "GET" && path === "/notifications") {
             const unreadCount = state.notifications.filter((n) => !(n as any).isRead).length;
+            const pageParam = Number(url.searchParams.get("page") ?? "1");
+            const limitParam = Number(url.searchParams.get("limit") ?? "20");
             return json(route, {
                 notifications: state.notifications,
                 total: state.notifications.length,
                 unreadCount,
+                page: Number.isFinite(pageParam) ? pageParam : 1,
+                limit: Number.isFinite(limitParam) ? limitParam : 20,
             });
         }
         if (method === "GET" && path === "/notifications/preferences") {

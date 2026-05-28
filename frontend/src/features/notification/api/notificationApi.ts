@@ -47,6 +47,8 @@ interface BackendNotificationsListResponse {
     notifications: BackendNotification[];
     total: number;
     unreadCount: number;
+    page: number;
+    limit: number;
 }
 
 function mapType(rawType: string): Notification["type"] {
@@ -123,12 +125,21 @@ function normalizeListResponse(
         items: data.notifications.map(toNotification),
         total: data.total,
         unreadCount: data.unreadCount,
+        page: data.page,
+        limit: data.limit,
     };
 }
 
 export const notificationApi = {
-    async listNotifications(type?: "all" | "social" | "order" | "system") {
-        const query = type && type !== "all" ? `?type=${type}` : "";
+    async listNotifications(
+        type?: "all" | "social" | "order" | "system",
+        options: { page?: number; limit?: number } = {},
+    ) {
+        const params = new URLSearchParams();
+        if (type && type !== "all") params.set("type", type);
+        if (options.page) params.set("page", String(options.page));
+        if (options.limit) params.set("limit", String(options.limit));
+        const query = params.toString() ? `?${params.toString()}` : "";
         const res = await httpClient.get<
             ApiResponse<BackendNotificationsListResponse> | BackendNotificationsListResponse
         >(`/notifications${query}`, { requiresAuth: true });

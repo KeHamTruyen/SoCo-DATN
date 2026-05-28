@@ -18,9 +18,12 @@ import { useSocket } from "../../../shared/realtime/SocketContext";
 interface NotificationContextValue {
     notifications: Notification[];
     unreadCount: number;
+    hasMore: boolean;
     preferences: NotificationPreferences;
     isLoading: boolean;
+    isLoadingMore: boolean;
     refresh: (type?: "all" | NotificationType) => Promise<void>;
+    loadMore: (type?: "all" | NotificationType) => Promise<void>;
     markRead: (id: string) => Promise<void>;
     markAllRead: () => Promise<void>;
     updatePreferences: (updates: Partial<NotificationPreferences>) => Promise<void>;
@@ -49,22 +52,55 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const socket = useSocket();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [total, setTotal] = useState(0);
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(20);
     const [preferences, setPreferences] = useState<NotificationPreferences>(DEFAULT_PREFERENCES);
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [liveToasts, setLiveToasts] = useState<Notification[]>([]);
 
     const refresh = async (type: "all" | NotificationType = "all") => {
         setIsLoading(true);
         try {
-            const data = await notificationApi.listNotifications(type);
+            const data = await notificationApi.listNotifications(type, { page: 1, limit });
             if (type === "all") {
                 setNotifications(data.items);
                 setUnreadCount(data.unreadCount);
             } else {
                 setNotifications(data.items);
             }
+            setTotal(data.total);
+            setPage(data.page);
+            setLimit(data.limit);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const loadMore = async (type: "all" | NotificationType = "all") => {
+        if (isLoadingMore || notifications.length >= total) return;
+
+        const nextPage = page + 1;
+        setIsLoadingMore(true);
+        try {
+            const data = await notificationApi.listNotifications(type, {
+                page: nextPage,
+                limit,
+            });
+            setNotifications((prev) => {
+                const seenIds = new Set(prev.map((item) => item.id));
+                const nextItems = data.items.filter((item) => !seenIds.has(item.id));
+                return [...prev, ...nextItems];
+            });
+            if (type === "all") {
+                setUnreadCount(data.unreadCount);
+            }
+            setTotal(data.total);
+            setPage(data.page);
+            setLimit(data.limit);
+        } finally {
+            setIsLoadingMore(false);
         }
     };
 
@@ -72,6 +108,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         if (!user?.id) {
             setNotifications([]);
             setUnreadCount(0);
+            setTotal(0);
+            setPage(1);
             setLiveToasts([]);
             return;
         }
@@ -192,16 +230,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         () => ({
             notifications,
             unreadCount,
+            hasMore: notifications.length < total,
             preferences,
             isLoading,
+            isLoadingMore,
             refresh,
+            loadMore,
             markRead,
             markAllRead,
             updatePreferences,
             liveToasts,
             dismissToast,
         }),
-        [notifications, unreadCount, preferences, isLoading, liveToasts],
+        [notifications, unreadCount, total, preferences, isLoading, isLoadingMore, liveToasts],
     );
 
     return (

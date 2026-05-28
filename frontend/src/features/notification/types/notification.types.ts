@@ -24,6 +24,8 @@ export interface NotificationsListResponse {
     items: Notification[];
     total: number;
     unreadCount: number;
+    page: number;
+    limit: number;
 }
 
 export interface NotificationPreferences {

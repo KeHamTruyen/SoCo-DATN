@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useNotificationCenter } from "../features/notification/context/NotificationContext";
 import { NotificationItem } from "../features/notification/components/NotificationItem";
 import { cn } from "../shared/lib/cn";
-import { Button, UnifiedHeader } from "../shared/ui";
+import { Button } from "../shared/ui";
 
 type TabFilter = "all" | "social" | "order" | "system";
 
@@ -21,11 +21,12 @@ export default function Notifications() {
     const {
         notifications,
         unreadCount,
+        hasMore,
         isLoading,
-        preferences,
+        isLoadingMore,
         markRead,
         markAllRead,
-        updatePreferences,
+        loadMore,
     } = useNotificationCenter();
 
     const handleMarkAllRead = async () => {
@@ -43,7 +44,6 @@ export default function Notifications() {
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark">
-   
             <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
                 <div className="mb-6 flex items-center justify-between">
                     <div>
@@ -95,30 +95,6 @@ export default function Notifications() {
                     </nav>
                 </div>
 
-                <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-                    <p className="mb-3 text-sm font-semibold">
-                        {t("notifications.preferences")}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                        {(Object.keys(preferences) as Array<keyof typeof preferences>).map(
-                            (key) => (
-                                <Button
-                                    key={key}
-                                    variant={preferences[key] ? "primary" : "outline"}
-                                    size="sm"
-                                    onClick={() =>
-                                        void updatePreferences({
-                                            [key]: !preferences[key],
-                                        })
-                                    }
-                                >
-                                    {t(`notifications.preferenceTypes.${key}`)}
-                                </Button>
-                            ),
-                        )}
-                    </div>
-                </div>
-
                 {isLoading ? (
                     <div className="space-y-3">
                         {Array.from({ length: 5 }).map((_, i) => (
@@ -146,10 +122,18 @@ export default function Notifications() {
                     </div>
                 )}
 
-                {filteredNotifications.length > 0 && (
+                {!isLoading && (filteredNotifications.length > 0 || hasMore) && (
                     <div className="mt-6 flex justify-center">
-                        <Button variant="outline">
-                            {t("notifications.loadMore")}
+                        <Button
+                            variant="outline"
+                            disabled={!hasMore || isLoadingMore}
+                            onClick={() => void loadMore("all")}
+                        >
+                            {isLoadingMore
+                                ? t("common.loading", "Đang tải...")
+                                : hasMore
+                                  ? t("notifications.loadMore")
+                                  : t("notifications.noMore", "Đã hết thông báo")}
                         </Button>
                     </div>
                 )}
