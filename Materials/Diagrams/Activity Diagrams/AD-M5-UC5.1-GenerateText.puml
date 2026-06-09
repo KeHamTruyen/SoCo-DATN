@@ -1,11 +1,11 @@
 @startuml AD-M5-UC5.1-GenerateText
 !theme plain
 title Activity Diagram - UC5.1: Tạo bài viết từ mô tả, ý tưởng và hình ảnh sản phẩm
-caption Tạo nội dung bài viết qua Google Gemini API
+caption Tạo nội dung bài viết với Quality Gate, retry/refine và fallback provider
 
 |Người dùng|
 |Hệ thống|
-|AI Service (Gemini API)|
+|AI Service|
 
 start
 
@@ -18,12 +18,13 @@ note right: Có thể tải lên hình ảnh sản phẩm
 |Hệ thống|
 :Thu thập mô tả, ý tưởng và hình ảnh (nếu có);
 
-|AI Service (Gemini API)|
-:Gemini API phân tích đầu vào đa phương thức;
-:Tạo bài viết (Tiêu đề, Mô tả, Hashtags);
+|AI Service|
+:Chuẩn hóa đầu vào và prompt;
+:Sinh bài viết theo schema (title, body, hashtags);
+:Đánh giá chất lượng (evaluate + score);
 
 |Hệ thống|
-if (AI xử lý thành công?) then (Có)
+if (Đạt ngưỡng chất lượng?) then (Có)
   :Hiển thị nội dung trong trình soạn thảo;
   
   |Người dùng|
@@ -38,7 +39,7 @@ if (AI xử lý thành công?) then (Có)
     case (Tạo lại)
       :Nhấn "Tạo lại";
       
-      |AI Service (Gemini API)|
+      |AI Service|
       :Tạo phương án mới;
       
     case (Chỉnh sửa thủ công)
@@ -52,10 +53,16 @@ if (AI xử lý thành công?) then (Có)
     endswitch
   endif
 else (Không)
-  :Hiển thị lỗi "Không thể tạo nội dung lúc này";
-  
-  |Người dùng|
-  :Thử lại hoặc viết thủ công;
+  if (Còn số lần retry?) then (Có)
+    :Refine prompt theo tiêu chí yếu nhất;
+    |AI Service|
+    :Sinh lại và chấm điểm lại;
+  else (Không)
+    :Hiển thị lỗi "Nội dung chưa đạt chất lượng,\nvui lòng bổ sung prompt";
+    
+    |Người dùng|
+    :Thử lại hoặc viết thủ công;
+  endif
 endif
 
 stop

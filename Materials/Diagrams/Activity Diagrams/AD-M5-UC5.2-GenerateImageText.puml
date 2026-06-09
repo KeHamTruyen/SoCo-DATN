@@ -1,11 +1,11 @@
 @startuml AD-M5-UC5.2-GenerateImageText
 !theme plain
 title Activity Diagram - UC5.2: Tạo bài viết và hình ảnh từ mô tả, ý tưởng và hình ảnh đầu vào
-caption Tạo bài viết và hình ảnh qua Google Gemini API
+caption Tạo bài viết + hình ảnh với Quality Gate, provider fallback và degrade gracefully
 
 |Người dùng|
 |Hệ thống|
-|AI Service (Gemini API)|
+|AI Service|
 
 start
 
@@ -18,12 +18,15 @@ note right: Có thể tải lên hình ảnh đầu vào để tham khảo
 |Hệ thống|
 :Gửi mô tả, ý tưởng và hình ảnh đầu vào (nếu có) đến AI;
 
-|AI Service (Gemini API)|
-:Gemini API phân tích đầu vào;
-:Tạo đồng thời bài viết và hình ảnh phù hợp;
+|AI Service|
+:Tạo nội dung chữ theo pipeline UC5.1;
+:Đánh giá chất lượng phần chữ (evaluate + score);
+:Nếu chưa đạt, refine prompt và tạo lại trong giới hạn retry;
+:Chuẩn hóa prompt ảnh (ưu tiên tiếng Anh);
+:Gọi image provider theo chuỗi chính/phụ;
 
 |Hệ thống|
-if (AI xử lý thành công?) then (Có)
+if (Text đạt chuẩn và ảnh tạo thành công?) then (Có)
   :Hiển thị bài viết và hình ảnh trong trình soạn thảo;
   
   |Người dùng|
@@ -38,7 +41,7 @@ if (AI xử lý thành công?) then (Có)
     case (Tạo lại)
       :Nhấn "Tạo lại";
       
-      |AI Service (Gemini API)|
+      |AI Service|
       :Tạo phương án mới;
       
     case (Chỉnh sửa thủ công)
@@ -56,13 +59,13 @@ if (AI xử lý thành công?) then (Có)
     endswitch
   endif
 else (Không)
-  if (Không thể tạo hình ảnh?) then (Có)
-    :Hiển thị chỉ bài viết và thông báo;
+  if (Text đạt chuẩn nhưng ảnh lỗi quota/rate-limit?) then (Có)
+    :Degrade gracefully:\nHiển thị chỉ bài viết + cảnh báo ảnh;
     
     |Người dùng|
     :Quyết định sử dụng hoặc tạo lại;
-  else (Lỗi khác)
-    :Hiển thị lỗi "Không thể tạo nội dung lúc này";
+  else (Text không đạt hoặc lỗi AI nghiêm trọng)
+    :Hiển thị lỗi "Không thể tạo nội dung đạt chuẩn lúc này";
     
     |Người dùng|
     :Thử lại hoặc tạo nội dung thủ công;

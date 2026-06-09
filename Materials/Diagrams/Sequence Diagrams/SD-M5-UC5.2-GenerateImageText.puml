@@ -1,0 +1,55 @@
+@startuml SD-M5-UC5.2-GenerateImageText
+!theme plain
+title SD-M5-UC5.2-GenerateImageText - Tạo bài viết và hình ảnh
+caption endpoint: POST /api/ai/generate-image-text
+
+actor User
+participant Frontend
+participant "AIController" as AICtl
+participant "AI Service" as AIS
+participant "Text LLM Provider" as LLM
+participant "Image Provider Chain" as ImgChain
+database "DB (ContentRequest)" as DB
+
+User -> Frontend: Nhập mô tả/ý tưởng (+ ảnh đầu vào tùy chọn)
+Frontend -> AICtl: POST /api/ai/generate-image-text
+AICtl -> DB: Tạo ContentRequest (pending)
+AICtl -> AIS: generateImageText(payload, userId)
+
+== Giai đoạn text (kế thừa UC5.1) ==
+loop Tối đa N lần thử
+  AIS -> LLM: Generate text draft
+  LLM --> AIS: Text draft
+  AIS -> AIS: Evaluate quality + score
+  alt Text chưa đạt ngưỡng
+    AIS -> AIS: Refine prompt và regenerate
+  else Text đạt ngưỡng
+    break
+  end
+end
+
+== Giai đoạn image ==
+AIS -> AIS: Chuẩn hóa prompt ảnh (English-first)
+AIS -> ImgChain: Generate image (primary provider)
+alt Provider chính thất bại
+  ImgChain --> AIS: Error
+  AIS -> ImgChain: Fallback provider kế tiếp
+end
+
+alt Ảnh thành công
+  ImgChain --> AIS: imageUrl + metadata
+  AIS --> AICtl: text + image + status
+else Quota/rate-limit hoặc hết provider
+  AIS --> AICtl: text-only + imageErrorStatus
+  note right of AICtl
+    Degrade gracefully:
+    giữ text đã đạt chất lượng,
+    trả cảnh báo trạng thái ảnh
+  end note
+end
+
+AICtl -> DB: Cập nhật ContentRequest
+AICtl --> Frontend: Trả kết quả cho trình soạn thảo
+User -> Frontend: Chỉnh sửa / Đăng / Tạo lại
+
+@enduml

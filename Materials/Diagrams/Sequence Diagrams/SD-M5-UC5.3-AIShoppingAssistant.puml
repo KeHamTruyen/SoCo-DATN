@@ -1,0 +1,47 @@
+@startuml SD-M5-UC5.3-AIShoppingAssistant
+!theme plain
+title SD-M5-UC5.3-AIShoppingAssistant - Chat tư vấn mua sắm
+caption endpoint: POST /api/ai-assistant/chat
+
+actor User
+participant Frontend
+participant "Auth Middleware (protect)" as Auth
+participant "AiAssistantController" as Ctl
+participant "AiAssistantService" as Svc
+database "DB (Product, Order)" as DB
+participant "Text LLM Client" as LLM
+
+User -> Frontend: Nhập câu hỏi + lịch sử + memory
+Frontend -> Auth: POST /api/ai-assistant/chat
+Auth --> Frontend: Xác thực JWT thành công
+Frontend -> Ctl: {message, history, memory}
+
+Ctl -> Ctl: Chuẩn hóa message/history/memory\n(safeHistory, role, giới hạn 8 tin)
+Ctl -> Svc: chat({ userId, message, history, memory })
+
+Svc -> Svc: validate message + detectIntent\nextractOrderNumber + parseBudget
+Svc -> Svc: normalizeMemory + tokenize message
+
+Svc -> DB: findMany products\n(where theo token + budget + ACTIVE)
+DB --> Svc: productsRaw (limit 5)
+Svc -> DB: findMany orders\n(where buyerId + orderNumber nếu có)
+DB --> Svc: ordersRaw (limit 3)
+
+Svc -> Svc: summarizeProducts + summarizeOrders
+Svc -> Svc: buildPrompt(intent, history,\nmemory, productContext, orderContext)
+Svc -> LLM: generate({ text: prompt })
+
+alt LLM thành công
+  LLM --> Svc: generated text
+else LLM lỗi / timeout
+  Svc -> Svc: Tạo fallback reply\n(từ dữ liệu product context)
+end
+
+Svc -> Svc: parseAssistantJson(generated)
+Svc -> Svc: merge memoryPatch\n+ buildQuickActions
+Svc --> Ctl: {reply, followUps, quickActions,\nmemory, cards, meta}
+
+Ctl --> Frontend: { success: true, data }
+Frontend --> User: Hiển thị reply + cards + quick actions
+
+@enduml

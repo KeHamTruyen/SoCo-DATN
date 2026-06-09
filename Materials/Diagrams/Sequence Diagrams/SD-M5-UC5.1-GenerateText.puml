@@ -1,0 +1,39 @@
+@startuml SD-M5-UC5.1-GenerateText
+!theme plain
+title SD-M5-UC5.1-GenerateText - Tạo bài viết với Quality Gate
+caption endpoint: POST /api/ai/generate-text
+
+actor User
+participant Frontend
+participant "AIController" as AICtl
+participant "AI Service" as AIS
+participant "Text LLM Provider" as LLM
+database "DB (ContentRequest)" as DB
+
+User -> Frontend: Nhập mô tả/ý tưởng (+ ảnh sản phẩm tùy chọn)
+Frontend -> AICtl: POST /api/ai/generate-text
+AICtl -> DB: Tạo ContentRequest (pending)
+AICtl -> AIS: generateText(payload, userId)
+
+loop Tối đa N lần thử
+  AIS -> LLM: Generate structured content
+  LLM --> AIS: Draft content (json/raw)
+  AIS -> AIS: Evaluate quality + score
+  alt Chưa đạt ngưỡng
+    AIS -> AIS: Refine prompt theo tiêu chí yếu
+  else Đạt ngưỡng
+    break
+  end
+end
+
+alt Provider chính lỗi quota/rate-limit
+  AIS -> AIS: Retry/backoff
+  AIS -> LLM: Fallback sang provider dự phòng
+end
+
+AIS --> AICtl: Content + quality status
+AICtl -> DB: Cập nhật ContentRequest (completed/needs_review)
+AICtl --> Frontend: Trả bài viết đề xuất
+User -> Frontend: Chỉnh sửa / Đăng / Tạo lại
+
+@enduml
