@@ -1,8 +1,12 @@
+import { Link } from "react-router-dom";
 import { useGroupContext } from "../context/GroupContext";
+import { useAuthSession } from "../../../shared/auth/useAuthSession";
+import { resolveProfilePath } from "../../../shared/lib/resolveProfilePath";
 import { Avatar } from "../../../shared/ui";
 import { copyToClipboard } from "../utils/groupDetailUtils";
 
 export function GroupMembersTab() {
+    const { user } = useAuthSession();
     const { 
         id, group, members, joinRequests, invites, tabLoading,
         handlePromoteDemote, handleRemoveMember, handleReviewRequest, handleCreateInvite
@@ -21,13 +25,16 @@ export function GroupMembersTab() {
                 <div className="space-y-3">
                     {members.map((m) => (
                         <div key={m.id} className="flex items-center justify-between rounded-lg border border-neutral-100 p-3 dark:border-neutral-800">
-                            <div className="flex items-center gap-3">
-                                <Avatar src={m.user.avatarUrl} alt={m.user.fullName ?? m.user.username ?? "Member"} wrapperClassName="h-9 w-9" />
-                                <div>
-                                    <p className="text-sm font-semibold">{m.user.fullName ?? m.user.username ?? "Member"}</p>
+                            <Link
+                                to={resolveProfilePath(m.userId, user?.id)}
+                                className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-90"
+                            >
+                                <Avatar src={m.user.avatarUrl} alt={m.user.fullName ?? m.user.username ?? "Member"} wrapperClassName="h-9 w-9 shrink-0" />
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-semibold hover:text-primary hover:underline">{m.user.fullName ?? m.user.username ?? "Member"}</p>
                                     <p className="text-xs text-neutral-500">{m.role}</p>
                                 </div>
-                            </div>
+                            </Link>
                             <div className="flex items-center gap-2">
                                 {canManageRoles && m.role !== "ADMIN" && (
                                     <button type="button" onClick={() => void handlePromoteDemote(m, m.role === "MODERATOR" ? "MEMBER" : "MODERATOR")} className="rounded-md border px-2 py-1 text-xs">
@@ -52,7 +59,12 @@ export function GroupMembersTab() {
                     <div className="space-y-2">
                         {joinRequests.map((r) => (
                             <div key={r.id} className="flex items-center justify-between rounded-lg border border-neutral-100 p-2 dark:border-neutral-800">
-                                <span className="text-sm">{r.user.fullName ?? r.user.username ?? "User"}</span>
+                                <Link
+                                    to={resolveProfilePath(r.user.id, user?.id)}
+                                    className="text-sm hover:text-primary hover:underline"
+                                >
+                                    {r.user.fullName ?? r.user.username ?? "User"}
+                                </Link>
                                 <div className="flex gap-2">
                                     <button type="button" className="rounded-md border px-2 py-1 text-xs" onClick={() => void handleReviewRequest(r.id, "approve")}>Approve</button>
                                     <button type="button" className="rounded-md border border-red-200 px-2 py-1 text-xs text-red-500" onClick={() => void handleReviewRequest(r.id, "reject")}>Reject</button>

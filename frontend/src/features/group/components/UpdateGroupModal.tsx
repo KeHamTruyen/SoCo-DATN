@@ -1,6 +1,9 @@
 import { Camera, Loader2, Shield, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { groupApi } from "../api/groupApi";
+import { useAuthSession } from "../../../shared/auth/useAuthSession";
+import { resolveProfilePath } from "../../../shared/lib/resolveProfilePath";
 import type { Group, GroupMemberBrief } from "../types/group.types";
 import { uploadApi } from "../../upload/api/uploadApi";
 import { Avatar, Button } from "../../../shared/ui";
@@ -14,6 +17,7 @@ interface UpdateGroupModalProps {
 const MAX_ADMINS = 20;
 
 export function UpdateGroupModal({ group, onClose, onUpdated }: UpdateGroupModalProps) {
+    const { user } = useAuthSession();
     const [name, setName] = useState(group.name);
     const [description, setDescription] = useState(group.description ?? "");
     const [privacy, setPrivacy] = useState(group.privacy?.toUpperCase() ?? "PUBLIC");
@@ -246,14 +250,17 @@ export function UpdateGroupModal({ group, onClose, onUpdated }: UpdateGroupModal
                                     </p>
                                     {members.map((m) => (
                                         <div key={m.userId} className="flex items-center justify-between rounded-lg p-2 hover:bg-neutral-50 dark:hover:bg-neutral-800">
-                                            <div className="flex items-center gap-3">
+                                            <Link
+                                                to={resolveProfilePath(m.userId, user?.id)}
+                                                className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-90"
+                                            >
                                                 <Avatar
                                                     src={m.user.avatarUrl}
                                                     alt={m.user.fullName ?? m.user.username ?? "Member"}
                                                     wrapperClassName="h-9 w-9 shrink-0"
                                                 />
-                                                <div>
-                                                    <p className="text-sm font-semibold">
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-sm font-semibold hover:text-primary hover:underline">
                                                         {m.user.fullName ?? m.user.username ?? "Member"}
                                                     </p>
                                                     <p className="text-[10px] font-bold uppercase tracking-tighter text-neutral-400">
@@ -261,7 +268,7 @@ export function UpdateGroupModal({ group, onClose, onUpdated }: UpdateGroupModal
                                                         {m.userId === group.createdBy ? " • Founder" : ""}
                                                     </p>
                                                 </div>
-                                            </div>
+                                            </Link>
                                             <div className="flex items-center gap-1">
                                                 {m.role === "ADMIN" ? (
                                                     m.userId !== group.createdBy && (
