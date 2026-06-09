@@ -60,7 +60,9 @@ export interface Order {
         address: string;
     };
     paymentMethod: "cod" | "bank_transfer" | "e_wallet";
+    buyerId?: string;
     buyerName?: string;
+    sellerId?: string;
     sellerName?: string;
     timeline?: OrderTimeline[];
     trackingNumber?: string;

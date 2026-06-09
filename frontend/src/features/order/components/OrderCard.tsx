@@ -1,7 +1,9 @@
 import { ChevronRight, Package } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { cn } from "../../../shared/lib/cn";
 import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
+import { resolveProfilePath } from "../../../shared/lib/resolveProfilePath";
 import type { Order, OrderStatus } from "../types/order.types";
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
@@ -31,22 +33,32 @@ interface OrderCardProps {
 }
 
 export function OrderCard({ order }: OrderCardProps) {
+    const { user } = useAuthSession();
     const firstItem = order.items[0];
     const extraCount = order.items.length - 1;
 
     return (
-        <Link
-            to={`/orders/${order.id}`}
-            className="block overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
-        >
+        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900">
             <div className="flex items-center justify-between border-b border-neutral-100 bg-neutral-50/50 p-4 dark:border-neutral-800 dark:bg-neutral-800/50">
                 <div className="flex items-center gap-3">
                     <Package className="h-4 w-4 text-primary" />
                     <div>
-                        <span className="text-sm font-semibold">#{order.orderNumber}</span>
-                        {order.sellerName && (
+                        <Link
+                            to={`/orders/${order.id}`}
+                            className="text-sm font-semibold hover:text-primary hover:underline"
+                        >
+                            #{order.orderNumber}
+                        </Link>
+                        {order.sellerName && order.sellerId ? (
+                            <Link
+                                to={resolveProfilePath(order.sellerId, user?.id)}
+                                className="ml-2 text-sm text-neutral-500 hover:text-primary hover:underline"
+                            >
+                                {order.sellerName}
+                            </Link>
+                        ) : order.sellerName ? (
                             <span className="ml-2 text-sm text-neutral-500">{order.sellerName}</span>
-                        )}
+                        ) : null}
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -58,10 +70,12 @@ export function OrderCard({ order }: OrderCardProps) {
                     >
                         {STATUS_LABEL[order.status]}
                     </span>
-                    <ChevronRight className="h-4 w-4 text-neutral-400" />
+                    <Link to={`/orders/${order.id}`} aria-label="View order details">
+                        <ChevronRight className="h-4 w-4 text-neutral-400" />
+                    </Link>
                 </div>
             </div>
-            <div className="p-4">
+            <Link to={`/orders/${order.id}`} className="block p-4">
                 <div className="flex items-center gap-4">
                     {firstItem?.imageUrl && (
                         <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800">
@@ -90,7 +104,7 @@ export function OrderCard({ order }: OrderCardProps) {
                         <p className="text-xs text-neutral-500">{order.items.length} item(s)</p>
                     </div>
                 </div>
-            </div>
-        </Link>
+            </Link>
+        </div>
     );
 }

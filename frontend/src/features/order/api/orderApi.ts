@@ -83,6 +83,13 @@ function normalizeOrder(raw: Record<string, unknown>): Order {
         };
     });
 
+    const buyer = raw.buyer as
+        | { id?: string; fullName?: string; username?: string }
+        | undefined;
+    const firstItemSeller = itemsRaw[0]?.seller as
+        | { id?: string; fullName?: string; username?: string }
+        | undefined;
+
     return {
         id: String(raw.id ?? ""),
         orderNumber: String(raw.orderNumber ?? ""),
@@ -100,13 +107,15 @@ function normalizeOrder(raw: Record<string, unknown>): Order {
             address: String(raw.shippingAddress ?? ""),
         },
         paymentMethod: normalizePaymentMethod(raw.paymentMethod),
+        buyerId: typeof buyer?.id === "string" ? buyer.id : undefined,
         buyerName: String(
-            (raw.buyer as { fullName?: string; username?: string } | undefined)?.fullName ??
-                (raw.buyer as { username?: string } | undefined)?.username ??
-                raw.shippingName ??
-                "",
+            buyer?.fullName ?? buyer?.username ?? raw.shippingName ?? "",
         ),
-        sellerName: undefined,
+        sellerId: typeof firstItemSeller?.id === "string" ? firstItemSeller.id : undefined,
+        sellerName:
+            firstItemSeller?.fullName ?? firstItemSeller?.username
+                ? String(firstItemSeller.fullName ?? firstItemSeller.username)
+                : undefined,
         timeline: undefined,
         trackingNumber:
             typeof raw.trackingNumber === "string" ? raw.trackingNumber : undefined,

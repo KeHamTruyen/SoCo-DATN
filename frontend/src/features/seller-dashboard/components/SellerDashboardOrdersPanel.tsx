@@ -1,9 +1,12 @@
 import { createPortal } from "react-dom";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { orderApi } from "../../order/api/orderApi";
 import type { Order, OrderStatus } from "../../order/types/order.types";
+import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
+import { resolveProfilePath } from "../../../shared/lib/resolveProfilePath";
 
 interface SellerDashboardOrdersPanelProps {
     orders: Order[];
@@ -22,8 +25,37 @@ const SELLER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
     refunded: [],
 };
 
+function BuyerNameLink({
+    order,
+    currentUserId,
+    className,
+    fallback = "Customer",
+}: {
+    order: Order;
+    currentUserId?: string | null;
+    className?: string;
+    fallback?: string;
+}) {
+    const name =
+        order.buyerName || order.shippingAddress.fullName || fallback;
+
+    if (order.buyerId) {
+        return (
+            <Link
+                to={resolveProfilePath(order.buyerId, currentUserId)}
+                className={className ?? "hover:text-primary hover:underline"}
+            >
+                {name}
+            </Link>
+        );
+    }
+
+    return <span className={className}>{name}</span>;
+}
+
 export function SellerDashboardOrdersPanel({ orders, loading, onOrderChanged }: SellerDashboardOrdersPanelProps) {
     const { t } = useTranslation();
+    const { user } = useAuthSession();
     const statusLabel = (s: OrderStatus) => t(`sellerDashboard.orders.status.${s}`, s);
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
     const [orderDetail, setOrderDetail] = useState<Order | null>(null);
@@ -123,7 +155,12 @@ export function SellerDashboardOrdersPanel({ orders, loading, onOrderChanged }: 
                                 {new Date(order.createdAt).toLocaleDateString()}
                             </td>
                             <td className="px-6 py-5 text-sm font-medium">
-                                {order.buyerName || order.shippingAddress.fullName || t("sellerDashboard.orders.customerFallback", "Customer")}
+                                <BuyerNameLink
+                                    order={order}
+                                    currentUserId={user?.id}
+                                    fallback={t("sellerDashboard.orders.customerFallback", "Customer")}
+                                    className="hover:text-primary hover:underline"
+                                />
                             </td>
                             <td className="px-6 py-5 text-right text-sm font-bold">{formatMoney(order.total)}</td>
                             <td className="px-6 py-5 text-center">
@@ -188,7 +225,11 @@ export function SellerDashboardOrdersPanel({ orders, loading, onOrderChanged }: 
                                               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                                   <div>
                                                       <p className="text-xs text-neutral-500">{t("sellerDashboard.orders.modal.name", "Name")}</p>
-                                                      <p className="font-semibold">{selectedOrder.buyerName || selectedOrder.shippingAddress.fullName}</p>
+                                                      <BuyerNameLink
+                                                          order={selectedOrder}
+                                                          currentUserId={user?.id}
+                                                          className="font-semibold hover:text-primary hover:underline"
+                                                      />
                                                   </div>
                                                   <div>
                                                       <p className="text-xs text-neutral-500">{t("sellerDashboard.orders.modal.phone", "Phone")}</p>
