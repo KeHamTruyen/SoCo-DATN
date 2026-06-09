@@ -17,6 +17,7 @@ import { Link } from "react-router-dom";
 import { useAuthSession } from "../../../shared/auth/useAuthSession";
 import { formatCurrencyVnd } from "../../../shared/lib/formatCurrencyVnd";
 import { cn } from "../../../shared/lib/cn";
+import { resolveProfilePath } from "../../../shared/lib/resolveProfilePath";
 
 interface ProductDetailPanelProps {
     product: ProductDetail;
@@ -237,7 +238,11 @@ export function ProductDetailPanel({
                 {product.seller && (
                     <div className="p-6 rounded-2xl bg-card border border-border shadow-sm">
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="relative">
+                            <Link
+                                to={resolveProfilePath(product.seller.id, user?.id)}
+                                className="relative shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                aria-label={`View profile of ${product.seller.name}`}
+                            >
                                 <img
                                     className="w-14 h-14 rounded-full object-cover ring-2 ring-background shadow-md"
                                     src={
@@ -249,11 +254,14 @@ export function ProductDetailPanel({
                                 <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground p-1 rounded-full border-2 border-background shadow-sm">
                                     <CheckCircle2 className="h-3 w-3 fill-current" />
                                 </div>
-                            </div>
+                            </Link>
                             <div className="flex-1 min-w-0">
-                                <h4 className="font-bold text-lg text-foreground truncate">
+                                <Link
+                                    to={resolveProfilePath(product.seller.id, user?.id)}
+                                    className="block truncate font-bold text-lg text-foreground hover:text-primary hover:underline"
+                                >
                                     {product.seller.name}
-                                </h4>
+                                </Link>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                     <div className="flex items-center text-amber-500">
                                         <Star className="h-3 w-3 fill-current" />

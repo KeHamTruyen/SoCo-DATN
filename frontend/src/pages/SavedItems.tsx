@@ -7,8 +7,10 @@ import type {
     SavedItemRow,
     SavedTab,
 } from "../features/saved-items/types/savedItems.types";
+import { useAuthSession } from "../shared/auth/useAuthSession";
 import { httpClient } from "../shared/api/httpClient";
 import { HttpError } from "../shared/api/httpClient";
+import { resolveProfilePath } from "../shared/lib/resolveProfilePath";
 import { formatCurrencyVnd } from "../shared/lib/formatCurrencyVnd";
 import { truncatePlainPreview } from "../shared/tiptap/postHtmlUtils";
 
@@ -29,6 +31,7 @@ function productImageUrl(row: SavedItemRow): string | undefined {
 }
 
 export default function SavedItems() {
+    const { user } = useAuthSession();
     const [tab, setTab] = useState<SavedTab>("all");
     const [q, setQ] = useState("");
     const [searchDraft, setSearchDraft] = useState("");
@@ -350,12 +353,18 @@ export default function SavedItems() {
                                                         : "—"}
                                                 </p>
                                                 {row.product.seller ? (
-                                                    <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                                                    <Link
+                                                        to={resolveProfilePath(
+                                                            row.product.seller.id,
+                                                            user?.id,
+                                                        )}
+                                                        className="mt-1 block text-xs text-neutral-500 hover:text-primary hover:underline dark:text-neutral-400"
+                                                    >
                                                         {row.product.seller
                                                             .fullName ??
                                                             row.product.seller
                                                                 .username}
-                                                    </p>
+                                                    </Link>
                                                 ) : null}
                                             </div>
                                         </article>
@@ -407,12 +416,27 @@ export default function SavedItems() {
                                                     )}
                                                 </p>
                                                 <div className="mt-auto flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
-                                                    <span>
-                                                        {row.post.author
-                                                            ?.fullName ??
-                                                            row.post.author
-                                                                ?.username}
-                                                    </span>
+                                                    {row.post.author?.id ? (
+                                                        <Link
+                                                            to={resolveProfilePath(
+                                                                row.post.author.id,
+                                                                user?.id,
+                                                            )}
+                                                            className="hover:text-primary hover:underline"
+                                                        >
+                                                            {row.post.author
+                                                                .fullName ??
+                                                                row.post.author
+                                                                    .username}
+                                                        </Link>
+                                                    ) : (
+                                                        <span>
+                                                            {row.post.author
+                                                                ?.fullName ??
+                                                                row.post.author
+                                                                    ?.username}
+                                                        </span>
+                                                    )}
                                                     <span>
                                                         {row.post._count
                                                             ?.likes ??

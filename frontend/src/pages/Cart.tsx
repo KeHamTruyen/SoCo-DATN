@@ -15,6 +15,8 @@ import { CartSummary } from "../features/cart/components/CartSummary";
 import { useCartPage } from "../features/cart/hooks";
 import { marketplaceApi } from "../features/marketplace/api/marketplaceApi";
 import type { ProductListItem } from "../features/marketplace/types/marketplace.types";
+import { useAuthSession } from "../shared/auth/useAuthSession";
+import { resolveProfilePath } from "../shared/lib/resolveProfilePath";
 import { UnifiedHeader } from "../shared/ui";
 
 function CartProductStrip({
@@ -108,6 +110,7 @@ function CartProductStrip({
 export default function Cart() {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { user } = useAuthSession();
     const {
         cart,
         isLoading,
@@ -295,9 +298,12 @@ export default function Cart() {
                                             className="h-5 w-5 shrink-0 text-primary"
                                             aria-hidden
                                         />
-                                        <span className="font-bold">
+                                        <Link
+                                            to={resolveProfilePath(group.sellerId, user?.id)}
+                                            className="font-bold hover:text-primary hover:underline"
+                                        >
                                             {group.sellerName}
-                                        </span>
+                                        </Link>
                                         {group.isTopSeller && (
                                             <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                                                 {t("cart.topSeller")}

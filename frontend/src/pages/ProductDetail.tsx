@@ -6,6 +6,7 @@ import { useProductDetailPage, type ProductDetailTab } from "../features/product
 import { ProductDetailPanel } from "../features/product/components/ProductDetailPanel";
 import { ProductGallery } from "../features/product/components/ProductGallery";
 import { useAuthSession } from "../shared/auth/useAuthSession";
+import { resolveProfilePath } from "../shared/lib/resolveProfilePath";
 import { GuestAuthModal } from "../shared/ui";
 
 function formatReviewDate(date: string): string {
@@ -17,7 +18,7 @@ function formatReviewDate(date: string): string {
 export default function ProductDetail() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuthSession();
+    const { user, isAuthenticated } = useAuthSession();
     const [showGuestAuthModal, setShowGuestAuthModal] = useState(false);
     const {
         product,
@@ -397,18 +398,29 @@ export default function ProductDetail() {
                                         <div key={review.id} className="border-b border-border pb-8">
                                             <div className="mb-4 flex items-start justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="h-10 w-10 overflow-hidden rounded-full bg-muted">
-                                                        {review.author.avatarUrl ? (
-                                                            <img
-                                                                src={review.author.avatarUrl}
-                                                                alt={review.author.name}
-                                                                className="h-full w-full object-cover"
-                                                            />
-                                                        ) : null}
-                                                    </div>
+                                                    <Link
+                                                        to={resolveProfilePath(review.author.id, user?.id)}
+                                                        className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                                        aria-label={`View profile of ${review.author.name}`}
+                                                    >
+                                                        <div className="h-10 w-10 overflow-hidden rounded-full bg-muted">
+                                                            {review.author.avatarUrl ? (
+                                                                <img
+                                                                    src={review.author.avatarUrl}
+                                                                    alt={review.author.name}
+                                                                    className="h-full w-full object-cover"
+                                                                />
+                                                            ) : null}
+                                                        </div>
+                                                    </Link>
                                                     <div>
                                                         <p className="text-sm font-bold text-foreground">
-                                                            {review.author.name}
+                                                            <Link
+                                                                to={resolveProfilePath(review.author.id, user?.id)}
+                                                                className="hover:text-primary hover:underline"
+                                                            >
+                                                                {review.author.name}
+                                                            </Link>
                                                             {review.isVerifiedBuyer && (
                                                                 <span className="ml-2 rounded bg-green-100 px-2 py-0.5 text-[10px] font-black uppercase text-green-700">
                                                                     Verified Buyer
