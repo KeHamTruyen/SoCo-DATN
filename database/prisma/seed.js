@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import dotenv from "dotenv";
+import { seedDemoMarketplace } from "./seed-demo.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -181,28 +182,44 @@ async function main() {
             where: { email: "seller.qa@soco.local" },
             update: {
                 username: "seller_qa",
-                fullName: "QA Seller",
+                fullName: "Nguyễn Văn Khoa",
                 role: "SELLER",
                 isVerified: true,
                 isActive: true,
+                bio: "Phụ kiện công nghệ, giao nhanh nội thành.",
+                address: "15 Lý Tự Trọng, Quận 1, TP.HCM",
+                phone: "0901000001",
+                avatarUrl:
+                    "https://images.unsplash.com/photo-1463453091185-61582044d556?auto=format&fit=crop&w=256&q=80",
                 passwordHash: qaUserPasswordHash,
                 shopInformation: {
-                    shopName: "QA Electronics Store",
-                    description: "Seeded seller account for QA/UAT",
+                    shopName: "Khoa Gadget",
+                    shopCategory: "Điện tử",
+                    shopDescription: "Tai nghe, ốp lưng, phụ kiện điện thoại.",
+                    shopAddress: "15 Lý Tự Trọng, Quận 1, TP.HCM",
+                    contactPhone: "0901000001",
                 },
             },
             create: {
                 id: FIXED_IDS.sellerUser,
                 email: "seller.qa@soco.local",
                 username: "seller_qa",
-                fullName: "QA Seller",
+                fullName: "Nguyễn Văn Khoa",
                 passwordHash: qaUserPasswordHash,
                 role: "SELLER",
                 isVerified: true,
                 isActive: true,
+                bio: "Phụ kiện công nghệ, giao nhanh nội thành.",
+                address: "15 Lý Tự Trọng, Quận 1, TP.HCM",
+                phone: "0901000001",
+                avatarUrl:
+                    "https://images.unsplash.com/photo-1463453091185-61582044d556?auto=format&fit=crop&w=256&q=80",
                 shopInformation: {
-                    shopName: "QA Electronics Store",
-                    description: "Seeded seller account for QA/UAT",
+                    shopName: "Khoa Gadget",
+                    shopCategory: "Điện tử",
+                    shopDescription: "Tai nghe, ốp lưng, phụ kiện điện thoại.",
+                    shopAddress: "15 Lý Tự Trọng, Quận 1, TP.HCM",
+                    contactPhone: "0901000001",
                 },
             },
         });
@@ -210,42 +227,62 @@ async function main() {
             where: { email: "buyer1.qa@soco.local" },
             update: {
                 username: "buyer_qa_1",
-                fullName: "QA Buyer One",
+                fullName: "Trần Mỹ An",
                 role: "BUYER",
                 isVerified: true,
                 isActive: true,
+                bio: "Hay mua phụ kiện điện thoại, thích tai nghe nhỏ gọn.",
+                address: "90 Pasteur, Quận 1, TP.HCM",
+                phone: "0901000002",
+                avatarUrl:
+                    "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=256&q=80",
                 passwordHash: qaUserPasswordHash,
             },
             create: {
                 id: FIXED_IDS.buyerOneUser,
                 email: "buyer1.qa@soco.local",
                 username: "buyer_qa_1",
-                fullName: "QA Buyer One",
+                fullName: "Trần Mỹ An",
                 passwordHash: qaUserPasswordHash,
                 role: "BUYER",
                 isVerified: true,
                 isActive: true,
+                bio: "Hay mua phụ kiện điện thoại, thích tai nghe nhỏ gọn.",
+                address: "90 Pasteur, Quận 1, TP.HCM",
+                phone: "0901000002",
+                avatarUrl:
+                    "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=256&q=80",
             },
         });
         const buyerTwo = await tx.user.upsert({
             where: { email: "buyer2.qa@soco.local" },
             update: {
                 username: "buyer_qa_2",
-                fullName: "QA Buyer Two",
+                fullName: "Lê Minh Đức",
                 role: "BUYER",
                 isVerified: true,
                 isActive: true,
+                bio: "Mua đồ basic, thích áo cotton.",
+                address: "12 Nguyễn Văn Linh, Quận 7, TP.HCM",
+                phone: "0901000003",
+                avatarUrl:
+                    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&q=80",
                 passwordHash: qaUserPasswordHash,
             },
             create: {
                 id: FIXED_IDS.buyerTwoUser,
                 email: "buyer2.qa@soco.local",
                 username: "buyer_qa_2",
-                fullName: "QA Buyer Two",
+                fullName: "Lê Minh Đức",
                 passwordHash: qaUserPasswordHash,
                 role: "BUYER",
                 isVerified: true,
                 isActive: true,
+                bio: "Mua đồ basic, thích áo cotton.",
+                address: "12 Nguyễn Văn Linh, Quận 7, TP.HCM",
+                phone: "0901000003",
+                avatarUrl:
+                    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&q=80",
             },
         });
         return { seller, buyerOne, buyerTwo };
@@ -255,8 +292,8 @@ async function main() {
         const wirelessEarbuds = await tx.product.upsert({
             where: { slug: "qa-wireless-earbuds" },
             update: {
-                title: "QA Wireless Earbuds",
-                description: "Seeded earbuds product for QA checkout and review flow",
+                title: "Tai nghe True Wireless Pulse",
+                description: "Tai nghe nhỏ gọn, pin 7 giờ, hộp sạc USB-C. Phù hợp nghe nhạc và họp online.",
                 price: "799000",
                 stockQuantity: 120,
                 status: "ACTIVE",
@@ -272,8 +309,8 @@ async function main() {
             create: {
                 id: FIXED_IDS.productWirelessEarbuds,
                 slug: "qa-wireless-earbuds",
-                title: "QA Wireless Earbuds",
-                description: "Seeded earbuds product for QA checkout and review flow",
+                title: "Tai nghe True Wireless Pulse",
+                description: "Tai nghe nhỏ gọn, pin 7 giờ, hộp sạc USB-C. Phù hợp nghe nhạc và họp online.",
                 price: "799000",
                 stockQuantity: 120,
                 status: "ACTIVE",
@@ -290,8 +327,8 @@ async function main() {
         const phoneCase = await tx.product.upsert({
             where: { slug: "qa-phone-case" },
             update: {
-                title: "QA Shockproof Phone Case",
-                description: "Seeded phone case for accessories testing",
+                title: "Ốp lưng chống sốc MagSafe",
+                description: "TPU dẻo, viền nhám, tương thích sạc MagSafe. Ốp không làm dày máy.",
                 price: "149000",
                 stockQuantity: 250,
                 status: "ACTIVE",
@@ -304,8 +341,8 @@ async function main() {
             create: {
                 id: FIXED_IDS.productPhoneCase,
                 slug: "qa-phone-case",
-                title: "QA Shockproof Phone Case",
-                description: "Seeded phone case for accessories testing",
+                title: "Ốp lưng chống sốc MagSafe",
+                description: "TPU dẻo, viền nhám, tương thích sạc MagSafe. Ốp không làm dày máy.",
                 price: "149000",
                 stockQuantity: 250,
                 status: "ACTIVE",
@@ -319,8 +356,8 @@ async function main() {
         const cottonShirt = await tx.product.upsert({
             where: { slug: "qa-cotton-shirt" },
             update: {
-                title: "QA Cotton Shirt",
-                description: "Seeded fashion product for catalog coverage",
+                title: "Áo thun cotton cổ tròn",
+                description: "Cotton 220gsm, form regular. Giặt máy được, không xù sau vài tuần.",
                 price: "329000",
                 stockQuantity: 90,
                 status: "ACTIVE",
@@ -333,8 +370,8 @@ async function main() {
             create: {
                 id: FIXED_IDS.productCottonShirt,
                 slug: "qa-cotton-shirt",
-                title: "QA Cotton Shirt",
-                description: "Seeded fashion product for catalog coverage",
+                title: "Áo thun cotton cổ tròn",
+                description: "Cotton 220gsm, form regular. Giặt máy được, không xù sau vài tuần.",
                 price: "329000",
                 stockQuantity: 90,
                 status: "ACTIVE",
@@ -395,9 +432,9 @@ async function main() {
                 paymentMethod: "COD",
                 paymentStatus: "PAID",
                 status: "DELIVERED",
-                shippingName: "QA Buyer One",
+                shippingName: "Trần Mỹ An",
                 shippingPhone: "0900000001",
-                shippingAddress: "123 QA Street, District 1",
+                shippingAddress: "90 Pasteur, Quận 1",
                 shippingCity: "Ho Chi Minh",
                 deliveredAt: new Date(),
             },
@@ -411,9 +448,9 @@ async function main() {
                 paymentMethod: "COD",
                 paymentStatus: "PAID",
                 status: "DELIVERED",
-                shippingName: "QA Buyer One",
+                shippingName: "Trần Mỹ An",
                 shippingPhone: "0900000001",
-                shippingAddress: "123 QA Street, District 1",
+                shippingAddress: "90 Pasteur, Quận 1",
                 shippingCity: "Ho Chi Minh",
                 deliveredAt: new Date(),
             },
@@ -428,9 +465,9 @@ async function main() {
                 paymentMethod: "COD",
                 paymentStatus: "PAID",
                 status: "COMPLETED",
-                shippingName: "QA Buyer Two",
+                shippingName: "Lê Minh Đức",
                 shippingPhone: "0900000002",
-                shippingAddress: "456 QA Street, District 7",
+                shippingAddress: "12 Nguyễn Văn Linh, Quận 7",
                 shippingCity: "Ho Chi Minh",
                 deliveredAt: new Date(),
             },
@@ -444,9 +481,9 @@ async function main() {
                 paymentMethod: "COD",
                 paymentStatus: "PAID",
                 status: "COMPLETED",
-                shippingName: "QA Buyer Two",
+                shippingName: "Lê Minh Đức",
                 shippingPhone: "0900000002",
-                shippingAddress: "456 QA Street, District 7",
+                shippingAddress: "12 Nguyễn Văn Linh, Quận 7",
                 shippingCity: "Ho Chi Minh",
                 deliveredAt: new Date(),
             },
@@ -543,8 +580,8 @@ async function main() {
                 productId: products.wirelessEarbuds.id,
                 userId: users.buyerOne.id,
                 rating: 5,
-                title: "Excellent sound quality",
-                content: "Battery life and sound are both great for daily use.",
+                title: "Nghe rõ, pin trâu",
+                content: "Pin và âm thanh ổn cho ngày đi làm. Hộp sạc bỏ túi được.",
                 images: [
                     "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
                 ],
@@ -558,8 +595,8 @@ async function main() {
                 orderItemId: orderItems.orderItemOne.id,
                 userId: users.buyerOne.id,
                 rating: 5,
-                title: "Excellent sound quality",
-                content: "Battery life and sound are both great for daily use.",
+                title: "Nghe rõ, pin trâu",
+                content: "Pin và âm thanh ổn cho ngày đi làm. Hộp sạc bỏ túi được.",
                 images: [
                     "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
                 ],
@@ -616,7 +653,7 @@ async function main() {
             step1Completed: true,
             step2Completed: true,
             step3Completed: true,
-            address: "123 QA Street, District 1",
+            address: "90 Pasteur, Quận 1, TP.HCM",
             businessName: "QA Electronics Store",
             businessType: "COMPANY",
             businessLicenseNumber: "BLN-2026-QA",
@@ -828,7 +865,7 @@ async function main() {
             where: { id: FIXED_IDS.postOne },
             update: {
                 authorId: users.seller.id,
-                content: "Deal hôm nay: QA Wireless Earbuds giảm giá cho hội viên.",
+                content: "Pulse Pro về thêm hàng. Đeo họp 3 tiếng không đau tai, ai đang dùng cho mình xin review bass với.",
                 mediaUrls: [
                     "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1000",
                 ],
@@ -845,7 +882,7 @@ async function main() {
             create: {
                 id: FIXED_IDS.postOne,
                 authorId: users.seller.id,
-                content: "Deal hôm nay: QA Wireless Earbuds giảm giá cho hội viên.",
+                content: "Pulse Pro về thêm hàng. Đeo họp 3 tiếng không đau tai, ai đang dùng cho mình xin review bass với.",
                 mediaUrls: [
                     "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1000",
                 ],
@@ -866,7 +903,7 @@ async function main() {
             update: {
                 authorId: users.buyerOne.id,
                 groupId: groups.dailyStyle.id,
-                content: "Áo cotton QA mặc khá thoải mái, ai đã thử chưa?",
+                content: "Áo cotton cổ tròn mặc mát, form regular. Mọi người mặc size nào vừa?",
                 mediaUrls: [
                     "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1000",
                 ],
@@ -882,7 +919,7 @@ async function main() {
                 id: FIXED_IDS.postTwo,
                 authorId: users.buyerOne.id,
                 groupId: groups.dailyStyle.id,
-                content: "Áo cotton QA mặc khá thoải mái, ai đã thử chưa?",
+                content: "Áo cotton cổ tròn mặc mát, form regular. Mọi người mặc size nào vừa?",
                 mediaUrls: [
                     "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1000",
                 ],
@@ -1380,7 +1417,7 @@ async function main() {
                 userId: users.buyerOne.id,
                 type: "REVIEW_APPROVED",
                 title: "Đánh giá đã hiển thị",
-                message: "Đánh giá của bạn cho QA Wireless Earbuds đã được hiển thị.",
+                message: "Đánh giá của bạn cho Tai nghe True Wireless Pulse đã được hiển thị.",
                 relatedProductId: products.wirelessEarbuds.id,
                 actionUrl: "/products/qa-wireless-earbuds",
                 isRead: false,
@@ -1391,7 +1428,7 @@ async function main() {
                 userId: users.buyerOne.id,
                 type: "REVIEW_APPROVED",
                 title: "Đánh giá đã hiển thị",
-                message: "Đánh giá của bạn cho QA Wireless Earbuds đã được hiển thị.",
+                message: "Đánh giá của bạn cho Tai nghe True Wireless Pulse đã được hiển thị.",
                 relatedProductId: products.wirelessEarbuds.id,
                 actionUrl: "/products/qa-wireless-earbuds",
             },
@@ -2230,8 +2267,13 @@ async function main() {
         }
     }
 
+    await seedDemoMarketplace(prisma, {
+        adminId: admin.id,
+        passwordHash: qaUserPasswordHash,
+    });
+
     console.log(
-        "Seeded full QA/UAT dataset plus supplemental pack: all major tables are expanded to at least five records where the schema allows.",
+        "Seeded QA accounts (emails *.qa@soco.local) plus Vietnamese demo marketplace (emails *@soco.vn).",
     );
 }
 
