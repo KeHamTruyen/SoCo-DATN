@@ -105,6 +105,25 @@ jobs:
 
   admin-backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
+      ADMIN_JWT_SECRET: ci-admin-jwt-secret-min-32-chars-ok
+      ADMIN_PORT: "5001"
+      SEED_DEMO_ADMIN_PASSWORD: DemoAdmin@123
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -113,6 +132,7 @@ jobs:
           cache: npm
           cache-dependency-path: |
             admin/backend/package-lock.json
+            admin/shared/package-lock.json
             backend/package-lock.json
             database/package-lock.json
       - name: Install Prisma package
@@ -124,6 +144,40 @@ jobs:
       - name: Generate Prisma client for admin API
         working-directory: database
         run: npm run generate
+      - name: Apply migrations
+        working-directory: database
+        run: npx prisma migrate deploy
+      - name: Seed database (includes demo.admin)
+        working-directory: database
+        env:
+          SEED_ADMIN_EMAIL: ci-seed-admin@soco.local
+          SEED_ADMIN_PASSWORD: CiSeedAdmin123!
+          SEED_ADMIN_USERNAME: ci_seed_admin
+          SEED_QA_USER_PASSWORD: QaUser@123
+          SEED_DEMO_ADMIN_PASSWORD: DemoAdmin@123
+        run: npx prisma db seed
+      - name: Install admin shared
+        working-directory: admin/shared
+        run: npm ci
+      - name: Ability selfcheck
+        working-directory: admin/shared
+        run: node ability.selfcheck.js
       - name: Install admin API
         working-directory: admin/backend
         run: npm ci
+      - name: Start admin API
+        working-directory: admin/backend
+        run: |
+          node src/server.js &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:5001/health >/dev/null; then
+              echo "admin API up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "admin API failed to start"
+          exit 1
+      - name: Smoke authz (login / 401 user-token / 403 demo)
+        working-directory: admin/backend
+        run: npm run smoke

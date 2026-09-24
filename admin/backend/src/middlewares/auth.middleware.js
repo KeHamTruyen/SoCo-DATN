@@ -1,8 +1,12 @@
 import jwt from "jsonwebtoken";
 import prisma from "../config/database.js";
+import {
+    createAdminAbility,
+    resolveAdminProfile,
+} from "../../../shared/ability.js";
 
 /**
- * Verify admin JWT (ADMIN_JWT_SECRET) and attach req.user for restrictTo("ADMIN").
+ * Verify admin JWT (ADMIN_JWT_SECRET) and attach req.user / req.admin / req.ability.
  * Principal is `admins` table — same source as backend seed (prisma.admin).
  */
 export const protect = async (req, res, next) => {
@@ -54,6 +58,7 @@ export const protect = async (req, res, next) => {
                 username: true,
                 fullName: true,
                 phone: true,
+                permissions: true,
                 isActive: true,
             },
         });
@@ -65,6 +70,8 @@ export const protect = async (req, res, next) => {
             });
         }
 
+        const profile = resolveAdminProfile(admin.permissions);
+
         req.user = {
             id: admin.id,
             email: admin.email,
@@ -72,10 +79,12 @@ export const protect = async (req, res, next) => {
             fullName: admin.fullName,
             role: "ADMIN",
             avatarUrl: null,
+            permissions: admin.permissions ?? { profile },
+            profile,
         };
 
-        /** Same shape as main API `protectAdmin` — shared controllers may use `req.admin.id`. */
         req.admin = admin;
+        req.ability = createAdminAbility(profile);
 
         next();
     } catch (error) {
@@ -85,7 +94,20 @@ export const protect = async (req, res, next) => {
 
 export const restrictTo = (...roles) => {
     return (req, res, next) => {
-        if (!roles.includes(req.user.role)) {
+        if (!roles.includes(req.user?.role)) {
+            return res.status(403).json({
+                success: false,
+                message: "You do not have permission to perform this action",
+            });
+        }
+        next();
+    };
+};
+
+/** CASL gate — BE source of truth (ADR 0003). */
+export const authorize = (action, subject) => {
+    return (req, res, next) => {
+        if (!req.ability?.can(action, subject)) {
             return res.status(403).json({
                 success: false,
                 message: "You do not have permission to perform this action",

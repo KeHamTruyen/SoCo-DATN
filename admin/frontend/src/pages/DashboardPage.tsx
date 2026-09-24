@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
     Line,
     LineChart,
@@ -8,8 +9,10 @@ import {
     YAxis,
 } from "recharts";
 import { adminApi } from "@/api/adminApi";
+import { useAbility } from "@/auth/AbilityContext";
 
 export default function DashboardPage() {
+    const ability = useAbility();
     const [stats, setStats] = useState<Awaited<
         ReturnType<typeof adminApi.getDashboard>
     > | null>(null);
@@ -51,6 +54,29 @@ export default function DashboardPage() {
             users: r.count,
         })) ?? [];
 
+    const pendingCards = stats
+        ? [
+              {
+                  label: "Pending reports",
+                  value: stats.pendingReports,
+                  to: "/reports?status=pending",
+                  show: ability.can("read", "Report"),
+              },
+              {
+                  label: "Seller applications",
+                  value: stats.pendingSellerApplications,
+                  to: "/sellers",
+                  show: ability.can("read", "SellerApplication"),
+              },
+              {
+                  label: "Sensitive changes",
+                  value: stats.pendingSensitiveChanges,
+                  to: "/sellers?tab=sensitive",
+                  show: ability.can("read", "SensitiveChange"),
+              },
+          ].filter((c) => c.show)
+        : [];
+
     return (
         <div>
             <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
@@ -81,6 +107,28 @@ export default function DashboardPage() {
 
             {err ? (
                 <p className="mb-6 text-sm text-red-600">{err}</p>
+            ) : null}
+
+            {pendingCards.length > 0 ? (
+                <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    {pendingCards.map((c) => (
+                        <Link
+                            key={c.label}
+                            to={c.to}
+                            className="rounded-xl border border-border bg-card p-5 text-card-foreground shadow-sm transition hover:border-primary/40 hover:bg-muted/40"
+                        >
+                            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                {c.label}
+                            </p>
+                            <p className="mt-1 text-2xl font-black text-foreground">
+                                {c.value}
+                            </p>
+                            <p className="mt-2 text-xs font-medium text-primary">
+                                Open queue →
+                            </p>
+                        </Link>
+                    ))}
+                </div>
             ) : null}
 
             {stats ? (

@@ -39,6 +39,9 @@ export interface AdminDashboardStats {
     newUsersToday: number;
     newOrdersToday: number;
     totalRevenue: number;
+    pendingReports: number;
+    pendingSellerApplications: number;
+    pendingSensitiveChanges: number;
 }
 
 export interface AdminGrowthResult {
@@ -95,6 +98,14 @@ export const adminApi = {
         const res = await http<{ data: { user: AdminUserRow } }>(
             `/admin/users/${userId}/toggle-active`,
             { method: "PATCH", body: {} },
+        );
+        return unwrap(res);
+    },
+
+    async changeUserRole(userId: string, role: string) {
+        const res = await http<{ data: { user: AdminUserRow } }>(
+            `/admin/users/${userId}/role`,
+            { method: "PATCH", body: { role } },
         );
         return unwrap(res);
     },

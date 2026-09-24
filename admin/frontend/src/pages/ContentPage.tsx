@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { adminApi, type AdminPostRow, type AdminProductRow } from "@/api/adminApi";
+import { Can } from "@/auth/AbilityContext";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 
 export default function ContentPage() {
@@ -63,6 +64,11 @@ export default function ContentPage() {
             {loading ? (
                 <div className="h-40 animate-pulse rounded-xl bg-muted" />
             ) : tab === "posts" ? (
+                posts.length === 0 ? (
+                    <div className="rounded-xl border border-border bg-card p-12 text-center text-muted-foreground">
+                        No posts found.
+                    </div>
+                ) : (
                 <div className="space-y-3">
                     {posts.map((p) => (
                         <div
@@ -80,15 +86,22 @@ export default function ContentPage() {
                                     {p.status} · {new Date(p.createdAt).toLocaleString()}
                                 </p>
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => setDelPost(p.id)}
-                                className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 dark:border-red-900/40"
-                            >
-                                Delete
-                            </button>
+                            <Can I="delete" a="Post">
+                                <button
+                                    type="button"
+                                    onClick={() => setDelPost(p.id)}
+                                    className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 dark:border-red-900/40"
+                                >
+                                    Delete
+                                </button>
+                            </Can>
                         </div>
                     ))}
+                </div>
+                )
+            ) : products.length === 0 ? (
+                <div className="rounded-xl border border-border bg-card p-12 text-center text-muted-foreground">
+                    No products found.
                 </div>
             ) : (
                 <div className="space-y-3">
@@ -116,13 +129,15 @@ export default function ContentPage() {
                                     </p>
                                 </div>
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => setDelProduct(p.id)}
-                                className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 dark:border-red-900/40"
-                            >
-                                Delete
-                            </button>
+                            <Can I="delete" a="Product">
+                                <button
+                                    type="button"
+                                    onClick={() => setDelProduct(p.id)}
+                                    className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 dark:border-red-900/40"
+                                >
+                                    Delete
+                                </button>
+                            </Can>
                         </div>
                     ))}
                 </div>

@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import dotenv from "dotenv";
 import { seedDemoMarketplace } from "./seed-demo.js";
+import { PHOTO } from "./seed-media.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -106,6 +107,7 @@ async function main() {
             fullName,
             passwordHash,
             isActive: true,
+            permissions: { profile: "super" },
         },
         create: {
             email,
@@ -113,9 +115,35 @@ async function main() {
             passwordHash,
             fullName,
             isActive: true,
+            permissions: { profile: "super" },
         },
     });
     console.log(`Seeded platform admin: ${email} (${username})`);
+
+    const demoAdminPassword =
+        process.env.SEED_DEMO_ADMIN_PASSWORD || "DemoAdmin@123";
+    const demoAdminHash = await bcrypt.hash(demoAdminPassword, 12);
+    await prisma.admin.upsert({
+        where: { email: "demo.admin@socialcommerce.vn" },
+        update: {
+            username: "demo_admin",
+            fullName: "Demo Administrator",
+            passwordHash: demoAdminHash,
+            isActive: true,
+            permissions: { profile: "demo" },
+        },
+        create: {
+            email: "demo.admin@socialcommerce.vn",
+            username: "demo_admin",
+            fullName: "Demo Administrator",
+            passwordHash: demoAdminHash,
+            isActive: true,
+            permissions: { profile: "demo" },
+        },
+    });
+    console.log(
+        "Seeded demo admin: demo.admin@socialcommerce.vn (Try demo / DemoAdmin@123)",
+    );
 
     const qaUserPasswordHash = await bcrypt.hash(
         process.env.SEED_QA_USER_PASSWORD || "QaUser@123",
@@ -190,7 +218,7 @@ async function main() {
                 address: "15 Lý Tự Trọng, Quận 1, TP.HCM",
                 phone: "0901000001",
                 avatarUrl:
-                    "https://images.unsplash.com/photo-1463453091185-61582044d556?auto=format&fit=crop&w=256&q=80",
+                    PHOTO("1463453091185-61582044d556"),
                 passwordHash: qaUserPasswordHash,
                 shopInformation: {
                     shopName: "Khoa Gadget",
@@ -213,7 +241,7 @@ async function main() {
                 address: "15 Lý Tự Trọng, Quận 1, TP.HCM",
                 phone: "0901000001",
                 avatarUrl:
-                    "https://images.unsplash.com/photo-1463453091185-61582044d556?auto=format&fit=crop&w=256&q=80",
+                    PHOTO("1463453091185-61582044d556"),
                 shopInformation: {
                     shopName: "Khoa Gadget",
                     shopCategory: "Điện tử",
@@ -235,7 +263,7 @@ async function main() {
                 address: "90 Pasteur, Quận 1, TP.HCM",
                 phone: "0901000002",
                 avatarUrl:
-                    "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=256&q=80",
+                    PHOTO("1517841905240-472988babdf9"),
                 passwordHash: qaUserPasswordHash,
             },
             create: {
@@ -251,7 +279,7 @@ async function main() {
                 address: "90 Pasteur, Quận 1, TP.HCM",
                 phone: "0901000002",
                 avatarUrl:
-                    "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=256&q=80",
+                    PHOTO("1517841905240-472988babdf9"),
             },
         });
         const buyerTwo = await tx.user.upsert({
@@ -266,7 +294,7 @@ async function main() {
                 address: "12 Nguyễn Văn Linh, Quận 7, TP.HCM",
                 phone: "0901000003",
                 avatarUrl:
-                    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&q=80",
+                    PHOTO("1506794778202-cad84cf45f1d"),
                 passwordHash: qaUserPasswordHash,
             },
             create: {
@@ -282,7 +310,7 @@ async function main() {
                 address: "12 Nguyễn Văn Linh, Quận 7, TP.HCM",
                 phone: "0901000003",
                 avatarUrl:
-                    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&q=80",
+                    PHOTO("1506794778202-cad84cf45f1d"),
             },
         });
         return { seller, buyerOne, buyerTwo };
@@ -407,15 +435,15 @@ async function main() {
 
         await upsertPrimaryImage(
             wirelessEarbuds.id,
-            "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
+            PHOTO("1590658268037-6bf12165a8df"),
         );
         await upsertPrimaryImage(
             phoneCase.id,
-            "https://images.unsplash.com/photo-1603314585442-ee3b3c16fbcf?w=800",
+            PHOTO("1603314585442-ee3b3c16fbcf"),
         );
         await upsertPrimaryImage(
             cottonShirt.id,
-            "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800",
+            PHOTO("1521572163474-6864f9cf17ab"),
         );
 
         return { wirelessEarbuds, phoneCase, cottonShirt };
@@ -511,7 +539,7 @@ async function main() {
                 sellerId: users.seller.id,
                 productName: products.wirelessEarbuds.title,
                 productImageUrl:
-                    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
+                    PHOTO("1590658268037-6bf12165a8df"),
                 quantity: 1,
                 unitPrice: "799000",
                 totalPrice: "799000",
@@ -537,7 +565,7 @@ async function main() {
                 sellerId: users.seller.id,
                 productName: products.phoneCase.title,
                 productImageUrl:
-                    "https://images.unsplash.com/photo-1603314585442-ee3b3c16fbcf?w=800",
+                    PHOTO("1603314585442-ee3b3c16fbcf"),
                 quantity: 1,
                 unitPrice: "149000",
                 totalPrice: "149000",
@@ -563,7 +591,7 @@ async function main() {
                 sellerId: users.seller.id,
                 productName: products.cottonShirt.title,
                 productImageUrl:
-                    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800",
+                    PHOTO("1521572163474-6864f9cf17ab"),
                 quantity: 1,
                 unitPrice: "329000",
                 totalPrice: "329000",
@@ -583,7 +611,7 @@ async function main() {
                 title: "Nghe rõ, pin trâu",
                 content: "Pin và âm thanh ổn cho ngày đi làm. Hộp sạc bỏ túi được.",
                 images: [
-                    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
+                    PHOTO("1590658268037-6bf12165a8df"),
                 ],
                 sellerResponse: "Thank you for your review!",
                 sellerResponseAt: new Date(),
@@ -598,7 +626,7 @@ async function main() {
                 title: "Nghe rõ, pin trâu",
                 content: "Pin và âm thanh ổn cho ngày đi làm. Hộp sạc bỏ túi được.",
                 images: [
-                    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800",
+                    PHOTO("1590658268037-6bf12165a8df"),
                 ],
                 sellerResponse: "Thank you for your review!",
                 sellerResponseAt: new Date(),
@@ -867,7 +895,7 @@ async function main() {
                 authorId: users.seller.id,
                 content: "Pulse Pro về thêm hàng. Đeo họp 3 tiếng không đau tai, ai đang dùng cho mình xin review bass với.",
                 mediaUrls: [
-                    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1000",
+                    PHOTO("1590658268037-6bf12165a8df"),
                 ],
                 mediaType: "IMAGE",
                 taggedUserIds: [users.buyerOne.id],
@@ -884,7 +912,7 @@ async function main() {
                 authorId: users.seller.id,
                 content: "Pulse Pro về thêm hàng. Đeo họp 3 tiếng không đau tai, ai đang dùng cho mình xin review bass với.",
                 mediaUrls: [
-                    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1000",
+                    PHOTO("1590658268037-6bf12165a8df"),
                 ],
                 mediaType: "IMAGE",
                 taggedUserIds: [users.buyerOne.id],
@@ -905,7 +933,7 @@ async function main() {
                 groupId: groups.dailyStyle.id,
                 content: "Áo cotton cổ tròn mặc mát, form regular. Mọi người mặc size nào vừa?",
                 mediaUrls: [
-                    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1000",
+                    PHOTO("1521572163474-6864f9cf17ab"),
                 ],
                 mediaType: "IMAGE",
                 status: "PUBLISHED",
@@ -921,7 +949,7 @@ async function main() {
                 groupId: groups.dailyStyle.id,
                 content: "Áo cotton cổ tròn mặc mát, form regular. Mọi người mặc size nào vừa?",
                 mediaUrls: [
-                    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1000",
+                    PHOTO("1521572163474-6864f9cf17ab"),
                 ],
                 mediaType: "IMAGE",
                 status: "PUBLISHED",
@@ -1062,7 +1090,7 @@ async function main() {
             userId: users.seller.id,
             content: "Bài hẹn giờ: giới thiệu ốp lưng chống sốc bản mới.",
             mediaUrls: [
-                "https://images.unsplash.com/photo-1603314585442-ee3b3c16fbcf?w=1000",
+                PHOTO("1603314585442-ee3b3c16fbcf"),
             ],
             mediaType: "IMAGE",
             visibility: "PUBLIC",
@@ -1076,7 +1104,7 @@ async function main() {
             userId: users.seller.id,
             content: "Bài hẹn giờ: giới thiệu ốp lưng chống sốc bản mới.",
             mediaUrls: [
-                "https://images.unsplash.com/photo-1603314585442-ee3b3c16fbcf?w=1000",
+                PHOTO("1603314585442-ee3b3c16fbcf"),
             ],
             mediaType: "IMAGE",
             visibility: "PUBLIC",
@@ -1482,7 +1510,7 @@ async function main() {
                 linkedProductId: products.wirelessEarbuds.id,
                 productTitle: products.wirelessEarbuds.title,
                 productImageUrl:
-                    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1000",
+                    PHOTO("1590658268037-6bf12165a8df"),
                 usedForId: posts.postOne.id,
                 usedForType: "POST",
             },
@@ -1496,7 +1524,7 @@ async function main() {
                 linkedProductId: products.wirelessEarbuds.id,
                 productTitle: products.wirelessEarbuds.title,
                 productImageUrl:
-                    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=1000",
+                    PHOTO("1590658268037-6bf12165a8df"),
                 usedForId: posts.postOne.id,
                 usedForType: "POST",
             },
@@ -1710,34 +1738,57 @@ async function main() {
         });
     });
 
-    if ((await prisma.admin.count()) < 5) {
-        const extraAdminConfigs = [
-            { email: "moderator1@socialcommerce.vn", username: "moderator1", fullName: "Moderator One" },
-            { email: "moderator2@socialcommerce.vn", username: "moderator2", fullName: "Moderator Two" },
-            { email: "ops1@socialcommerce.vn", username: "ops1", fullName: "Operations One" },
-            { email: "ops2@socialcommerce.vn", username: "ops2", fullName: "Operations Two" },
+    const extraAdminConfigs = [
+            {
+                email: "moderator1@socialcommerce.vn",
+                username: "moderator1",
+                fullName: "Moderator One",
+                profile: "moderator",
+            },
+            {
+                email: "moderator2@socialcommerce.vn",
+                username: "moderator2",
+                fullName: "Moderator Two",
+                profile: "moderator",
+            },
+            {
+                email: "ops1@socialcommerce.vn",
+                username: "ops1",
+                fullName: "Operations One",
+                profile: "ops",
+            },
+            {
+                email: "ops2@socialcommerce.vn",
+                username: "ops2",
+                fullName: "Operations Two",
+                profile: "ops",
+            },
         ];
-        await Promise.all(
-            extraAdminConfigs.map((adminConfig) =>
-                prisma.admin.upsert({
-                    where: { email: adminConfig.email },
-                    update: {
-                        username: adminConfig.username,
-                        fullName: adminConfig.fullName,
-                        passwordHash,
-                        isActive: true,
-                    },
-                    create: {
-                        email: adminConfig.email,
-                        username: adminConfig.username,
-                        fullName: adminConfig.fullName,
-                        passwordHash,
-                        isActive: true,
-                    },
-                }),
-            ),
-        );
+    await Promise.all(
+        extraAdminConfigs.map((adminConfig) =>
+            prisma.admin.upsert({
+                where: { email: adminConfig.email },
+                update: {
+                    username: adminConfig.username,
+                    fullName: adminConfig.fullName,
+                    passwordHash,
+                    isActive: true,
+                    permissions: { profile: adminConfig.profile },
+                },
+                create: {
+                    email: adminConfig.email,
+                    username: adminConfig.username,
+                    fullName: adminConfig.fullName,
+                    passwordHash,
+                    isActive: true,
+                    permissions: { profile: adminConfig.profile },
+                },
+            }),
+        ),
+    );
 
+    // Extra QA marketplace rows (sellers/products/…) — once if seller2 missing
+    if (!(await prisma.user.findUnique({ where: { email: "seller2.qa@soco.local" } }))) {
         const extraUsers = await prisma.$transaction(async (tx) => {
             const sellerConfigs = [
                 { email: "seller2.qa@soco.local", username: "seller_qa_2", fullName: "QA Seller Two", shopName: "QA Home Store", description: "Seeded seller account 2" },
@@ -2051,8 +2102,8 @@ async function main() {
         }
 
         const extraPosts = [];
-        extraPosts.push(await prisma.post.create({ data: { authorId: allSellers[0].id, content: "New home product is available now.", mediaUrls: ["https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1000"], mediaType: "IMAGE", status: "PUBLISHED", visibility: "PUBLIC", publishedAt: new Date() } }));
-        extraPosts.push(await prisma.post.create({ data: { authorId: allBuyers[0].id, content: "Beauty product review incoming.", mediaUrls: ["https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1000"], mediaType: "IMAGE", status: "PUBLISHED", visibility: "FOLLOWERS", publishedAt: new Date() } }));
+        extraPosts.push(await prisma.post.create({ data: { authorId: allSellers[0].id, content: "New home product is available now.", mediaUrls: [PHOTO("1505693416388-ac5ce068fe85")], mediaType: "IMAGE", status: "PUBLISHED", visibility: "PUBLIC", publishedAt: new Date() } }));
+        extraPosts.push(await prisma.post.create({ data: { authorId: allBuyers[0].id, content: "Beauty product review incoming.", mediaUrls: [PHOTO("1522335789203-aabd1fc54bc9")], mediaType: "IMAGE", status: "PUBLISHED", visibility: "FOLLOWERS", publishedAt: new Date() } }));
         await prisma.postProductTag.createMany({
             data: [
                 {
@@ -2222,13 +2273,13 @@ async function main() {
         if (aroma && serum) {
             await prisma.productImage.upsert({
                 where: { id: "seed-product-image-4" },
-                update: { productId: aroma.id, imageUrl: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=800", altText: "QA aroma diffuser image", displayOrder: 0, isPrimary: true },
-                create: { id: "seed-product-image-4", productId: aroma.id, imageUrl: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=800", altText: "QA aroma diffuser image", displayOrder: 0, isPrimary: true },
+                update: { productId: aroma.id, imageUrl: PHOTO("1507842217343-583bb7270b66"), altText: "QA aroma diffuser image", displayOrder: 0, isPrimary: true },
+                create: { id: "seed-product-image-4", productId: aroma.id, imageUrl: PHOTO("1507842217343-583bb7270b66"), altText: "QA aroma diffuser image", displayOrder: 0, isPrimary: true },
             });
             await prisma.productImage.upsert({
                 where: { id: "seed-product-image-5" },
-                update: { productId: serum.id, imageUrl: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800", altText: "QA face serum image", displayOrder: 0, isPrimary: true },
-                create: { id: "seed-product-image-5", productId: serum.id, imageUrl: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800", altText: "QA face serum image", displayOrder: 0, isPrimary: true },
+                update: { productId: serum.id, imageUrl: PHOTO("1556228720-195a672e8a03"), altText: "QA face serum image", displayOrder: 0, isPrimary: true },
+                create: { id: "seed-product-image-5", productId: serum.id, imageUrl: PHOTO("1556228720-195a672e8a03"), altText: "QA face serum image", displayOrder: 0, isPrimary: true },
             });
         }
 

@@ -54,10 +54,10 @@ export const reportApi = {
         });
     },
 
-    async dismissReport(reportId: string) {
+    async dismissReport(reportId: string, resolution = "dismissed") {
         await reportApi.resolveReport(reportId, {
             status: "dismissed",
-            resolution: "dismissed",
+            resolution,
         });
     },
 

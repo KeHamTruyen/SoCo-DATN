@@ -16,7 +16,11 @@
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true,
         "baseUrl": ".",
-        "paths": { "@/*": ["src/*"] }
+        "paths": {
+            "@/*": ["src/*"],
+            "@admin-shared/*": ["../shared/*"]
+        },
+        "allowJs": true
     },
-    "include": ["src"]
+    "include": ["src", "../shared"]
 }

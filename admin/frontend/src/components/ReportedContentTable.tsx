@@ -25,9 +25,9 @@ const REASON_LABEL: Record<string, string> = {
 
 type Props = {
     reports: Report[];
-    onDismiss: (id: string) => void;
-    onDeleteContent: (r: Report) => void;
-    onBlockUser: (r: Report) => void;
+    onDismiss?: (id: string) => void;
+    onDeleteContent?: (r: Report) => void;
+    onBlockUser?: (r: Report) => void;
     onOpenDetail: (r: Report) => void;
     actionPendingId?: string | null;
 };
@@ -170,33 +170,46 @@ export function ReportedContentTable({
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex flex-wrap justify-end gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => onDismiss(report.id)}
-                                            disabled={actionsDisabled}
-                                            className="cursor-pointer rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
-                                        >
-                                            Dismiss
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => onDeleteContent(report)}
-                                            disabled={actionsDisabled}
-                                            className="cursor-pointer rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50"
-                                        >
-                                            Delete target
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => onBlockUser(report)}
-                                            disabled={
-                                                report.targetType !== "user" ||
-                                                actionsDisabled
-                                            }
-                                            className="cursor-pointer rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-semibold text-secondary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                                        >
-                                            Block user
-                                        </button>
+                                        {onDismiss ? (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    onDismiss(report.id)
+                                                }
+                                                disabled={actionsDisabled}
+                                                className="cursor-pointer rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                Dismiss
+                                            </button>
+                                        ) : null}
+                                        {onDeleteContent ? (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    onDeleteContent(report)
+                                                }
+                                                disabled={actionsDisabled}
+                                                className="cursor-pointer rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                Delete target
+                                            </button>
+                                        ) : null}
+                                        {onBlockUser ? (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    onBlockUser(report)
+                                                }
+                                                disabled={
+                                                    report.targetType !==
+                                                        "user" ||
+                                                    actionsDisabled
+                                                }
+                                                className="cursor-pointer rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-semibold text-secondary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                                            >
+                                                Block user
+                                            </button>
+                                        ) : null}
                                     </div>
                                 </td>
                             </tr>

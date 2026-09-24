@@ -1,679 +1,583 @@
-# 📋 Development Checklist - Social Commerce Platform
+# Development Checklist — SoCo-DATN
 
-## 🎯 Tổng quan tiến độ
+Social commerce đồ án tốt nghiệp: mạng xã hội gắn mua sắm. File này là **nguồn sự thật tiến độ + cổng chất lượng**, không chỉ danh sách CRUD.
 
-### ✅ Đã hoàn thành (cốt lõi)
+**Cách tick:** `[x]` = đã có trong repo và chạy được (local hoặc CI). `[ ]` = còn thiếu hoặc chưa chứng minh bằng test/tài liệu. Không tick “xong” vì chỉ có UI mock.
 
-- **Backend:** Auth, Products, Categories, Cart, Orders, Posts/Feed, Upload/Cloudinary (`/api/upload/*`), Users & follow (`/api/users/*`), Messages (`/api/messages/*` + Socket.IO), Notifications (`/api/notifications/*`), Groups (`/api/groups/*`), Reviews (`/api/reviews/*`), Saved items (`/api/saved-items/*`), Reports (`/api/reports/*`), Scheduled posts (`/api/scheduled-posts/*` + cron), Seller (`/api/seller/*`: đăng ký + upload, **`GET /seller/stats`**), Admin (`/api/admin/*`), AI Gemini (`/api/ai/*`)
-- **Frontend:** Auth, **UnifiedHeader** (dropdown thông báo + **Socket realtime**), **Feed**, **`/scheduled-posts`** (list + tạo + sửa + xóa), Post detail, Cart / Checkout / Orders (buyer), **Seller Center** (`/seller/dashboard`: CRUD sản phẩm, tab đơn bán, stats), **Marketplace**, Messages, Notifications (**page + realtime sync + preferences + live toast**), Groups (discover + detail + create + “My groups” từ API + member management + invites), Profile + **Account Settings**, Saved items, i18n toggle (VI/EN), review submit từ Order Detail
-- **Admin (`admin/frontend`):** Reports, **Users**, **Seller applications**, Categories, Content, v.v.
+**Hai lớp bắt buộc khi đọc**
 
-### ⏳ Đang làm / tinh chỉnh
+| Lớp                | Trả lời câu hỏi                                             | Đọc khi                               |
+| ------------------ | ----------------------------------------------------------- | ------------------------------------- |
+| **A — Sản phẩm**   | Module nào đã giao cho user/seller/admin?                   | Làm feature, báo cáo tiến độ đồ án    |
+| **B — Chất lượng** | Làm sao biết không gãy, không lộ data, deploy không mất DB? | Trước merge, trước demo, trước bảo vệ |
 
-- Reviews: luồng submit review từ đơn hàng đã có; phần hiển thị list/filter/reply trên **ProductDetail** còn thiếu
-- Scheduled posts: timezone/preview nâng cao (UX)
-- Realtime chat: Tinh chỉnh cơ chế presence/typing (Socket BE/FE đã có payload tin nhắn)
-- AI: `AiCreativeLab` UI và API wiring đã nối `/api/ai/*` qua `aiApi`
-- Production: đã gắn **rate limit** (global + auth + auth-sensitive), thêm **Helmet**, thêm request/error logging với `requestId`; còn thiếu monitoring sâu hơn và seed dữ liệu business
+Một màn hình “chạy được trên máy dev” **chưa** đủ DoD (định nghĩa xong việc — xem §2).
 
----
+Tài liệu kèm: [README.md](README.md) (setup), [TESTING.md](TESTING.md) (test), [docs/deploy.md](docs/deploy.md) (production), [CONTEXT.md](CONTEXT.md) (thuật ngữ deploy), [EXTERNAL_SERVICES_GUIDE.md](EXTERNAL_SERVICES_GUIDE.md) (Cloudinary, SMTP, AI).
 
-## 🔐 1. AUTHENTICATION & USER (✅ Hoàn thành)
-
-### Backend
-
-- [x] User model (Prisma schema)
-- [x] Auth routes (`/api/auth/*`)
-- [x] Register endpoint
-- [x] Login endpoint
-- [x] Logout endpoint
-- [x] Get profile endpoint
-- [x] Update profile endpoint
-- [x] Change password endpoint
-- [x] JWT authentication middleware
-- [x] Password hashing (bcrypt)
-- [x] CORS configuration
-
-### Frontend
-
-- [x] AuthContext với hooks
-- [x] LoginPage
-- [x] RegisterPage
-- [x] ForgotPasswordPage
-- [x] ProtectedRoute guard
-- [x] RoleRoute guard
-- [x] PublicRoute wrapper
-- [x] Auth service (api.ts)
+_Last updated: 16 Sep 2026 — rewrite SDLC: tách feature / quality gate, đồng bộ repo (Vitest, Playwright, CI, Render + Supabase)._
 
 ---
 
-## 🛍️ 2. PRODUCTS & CATEGORIES (✅ Hoàn thành Phase 1)
+## 0. Hiện trạng một trang
 
-### Backend
+Production đang live: Render (FE static + BE web) + Supabase Postgres. Chi tiết URL: [docs/deploy.md](docs/deploy.md).
 
-- [x] Product model (Prisma schema)
-- [x] Category model (Prisma schema)
-- [x] ProductImage model
-- [x] ProductVariant model
-- [x] Product service (`product.service.js`)
-- [x] Product controller (`product.controller.js`)
-- [x] Product routes (`/api/products/*`)
-- [x] Product validators
-- [x] Category service
-- [x] Category controller
-- [x] Category routes (`/api/categories/*`)
-- [x] Slugify integration
-- [x] Upload routes + Cloudinary storage (`/api/upload/product`, avatar, post)
-- [ ] **TODO: Image optimization/resize server-side (ngoài Cloudinary transforms nếu cần)**
+| Mảng                          | Ước lượng | Ghi chú                                                                         |
+| ----------------------------- | --------- | ------------------------------------------------------------------------------- |
+| Tính năng user/seller (Lớp A) | ~85–90%   | Còn polish: store public, AI gắn composer, seller order UI, search autocomplete |
+| Cổng chất lượng (Lớp B)       | ~40–50%   | CI + test nền tốt; thiếu IDOR, backup, health DB, DoD, admin test               |
+| Sẵn sàng demo/bảo vệ          | Chưa đóng | Làm xong mục **Bắt buộc** ở §7 rồi mới gọi là “đủ tin”                          |
 
-### Frontend
-
-- [x] Product API client (`features/product/api`, `features/marketplace/api`)
-- [x] Category integration qua API khi cần
-- [x] ProductDetail — hooks + API
-- [x] Marketplace — `marketplaceApi`, query `q` / category / sort / maxPrice, phân trang
-- [x] Feed / post composer — upload media (Cloudinary)
-- [x] **Seller Center** — `/seller/dashboard`: shop + inventory, form CRUD (`SellerProductFormDialog`), bảng sản phẩm
-- [ ] **TODO: Polish** — rich text mô tả sản phẩm, bulk actions, v.v.
-- [ ] **TODO: Autocomplete tìm kiếm nâng cao (ngoài ô search Marketplace)**
+**Không đuổi:** Elasticsearch bắt buộc, Storybook, Redis cache, Kubernetes, coverage ≥ 70% như cổng merge, FCM. Lý do: §6.
 
 ---
 
-## 🛒 3. SHOPPING CART & CHECKOUT (✅ Hoàn thành 100% - Phase 2)
+## 1. Thuật ngữ (fresher)
 
-### Backend
+Đọc mục này trước khi tick Lớp B. Cùng một từ dùng xuyên file.
 
-- [x] Cart model (Prisma schema)
-- [x] CartItem model (Prisma schema)
-- [x] Cart service (cart.service.js)
-    - [x] Add item to cart
-    - [x] Update cart item quantity
-    - [x] Remove item from cart
-    - [x] Get user cart
-    - [x] Clear cart
-- [x] Cart controller (cart.controller.js)
-- [x] Cart routes (`/api/cart/*`)
-- [x] Cart validators (cart.validator.js)
+### 1.1 Quy trình
 
-### Frontend
+- **SDLC (Software Development Life Cycle):** vòng đời phần mềm — yêu cầu → thiết kế → code → test → review → deploy → vận hành. Checklist cũ gần như chỉ có bước “code feature”.
+- **Definition of Done (DoD):** điều kiện để một việc được gọi là xong. Không có DoD thì mỗi người “xong” một kiểu (chỉ UI, chưa test, chưa check quyền).
+- **Acceptance criteria:** điều kiện chấp nhận của _một_ user story (ví dụ: “buyer hủy đơn `PENDING` thì kho cộng lại”). DoD áp dụng _mọi_ story; AC áp dụng _story đó_.
+- **YAGNI (You Aren’t Gonna Need It):** đừng xây hệ thống “cho tương lai” khi chưa có bằng chứng cần. Elasticsearch / k8s thuộc nhóm này với DATN.
+- **ADR (Architecture Decision Record):** ghi _vì sao_ chọn stack. Repo có `docs/adr/0002-render-supabase-deployment.md` (production hiện tại) và `0001` (All-AWS, đã superseded).
+- **PR (Pull Request):** đề xuất merge nhánh. CI chạy trên PR. Repo **chưa** có file template PR — mục B0 còn mở.
 
-- [x] cart.service.ts - TypeScript API client
-- [x] CartPage - Full API integration
-- [x] CheckoutPage - Mock payment (COD)
-- [x] Shipping address form
-- [x] Order summary component
+### 1.2 Kiểm thử
 
----
+- **Kim tự tháp test:** nhiều unit (nhanh, rẻ) → ít integration (thật DB) → rất ít E2E (chậm, dễ gãy). Đảo kim tự tháp (chỉ E2E) tốn thời gian và khó debug.
+- **Unit test:** test một hàm/hook, mock mạng và DB. SoCo: Vitest. FE: `frontend/src/**/__tests__/`. BE: `backend/test/unit/`.
+- **HTTP smoke:** gọi Express `app` qua Supertest, không `listen()` port. Kiểm tra route + middleware (401 khi thiếu token). SoCo: `backend/test/http/`.
+- **Integration test:** gọi API **có PostgreSQL thật** (Prisma). Cần `DATABASE_URL`. Thiếu biến thì test **skip** — đừng tưởng pass. SoCo: `backend/test/integration/` + job CI có Postgres 16.
+- **E2E (end-to-end):** mở trình duyệt, đi luồng user. SoCo: Playwright (`frontend/e2e/`), mock API `localhost:5000` — **không** chứng minh backend đúng, chỉ chứng minh UI + routing.
+- **Coverage:** % dòng code được chạy khi test. Tool: `@vitest/coverage-v8`. **Không** phải “đã test đủ”. Dễ đạt 70% bằng chỗ dễ, bỏ order/IDOR. Dùng để _tìm lỗ hổng_, không dùng làm cổng vanity.
+- **Regression:** sửa A làm hỏng B. Test critical (auth, cart, order) trong CI để chặn regression.
+- **UAT (User Acceptance Test):** người (hoặc checklist tay) đi luồng thật trên môi trường gần production. Khác E2E mock.
+- **Fixture / seed:** dữ liệu mẫu. `database/prisma/seed.js` + `npm run prisma:seed` từ `backend`. CI seed user QA cho integration.
+- **Vitest:** test runner Node/Vite (nhanh, ESM). Thay Jest/`node --test` trong repo này.
+- **Playwright:** E2E điều khiển Edge/Chromium. Cypress **không** dùng.
+- **Supertest:** gửi HTTP giả lập vào `app` Express.
 
-## 📦 4. ORDERS & ORDER MANAGEMENT (✅ Hoàn thành 100% - Phase 2)
+### 1.3 Bảo mật
 
-### Backend
+- **JWT (JSON Web Token):** chuỗi ký số chứa `userId` + hạn. Server không lưu session server-side (stateless). Rủi ro: lộ token = giả danh đến khi hết hạn.
+- **Access token / refresh token:** access ngắn hạn gọi API; refresh đổi access mới. FE lưu cả hai trong `localStorage` (`soco.accessToken`).
+- **httpOnly cookie:** cookie JS trên trang **không đọc được**. Chống XSS _lấy token_. Backend _đã_ `res.cookie("token", …, { httpOnly: true })` lúc login; FE _vẫn_ cất token JSON vào `localStorage` → XSS vẫn lấy được.
+- **XSS (Cross-Site Scripting):** chèn JS vào trang người khác. Feed HTML dùng DOMPurify (`sanitizePostHtml`). Token trong `localStorage` vẫn bị script độc đọc.
+- **CSRF (Cross-Site Request Forgery):** trang khác khiến trình duyệt gửi cookie session tới API của mình. Chỉ nghiêm nếu auth **chỉ** dựa cookie. Cookie SoCo có `sameSite: "strict"`. Khi FE gửi `Authorization: Bearer` từ localStorage, CSRF kém liên quan hơn XSS.
+- **IDOR (Insecure Direct Object Reference):** đoán/đổi id trên URL để đọc data người khác (`GET /api/orders/uuid-của-bạn`). Test: user A không PATCH notification/order của user B. **Chưa có test IDOR trong** `backend/test/`**.**
+- **OWASP:** danh sách rủi ro web phổ biến (injection, broken access, XSS…). DATN không cần chứng chỉ; cần map vài mục vào code.
+- **Helmet:** middleware Express set header HTTP (tắt `X-Powered-By`, CSP một phần, …). Đã bật `backend/src/app.js`.
+- **Rate limit:** giới hạn số request / IP / thời gian — chống brute-force login và spam API. `express-rate-limit`: global `/api` + limiter auth.
+- **CORS:** trình duyệt chặn JS domain A gọi API domain B trừ khi server cho phép `Origin`. Production phải khớp `FRONTEND_URL` (user) và `ADMIN_CORS_ORIGIN` (admin).
+- **bcrypt:** hash mật khẩu một chiều + salt. Không lưu plaintext. Đã dùng `bcryptjs`.
+- **Prisma / SQL injection:** Prisma bind tham số — không nối chuỗi SQL. Vẫn có thể lộ data nếu quên `where: { userId }` (đó là IDOR, không phải injection).
+- **Secrets:** `JWT_SECRET`, `DATABASE_URL`, Cloudinary, SMTP. Không commit `.env`. Production: `validateEnv()` fail-fast khi thiếu biến (`backend/src/config/env.js`).
+- **Dependabot /** `npm audit`**:** quét lỗ hổng thư viện. Repo chưa có `dependabot.yml`.
 
-- [x] Order model (Prisma schema)
-- [x] OrderItem model (Prisma schema)
-- [x] Order service (order.service.js)
-    - [x] Create order from cart
-    - [x] Get order by ID
-    - [x] Get user orders (buyer)
-    - [x] Get seller orders
-    - [x] Update order status
-    - [x] Cancel order
-    - [x] Mock payment confirmation
-- [x] Order controller (order.controller.js)
-- [x] Order routes (`/api/orders/*`)
-- [x] Order validators (order.validator.js)
-- [x] Order status transitions logic
+### 1.4 Deploy & vận hành
 
-### Frontend
+- **CI (Continuous Integration):** mỗi push/PR, máy ảo chạy lint + test + build. File: `.github/workflows/ci.yml`.
+- **CD (Continuous Deployment):** tự deploy khi CI xanh. Render có auto-deploy từ git; **không** có “smoke production bắt buộc sau deploy” trong repo.
+- **Environment /** `.env`**:** cấu hình theo máy. Vite chỉ nhúng biến `VITE_`\* lúc **build** — đổi API URL production phải rebuild static.
+- **Health check:** endpoint để platform biết process sống. `GET /health` hiện trả `{ status: "OK" }` **không** ping DB. Render: `healthCheckPath: /health` trong `render.yaml`.
+- **Cold start:** Render Free ngủ sau ~15 phút idle; request đầu chậm. Không phải bug app.
+- **Ephemeral disk:** ổ Render mất khi redeploy. Ảnh/file phải lên Cloudinary, không lưu `uploads/` trên server.
+- **Observability:** log + metric + trace để biết production đang làm gì. SoCo: Winston JSON + `requestId` (`x-request-id`). Chưa có Sentry (gom lỗi JS/BE).
+- **Backup / restore:** bản sao DB có thể quay lại. Supabase có backup theo plan; **chưa** ghi runbook restore trong `docs/deploy.md`.
+- **Migrate vs** `db push`**:** `prisma migrate deploy` = chạy file SQL đã review (production/CI). `prisma db push` = đồng bộ schema nhanh trên máy dev, **không** dùng production.
+- **Rollback:** cách về bản cũ (redeploy image/commit trước). Render: rollback deploy. DB migrate **không** tự rollback — cần migration ngược hoặc restore backup.
+- **Staging:** môi trường giống production, data giả. DATN có thể dùng Render preview hoặc nhánh; **chưa** bắt buộc nếu UAT trên production cẩn thận (tài khoản QA, không data thật của người lạ).
 
-- [x] order.service.ts / `orderApi` — buyer: list purchases, detail, create, cancel
-- [x] OrdersPage — lịch sử mua
-- [x] OrderDetailPage — chi tiết đơn
-- [x] Order status badges & filters
-- [x] Order tracking timeline
-- [x] Tab **Orders** trên **Seller Center** (`orderApi.listSellerSales` trên `/seller/dashboard?tab=orders`)
-- [ ] **TODO: Chi tiết đơn / cập nhật trạng thái từ UI seller (nếu chưa đủ)**
+### 1.5 Stack SoCo (nhắc nhanh)
 
----
-
-## 📝 5. POSTS & SOCIAL FEED (✅ Hoàn thành 100% - Phase 3)
-
-### Backend
-
-- [x] Post model (Prisma schema)
-- [x] PostLike model (Prisma schema)
-- [x] PostComment model (Prisma schema)
-- [x] Post service (`post.service.js`)
-    - [x] Create post
-    - [x] Get post by ID
-    - [x] Get user posts
-    - [x] Get feed with filters (authorId, status, visibility, search)
-    - [x] Update post
-    - [x] Delete post
-    - [x] Like/unlike post
-    - [x] Add comment
-    - [x] Get comments with pagination
-- [x] Post controller (`post.controller.js`)
-- [x] Post routes (`/api/posts/*`) - 10 endpoints
-- [x] Post validators with express-validator
-- [x] Swagger documentation for all endpoints
-- [x] Fixed avatar -> avatarUrl field mapping
-
-### Frontend
-
-- [x] **Feed** (`Feed.tsx`) — tích hợp API
-- [x] PostWithProducts component (dùng navigate)
-- [x] CreatePostModal (tích hợp API đầy đủ)
-- [x] Post service / `feedApi` với TypeScript
-- [x] Post composer với Cloudinary media upload
-- [x] Like/unlike functionality với optimistic updates
-- [x] Pagination với Load More
-- [x] date-fns cho format ngày giờ
-- [x] Fixed uploadService import
-- [x] PostDetailPage - Full API integration
-- [x] Comment section với add/reply functionality
-- [x] Image gallery với carousel
-- [x] Load more comments pagination
+| Thành phần     | Công nghệ                            | Vai trò                                  |
+| -------------- | ------------------------------------ | ---------------------------------------- |
+| User FE        | React 19, Vite, TypeScript           | SPA `:3000`                              |
+| User API       | Express, ESM                         | `:5000`, Socket.IO                       |
+| Admin FE / API | Vite + Express riêng                 | `:5174` / `:5001`, **cùng một Postgres** |
+| DB             | PostgreSQL + Prisma                  | schema `database/prisma/`                |
+| Upload         | Cloudinary + multer                  | ảnh sản phẩm/avatar/post/KYC             |
+| Search         | SQL + `GET /api/search`; ES optional | unified search v1 không cần ES           |
+| AI             | Gemini (+ backup OpenRouter/Groq)    | `/api/ai/*`                              |
+| Host           | Render + Supabase                    | production hiện tại                      |
 
 ---
 
-## 📅 6. SCHEDULED POSTS (✅ Backend — 🟡 Frontend: trang quản lý cơ bản)
+## 2. Definition of Done (áp dụng mọi PR / module)
 
-### Backend
+Một mục Lớp A chỉ `[x]` khi **tất cả** dòng dưới đúng. In và dán vào mô tả PR nếu team chưa có template.
 
-- [x] ScheduledPost model (Prisma schema)
-- [x] ScheduledPost service (`scheduledPost.service.js`)
-- [x] ScheduledPost controller
-- [x] ScheduledPost routes (`/api/scheduled-posts/*`)
-- [x] Cron job publish (`backend/src/jobs/scheduler.js` + `startScheduler` trong server)
-- [x] Trường timezone trong payload (xử lý cơ bản; có thể mở rộng UX)
+1. **Hành vi:** AC của story được code (API + UI nếu story có UI). Không để mock khi ticket nói “nối API”.
+2. **Quyền:** user/role sai nhận 401/403. User A không đọc/sửa resource của user B (IDOR) với id đoán được.
+3. **Validate:** input sai → 400, không 500. File upload: MIME + size (multer `limits` / `fileFilter`).
+4. **Test:** ít nhất một test tự động chạm logic mới — unit _hoặc_ HTTP smoke _hoặc_ integration. Luồng tiền (auth, cart, order, seller status) ưu tiên integration.
+5. **Schema:** đổi Prisma → thêm migration trong `database/prisma/migrations/`, CI `prisma migrate deploy` vẫn chạy. Không `db push` lên Supabase production.
+6. **Secrets:** không commit `.env`, key, dump DB. Thêm biến mới → `.env.example` + `validateEnv` nếu bắt buộc production.
+7. **Quan sát:** lỗi không nuốt im; đi `errorHandler` (có `requestId`). FE không trắng trang — `AppErrorBoundary` đã bọc app user.
+8. **Tài liệu:** endpoint mới trong Swagger hoặc ghi vào PR; đổi deploy → `docs/deploy.md`.
 
-### Frontend
+**Checklist PR (copy):**
 
-- [x] Lên lịch từ Feed/CreatePostModal qua `feedApi.createScheduledPost`
-- [x] Trang **`/scheduled-posts`** — `feedApi.listScheduledPosts`, xóa (`deletePost`), tạo mới qua modal
-- [x] **Sửa lịch (nút Edit trong `ScheduledPostsPage` đã nối `handleUpdate`)**
-- [ ] **TODO: Timezone selector & preview nâng cao**
-
----
-
-## 💬 7. MESSAGING (✅ Backend — ⏳ Frontend)
-
-### Backend
-
-- [x] Conversation model (Prisma schema)
-- [x] Message model (Prisma schema)
-- [x] ConversationParticipant model (Prisma schema)
-- [x] Message service (`message.service.js`)
-- [x] Message controller
-- [x] Message routes (`/api/messages/*`)
-- [x] Socket.IO (emit real-time trong service)
-- [x] Message pagination
-- [ ] **TODO: Read receipts đầy đủ**
-- [ ] **TODO: Typing / presence (nếu cần)**
-
-### Frontend
-
-- [x] MessagesPage — `messagingApi` (list hội thoại, tin nhắn, gửi)
-- [x] **Widget chat nổi (floating/dock) đồng bộ qua `MessagingContext`**
-- [x] **Real-time subscribe Socket.IO trên UI (qua `useMessageSocket`)**
-- [ ] **TODO: Emoji picker, đính kèm file/image, typing indicator**
+- [ ] Test liên quan đã chạy local (`frontend`: `npm test`; `backend`: `npm test` và `npm run test:all` nếu đụng DB)
+- [ ] Không IDOR trên resource mới
+- [ ] Migration nếu đổi schema
+- [ ] `.env.example` cập nhật
+- [ ] Không đụng secret
+- [ ] Mô tả PR nói _vì sao_, không chỉ _sửa file nào_
 
 ---
 
-## 🔔 8. NOTIFICATIONS (✅ Backend + ✅ FE realtime + preferences)
+## 3. Lớp B — Cổng chất lượng
 
-### Backend
+### B0. Quy trình làm việc
 
-- [x] Notification model (Prisma schema)
-- [x] Notification service
-- [x] Notification controller
-- [x] Notification routes (`/api/notifications/*`)
-- [x] WebSocket push song song với tạo notification (`notification:new`)
-- [ ] **TODO: Email / FCM**
+- [x] README setup local (bốn app + Prisma)
+- [x] ADR deploy (`docs/adr/0002-render-supabase-deployment.md`)
+- [x] Glossary production (`CONTEXT.md`)
+- [ ] **TODO:** file PR template (`.github/pull_request_template.md`) — 6 dòng DoD ở trên
+- [ ] **TODO:** nhánh bảo vệ `main`: bắt buộc CI xanh trước merge (Settings GitHub — không nằm trong code)
+- [ ] **TODO:** ghi “ai merge / ai review” trong README (DATN 1–2 người: tự review diff + CI vẫn hơn không)
 
-### Frontend
-
-- [x] NotificationsPage — `notificationApi`, mark read / mark all read
-- [x] **Dropdown header** (`UnifiedHeader` + `NotificationDropdown`) — 5 tin gần nhất + badge unread (REST initial)
-- [x] **NotificationProvider** dùng single source cho header + page + live toast
-- [x] **Realtime ở FE**: subscribe Socket.IO + cập nhật dropdown/page + sync `notification:new`, `notification:read`, `notification:read-all`
-- [x] Preferences UI + API (`social/order/system`)
+**Giải thích:** Process không phải Scrum đầy đủ. Với đồ án, đủ khi _mọi_ thay đổi đi qua git + CI + DoD, không commit thẳng production lúc demo.
 
 ---
 
-## 👥 9. GROUPS (✅ Feature-complete v1)
+### B1. Kiểm thử
 
-### Backend
+Kiến trúc và lệnh: [TESTING.md](TESTING.md), [backend/TEST.md](backend/TEST.md), [frontend/TEST.md](frontend/TEST.md).
 
-- [x] Group model (Prisma schema)
-- [x] GroupMember model (Prisma schema)
-- [x] Group service (`group.service.js`)
-- [x] Group controller
-- [x] Group routes (`/api/groups/*`)
-- [x] Group permissions logic (ADMIN/MODERATOR/MEMBER + guard backend)
-- [x] Join request flow cho nhóm private (request -> approve/reject)
-- [x] Invite code/link flow (create/list/revoke/join-by-invite)
-- [x] Group media feed endpoint (`GET /api/groups/:groupId/media`)
-- [x] Group tagged products endpoint (`GET /api/groups/:groupId/products`)
+| Lớp            | Công cụ                     | CI?              | Việc còn lại                  |
+| -------------- | --------------------------- | ---------------- | ----------------------------- |
+| Unit FE        | Vitest + Testing Library    | Có (`npm test`)  | Giữ; đừng đuổi 70%            |
+| Unit + HTTP BE | Vitest + Supertest          | Có               | Thêm IDOR / 403               |
+| Integration BE | Vitest + Postgres service   | Có (`test:all`)  | Order/notification cross-user |
+| E2E FE         | Playwright (Edge, mock API) | **Không**        | Chạy tay trước demo           |
+| Admin          | _Không có_ `test/`          | Job chỉ `npm ci` | Smoke login + 1 moderation    |
 
-### Frontend
+- [x] Frontend unit (~51 file / ~185 test lúc ghi TESTING.md)
+- [x] Backend unit + HTTP smoke
+- [x] Backend integration (auth me, cart, catalog, search, posts public, …) — skip nếu thiếu `DATABASE_URL`
+- [x] Playwright: auth, 2FA UI, cart, orders, groups, messages, notifications, marketplace, AI (mock)
+- [x] Coverage tool BE (`npm run test:coverage`) — **chưa** gắn ngưỡng CI
+- [ ] **TODO:** Integration IDOR: order, message, notification, saved-item (user A vs B)
+- [ ] **TODO:** Admin: ít nhất HTTP smoke login + 401
+- [ ] **TODO:** Job CI `admin-backend` chạy test/lint, không dừng sau install
+- [ ] **TODO:** E2E Playwright trước demo/bảo vệ (local đủ; CI là plus)
+- [ ] **TODO:** Chạy coverage một lần, ghi số thật vào PR/luận văn — **không** đặt gate 70%
+- [ ] **TODO:** UAT tay §5 trên production QA account
 
-- [x] GroupsPage — `groupApi.listGroups` + tìm kiếm/filter UI
-- [x] GroupDetailPage — tích hợp API theo route + thảo luận nhóm
-- [x] Sidebar “My groups” lấy từ `groupApi.getMyGroups` (không còn mock tĩnh)
-- [x] Create group modal + join/leave group + cập nhật group cơ bản
-- [x] Tab members/products/media chi tiết + quản lý member nâng cao
-- [x] Role-based actions theo capability (promote/demote/remove/approve/invite)
-
----
-
-## ⭐ 10. REVIEWS & RATINGS (✅ Backend — ✅ Frontend core flow)
-
-### Backend
-
-- [x] Review model (Prisma schema)
-- [x] Review service
-- [x] Review controller
-- [x] Review routes (`/api/reviews/*`)
-- [x] Review validators
-- [ ] **TODO: Moderation / flag review (nếu cần)**
-
-### Frontend
-
-- [x] Hiển thị **rating tổng hợp** trên `ProductDetailPanel` (số sao + số review từ API sản phẩm)
-- [x] Review form từ luồng đơn hàng (`OrderReviewModal` + `reviewApi.createReview`)
-- [x] Review list component hiển thị chi tiết review trên ProductDetail
-- [ ] **TODO: Star rating component tái sử dụng** (tách khỏi inline)
-- [x] Review filters & sorting (rating/media/reply + sort theo thời gian/rating/helpful)
-- [x] Seller response hiển thị trực tiếp dưới review item
+**Vì sao không bắt 70% coverage:** số dễ bị hack (test getter, bỏ nhánh thanh toán). Hội đồng tin _luồng tiền chạy được_ hơn _báo cáo 72% dòng_.
 
 ---
 
-## 🔍 11. SEARCH & MARKETPLACE (🟡 Unified Search v1 đã có)
+### B2. Bảo mật
 
-### Backend
+Map OWASP gọn → việc SoCo.
 
-- [x] Product list + filter + sort qua `GET /api/products` (query: search, category, sort, v.v.)
-- [x] User search — `GET /api/users/search`
-- [x] Unified endpoint `GET /api/search` (fan-out products/users/posts)
-- [ ] **TODO: Full-text / Elasticsearch (tùy chọn)**
+| Rủi ro               | Đã có                                                     | Còn thiếu                                                   |
+| -------------------- | --------------------------------------------------------- | ----------------------------------------------------------- |
+| Broken auth          | JWT, bcrypt, rate limit login, `validateEnv` JWT          | Token FE trong `localStorage`                               |
+| Broken access (IDOR) | Guard role (`RoleRoute`, admin service tách)              | Test cross-user resource                                    |
+| Injection            | Prisma, express-validator                                 | Không nối SQL thủ công (giữ)                                |
+| XSS                  | DOMPurify post HTML, Helmet                               | Mọi chỗ `dangerouslySetInnerHTML` phải sanitize             |
+| CSRF                 | Cookie `sameSite: strict`                                 | Chỉ bắt buộc nếu bỏ Bearer, auth thuần cookie               |
+| Upload               | multer `fileSize` + `fileFilter` ảnh seller KYC           | Rà mọi endpoint upload (product/post) cùng rule             |
+| Secrets              | `.env.example`, không hardcode trong CI (dùng GitHub env) | Dependabot / `npm audit` định kỳ                            |
+| CORS                 | whitelist localhost + `FRONTEND_URL`                      | Production `FRONTEND_URL` = `https://socomain.onrender.com` |
 
-### Frontend
+- [x] Password hashing bcrypt
+- [x] JWT middleware; 401 token sai (integration auth)
+- [x] Helmet tại `app.js`
+- [x] Rate limit global `/api` + auth + auth-sensitive
+- [x] CORS `credentials: true` + origin list
+- [x] Cookie login `httpOnly` + `secure` production + `sameSite: "strict"`
+- [x] Fail-fast env production (`validateEnv`)
+- [x] DOMPurify cho nội dung post
+- [x] `AppErrorBoundary` FE user
+- [ ] **TODO:** Thống nhất auth: (A) FE chỉ cookie httpOnly + `credentials: 'include'`, xóa token `localStorage`, **hoặc** (B) giữ Bearer + ghi rõ trong luận văn: XSS đọc được session — đây là đánh đổi DATN, không phải “xong bảo mật”
+- [ ] **TODO:** Test IDOR (xem B1)
+- [ ] **TODO:** Socket.IO: client không join room user khác sau handshake
+- [ ] **TODO:** `npm audit` + (nên) Dependabot
+- [ ] **TODO:** Tắt hoặc bảo vệ `/api-docs` trên production nếu không muốn lộ contract (hoặc chỉ mở khi có auth)
 
-- [x] MarketplacePage — `marketplaceApi`, filter sidebar, sort, URL `searchParams`
-- [x] Search page thống nhất `/search?q=...` + kết quả theo section Products/Users/Posts
-- [x] UnifiedHeader submit Enter điều hướng về `/search`
-- [ ] **TODO: SearchResultsPage riêng nếu tách khỏi Marketplace**
-- [ ] **TODO: Search autocomplete toàn app**
-- [ ] **TODO: Lọc nâng cao (đã có một phần)**
-
----
-
-## 🏪 12. SELLER FEATURES (🟡 API đủ cốt lõi — UI Seller Center đã dùng)
-
-### Backend
-
-- [x] SellerVerification model (Prisma schema)
-- [x] SellerStats model (Prisma schema)
-- [x] Seller apply + 3 bước + upload multer + admin approve/reject (`/api/seller/*`)
-- [x] User role update trong luồng duyệt seller
-- [x] **`GET /api/seller/stats`** — `getDashboardStats` (đơn, view, v.v.)
-- [ ] **TODO: Export / báo cáo nâng cao**
-
-### Frontend
-
-- [x] SellerRegistration (Become seller) + API
-- [x] `profileApi.getSellerStats` + **Seller Center** (`SellerDashboard`, tab dashboard có stats + charts đơn giản)
-- [ ] **TODO: StorePage / showcase công khai**
-- [ ] **TODO: Revenue / analytics nâng cao (ngoài biểu đồ placeholder trên seller dashboard)**
+**Không làm trên DATN trừ khi hội đồng hỏi sâu:** WAF, pentest thuê ngoài, SSO doanh nghiệp, mã hóa cột DB (đã có `SENSITIVE_DATA_KEY` — chỉ dùng đúng chỗ PII, đừng tự viết crypto mới).
 
 ---
 
-## 👤 13. USER PROFILE & SOCIAL (✅ Profile + settings cốt lõi)
+### B3. CI / CD
 
-### Backend
+File: `.github/workflows/ci.yml`.
 
-- [x] Follow model (Prisma schema)
-- [x] Follow/unfollow (`POST/DELETE /api/users/:userId/follow`)
-- [x] Followers / following lists
-- [x] Public profile `GET /users/:id`, `GET /users/username/:username`
-- [x] Update profile `PUT /users/me`
+- [x] CI frontend: `lint` (tsc) + Vitest + `vite build`
+- [x] CI backend: Postgres 16 → Prisma validate/generate/`migrate deploy` → seed → `npm run test:all`
+- [x] CI admin frontend: `npm run build`
+- [ ] **TODO:** CI admin backend: sau `npm ci` phải có kiểm tra (ít nhất `node -e` boot hoặc smoke); hiện job **kết thúc ở install**
+- [ ] **TODO:** (nên) Playwright job `if: manual` hoặc nightly — không chặn mọi PR nếu flaky
+- [x] Render blueprint `render.yaml` (4 service) — CD theo git trên dashboard Render
+- [ ] **TODO:** Sau deploy: mở `GET https://be-socomain.onrender.com/health` (và admin) — ghi 3 dòng vào `docs/deploy.md`
 
-### Frontend
-
-- [x] ProfilePage — fetch user khác theo `id`, follow/unfollow
-- [x] User posts grid (tích hợp feed/post list theo context)
-- [x] Account settings page (`/account-settings`) — profile + privacy tabs, hooks + API
-- [ ] **TODO: Route `/profile/:username` nếu muốn slug thay vì id**
-- [ ] **TODO: Mở rộng settings nâng cao hơn nếu cần** (security sessions, notification center hợp nhất, v.v.)
+**Giải thích concurrency:** `cancel-in-progress: true` hủy CI cũ khi push thêm — đúng với DATN (tiết kiệm phút GitHub).
 
 ---
 
-## 👨‍💼 14. ADMIN FEATURES (🟡 Backend + admin app đã có nhiều màn)
+### B4. Quan sát lỗi (observability)
 
-### Backend
+- [x] `requestId` trên request + header `x-request-id`
+- [x] Request/error log JSON (Winston / middleware)
+- [x] `GET /health` process sống
+- [ ] **TODO:** `/health` (hoặc `/ready`) **ping Prisma** `SELECT 1` — Render đang tin process Node sống dù DB đứt
+- [ ] **TODO:** (nên) Sentry free _hoặc_ thói quen: user báo lỗi → hỏi `x-request-id` → tìm log Render
+- [ ] **TODO:** Health không trả secret, không trả stack trace
 
-- [x] Admin routes (`/api/admin/*`) — users toggle active/role, posts/products delete, dashboard stats
-- [ ] **TODO: Mở rộng moderation, order admin, analytics chi tiết**
-
-### Frontend
-
-- [x] **Admin app** (`admin/frontend`): Reports, **`UsersPage`** (`adminApi.getUsers`), **`SellerApplicationsPage`**, Categories, Content, v.v.
-- [ ] **TODO: Product moderation UI tập trung (nếu tách khỏi Content)**
-- [ ] **TODO: Analytics dashboard (charts) toàn nền tảng**
+Redis (`REDIS_URL`) là cache optional — **không** bắt buộc trên mọi instance (ADR 0002). Health chỉ check Redis khi biến được set.
 
 ---
 
-## 🤖 15. AI FEATURES (✅ Backend Gemini — ❌ Frontend wire)
+### B5. Database & dữ liệu
 
-### Backend
+- [x] Schema Prisma + migrations (`database/prisma/migrations/`, gồm `init_schema`)
+- [x] CI dùng `prisma migrate deploy` (đúng cách production)
+- [x] Seed idempotent QA (`npm run prisma:seed`)
+- [x] Seed CI có password riêng qua env (`SEED_*`)
+- [ ] **TODO:** Runbook 1 trang: backup Supabase + restore thử trên branch/DB copy — **trước demo lớn**
+- [ ] **TODO:** Cấm `prisma db push` / `prisma:reset` trên `DATABASE_URL` production (ghi cảnh báo trong `backend/README.md` nếu chưa có)
+- [ ] **TODO:** (nên) Policy data demo: tài khoản giả, không CCCD thật trên KYC Cloudinary public
 
-- [x] AiContentHistory model (Prisma schema)
-- [x] AI service + routes (`/api/ai/generate-text`, `generate-image-text`, `generate-video-images-text`)
-- [ ] **TODO: Endpoints lịch sử / quota nếu cần**
-
-### Frontend
-
-- [x] AiCreativeLab (UI và API wiring — nối `/api/ai/*` qua `aiApi`)
-- [ ] **TODO: Nối nút AI trong CreatePostModal / Add product với `/api/ai/*`**
-- [ ] **TODO: Loading states, error handling, suggestions UI**
+**Giải thích:** Migration là lịch sử schema. Mất folder `migrations/` rồi `push` lên prod = schema lệch, rollback không được. Backup là “bảo hiểm đồ án”: Render Free/Supabase vẫn có thể xóa nhầm project.
 
 ---
 
-## 📊 16. ANALYTICS (⏳ Admin dashboard API — ❌ FE charts)
+### B6. Deploy production
 
-### Backend
+- [x] Bốn URL live (user FE/API, admin FE/API) — [docs/deploy.md](docs/deploy.md)
+- [x] `render.yaml`: `healthCheckPath`, env `sync: false` cho secret
+- [x] Static SPA rewrite `/*` → `index.html` (React Router)
+- [x] Bind/platform: Render gán `PORT`; Express phải listen `process.env.PORT` (kiểm tra `server.js` khi đổi)
+- [x] File media: Cloudinary (ổ Render ephemeral)
+- [ ] **TODO:** Checklist “ngày demo”: warmup (gọi `/health` trước 2 phút), tài khoản QA, Stripe/COD mock, AI key còn quota
+- [ ] **TODO:** Ghi cold start Free plan vào luận văn (tránh hội đồng tưởng app chết)
 
-- [x] ProductView model (Prisma schema)
-- [x] SellerStats model (Prisma schema)
-- [x] Admin `GET /api/admin/dashboard` & growth (một phần)
-- [ ] **TODO: Track product views tự động**
-- [ ] **TODO: Aggregate seller stats theo lịch, báo cáo export**
-
-### Frontend
-
-- [x] Biểu đồ đơn giản trên **Seller Center** (`SellerDashboardChartsPanel` — theo stats API)
-- [ ] **TODO: Analytics charts** toàn app (recharts/chart.js) — admin + traffic
-- [ ] **TODO: Sales reports, traffic, conversion** nâng cao
+**Không cần cho DATN:** Kubernetes, Docker production bắt buộc, CDN riêng, blue/green. Render static + web đủ. Docker local chỉ khi muốn Postgres/ES giống nhau giữa máy.
 
 ---
 
-## 🔒 17. SECURITY & PERFORMANCE
+### B7. UX, a11y, i18n (chất lượng giao diện)
 
-### Backend
+- [x] Dark mode (token semantic; một số màn legacy)
+- [x] i18n VI/EN cơ bản (header toggle)
+- [x] Error boundary app user
+- [ ] **TODO:** Form auth + checkout: mọi input có `<label>`, submit được bằng bàn phím
+- [ ] **TODO:** Empty/error/loading có thông điệp, không màn trắng (skeleton _đủ luồng tiền_; không cần illustration khắp app)
+- [ ] **TODO:** Responsive các màn demo: Feed, Marketplace, Cart, Checkout, Messages
+- [ ] **TODO:** i18n phủ màn demo (không cần 100% admin)
 
-- [x] JWT authentication
-- [x] Password hashing (bcrypt)
-- [x] CORS configuration
-- [x] Input validation (express-validator)
-- [x] Rate limiting đã gắn: global `/api` + auth limiter + auth-sensitive limiter
-- [x] Helmet đã cài và bật tại `app.js`
-- [x] SQL injection prevention (Prisma)
-- [ ] **TODO: XSS / CSRF / caching Redis / tối ưu query & index**
-
-### Frontend
-
-- [x] Token storage (localStorage)
-- [x] Axios interceptors
-- [ ] **TODO: Input sanitization, XSS, route code splitting, lazy load ảnh, error boundary**
+Toast: nếu app đã có cơ chế thông báo (notification toast realtime) thì **không** bắt buộc thêm thư viện sonner. Checklist cũ ghi TODO sonner — chỉ làm nếu UX lỗi im lặng khi API fail.
 
 ---
 
-## 🧪 18. TESTING (🟡 Đã có nền tảng, chưa đủ gate production)
+## 4. Lớp A — Module sản phẩm
 
-### Backend
+“Done” = API + UI luồng chính + có test hoặc smoke. Polish = UX/nâng cao, không chặn demo trừ khi ghi **bắt buộc**.
 
-- [x] Unit test cơ bản (`node --test`) cho AI/Groups flows
-- [x] Backend API integration smoke tests cho critical flows (`auth`, `orders`, `seller order status`, `notifications`) trong `backend/test/critical-flows-api.test.js`
-- [ ] **TODO: Mở rộng Integration tests cho auth/order/notifications**
-- [ ] **TODO: API endpoint tests cho critical endpoints**
-- [ ] **TODO: Test coverage >= 70%**
-- [x] Groups v1 flow tests (join/leave/invite/approve + race simulation) với `node --test` (`backend/test/groups-v1-flow.test.js`)
+### 4.1 Auth & user — ✅ cốt lõi
 
-### Frontend
+**Backend:** User Prisma, `/api/auth/`\* (register, verify email/OTP, login, logout, profile, đổi mật khẩu), JWT, 2FA flag trên login, cookie httpOnly + body token.
 
-- [x] Component/hook tests đã có ở nhiều module (cart, checkout, order, marketplace, messaging, profile, AI, groups)
-- [ ] **TODO: E2E tests (Cypress/Playwright)**
-- [ ] **TODO: Test coverage >= 70%**
+**Frontend:** AuthContext, Login/Register/ForgotPassword, `ProtectedRoute` / `RoleRoute` / `PublicRoute`, token `localStorage` (xem B2).
 
----
+- [x] Register / login / logout / me / update / change password
+- [x] Guards route
+- [ ] **TODO:** Quyết định cookie vs localStorage (B2) — đây là việc bảo mật, không phải feature mới
 
-## 📚 19. DOCUMENTATION
+### 4.2 Products & categories — ✅ gần đủ
 
-### Backend
+- [x] Product / Category / Image / Variant, slug, validators, Cloudinary upload
+- [x] Marketplace filter/sort/pagination, ProductDetail, Seller CRUD
+- [ ] Polish: rich text mô tả, bulk actions, autocomplete search (không chặn demo)
 
-- [x] Swagger/OpenAPI docs (`/api-docs`)
-- [x] API_TESTING_GUIDE.md
-- [x] EXTERNAL*SERVICES_GUIDE.md (Cloudinary, v.v. — thay thế các file CLOUDINARY*\*.md đã gỡ)
-- [ ] **TODO: API documentation hoàn chỉnh**
-- [ ] **TODO: Database schema documentation**
-- [ ] **TODO: Deployment guide**
+### 4.3 Cart & checkout — ✅ luồng COD
 
-### Frontend
+- [x] Cart API + CartPage
+- [x] Checkout địa chỉ + tóm tắt đơn
+- [x] Thanh toán **mock COD** (đủ DATN; không PCI)
 
-- [ ] **TODO: Component storybook**
-- [ ] **TODO: User guide**
-- [ ] **TODO: Developer setup guide**
+**Giải thích mock payment:** không nhận thẻ thật. Luận văn nói rõ “mô phỏng xác nhận thanh toán”. Đừng cài Stripe thật nếu chưa có nhu cầu hội đồng.
 
----
+### 4.4 Orders — ✅ buyer; ⏳ seller chi tiết
 
-## 🚀 20. DEPLOYMENT & DEVOPS (⏳ Dev local — ❌ Production)
+- [x] Tạo từ cart, list/detail buyer, cancel, status transitions, mock confirm
+- [x] Seller list sales trên Seller Center
+- [ ] **TODO:** UI seller đổi trạng thái đơn nếu API đã có mà nút chưa đủ (kiểm tra `listSellerSales` vs update status)
 
-### Backend
+### 4.5 Posts & feed — ✅
 
-- [x] Environment variables (dev — `dotenv`)
-- [ ] **TODO: Production database & secrets**
-- [x] File storage dev (Cloudinary)
-- [x] Request/error logging JSON có `requestId` đã dùng trong middleware/runtime
-- [ ] **TODO: Monitoring nâng cao + log shipping** (ngoài logging runtime hiện có), CI/CD, Docker, cloud deploy
+- [x] CRUD post, like, comment phân trang, upload media, Swagger
+- [x] Feed, composer, PostDetail, optimistic like, DOMPurify HTML
 
-### Frontend
+### 4.6 Scheduled posts — ✅ cốt lõi; ⏳ UX TZ
 
-- [x] Environment variables (Vite `.env` local)
-- [ ] **TODO: Build tối ưu production, CDN, deploy, domain & SSL**
+- [x] Model + cron `backend/src/jobs/scheduler.js`
+- [x] Trang `/scheduled-posts` list/tạo/sửa/xóa
+- [ ] Polish: timezone selector & preview
 
----
+### 4.7 Messaging — ✅ REST + socket; ⏳ presence
 
-## 🎨 21. UI/UX IMPROVEMENTS
+- [x] Conversation/message, phân trang, Socket.IO, widget + `useMessageSocket`
+- [ ] Polish: read receipt đầy đủ, typing/presence, đính kèm ảnh (emoji không bắt buộc)
 
-- [x] Dark mode support (ThemePreference + token semantic; một số màn hình còn class legacy)
-- [ ] **TODO: Mobile responsive (hoàn thiện 100%)**
-- [ ] **TODO: Loading skeletons**
-- [ ] **TODO: Error states với illustrations**
-- [ ] **TODO: Empty states với CTAs**
-- [ ] **TODO: Toast notifications (sonner)**
-- [ ] **TODO: Accessibility (ARIA labels, keyboard navigation)**
-- [x] i18n cơ bản (VI/EN toggle ở header, translations đã có)
-- [ ] **TODO: i18n đầy đủ toàn app** (chuẩn hóa key + phủ hết màn hình)
+### 4.8 Notifications — ✅ realtime v1
 
----
+- [x] REST + preferences `social/order/system`
+- [x] Payload `notification:new` có `event`, `schemaVersion`, `category`
+- [x] `NotificationProvider` header + page + toast; resync reconnect
+- [ ] **TODO:** UAT đa tab / IDOR (§5) — kỹ thuật đã làm, **chưa tick chứng minh**
+- [ ] Email / FCM: **không làm** (YAGNI) trừ khi AC đồ án bắt buộc
 
-## 📈 22. DATABASE & DATA
+### 4.9 Groups — ✅ v1
 
-### Saved items & Reports (bổ sung)
+- [x] Role ADMIN/MOD/MEMBER, private join, invite, media/products
+- [x] Discover, detail, my groups, member management
+- [x] Flow tests `groups-v1` (unit/rules; xem `backend/test/unit/group-membership-rules.test.js`)
 
-- [x] SavedItem API + FE SavedItems page
-- [x] Report API + Admin reported content table
+### 4.10 Reviews — ✅ core
 
-### Seed Data
+- [x] Review API, form từ đơn (`OrderReviewModal`), list/filter trên ProductDetail, seller reply
+- [ ] Polish: moderation flag; tách star component (không chặn)
 
-- [x] **`database/prisma/seed.js`** (admin seed; `npm run prisma:seed` từ `backend`)
-- [x] Sample categories, products, users, orders, reviews (idempotent QA/UAT seed)
+### 4.11 Search & marketplace — ✅ unified v1
 
-### Migrations
+- [x] `GET /api/products` filter; `GET /api/users/search`; `GET /api/search` fan-out
+- [x] `/search?q=` + header Enter
+- [ ] Polish: autocomplete; Elasticsearch **tuỳ chọn** (docker-compose local) — không phải cổng production
 
-- [x] Initial Prisma schema
-- [ ] **TODO: Migration scripts cho production**
-- [ ] **TODO: Backup strategy**
+### 4.12 Seller — ✅ apply + dashboard; ⏳ store public
 
----
+- [x] Đăng ký + upload KYC, admin duyệt, `GET /api/seller/stats`, Seller Center
+- [ ] **TODO:** StorePage công khai (nên có nếu demo “cửa hàng”)
+- [ ] Export báo cáo / analytics sâu: không chặn
 
-## 🎯 PRIORITY ORDER (MVP-first đề xuất)
+### 4.13 Profile & social — ✅
 
-### 🔥 HIGH PRIORITY
+- [x] Follow, public profile, settings privacy
+- [ ] Polish: `/profile/:username` slug
 
-1. ✅ **Security hardening trước khi public** — đã gắn rate limit (`app.js`) + thêm Helmet + chuẩn hóa logging runtime
-2. ✅ **Test gate cho luồng critical** — đã có backend API smoke tests cho auth/order/seller order status/notifications
-3. ✅ **Chuẩn hóa error handling + env production baseline** — đã có global error format + validate env production fail-fast
+### 4.14 Admin (cụm riêng) — 🟡
 
-### 🟡 MEDIUM PRIORITY
+Admin **không** mount trên user API (`admin/README.md`). Cùng DB. Authz + demo: [ADR 0003](docs/adr/0003-admin-casl-authz-and-demo.md).
 
-1. ✅ **Reviews FE trên ProductDetail** — list/filter/reply hiển thị đầy đủ để tăng trust chuyển đổi
-2. ✅ **Unified search v1** — endpoint/tầng tìm kiếm thống nhất + entry FE đồng nhất
-3. ✅ **Mở rộng seed data QA/UAT** — categories/products/orders/reviews/users mẫu
-4. **Admin** — polish moderation + analytics charts giai đoạn 2
+- [x] Users, seller applications, categories, content, reports
+- [x] **TODO:** Smoke test admin API (B1)
+- [ ] Polish: analytics charts toàn nền tảng, product moderation tách trang
 
-### 🟢 LOW PRIORITY
+#### Phase P0 — CASL nền (trước P1)
 
-1. **AI inline flows** trong CreatePostModal / Add product
-2. **Scheduled posts UX nâng cao** (timezone/preview)
-3. **Analytics nâng cao + deployment production đầy đủ**
+- [x] Shared ability factory (`admin/shared/ability`) — profiles: `super` / `moderator` / `ops` / `demo`
+- [x] BE: `protect` gắn `req.ability`; middleware `authorize(action, subject)` trên route ghi/đọc nhạy cảm
+- [x] FE: `@casl/react` — ẩn nav/nút theo ability; login trả `permissions`
+- [x] Seed: gán `permissions.profile` cho admin hiện có + không còn “mọi admin = full” chỉ vì JWT
 
----
+#### Phase P1 — Try demo + rate limit
 
-## 📊 Tổng quan tiến độ
+- [x] Seed `demo.admin@…` với `profile: "demo"`
+- [x] LoginPage: nút **Try demo** + banner “limited actions”
+- [x] Rate limit IP: login + write admin API (`express-rate-limit` in-memory)
+- [ ] (Sau P2 nếu DB bẩn) Optional: GH Action reseed nhẹ — **không** `prisma reset` prod
 
-| Module             | Backend  | Frontend | Status                 |
-| ------------------ | -------- | -------- | ---------------------- |
-| Auth               | ✅ 100%  | ✅ 100%  | ✅ Done                |
-| Products/Upload    | ✅ ~95%  | ✅ ~90%  | ⏳ Polish / reviews    |
-| Categories         | ✅ 100%  | ✅ ~100% | ✅ Done                |
-| Cart               | ✅ 100%  | ✅ 100%  | ✅ Done                |
-| Orders             | ✅ 100%  | ✅ ~92%  | ⏳ Seller chi tiết     |
-| Posts/Feed         | ✅ 100%  | ✅ 100%  | ✅ Done                |
-| Scheduled posts    | ✅ ~95%  | 🟡 ~90%  | ⏳ TZ UX               |
-| Messages           | ✅ ~90%  | ✅ ~90%  | ✅ Socket FE done      |
-| Notifications      | ✅ 100%  | ✅ 100%  | ✅ Done                |
-| Groups             | ✅ ~95%  | ✅ ~92%  | ✅ Feature-complete v1 |
-| Reviews            | ✅ ~95%  | ✅ ~80%  | ✅ Core flow complete  |
-| Search/Marketplace | ✅ ~85%  | ✅ ~88%  | ✅ Unified Search v1   |
-| Seller             | ✅ ~90%  | ✅ ~80%  | ⏳ Store public        |
-| Profile/Social     | ✅ ~95%  | ✅ ~90%  | ✅ Settings cơ bản     |
-| Admin              | 🟡 ~55%  | 🟡 ~60%  | ⏳ Charts, mod         |
-| AI                 | ✅ ~80%  | 🟡 ~75%  | ⏳ Link to composer    |
-| Saved items        | ✅ ~100% | ✅ ~90%  | ✅ Done                |
-| Reports            | ✅ ~90%  | 🟡 ~55%  | ⏳ Admin flow          |
+#### Phase P2 — Khép moderation (ưu tiên CV)
 
-**Tổng tiến độ ước tính: ~94%**
+- [x] Reports: filter pending/resolved; resolve có lý do; empty/loading rõ
+- [x] Seller applications: polish approve/reject; UI **Sensitive change requests** (API đã có)
+- [x] Users: search/filter; toggle/role chỉ `super` (CASL); demo chỉ đọc
+- [x] Content: tabs posts/products; delete theo ability
 
----
+#### Phase P3 — Đủ đồ án + CI
 
-## 🏁 Next Steps
+- [x] Dashboard: pending reports / seller apps click vào queue
+- [x] Settings: hiện profile + danh sách quyền (read-only)
+- [x] Smoke CI admin: login + 401 user-token + 403 demo trên route cấm
+- [x] UAT §5.3 cập nhật: Try demo + 1 resolve report + 1 seller review
 
-1. ✅ ~~Phase 1: Products & Categories~~ (DONE)
-2. ✅ ~~Phase 2: Cart & Orders~~ (DONE)
-3. ✅ ~~Phase 3: Posts & Social Feed~~ (DONE)
-4. ✅ ~~Phase 3b: Scheduled posts (BE + cron), Marketplace, nhiều API social~~ (DONE cốt lõi)
-5. ✅ ~~MVP must-have: security hardening + test gate critical flows + production env baseline~~
-6. ✅ ~~MVP usability: reviews FE trên product detail + unified search v1 + seed data QA/UAT~~
-7. 🎯 **Tiếp theo:** AI inline flows + scheduled posts UX nâng cao + admin analytics + mở rộng deploy
+#### Không làm (YAGNI admin)
+
+- UI gán role động, Casbin/OPA, Keycloak
+- Snapshot/branch DB per guest
+- Product moderation trang tách / export CSV (polish Phase 4 nếu còn thời gian)
+
+### 4.15 AI — ✅ API + lab; ⏳ gắn composer
+
+- [x] `/api/ai/generate-text` (và image/video-text), `AiCreativeLab` + `aiApi`
+- [x] `npm run ai:health` (provider keys)
+- [ ] **TODO:** Nút AI trong CreatePostModal / form sản phẩm (nếu là AC đồ án)
+- [ ] Quota/history endpoint: chỉ khi abuse thật sự
+
+### 4.16 Analytics — 🟡 tối thiểu
+
+- [x] ProductView model, admin dashboard API một phần, chart seller đơn giản
+- [ ] Track view tự động / export: không chặn demo
+
+### 4.17 Saved items & reports — ✅ / 🟡
+
+- [x] Saved items API + page
+- [x] Report API + bảng admin
+- [ ] Polish: luồng admin xử lý report cho đến “resolved” nếu chưa khép
 
 ---
 
-## ✅ Notification hardening (production-ready)
+## 5. UAT tối thiểu (tay, trước bảo vệ)
 
-### Completed
+Thay cho ma trận notification ~90 ô: **ít, nhưng chạy trên môi trường thật** (local đủ DB hoặc production QA). Tick khi đã làm _trên tay hoặc integration_.
 
-- [x] Backend emit payload `notification:new` với schema cố định (có `event`, `schemaVersion`, `category`, `actor`, `related`)
-- [x] Emit `notification:read` và `notification:read-all` để đồng bộ đa tab
-- [x] Preferences theo nhóm `social/order/system` (API get/update)
-- [x] Frontend dùng single source qua `NotificationProvider` cho header + page
-- [x] Notifications page nhận realtime, filter theo loại, optimistic update mark read/read-all
-- [x] Reconnect socket có cơ chế resync và chống duplicate theo `id`
+### 5.1 Luồng tiền (bắt buộc)
 
-### Test matrix
+- [ ] Đăng ký → verify (nếu bật OTP) → login → logout → login lại
+- [ ] Login sai mật khẩu nhiều lần: bị rate limit (429), không 500
+- [ ] Thêm giỏ → đổi SL → checkout COD → thấy đơn buyer
+- [ ] Seller thấy đơn; đổi status (nếu UI có) → buyer thấy timeline
+- [ ] Hủy đơn `PENDING` → giỏ/kho hợp lý (đúng AC thật trong code)
+- [ ] User A không mở `GET /api/orders/:id` của user B (401/403/404)
 
-- [ ] **Multi-tab sync**: Tab A mark read -> Tab B tự đổi trạng thái + unread badge giảm ngay
-- [ ] **Multi-tab read-all**: Tab A read-all -> Tab B badge/page về 0 unread
-- [ ] **Reconnect**: ngắt mạng 15-30s, reconnect lại -> không duplicate, dữ liệu đồng bộ server
-- [ ] **Preferences off**: tắt `social`, tạo like/comment/follow -> không nhận notification social mới
-- [ ] **Preferences on lại**: bật lại `social`, trigger event -> nhận notification bình thường
+### 5.2 Social (nên)
 
-### Checklist test chi tiết - Notifications
+- [ ] Đăng bài có ảnh Cloudinary → hiện Feed → like/comment
+- [ ] Follow → notification (nếu preference `social` on)
+- [ ] Tắt preference `social` → like không tạo noti mới
+- [ ] Hai tab: mark read tab A → badge tab B (nếu socket sống)
 
-#### A. API contract & dữ liệu
+### 5.3 Admin (nên)
 
-- [ ] `GET /api/notifications` trả về đủ trường cần cho FE (`id`, `rawType/type`, `title`, `message`, `isRead`, `createdAt`, `actionUrl`, actor/related nếu có).
-- [ ] `GET /api/notifications?type=social|order|system` filter đúng theo loại.
-- [ ] `PATCH /api/notifications/:id/read` trả thành công khi notification thuộc user hiện tại.
-- [ ] `PATCH /api/notifications/:id/read` không sửa được notification của user khác.
-- [ ] `PATCH /api/notifications/read-all` chỉ cập nhật notification unread của user hiện tại.
-- [ ] `GET /api/notifications/preferences` trả default hợp lệ khi user chưa có cấu hình.
-- [ ] `PATCH /api/notifications/preferences` cập nhật đúng từng key (`social/order/system`) và không ghi đè key ngoài phạm vi.
+- [ ] Login admin `:5174` / production admin
+- [ ] User thường không gọi được admin API (token user → 401/403)
+- [ ] Duyệt / từ chối 1 seller application giả
+- [ ] **Try demo:** vào được dashboard; không toggle user / không xóa post (403 hoặc nút ẩn)
+- [ ] Resolve 1 report + (nếu có) review 1 seller application bằng demo hoặc moderator
+- [ ] Dashboard: click pending reports / seller apps → đúng queue
+- [ ] Settings: thấy profile + danh sách quyền (read-only)
 
-#### B. Realtime event schema
+### 5.4 Deploy (bắt buộc ngày demo)
 
-- [ ] Event `notification:new` luôn có `event="notification:new"` và `schemaVersion`.
-- [ ] Event `notification:new` có `category` đúng mapping (social/order/system).
-- [ ] Event `notification:read` chứa `id` vừa mark + `unreadCount` mới.
-- [ ] Event `notification:read-all` chứa `unreadCount=0`.
-- [ ] Payload sai schema không làm FE crash (FE bỏ qua payload malformed).
-
-#### C. Đồng bộ toàn app (header + notifications page)
-
-- [ ] Khi có notification mới, badge trên header tăng ngay không cần reload.
-- [ ] Khi mở trang notifications, danh sách hiển thị đúng item mới nhất nhận realtime.
-- [ ] Khi click read 1 item ở page, badge header giảm ngay.
-- [ ] Khi mark all read ở page, toàn bộ item về read + badge header về 0.
-- [ ] Khi thao tác read ở header/dropdown (nếu có), page phản ánh đúng trạng thái ngay.
-
-#### D. Multi-tab / multi-session
-
-- [ ] Mở 2 tab cùng tài khoản: read ở tab A -> tab B tự cập nhật read state.
-- [ ] Mở 2 tab cùng tài khoản: read-all ở tab A -> tab B về unread=0.
-- [ ] Mở 2 browser/profile khác nhau cùng tài khoản: vẫn sync read/read-all.
-- [ ] Mở tài khoản khác (user B): không nhận event notification của user A.
-
-#### E. Reconnect / mất mạng / chống duplicate
-
-- [ ] Tắt mạng 15-30s rồi bật lại: socket reconnect thành công.
-- [ ] Sau reconnect, hệ thống resync từ server: badge/list nhất quán.
-- [ ] Không xuất hiện duplicate item theo cùng `notification.id` sau reconnect nhiều lần.
-- [ ] Refresh trang sau reconnect vẫn giữ trạng thái read/unread đúng với DB.
-
-#### F. Preferences theo loại
-
-- [ ] Tắt `social`, tạo sự kiện like/comment/follow -> không có notification mới loại social.
-- [ ] Tắt `order`, tạo sự kiện order/new status -> không có notification mới loại order.
-- [ ] Tắt `system`, tạo sự kiện system/new message -> không có notification mới loại system.
-- [ ] Bật lại từng loại -> nhận lại notification đúng loại đó.
-- [ ] Thay đổi preferences ở tab A -> tab B sau refresh phản ánh đúng cấu hình mới.
-
-#### G. Filter & optimistic update trên FE
-
-- [ ] Filter `All` hiển thị đầy đủ.
-- [ ] Filter `Social/Order/System` chỉ hiển thị đúng loại.
-- [ ] Mark read ở tab đang filter không làm mất đồng bộ badge tổng.
-- [ ] Optimistic mark read thành công: UI đổi ngay, không giật/nhảy lại sai trạng thái.
-- [ ] Khi API mark read thất bại: UI rollback hoặc resync đúng dữ liệu server.
-
-#### H. Quyền truy cập & bảo mật
-
-- [ ] API notifications yêu cầu auth; token thiếu/sai phải trả 401/403.
-- [ ] User không thể đọc/mark/xóa notification của user khác (IDOR test).
-- [ ] Socket chỉ join room user hiện tại sau auth/session hợp lệ.
-
-#### I. Hiệu năng & UX
-
-- [ ] Có 100+ notifications vẫn render mượt (không lag rõ rệt).
-- [ ] Badge/unread count không bị âm trong mọi thao tác liên tiếp.
-- [ ] Timestamp/relative time hiển thị hợp lý.
-- [ ] Không có lỗi console nghiêm trọng khi nhận event liên tục.
-
-#### J. Regression các luồng tạo notification
-
-- [ ] Social: like/comment/follow vẫn tạo notification đúng người nhận.
-- [ ] Order: new order/status change vẫn tạo notification đúng người nhận.
-- [ ] Message/system: vẫn tạo notification đúng người nhận.
-- [ ] Các luồng trên không bị ảnh hưởng bởi thay đổi realtime mới.
-
-### Gợi ý test data
-
-- [ ] Ít nhất 2 user thật để test follow/like/comment.
-- [ ] 1 user buyer + 1 user seller để test order notifications.
-- [ ] Seed sẵn >= 20 notifications với đủ loại và trạng thái read/unread.
+- [ ] `GET /health` user API + admin API
+- [ ] Mở 4 URL Render, login QA
+- [ ] Không lộ `.env` trên GitHub
+- [ ] Gọi thử 1 upload (avatar hoặc post) — Cloudinary còn quota
 
 ---
 
-*Last updated: April 16, 2026 (completed MVP usability phase: reviews FE, unified search v1, QA/UAT seed data)*
+## 6. Việc không làm (YAGNI) — và câu trả lời hội đồng
+
+| Ý tưởng                   | Vì sao bỏ                                   | Trả lời nếu bị hỏi                                 |
+| ------------------------- | ------------------------------------------- | -------------------------------------------------- |
+| Elasticsearch bắt buộc    | Unified search SQL đã có; ES thêm ops + RAM | “Có compose local; production dùng fan-out v1”     |
+| Storybook                 | Không tăng độ tin deploy                    | “Component test Vitest + Playwright”               |
+| Coverage ≥ 70% gate       | Vanity, bỏ luồng tiền                       | “Coverage để tìm lỗ; cổng là CI + IDOR + UAT”      |
+| Redis cache mọi GET       | Chưa đo chậm; Free tier                     | “Optional `REDIS_URL`; chưa có bottleneck đo được” |
+| Kubernetes / Docker Swarm | Một region, 4 service Render                | “Overkill DATN; ADR 0002”                          |
+| FCM / email marketing     | Socket noti đủ demo                         | “Email OTP/SMTP có; push native không thuộc AC”    |
+| Stripe/PayPal thật        | PCI, sandbox phức tạp                       | “COD mock; trạng thái đơn vẫn state machine”       |
+| Load test 10k user        | Không có SLA đồ án                          | “Rate limit + index Prisma khi chậm”               |
+
+---
+
+## 7. Thứ tự làm (2 tuần trước demo)
+
+Làm trên xuống. Đừng xen Elasticsearch vào giữa.
+
+### Bắt buộc
+
+1. [ ] Sửa auth story: cookie **hoặc** chấp nhận + viết luận văn (B2)
+2. [ ] Integration IDOR order / notification / message
+3. [ ] `/health` ping DB
+4. [ ] Runbook backup/restore Supabase (nửa trang trong `docs/deploy.md`)
+5. [ ] CI admin-backend không phải job “install rồi xong”
+6. [ ] UAT §5.1 + §5.4 trên tài khoản QA
+7. [ ] Chạy Playwright local một lần, sửa test gãy do UI đổi
+
+### Nên
+
+1. [ ] PR template + branch protection CI
+2. [ ] `npm audit` / Dependabot
+3. [ ] StorePage seller nếu demo cửa hàng
+4. [ ] AI gắn CreatePostModal nếu AC đồ án có AI
+5. [ ] Label/keyboard auth + checkout
+
+### Sau bảo vệ / nếu dư sức
+
+1. Analytics admin, autocomplete, timezone scheduled posts, typing indicator
+
+---
+
+## 8. Bảng tiến độ (ước lượng, không phải KPI)
+
+| Module              | Backend | Frontend     | Cổng chất lượng    | Ghi chú                                         |
+| ------------------- | ------- | ------------ | ------------------ | ----------------------------------------------- |
+| Auth                | ✅      | ✅           | 🟡 token storage   | Feature xong; bảo mật session chưa thống nhất   |
+| Products / upload   | ✅      | ✅           | 🟡                 | Polish mô tả                                    |
+| Categories          | ✅      | ✅           | ✅                 |                                                 |
+| Cart / checkout COD | ✅      | ✅           | 🟡                 | Thêm test IDOR không áp dụng cart của user khác |
+| Orders              | ✅      | 🟡 seller UI | 🟡                 | IDOR bắt buộc                                   |
+| Feed / posts        | ✅      | ✅           | 🟡 XSS đã sanitize |                                                 |
+| Scheduled posts     | ✅      | ✅           | ✅ cron            | TZ polish                                       |
+| Messages            | ✅      | ✅           | 🟡                 | Socket room                                     |
+| Notifications       | ✅      | ✅           | 🟡                 | UAT đa tab                                      |
+| Groups              | ✅ v1   | ✅           | ✅ rules test      |                                                 |
+| Reviews             | ✅      | ✅ core      | ✅                 |                                                 |
+| Search              | ✅ v1   | ✅           | ✅                 | ES optional                                     |
+| Seller              | ✅      | 🟡 store     | 🟡                 | KYC upload                                      |
+| Profile             | ✅      | ✅           | ✅                 |                                                 |
+| Admin               | 🟡      | 🟡           | ❌ test            | Cụm riêng                                       |
+| AI                  | ✅      | 🟡 composer  | 🟡 quota           |                                                 |
+| Saved / reports     | ✅      | 🟡 admin     | 🟡                 |                                                 |
+| **Lớp B tổng**      | —       | —            | **🟡 ~45%**        | CI/test nền tốt; backup/IDOR/health DB thiếu    |
+
+Ước **tính năng ~88%**. Ước **sẵn sàng bảo vệ** chỉ sau khi tick hết §7 Bắt buộc — đừng dùng “94%” kiểu checklist cũ (chỉ đếm module UI).
+
+---
+
+## 9. Next steps (lịch sử pha)
+
+1. ✅ Phase 1 Products & categories
+2. ✅ Phase 2 Cart & orders
+3. ✅ Phase 3 Feed
+4. ✅ Phase 3b Scheduled posts, marketplace, social API
+5. ✅ Nền tảng: Helmet, rate limit, logging, env fail-fast, CI, Vitest/Playwright, Render live
+6. 🎯 **Hiện tại:** Lớp B bắt buộc (§7) — IDOR, health DB, backup, admin CI, UAT, thống nhất JWT
+7. Sau đó: AI inline, store public, polish UX
+
+---
+
+## Phụ lục A — Lệnh kiểm tra nhanh
+
+```bash
+# FE unit + typecheck (CI tương đương)
+cd frontend && npm test && npm run lint && npm run build
+
+# BE unit + HTTP; integration cần DATABASE_URL
+cd backend && npm test
+cd backend && npm run test:all
+
+# E2E (cần Edge; mock API — không thay integration)
+cd frontend && npx playwright install msedge && npm run test:e2e
+
+# Health production
+curl -sS https://be-socomain.onrender.com/health
+curl -sS https://be-socoadmin.onrender.com/health
+```
+
+## Phụ lục B — Notification (rút gọn từ ma trận cũ)
+
+Kỹ thuật realtime **đã code** (schema event, preferences, provider, reconnect). Các ô dưới là **chứng minh**, không phải feature mới:
+
+- [ ] Tab A mark read → tab B badge
+- [ ] Reconnect 15–30s: không duplicate `id`
+- [ ] Preference off: không tạo noti loại đó
+- [ ] User B không `PATCH` noti của user A
+- [ ] Socket không nhận event user khác
+
+Chi tiết field API: Swagger `/api-docs` và test HTTP hiện có. Không nhân 90 checkbox trong file tiến độ — dễ bỏ tick giả.
+
+---
+
+_Quy ước: cập nhật ngày ở đầu file mỗi lần đổi DoD hoặc URL production. Feature tick theo repo, không theo nhớ._
