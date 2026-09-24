@@ -12,6 +12,11 @@ export default defineConfig({
         alias: {
             "@": path.join(__dirname, "src"),
             "@admin-shared": path.join(__dirname, "../shared"),
+            // Shared lives outside frontend root; pin dep to this package's install.
+            "@casl/ability": path.join(
+                __dirname,
+                "node_modules/@casl/ability",
+            ),
         },
     },
 });

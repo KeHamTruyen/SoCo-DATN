@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@casl/ability": "^6.7.3"
+    "@casl/ability": "^7.0.1"
   }
 }
