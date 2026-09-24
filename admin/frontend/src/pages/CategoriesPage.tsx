@@ -4,12 +4,15 @@ import {
     type CategoryPayload,
     adminApi,
 } from "@/api/adminApi";
+import { Can, useAbility } from "@/auth/AbilityContext";
 import { HttpError } from "@/lib/httpClient";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 
 type Mode = "create" | "edit" | null;
 
 export default function CategoriesPage() {
+    const ability = useAbility();
+    const canManage = ability.can("manage", "Category");
     const [items, setItems] = useState<AdminCategory[]>([]);
     const [loading, setLoading] = useState(true);
     const [includeInactive, setIncludeInactive] = useState(true);
@@ -148,13 +151,15 @@ export default function CategoriesPage() {
                         order).
                     </p>
                 </div>
-                <button
-                    type="button"
-                    onClick={() => openCreate()}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-                >
-                    Add category
-                </button>
+                <Can I="manage" a="Category">
+                    <button
+                        type="button"
+                        onClick={() => openCreate()}
+                        className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                    >
+                        Add category
+                    </button>
+                </Can>
             </div>
 
             <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -234,24 +239,32 @@ export default function CategoriesPage() {
                                         {c.isActive ? "Yes" : "No"}
                                     </td>
                                     <td className="px-4 py-2 text-right">
-                                        <button
-                                            type="button"
-                                            className="mr-2 text-primary hover:underline"
-                                            onClick={() => openEdit(c)}
-                                        >
-                                            Edit
-                                        </button>
-                                        {c.isActive ? (
-                                            <button
-                                                type="button"
-                                                className="text-destructive hover:underline"
-                                                onClick={() =>
-                                                    setDeactivateId(c.id)
-                                                }
-                                            >
-                                                Deactivate
-                                            </button>
-                                        ) : null}
+                                        {canManage ? (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    className="mr-2 text-primary hover:underline"
+                                                    onClick={() => openEdit(c)}
+                                                >
+                                                    Edit
+                                                </button>
+                                                {c.isActive ? (
+                                                    <button
+                                                        type="button"
+                                                        className="text-destructive hover:underline"
+                                                        onClick={() =>
+                                                            setDeactivateId(c.id)
+                                                        }
+                                                    >
+                                                        Deactivate
+                                                    </button>
+                                                ) : null}
+                                            </>
+                                        ) : (
+                                            <span className="text-xs text-muted-foreground">
+                                                Read-only
+                                            </span>
+                                        )}
                                     </td>
                                 </tr>
                             ))

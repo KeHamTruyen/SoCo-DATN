@@ -1,19 +1,29 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/auth/AuthContext";
+import { useAbility } from "@/auth/AbilityContext";
+import { ADMIN_NAV_ABILITY } from "@admin-shared/ability.js";
 
-const nav = [
-    { to: "/", label: "Dashboard", icon: "dashboard" },
-    { to: "/reports", label: "Reported Content", icon: "flag" },
-    { to: "/users", label: "User Management", icon: "group" },
-    { to: "/content", label: "Content", icon: "article" },
-    { to: "/categories", label: "Categories", icon: "category" },
-    { to: "/sellers", label: "Seller applications", icon: "storefront" },
-    { to: "/settings", label: "Settings", icon: "settings" },
-];
+const navMeta: Record<string, { label: string; icon: string }> = {
+    "/": { label: "Dashboard", icon: "dashboard" },
+    "/reports": { label: "Reported Content", icon: "flag" },
+    "/users": { label: "User Management", icon: "group" },
+    "/content": { label: "Content", icon: "article" },
+    "/categories": { label: "Categories", icon: "category" },
+    "/sellers": { label: "Seller review", icon: "storefront" },
+    "/settings": { label: "Settings", icon: "settings" },
+};
 
 export function AdminShell() {
     const { user, logout } = useAuth();
+    const ability = useAbility();
     const navigate = useNavigate();
+
+    const nav = ADMIN_NAV_ABILITY.filter((item) =>
+        ability.can("read", item.subject),
+    ).map((item) => ({
+        to: item.to,
+        ...navMeta[item.to],
+    }));
 
     return (
         <div className="flex min-h-screen bg-background text-foreground">
@@ -56,6 +66,11 @@ export function AdminShell() {
                     ))}
                 </nav>
                 <div className="border-t border-sidebar-border p-4">
+                    {user?.profile === "demo" ? (
+                        <p className="mb-2 rounded-lg bg-amber-500/10 px-2 py-1.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
+                            Demo account · limited actions
+                        </p>
+                    ) : null}
                     <div className="flex items-center gap-3 rounded-lg px-2 py-3">
                         <div className="size-8 overflow-hidden rounded-full bg-muted">
                             {user?.avatarUrl ? (
@@ -71,7 +86,7 @@ export function AdminShell() {
                                 {user?.fullName || user?.username || "Admin"}
                             </p>
                             <p className="truncate text-[10px] text-muted-foreground">
-                                Administrator
+                                {user?.profile || "Administrator"}
                             </p>
                         </div>
                         <button

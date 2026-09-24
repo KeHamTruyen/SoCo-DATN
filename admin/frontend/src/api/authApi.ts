@@ -7,6 +7,8 @@ export interface AdminUser {
     fullName: string | null;
     role: string;
     avatarUrl: string | null;
+    permissions?: { profile?: string } | null;
+    profile?: string;
 }
 
 export async function adminLogin(email: string, password: string) {

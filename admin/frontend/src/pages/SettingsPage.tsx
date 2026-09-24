@@ -1,4 +1,9 @@
+import { useMemo } from "react";
 import { useAuth } from "@/auth/AuthContext";
+import {
+    listAbilityLabels,
+    resolveAdminProfile,
+} from "@admin-shared/ability.js";
 import {
     useThemePreference,
     type ThemePreference,
@@ -7,6 +12,17 @@ import {
 export default function SettingsPage() {
     const { user } = useAuth();
     const { preference, setPreference } = useThemePreference();
+
+    const profile = useMemo(
+        () =>
+            user?.profile ??
+            resolveAdminProfile(user?.permissions ?? null),
+        [user],
+    );
+    const abilityLabels = useMemo(
+        () => listAbilityLabels(profile),
+        [profile],
+    );
 
     return (
         <div>
@@ -51,11 +67,36 @@ export default function SettingsPage() {
                         {user?.fullName || user?.username}
                     </p>
                     <p className="text-sm text-muted-foreground">{user?.email}</p>
+                    <p className="mt-3 text-sm text-foreground">
+                        Profile:{" "}
+                        <span className="font-semibold capitalize">
+                            {profile}
+                        </span>
+                    </p>
                     <p className="mt-4 text-xs text-muted-foreground">
                         API:{" "}
                         {import.meta.env.VITE_ADMIN_API_BASE_URL ||
                             "http://localhost:5001/api"}
                     </p>
+                </div>
+
+                <div className="rounded-xl border border-border bg-card p-6 text-card-foreground">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                        Permissions
+                    </h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                        Read-only view of what this profile can do (CASL).
+                    </p>
+                    <ul className="mt-4 space-y-1.5 text-sm text-foreground">
+                        {abilityLabels.map((label) => (
+                            <li
+                                key={label}
+                                className="font-mono text-xs text-muted-foreground"
+                            >
+                                {label}
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             </div>
         </div>

@@ -92,4 +92,52 @@ export const sellerAdminApi = {
             body: { reason },
         });
     },
+
+    async listSensitiveChanges(params: { page?: number; limit?: number } = {}) {
+        const q = new URLSearchParams();
+        if (params.page != null) q.set("page", String(params.page));
+        if (params.limit != null) q.set("limit", String(params.limit));
+        const res = await http<{
+            data: {
+                requests: SellerSensitiveChangeRequest[];
+                total: number;
+                page: number;
+                limit: number;
+            };
+        }>(`/seller/admin/sensitive-change-requests?${q}`);
+        return unwrap(res);
+    },
+
+    async approveSensitiveChange(id: string) {
+        await http(`/seller/admin/sensitive-change-requests/${id}/approve`, {
+            method: "POST",
+            body: {},
+        });
+    },
+
+    async rejectSensitiveChange(id: string, reason: string) {
+        await http(`/seller/admin/sensitive-change-requests/${id}/reject`, {
+            method: "POST",
+            body: { reason },
+        });
+    },
 };
+
+export interface SellerSensitiveChangeRequest {
+    id: string;
+    userId: string;
+    status: string;
+    bankName?: string | null;
+    bankAccountName?: string | null;
+    idCardNumberMasked?: string | null;
+    bankAccountNumberMasked?: string | null;
+    idCardFrontSignedUrl?: string | null;
+    idCardBackSignedUrl?: string | null;
+    createdAt: string;
+    user?: {
+        id: string;
+        email: string;
+        username: string;
+        fullName: string | null;
+    };
+}

@@ -154,6 +154,9 @@ class AdminService {
             totalOrders,
             newUsersToday,
             newOrdersToday,
+            pendingReports,
+            pendingSellerApplications,
+            pendingSensitiveChanges,
         ] = await Promise.all([
             prisma.user.count(),
             prisma.user.count({ where: { role: "SELLER" } }),
@@ -164,6 +167,13 @@ class AdminService {
             prisma.user.count({ where: { createdAt: { gte: _startOfDay() } } }),
             prisma.order.count({
                 where: { createdAt: { gte: _startOfDay() } },
+            }),
+            prisma.report.count({ where: { status: "pending" } }),
+            prisma.sellerVerification.count({
+                where: { status: "REVIEWING" },
+            }),
+            prisma.sellerSensitiveChangeRequest.count({
+                where: { status: "PENDING" },
             }),
         ]);
 
@@ -182,6 +192,9 @@ class AdminService {
             newUsersToday,
             newOrdersToday,
             totalRevenue: revenueResult._sum.total || 0,
+            pendingReports,
+            pendingSellerApplications,
+            pendingSensitiveChanges,
         };
     }
 

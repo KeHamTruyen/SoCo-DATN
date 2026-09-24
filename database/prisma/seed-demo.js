@@ -3,8 +3,7 @@
  * Idempotent. Does not touch QA emails/slugs used by CI.
  * Password is the same hash as QA users (SEED_QA_USER_PASSWORD).
  */
-const PHOTO = (id, w = 800) =>
-    `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
+import { PHOTO } from "./seed-media.js";
 
 function daysAgo(days, hour = 19, minute = 8) {
     const d = new Date();

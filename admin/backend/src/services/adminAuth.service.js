@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import prisma from "../config/database.js";
+import { resolveAdminProfile } from "../../../shared/ability.js";
 
 /** Fields persisted on `admins` (platform admin table — not `users`). */
 const ADMIN_DB_SELECT = {
@@ -21,6 +22,7 @@ const ADMIN_DB_SELECT = {
  * Shape expected by admin SPA ([AdminUser]).
  */
 function toSpaUser(admin) {
+    const profile = resolveAdminProfile(admin.permissions);
     return {
         id: admin.id,
         email: admin.email,
@@ -28,6 +30,8 @@ function toSpaUser(admin) {
         fullName: admin.fullName,
         role: "ADMIN",
         avatarUrl: null,
+        permissions: admin.permissions ?? { profile },
+        profile,
     };
 }
 

@@ -11,8 +11,9 @@ import { VerificationStatusSection } from "@/features/seller-applications/compon
 type Props = {
     detail: SellerApplicationAdmin;
     onClose: () => void;
-    onRequestApprove: () => void;
-    onRequestReject: () => void;
+    onRequestApprove?: () => void;
+    onRequestReject?: () => void;
+    canReview?: boolean;
 };
 
 export function SellerApplicationDetailModal({
@@ -20,8 +21,9 @@ export function SellerApplicationDetailModal({
     onClose,
     onRequestApprove,
     onRequestReject,
+    canReview = true,
 }: Props) {
-    const reviewing = detail.status === "REVIEWING";
+    const reviewing = detail.status === "REVIEWING" && canReview;
 
     return (
         <div
@@ -72,7 +74,7 @@ export function SellerApplicationDetailModal({
                     </div>
                 </div>
 
-                {reviewing ? (
+                {reviewing && onRequestApprove && onRequestReject ? (
                     <div className="flex flex-wrap justify-end gap-2 border-t border-border bg-muted/30 px-6 py-4">
                         <button
                             type="button"

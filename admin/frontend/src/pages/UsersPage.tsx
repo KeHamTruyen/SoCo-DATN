@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { adminApi, type AdminUserRow } from "@/api/adminApi";
+import { Can } from "@/auth/AbilityContext";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
+import { HttpError } from "@/lib/httpClient";
 
 export default function UsersPage() {
     const [users, setUsers] = useState<AdminUserRow[]>([]);
@@ -12,17 +14,24 @@ export default function UsersPage() {
     const [role, setRole] = useState("");
     const [isActive, setIsActive] = useState("");
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [toggleTarget, setToggleTarget] = useState<AdminUserRow | null>(
         null,
     );
+    const [roleTarget, setRoleTarget] = useState<AdminUserRow | null>(null);
+    const [nextRole, setNextRole] = useState("BUYER");
 
     useEffect(() => {
-        const t = window.setTimeout(() => setSearchDebounced(search.trim()), 350);
+        const t = window.setTimeout(
+            () => setSearchDebounced(search.trim()),
+            350,
+        );
         return () => window.clearTimeout(t);
     }, [search]);
 
     const load = useCallback(async () => {
         setLoading(true);
+        setError(null);
         try {
             const data = await adminApi.getUsers({
                 page,
@@ -33,9 +42,14 @@ export default function UsersPage() {
             });
             setUsers(data.users);
             setTotal(data.total);
-        } catch {
+        } catch (err) {
             setUsers([]);
             setTotal(0);
+            setError(
+                err instanceof HttpError
+                    ? err.message
+                    : "Could not load users.",
+            );
         } finally {
             setLoading(false);
         }
@@ -58,7 +72,7 @@ export default function UsersPage() {
                     User Management
                 </h2>
                 <p className="mt-1 text-muted-foreground">
-                    Search, filter, and deactivate accounts (UC4.1)
+                    Search, filter, deactivate, or change roles
                 </p>
             </header>
 
@@ -86,12 +100,11 @@ export default function UsersPage() {
                         <option value="">All</option>
                         <option value="BUYER">Buyer</option>
                         <option value="SELLER">Seller</option>
-                        <option value="ADMIN">Admin</option>
                     </select>
                 </div>
                 <div className="w-40">
                     <label className="mb-1 block text-xs font-semibold text-muted-foreground">
-                        Active
+                        Status
                     </label>
                     <select
                         value={isActive}
@@ -105,6 +118,12 @@ export default function UsersPage() {
                 </div>
             </div>
 
+            {error ? (
+                <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+                    {error}
+                </div>
+            ) : null}
+
             {loading ? (
                 <div className="space-y-2">
                     {Array.from({ length: 6 }).map((_, i) => (
@@ -113,6 +132,10 @@ export default function UsersPage() {
                             className="h-14 animate-pulse rounded-lg bg-muted"
                         />
                     ))}
+                </div>
+            ) : users.length === 0 ? (
+                <div className="rounded-xl border border-border bg-card p-12 text-center text-muted-foreground">
+                    No users match these filters.
                 </div>
             ) : (
                 <div className="overflow-hidden rounded-xl border border-border bg-card text-card-foreground">
@@ -157,13 +180,35 @@ export default function UsersPage() {
                                         )}
                                     </td>
                                     <td className="px-4 py-3 text-right">
-                                        <button
-                                            type="button"
-                                            onClick={() => setToggleTarget(u)}
-                                            className="rounded-lg border border-border px-3 py-1 text-xs font-semibold hover:bg-muted"
-                                        >
-                                            {u.isActive ? "Deactivate" : "Activate"}
-                                        </button>
+                                        <Can I="update" a="User">
+                                            <div className="flex flex-wrap justify-end gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setRoleTarget(u);
+                                                        setNextRole(
+                                                            u.role === "SELLER"
+                                                                ? "BUYER"
+                                                                : "SELLER",
+                                                        );
+                                                    }}
+                                                    className="rounded-lg border border-border px-3 py-1 text-xs font-semibold hover:bg-muted"
+                                                >
+                                                    Change role
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setToggleTarget(u)
+                                                    }
+                                                    className="rounded-lg border border-border px-3 py-1 text-xs font-semibold hover:bg-muted"
+                                                >
+                                                    {u.isActive
+                                                        ? "Deactivate"
+                                                        : "Activate"}
+                                                </button>
+                                            </div>
+                                        </Can>
                                     </td>
                                 </tr>
                             ))}
@@ -207,17 +252,33 @@ export default function UsersPage() {
                         ? `Account ${toggleTarget.email} will be ${toggleTarget.isActive ? "deactivated" : "activated"}.`
                         : undefined
                 }
-                confirmLabel="Confirm"
-                variant="danger"
+                variant={toggleTarget?.isActive ? "danger" : "default"}
                 onClose={() => setToggleTarget(null)}
                 onConfirm={async () => {
                     if (!toggleTarget) return;
                     try {
                         await adminApi.toggleUserActive(toggleTarget.id);
-                        void load();
+                        await load();
                     } catch {
-                        /* ignore */
+                        /* keep open */
+                        throw new Error("toggle failed");
                     }
+                }}
+            />
+
+            <ConfirmDialog
+                open={Boolean(roleTarget)}
+                title="Change user role?"
+                description={
+                    roleTarget
+                        ? `Set ${roleTarget.email} from ${roleTarget.role} to ${nextRole}.`
+                        : undefined
+                }
+                onClose={() => setRoleTarget(null)}
+                onConfirm={async () => {
+                    if (!roleTarget) return;
+                    await adminApi.changeUserRole(roleTarget.id, nextRole);
+                    await load();
                 }}
             />
         </div>

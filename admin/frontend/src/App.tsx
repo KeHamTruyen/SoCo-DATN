@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "@/auth/AuthContext";
+import { AbilityProvider } from "@/auth/AbilityContext";
 import { ProtectedRoute } from "@/auth/ProtectedRoute";
 import { AdminShell } from "@/layout/AdminShell";
 import CategoriesPage from "@/pages/CategoriesPage";
@@ -14,30 +15,35 @@ import UsersPage from "@/pages/UsersPage";
 export default function App() {
     return (
         <AuthProvider>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route
-                        element={
-                            <ProtectedRoute>
-                                <AdminShell />
-                            </ProtectedRoute>
-                        }
-                    >
-                        <Route path="/" element={<DashboardPage />} />
-                        <Route path="/reports" element={<ReportsPage />} />
-                        <Route path="/users" element={<UsersPage />} />
-                        <Route path="/content" element={<ContentPage />} />
-                        <Route path="/categories" element={<CategoriesPage />} />
+            <AbilityProvider>
+                <BrowserRouter>
+                    <Routes>
+                        <Route path="/login" element={<LoginPage />} />
                         <Route
-                            path="/sellers"
-                            element={<SellerApplicationsPage />}
-                        />
-                        <Route path="/settings" element={<SettingsPage />} />
-                    </Route>
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-            </BrowserRouter>
+                            element={
+                                <ProtectedRoute>
+                                    <AdminShell />
+                                </ProtectedRoute>
+                            }
+                        >
+                            <Route path="/" element={<DashboardPage />} />
+                            <Route path="/reports" element={<ReportsPage />} />
+                            <Route path="/users" element={<UsersPage />} />
+                            <Route path="/content" element={<ContentPage />} />
+                            <Route
+                                path="/categories"
+                                element={<CategoriesPage />}
+                            />
+                            <Route
+                                path="/sellers"
+                                element={<SellerApplicationsPage />}
+                            />
+                            <Route path="/settings" element={<SettingsPage />} />
+                        </Route>
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </BrowserRouter>
+            </AbilityProvider>
         </AuthProvider>
     );
 }

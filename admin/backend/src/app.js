@@ -5,6 +5,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import routes from "./routes/index.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
+import { adminWriteLimiter } from "./middlewares/rateLimit.middleware.js";
 
 const app = express();
 
@@ -21,6 +22,21 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Write limiter on mutating methods under /api (login has its own limiter).
+app.use("/api", (req, res, next) => {
+    if (
+        req.method === "GET" ||
+        req.method === "HEAD" ||
+        req.method === "OPTIONS"
+    ) {
+        return next();
+    }
+    if (req.path === "/auth/login" || req.path.startsWith("/auth/login")) {
+        return next();
+    }
+    return adminWriteLimiter(req, res, next);
+});
 
 app.use("/api", routes);
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ReportedContentTable } from "@/components/ReportedContentTable";
 import { ReportDetailModal } from "@/components/ReportDetailModal";
 import { adminApi } from "@/api/adminApi";
@@ -6,6 +7,7 @@ import { reportApi } from "@/api/reportApi";
 import type { Report } from "@/types/report.types";
 import { HttpError } from "@/lib/httpClient";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
+import { useAbility } from "@/auth/AbilityContext";
 
 type PendingAction =
     | { type: "dismiss"; report: Report }
@@ -14,9 +16,17 @@ type PendingAction =
     | null;
 
 export default function ReportsPage() {
+    const ability = useAbility();
+    const [searchParams] = useSearchParams();
+    const canResolve = ability.can("resolve", "Report");
+    const canDeletePost = ability.can("delete", "Post");
+    const canDeleteProduct = ability.can("delete", "Product");
+    const canUpdateUser = ability.can("update", "User");
     const [reports, setReports] = useState<Report[]>([]);
     const [loading, setLoading] = useState(true);
-    const [status, setStatus] = useState("pending");
+    const [status, setStatus] = useState(
+        () => searchParams.get("status") || "pending",
+    );
     const [targetType, setTargetType] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
@@ -39,12 +49,12 @@ export default function ReportsPage() {
             setReports([]);
             if (err instanceof HttpError) {
                 if (err.status === 401 || err.status === 403) {
-                    setError("Phien admin khong hop le hoac da het han.");
+                    setError("Admin session invalid or expired.");
                 } else {
-                    setError(err.message || "Khong the tai danh sach report.");
+                    setError(err.message || "Could not load reports.");
                 }
             } else {
-                setError("Khong the tai danh sach report.");
+                setError("Could not load reports.");
             }
         } finally {
             setLoading(false);
@@ -69,27 +79,30 @@ export default function ReportsPage() {
             updateReportRow(detail);
         } catch (err) {
             if (err instanceof HttpError) {
-                setActionError(err.message || "Khong the tai chi tiet report.");
+                setActionError(err.message || "Could not load report detail.");
             } else {
-                setActionError("Khong the tai chi tiet report.");
+                setActionError("Could not load report detail.");
             }
         } finally {
             setDetailLoading(false);
         }
     };
 
-    const runDismiss = async (report: Report) => {
+    const runDismiss = async (report: Report, note?: string) => {
         setActionPendingId(report.id);
         setActionError(null);
         try {
-            await reportApi.dismissReport(report.id);
+            await reportApi.dismissReport(
+                report.id,
+                note?.trim() || "dismissed",
+            );
             setReports((prev) => prev.filter((item) => item.id !== report.id));
             setSelectedReport((prev) => (prev?.id === report.id ? null : prev));
         } catch (err) {
             if (err instanceof HttpError) {
-                setActionError(err.message || "Khong the dismiss report.");
+                setActionError(err.message || "Could not dismiss report.");
             } else {
-                setActionError("Khong the dismiss report.");
+                setActionError("Could not dismiss report.");
             }
             throw err;
         } finally {
@@ -97,40 +110,43 @@ export default function ReportsPage() {
         }
     };
 
-    const runDeleteTarget = async (report: Report) => {
+    const runDeleteTarget = async (report: Report, note?: string) => {
         setActionPendingId(report.id);
         setActionError(null);
+        const resolutionSuffix = note?.trim()
+            ? ` · ${note.trim()}`
+            : "";
         try {
             if (report.targetDeleted) {
                 await reportApi.resolveReport(report.id, {
                     status: "resolved",
-                    resolution: "target_unavailable",
+                    resolution: `target_unavailable${resolutionSuffix}`,
                 });
             } else if (report.targetType === "post") {
                 await adminApi.deletePost(report.targetId);
                 await reportApi.resolveReport(report.id, {
                     status: "resolved",
-                    resolution: "content_removed",
+                    resolution: `content_removed${resolutionSuffix}`,
                 });
             } else if (report.targetType === "product") {
                 await adminApi.deleteProduct(report.targetId);
                 await reportApi.resolveReport(report.id, {
                     status: "resolved",
-                    resolution: "content_removed",
+                    resolution: `content_removed${resolutionSuffix}`,
                 });
             } else {
                 await reportApi.resolveReport(report.id, {
                     status: "resolved",
-                    resolution: "no_content_delete",
+                    resolution: `no_content_delete${resolutionSuffix}`,
                 });
             }
             setReports((prev) => prev.filter((item) => item.id !== report.id));
             setSelectedReport((prev) => (prev?.id === report.id ? null : prev));
         } catch (err) {
             if (err instanceof HttpError) {
-                setActionError(err.message || "Khong the xu ly noi dung bi report.");
+                setActionError(err.message || "Could not process reported content.");
             } else {
-                setActionError("Khong the xu ly noi dung bi report.");
+                setActionError("Could not process reported content.");
             }
             throw err;
         } finally {
@@ -138,7 +154,7 @@ export default function ReportsPage() {
         }
     };
 
-    const runBlockUser = async (report: Report) => {
+    const runBlockUser = async (report: Report, note?: string) => {
         if (report.targetType !== "user") return;
         setActionPendingId(report.id);
         setActionError(null);
@@ -146,15 +162,17 @@ export default function ReportsPage() {
             await adminApi.toggleUserActive(report.targetId);
             await reportApi.resolveReport(report.id, {
                 status: "resolved",
-                resolution: "user_toggled",
+                resolution: note?.trim()
+                    ? `user_toggled · ${note.trim()}`
+                    : "user_toggled",
             });
             setReports((prev) => prev.filter((item) => item.id !== report.id));
             setSelectedReport((prev) => (prev?.id === report.id ? null : prev));
         } catch (err) {
             if (err instanceof HttpError) {
-                setActionError(err.message || "Khong the cap nhat trang thai user.");
+                setActionError(err.message || "Could not update user status.");
             } else {
-                setActionError("Khong the cap nhat trang thai user.");
+                setActionError("Could not update user status.");
             }
             throw err;
         } finally {
@@ -259,18 +277,36 @@ export default function ReportsPage() {
             ) : (
                 <ReportedContentTable
                     reports={reports}
-                    onDismiss={(id) => {
-                        const report = reports.find((item) => item.id === id);
-                        if (report) setPendingAction({ type: "dismiss", report });
-                    }}
-                    onDeleteContent={(report) =>
-                        setPendingAction({ type: "delete", report })
+                    onDismiss={
+                        canResolve
+                            ? (id) => {
+                                  const report = reports.find(
+                                      (item) => item.id === id,
+                                  );
+                                  if (report)
+                                      setPendingAction({
+                                          type: "dismiss",
+                                          report,
+                                      });
+                              }
+                            : undefined
                     }
-                    onBlockUser={(report) =>
-                        setPendingAction({ type: "block", report })
+                    onDeleteContent={
+                        canDeletePost || canDeleteProduct
+                            ? (report) =>
+                                  setPendingAction({ type: "delete", report })
+                            : undefined
+                    }
+                    onBlockUser={
+                        canUpdateUser
+                            ? (report) =>
+                                  setPendingAction({ type: "block", report })
+                            : undefined
                     }
                     onOpenDetail={(report) => void openReportDetail(report)}
-                    actionPendingId={actionPendingId ?? pendingAction?.report.id ?? null}
+                    actionPendingId={
+                        actionPendingId ?? pendingAction?.report.id ?? null
+                    }
                 />
             )}
 
@@ -286,6 +322,9 @@ export default function ReportsPage() {
                 open={Boolean(pendingAction)}
                 title={confirmTitle}
                 description={confirmDescription}
+                askReason
+                reasonLabel="Resolution note"
+                reasonPlaceholder="Optional note saved on the report…"
                 confirmLabel={
                     pendingAction?.type === "dismiss"
                         ? "Dismiss"
@@ -295,19 +334,20 @@ export default function ReportsPage() {
                 }
                 processingLabel="Processing..."
                 variant={
-                    pendingAction?.type === "delete" || pendingAction?.type === "block"
+                    pendingAction?.type === "delete" ||
+                    pendingAction?.type === "block"
                         ? "danger"
                         : "default"
                 }
                 onClose={() => setPendingAction(null)}
-                onConfirm={async () => {
+                onConfirm={async (reason) => {
                     if (!pendingAction) return;
                     if (pendingAction.type === "dismiss") {
-                        await runDismiss(pendingAction.report);
+                        await runDismiss(pendingAction.report, reason);
                     } else if (pendingAction.type === "delete") {
-                        await runDeleteTarget(pendingAction.report);
+                        await runDeleteTarget(pendingAction.report, reason);
                     } else {
-                        await runBlockUser(pendingAction.report);
+                        await runBlockUser(pendingAction.report, reason);
                     }
                 }}
             />

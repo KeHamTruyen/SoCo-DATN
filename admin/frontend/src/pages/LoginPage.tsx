@@ -3,6 +3,9 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/auth/AuthContext";
 import { HttpError } from "@/lib/httpClient";
 
+const DEMO_EMAIL = "demo.admin@socialcommerce.vn";
+const DEMO_PASSWORD = "DemoAdmin@123";
+
 export default function LoginPage() {
     const { token, login } = useAuth();
     const navigate = useNavigate();
@@ -15,12 +18,11 @@ export default function LoginPage() {
         return <Navigate to="/" replace />;
     }
 
-    async function onSubmit(e: React.FormEvent) {
-        e.preventDefault();
+    async function signIn(nextEmail: string, nextPassword: string) {
         setError(null);
         setBusy(true);
         try {
-            await login(email, password);
+            await login(nextEmail, nextPassword);
             navigate("/", { replace: true });
         } catch (err) {
             setError(
@@ -33,12 +35,25 @@ export default function LoginPage() {
         }
     }
 
+    async function onSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        await signIn(email, password);
+    }
+
+    async function onTryDemo() {
+        setEmail(DEMO_EMAIL);
+        setPassword(DEMO_PASSWORD);
+        await signIn(DEMO_EMAIL, DEMO_PASSWORD);
+    }
+
     return (
         <div className="flex min-h-screen items-center justify-center bg-background px-4">
             <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 text-card-foreground shadow-sm">
                 <div className="mb-8 flex items-center gap-3">
                     <div className="flex items-center justify-center rounded-lg bg-primary p-2 text-primary-foreground">
-                        <span className="material-symbols-outlined">admin_panel_settings</span>
+                        <span className="material-symbols-outlined">
+                            admin_panel_settings
+                        </span>
                     </div>
                     <div>
                         <h1 className="text-xl font-bold text-foreground">
@@ -89,6 +104,19 @@ export default function LoginPage() {
                         {busy ? "Signing in…" : "Sign in"}
                     </button>
                 </form>
+                <div className="mt-6 border-t border-border pt-5">
+                    <p className="mb-3 text-center text-xs text-muted-foreground">
+                        Guest CV demo · limited actions · rate-limited
+                    </p>
+                    <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void onTryDemo()}
+                        className="w-full rounded-lg border border-border bg-background py-2.5 text-sm font-semibold text-foreground hover:bg-muted disabled:opacity-60"
+                    >
+                        {busy ? "Signing in…" : "Try demo"}
+                    </button>
+                </div>
             </div>
         </div>
     );

@@ -7,15 +7,19 @@
     "scripts": {
         "start": "node src/server.js",
         "dev": "nodemon src/server.js",
-        "prisma:generate": "npm run generate --prefix ../../database"
+        "prisma:generate": "npm run generate --prefix ../../database",
+        "smoke": "node scripts/smoke-authz.mjs",
+        "selfcheck:ability": "node ../shared/ability.selfcheck.js"
     },
     "dependencies": {
+        "@casl/ability": "^7.0.1",
         "@prisma/client": "5.9.1",
         "bcryptjs": "^2.4.3",
         "cookie-parser": "^1.4.7",
         "cors": "^2.8.5",
         "dotenv": "^16.4.1",
         "express": "^4.18.2",
+        "express-rate-limit": "^8.7.0",
         "express-validator": "^7.2.0",
         "jsonwebtoken": "^9.0.2",
         "slugify": "^1.6.6"

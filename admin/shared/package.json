@@ -1,0 +1,8 @@
+{
+  "name": "soco-admin-shared",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@casl/ability": "^7.0.1"
+  }
+}

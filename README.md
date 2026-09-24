@@ -21,6 +21,19 @@ Các cổng mặc định khi chạy local:
 | Admin backend  | `http://localhost:5001` |
 | Admin frontend | `http://localhost:5174` |
 
+## Deploy production
+
+Production hiện tại: **Render** (FE static + BE web) + **Supabase Postgres** (`SocialCommerce`). Chi tiết: [`docs/deploy.md`](docs/deploy.md), glossary [`CONTEXT.md`](CONTEXT.md), ADR [`docs/adr/0002-render-supabase-deployment.md`](docs/adr/0002-render-supabase-deployment.md).
+
+| Thành phần     | URL |
+| -------------- | --- |
+| User frontend  | https://socomain.onrender.com |
+| User API       | https://be-socomain.onrender.com |
+| Admin frontend | https://socoadmin.onrender.com |
+| Admin API      | https://be-socoadmin.onrender.com |
+
+Blueprint: [`render.yaml`](render.yaml).
+
 ## Chức năng chính
 
 - Xác thực người dùng bằng JWT, quản lý hồ sơ, đổi mật khẩu, follow người dùng
@@ -38,13 +51,14 @@ Các cổng mặc định khi chạy local:
 ### Backend và database
 
 - Node.js, Express, ES Modules
-- PostgreSQL, Prisma ORM
+- PostgreSQL (production: **Supabase**), Prisma ORM
 - Elasticsearch (optional) cho search + AI retrieval
 - JWT, bcryptjs, cookie-parser, cors, express-validator
 - Socket.IO cho realtime
 - Cloudinary + multer cho upload media
 - Nodemailer cho email
 - `@google/generative-ai` cho AI phía server
+- Hosting production: **Render** (web + static)
 
 ### Frontend
 

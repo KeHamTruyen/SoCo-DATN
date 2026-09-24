@@ -36,6 +36,8 @@ npm run dev
 
 Open `http://localhost:5174` and sign in with an admin account.
 
+Authz (CASL profiles, Try demo): [docs/adr/0003-admin-casl-authz-and-demo.md](../docs/adr/0003-admin-casl-authz-and-demo.md). Checklist phases: [DEVELOPMENT_CHECKLIST.md](../DEVELOPMENT_CHECKLIST.md) §4.14.
+
 ## Core API changes
 
 User-facing API no longer mounts `/api/admin` or admin-only `/api/reports` / seller-application moderation routes; those live on the admin service only.
