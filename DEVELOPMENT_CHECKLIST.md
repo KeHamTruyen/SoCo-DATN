@@ -400,6 +400,7 @@ Admin **không** mount trên user API (`admin/README.md`). Cùng DB. Authz + dem
 - [x] Settings: hiện profile + danh sách quyền (read-only)
 - [x] Smoke CI admin: login + 401 user-token + 403 demo trên route cấm
 - [x] UAT §5.3 cập nhật: Try demo + 1 resolve report + 1 seller review
+- [x] Prod: `POST /api/admin/ensure-demo` (super) upsert demo.admin + backfill profile
 
 #### Không làm (YAGNI admin)
 

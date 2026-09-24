@@ -100,6 +100,73 @@ class AdminAuthService {
 
         return { user, accessToken };
     }
+
+    /**
+     * Upsert Try-demo guest + backfill missing `permissions.profile` (prod ops).
+     * Only callable by CASL `manage all` (super).
+     */
+    async ensureDemoAdmin() {
+        const password =
+            process.env.SEED_DEMO_ADMIN_PASSWORD || "DemoAdmin@123";
+        const passwordHash = await bcrypt.hash(password, 12);
+
+        const demo = await prisma.admin.upsert({
+            where: { email: "demo.admin@socialcommerce.vn" },
+            update: {
+                username: "demo_admin",
+                fullName: "Demo Administrator",
+                passwordHash,
+                isActive: true,
+                permissions: { profile: "demo" },
+            },
+            create: {
+                email: "demo.admin@socialcommerce.vn",
+                username: "demo_admin",
+                fullName: "Demo Administrator",
+                passwordHash,
+                isActive: true,
+                permissions: { profile: "demo" },
+            },
+            select: {
+                id: true,
+                email: true,
+                username: true,
+                permissions: true,
+                isActive: true,
+            },
+        });
+
+        const admins = await prisma.admin.findMany({
+            select: { id: true, email: true, permissions: true },
+        });
+        let patched = 0;
+        for (const a of admins) {
+            if (a.email === "demo.admin@socialcommerce.vn") continue;
+            const p = a.permissions;
+            const hasProfile =
+                p &&
+                typeof p === "object" &&
+                !Array.isArray(p) &&
+                typeof p.profile === "string";
+            if (!hasProfile) {
+                await prisma.admin.update({
+                    where: { id: a.id },
+                    data: { permissions: { profile: "super" } },
+                });
+                patched++;
+            }
+        }
+
+        return {
+            demo: {
+                email: demo.email,
+                username: demo.username,
+                permissions: demo.permissions,
+                isActive: demo.isActive,
+            },
+            patchedLegacyAdmins: patched,
+        };
+    }
 }
 
 export default new AdminAuthService();

@@ -67,6 +67,13 @@ router.get(
     (req, res, next) => adminController.getGrowthStats(req, res, next),
 );
 
+/** Super-only: upsert Try-demo guest + backfill legacy admin profiles. */
+router.post(
+    "/ensure-demo",
+    authorize("manage", "all"),
+    (req, res, next) => adminController.ensureDemoAdmin(req, res, next),
+);
+
 router.get(
     "/categories",
     authorize("read", "Category"),

@@ -1,4 +1,5 @@
 import adminService from "../services/admin.service.js";
+import adminAuthService from "../services/adminAuth.service.js";
 
 class AdminController {
     async getUsers(req, res, next) {
@@ -106,6 +107,19 @@ class AdminController {
             const days = parseInt(req.query.days) || 30;
             const data = await adminService.getGrowthStats(days);
             res.json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async ensureDemoAdmin(req, res, next) {
+        try {
+            const data = await adminAuthService.ensureDemoAdmin();
+            res.json({
+                success: true,
+                message: "Demo admin ready",
+                data,
+            });
         } catch (error) {
             next(error);
         }
