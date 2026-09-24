@@ -450,20 +450,20 @@ Thay cho ma trận notification ~90 ô: **ít, nhưng chạy trên môi trườn
 
 ### 5.3 Admin (nên)
 
-- [ ] Login admin `:5174` / production admin
-- [ ] User thường không gọi được admin API (token user → 401/403)
-- [ ] Duyệt / từ chối 1 seller application giả
-- [ ] **Try demo:** vào được dashboard; không toggle user / không xóa post (403 hoặc nút ẩn)
-- [ ] Resolve 1 report + (nếu có) review 1 seller application bằng demo hoặc moderator
-- [ ] Dashboard: click pending reports / seller apps → đúng queue
-- [ ] Settings: thấy profile + danh sách quyền (read-only)
+- [x] Login admin `:5174` / production admin
+- [x] User thường không gọi được admin API (token user → 401/403)
+- [ ] Duyệt / từ chối 1 seller application giả _(prod queue trống — toàn APPROVED)_
+- [x] **Try demo:** vào được dashboard; không toggle user / không xóa post (403 hoặc nút ẩn)
+- [x] Resolve 1 report + (nếu có) review 1 seller application bằng demo hoặc moderator _(report `seed-report-5` resolved; seller REVIEWING = 0)_
+- [x] Dashboard: click pending reports / seller apps → đúng queue
+- [x] Settings: thấy profile + danh sách quyền (read-only)
 
 ### 5.4 Deploy (bắt buộc ngày demo)
 
-- [ ] `GET /health` user API + admin API
-- [ ] Mở 4 URL Render, login QA
-- [ ] Không lộ `.env` trên GitHub
-- [ ] Gọi thử 1 upload (avatar hoặc post) — Cloudinary còn quota
+- [x] `GET /health` user API + admin API
+- [x] Mở 4 URL Render, login QA _(admin super + demo; user `an.pham@soco.vn`)_
+- [x] Không lộ `.env` trên GitHub
+- [x] Gọi thử 1 upload (avatar hoặc post) — Cloudinary còn quota
 
 ---
 
