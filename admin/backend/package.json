@@ -8,6 +8,7 @@
         "start": "node src/server.js",
         "dev": "nodemon src/server.js",
         "prisma:generate": "npm run generate --prefix ../../database",
+        "postinstall": "npm ci --prefix ../shared",
         "smoke": "node scripts/smoke-authz.mjs",
         "selfcheck:ability": "node ../shared/ability.selfcheck.js"
     },
