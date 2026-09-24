@@ -98,7 +98,7 @@ services:
     env: node
     plan: free
     rootDir: .
-    buildCommand: npm ci --prefix backend && npm ci --prefix database && npm run generate --prefix database && npm ci --prefix admin/backend
+    buildCommand: npm ci --prefix backend && npm ci --prefix database && npm run generate --prefix database && npm ci --prefix admin/shared && npm ci --prefix admin/backend
     startCommand: npm start --prefix admin/backend
     healthCheckPath: /health
     envVars:
